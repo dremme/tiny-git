@@ -1,0 +1,234 @@
+.root {
+    -fx-base: #3c3f41;
+    -fx-background: -fx-base;
+    -fx-control-inner-background: -fx-base;
+    -fx-accent: #334d66;
+    -fx-focus-color: #297acc;
+    -fx-faint-focus-color: #297acc33;
+    -fx-selection-bar-non-focused: -fx-accent;
+    -fx-default-button: -fx-accent;
+    -fx-body-color: derive(-fx-color, 15%);
+    -fx-body-color-bottomup: derive(-fx-color, 15%);
+    -fx-body-color-to-right: derive(-fx-color, 15%);
+    -fx-mark-color: derive(white, -10%);
+    -fx-mark-highlight-color: white;
+    -fx-font: normal 13px "Roboto", sans-serif;
+}
+
+.scroll-bar > .increment-button > .increment-arrow,
+.scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-background-color: -fx-mark-color;
+}
+
+.scroll-bar > .increment-button:hover > .increment-arrow,
+.scroll-bar > .decrement-button:hover > .decrement-arrow {
+    -fx-background-color: -fx-mark-highlight-color;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: -fx-outer-border, -fx-text-box-border, -fx-background;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+    -fx-padding: 0 0.5em;
+    -fx-graphic-text-gap: 1em;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-color: -fx-accent;
+    -fx-background: -fx-accent;
+}
+
+.text-input {
+    -fx-prompt-text-fill: derive(-fx-text-inner-color, -50%)
+}
+
+.tool-bar {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-background, 25%) 0%, derive(-fx-background, -25%) 90%),
+    linear-gradient(to bottom, -fx-background 2%, derive(-fx-background, -5%) 95%);
+}
+
+.tool-bar > .container > .separator {
+    -fx-padding: 0 0.5em;
+}
+
+.tool-bar > .container > .separator .line {
+    -fx-border-color: transparent;
+}
+
+.split-pane:horizontal > .split-pane-divider {
+    -fx-background-color: -fx-box-border, -fx-body-color;
+    -fx-background-insets: 0, 0 1 0 1;
+}
+
+.split-pane:vertical > .split-pane-divider {
+    -fx-background-color: -fx-box-border, -fx-body-color;
+    -fx-background-insets: 0, 1 0 1 0;
+}
+
+.table-row-cell {
+    -fx-border-color: transparent;
+    -fx-table-cell-border-color: transparent;
+}
+
+.icon {
+    -fx-font-family: "FontAwesome";
+    -fx-wrap-text: false;
+    -fx-text-overrun: clip;
+    -fx-alignment: center;
+    -fx-font-size: 14px;
+    -fx-pref-width: 14px;
+    -fx-pref-height: 14px;
+}
+
+.git-view > .tool-bar .button {
+    -fx-pref-width: 2.5em;
+    -fx-pref-height: 2.5em;
+}
+
+.git-view .overlay {
+    -fx-background-color: -fx-background;
+    -fx-font-size: 2em;
+}
+
+.git-view .overlay .icon {
+    -fx-font-size: 2em;
+}
+
+.git-view .overlay .box {
+    -fx-alignment: center;
+}
+
+.git-view .overlay .box.error {
+    -fx-background-color: #f00;
+}
+
+.settings-view {
+    -fx-hgap: 0.333em;
+    -fx-vgap: 0.333em;
+}
+
+.settings-view .label {
+    -fx-font-weight: bold;
+}
+
+.repository-cell {
+    -fx-spacing: 6px;
+    -fx-alignment: center-left;
+}
+
+.repository-cell .settings {
+    -fx-padding: 0;
+    /*-fx-opacity: 0;*/
+    -fx-background-color: transparent;
+}
+
+/*.repository-cell:hover .settings {*/
+/*-fx-opacity: 1;*/
+/*}*/
+
+.repository-cell .settings:hover .icon {
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.repository-cell .settings .icon {
+    -fx-text-fill: derive(-fx-text-base-color, -40%);
+}
+
+.repository-cell.current .label {
+    -fx-text-fill: #409fff;
+}
+
+.log-view {
+    -fx-orientation: vertical;
+}
+
+.log-view .table-view {
+    -fx-background-insets: 0, 0;
+    -fx-padding: 0;
+}
+
+.commit-view {
+    -fx-hgap: 0.333em;
+    -fx-vgap: 0.333em;
+}
+
+.working-copy-view {
+    -fx-orientation: horizontal;
+}
+
+.working-copy-view .files {
+    -fx-orientation: vertical;
+}
+
+.working-copy-view .files .file-status-view {
+    -fx-background-insets: 0, 0;
+    -fx-padding: 0;
+}
+
+.file-status-view .list-cell {
+    -fx-graphic-text-gap: 1em;
+}
+
+.commit-details-view .commit-details {
+    -fx-padding: 16px;
+    -fx-hgap: 0.333em;
+    -fx-vgap: 0.333em;
+}
+
+.commit-details-view .commit-details > .label {
+    -fx-font-weight: bold;
+}
+
+.commit-details-view .commit-details > .text-field,
+.commit-details-view .commit-details > .text-field:focused,
+.commit-details-view .commit-details > .text-area,
+.commit-details-view .commit-details > .text-area:focused,
+.commit-details-view .commit-details > .text-area .content,
+.commit-details-view .commit-details > .text-area:focused .content {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+
+.commit-details-view .commit-details > .text-area {
+    -fx-highlight-fill: -fx-background;
+}
+
+.commit-details-view .commit-details > .text-area:focused {
+    -fx-highlight-fill: -fx-accent;
+}
+
+.commit-details-view .file-status-view {
+    -fx-background-insets: 0, 0;
+    -fx-padding: 0;
+}
+
+.branch-badge {
+    -fx-padding: 1px 6px;
+    -fx-background-color: derive(-fx-accent, 25%), -fx-accent;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 2, 2;
+}
+
+.branch-badge.current {
+    -fx-accent: -fx-focus-color;
+}
+
+.progress-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.5);
+}
+
+.progress-overlay .progress-indicator {
+    -fx-max-width: 400px;
+    -fx-max-height: 400px;
+}
+
+.progress-overlay .progress-indicator:indeterminate .segment {
+    -fx-background-color: -fx-focus-color;
+}
+
+.status-count-view {
+    -fx-alignment: center-left;
+    -fx-spacing: 6px;
+}
