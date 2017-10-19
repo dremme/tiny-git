@@ -20,13 +20,14 @@ class FileDiffView : StackPane() {
 
     // TODO: solve with observable?
     fun setFile(repository: LocalRepository, file: LocalFile) {
-        when (file.status) {
-            LocalFile.Status.ADDED -> setContent(LocalGit.diffCached(repository, file).diff)
-            LocalFile.Status.CHANGED -> setContent(LocalGit.diffCached(repository, file).diff)
-            LocalFile.Status.REMOVED -> setContent(LocalGit.diffCached(repository, file).diff)
-            LocalFile.Status.MODIFIED -> setContent(LocalGit.diff(repository, file).diff)
-            LocalFile.Status.UNTRACKED -> setContent(LocalGit.diff(repository, file).diff)
-        }
+        setContent(when (file.status) {
+            LocalFile.Status.ADDED -> LocalGit.diffCached(repository, file)
+            LocalFile.Status.CHANGED -> LocalGit.diffCached(repository, file)
+            LocalFile.Status.REMOVED -> LocalGit.diffCached(repository, file)
+            LocalFile.Status.MODIFIED -> LocalGit.diff(repository, file)
+            LocalFile.Status.UNTRACKED -> LocalGit.diff(repository, file)
+        }.diff)
+        webView.childrenUnmodifiable.forEach { println(it) }
     }
 
     // TODO: solve with observable?
@@ -59,7 +60,7 @@ class FileDiffView : StackPane() {
                     .line-number {
                         padding: 3px 6px;
                         text-align: right;
-                        color: #aaa;
+                        color: rgba(255,255,255,0.6);
                         background-color: #535759;
                     }
                     .line-number.header {
@@ -87,7 +88,15 @@ class FileDiffView : StackPane() {
                         background-color: #593636;
                     }
                     .code.eof {
-                        color: #999;
+                        color: rgba(255,255,255,0.6);
+                    }
+                    .marker {
+                        margin-left: 4px;
+                        padding: 0 2px;
+                        color: rgba(255,255,255,0.45);
+                        background-color: rgba(255,255,255,0.15);
+                        border-radius: 2px;
+                        font-size: 11px;
                     }
                 </style>
             </head>
@@ -115,7 +124,9 @@ class FileDiffView : StackPane() {
         val blocks = mutableListOf<DiffBlock>()
         var blockNumber = -1
         val numbers = arrayOf(0, 0)
-        return diff.split("\n")
+        return diff.replace("\r\n", "\$CR$\n")
+                .replace("\n", "\$LF$\n")
+                .split("\\r?\\n".toRegex())
                 .dropLast(1)
                 .dropWhile { !it.isBlockHeader() }
                 .onEach { if (it.isBlockHeader()) blocks += parseBlockHeader(it) }
@@ -155,6 +166,7 @@ class FileDiffView : StackPane() {
                 </tr>
             """
         }
+        val code: String
         val codeClass: String
         val oldLineNumber: String
         val newLineNumber: String
@@ -162,21 +174,25 @@ class FileDiffView : StackPane() {
             line.startsWith("+") -> {
                 newLineNumber = numbers[1]++.toString()
                 oldLineNumber = "&nbsp;"
+                code = line.replaceMarkers()
                 codeClass = "added"
             }
             line.startsWith("-") -> {
                 newLineNumber = "&nbsp;"
                 oldLineNumber = numbers[0]++.toString()
+                code = line.replaceMarkers()
                 codeClass = "removed"
             }
             line.startsWith("\\") -> {
                 newLineNumber = "&nbsp;"
                 oldLineNumber = "&nbsp;"
+                code = line.stripMarkers()
                 codeClass = "eof"
             }
             else -> {
                 oldLineNumber = numbers[0]++.toString()
                 newLineNumber = numbers[1]++.toString()
+                code = line.stripMarkers()
                 codeClass = "&nbsp;"
             }
         }
@@ -184,10 +200,16 @@ class FileDiffView : StackPane() {
             <tr>
                 <td class="line-number $codeClass">$oldLineNumber</td>
                 <td class="line-number $codeClass">$newLineNumber</td>
-                <td class="code $codeClass">$line</td>
+                <td class="code $codeClass">$code</td>
             </tr>
         """
     }
+
+    private fun String.replaceMarkers() =
+            this.replace("\\\$CR\\$\\\$LF\\$$".toRegex(), "<span class=\"marker\">&#92;r&#92;n</span>")
+                    .replace("\\\$LF\\$$".toRegex(), "<span class=\"marker\">&#92;n</span>")
+
+    private fun String.stripMarkers() = this.replace("(\\\$CR\\$)?\\\$LF\\$$".toRegex(), "")
 
     private class DiffBlock(val number1: Int, val length1: Int, val number2: Int, val length2: Int)
 

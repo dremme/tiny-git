@@ -31,6 +31,7 @@ object FontAwesome {
     fun question() = icon('\uf128')
     fun questionCircle() = icon('\uf059')
     fun refresh() = icon('\uf021')
+    fun tag() = icon('\uf02b')
     fun undo() = icon('\uf0e2')
     fun upload() = icon('\uf093')
 

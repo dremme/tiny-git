@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.git.LocalCredentials
 import hamburg.remme.tinygit.git.LocalRepository
+import javafx.event.EventHandler
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
 import javafx.scene.control.Dialog
@@ -9,10 +10,12 @@ import javafx.scene.control.Label
 import javafx.scene.control.PasswordField
 import javafx.scene.control.TextFormatter
 import javafx.scene.layout.GridPane
+import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
 import javafx.util.converter.IntegerStringConverter
+import java.io.File
 
 class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>() {
 
@@ -26,6 +29,18 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
 
         val url = textField(repository.path, editable = false)
         val ssh = textField(repository.credentials?.ssh ?: "")
+        val sshSearch = button(
+                icon = FontAwesome.folderOpen(),
+                action = EventHandler {
+                    val chooser = FileChooser()
+                    chooser.title = "Choose a Public Key"
+                    chooser.initialDirectory = File(System.getProperty("user.home"))
+                    chooser.showOpenDialog(this.owner)?.let { ssh.text = it.absolutePath }
+                })
+                .also {
+                    it.maxWidth = Double.MAX_VALUE
+                    GridPane.setFillWidth(it, true)
+                }
         val username = textField(repository.credentials?.username ?: "")
         val password = PasswordField().also { it.text = repository.credentials?.password ?: "" }
         val host = textField(repository.proxyHost ?: "")
@@ -37,7 +52,8 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         content.add(Label("URL:"), 0, 0)
         content.add(url, 1, 0, 3, 1)
         content.add(Label("SSH Key:"), 0, 1)
-        content.add(ssh, 1, 1, 3, 1)
+        content.add(ssh, 1, 1, 2, 1)
+        content.add(sshSearch, 3, 1)
         content.add(Label("User:"), 0, 2)
         content.add(username, 1, 2, 3, 1)
         content.add(Label("Password:"), 0, 3)
@@ -54,7 +70,6 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
                 }
                 repository.proxyHost = host.text
                 repository.proxyPort = port.text.toInt()
-//                State.fireRefresh()
             }
         }
         dialogPane.content = content
