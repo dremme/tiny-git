@@ -15,14 +15,34 @@
     -fx-font: normal 13px "Roboto", sans-serif;
 }
 
-.scroll-bar > .increment-button > .increment-arrow,
-.scroll-bar > .decrement-button > .decrement-arrow {
-    -fx-background-color: -fx-mark-color;
+.scroll-bar > .thumb {
+    -fx-background-radius: 1em;
 }
 
-.scroll-bar > .increment-button:hover > .increment-arrow,
-.scroll-bar > .decrement-button:hover > .decrement-arrow {
-    -fx-background-color: -fx-mark-highlight-color;
+.scroll-bar > .increment-button,
+.scroll-bar > .decrement-button {
+    -fx-padding: 0;
+}
+
+.scroll-bar > .increment-button > .increment-arrow,
+.scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-shape: "";
+}
+
+.scroll-bar:horizontal > .increment-button > .increment-arrow {
+    -fx-padding: 0.5em 0 0.5em 0;
+}
+
+.scroll-bar:vertical > .increment-button > .increment-arrow {
+    -fx-padding: 0 0.5em 0 0.5em;
+}
+
+.scroll-bar:horizontal > .decrement-button > .decrement-arrow {
+    -fx-padding: 0.5em 0 0.5em 0;
+}
+
+.scroll-bar:vertical > .decrement-button > .decrement-arrow {
+    -fx-padding: 0 0.5em 0 0.5em;
 }
 
 .tab-pane > .tab-header-area > .tab-header-background {
@@ -30,7 +50,7 @@
 }
 
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
-    -fx-padding: 0 0.5em;
+    -fx-padding: 0 0.5em 0 0.5em;
     -fx-graphic-text-gap: 1em;
 }
 
@@ -49,21 +69,17 @@
 }
 
 .tool-bar > .container > .separator {
-    -fx-padding: 0 0.5em;
+    -fx-padding: 0 0.5em 0 0.5em;
 }
 
 .tool-bar > .container > .separator .line {
     -fx-border-color: transparent;
 }
 
-.split-pane:horizontal > .split-pane-divider {
-    -fx-background-color: -fx-box-border, -fx-body-color;
-    -fx-background-insets: 0, 0 1 0 1;
-}
-
-.split-pane:vertical > .split-pane-divider {
-    -fx-background-color: -fx-box-border, -fx-body-color;
-    -fx-background-insets: 0, 1 0 1 0;
+.split-pane > .split-pane-divider {
+    -fx-padding: 0 1px 0 2px;
+    -fx-background-color: -fx-box-border;
+    -fx-background-insets: 0;
 }
 
 .table-row-cell {
@@ -141,6 +157,8 @@
 
 .log-view {
     -fx-orientation: vertical;
+    -fx-background-insets: 0, 0;
+    -fx-padding: 0;
 }
 
 .log-view .table-view {
@@ -205,7 +223,7 @@
 }
 
 .branch-badge {
-    -fx-padding: 1px 6px;
+    -fx-padding: 1px 6px 1px 6px;
     -fx-background-color: derive(-fx-accent, 25%), -fx-accent;
     -fx-background-insets: 0, 1;
     -fx-background-radius: 2, 2;
