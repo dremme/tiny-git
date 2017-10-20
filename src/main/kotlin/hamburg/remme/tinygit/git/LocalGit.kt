@@ -9,6 +9,7 @@ import org.eclipse.jgit.api.PushCommand
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffFormatter
 import org.eclipse.jgit.diff.RawTextComparator
+import org.eclipse.jgit.lib.AnyObjectId
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.ObjectReader
 import org.eclipse.jgit.lib.Repository
@@ -150,16 +151,25 @@ object LocalGit {
     }
 
     /**
+     * - `git diff <[id]> <parent-id> <[file]>`
+     */
+    fun diff(repository: LocalRepository, file: LocalFile, id: String): LocalDiff {
+        return repository.open { gitRepo ->
+            val (newTree, oldTree) = gitRepo.newObjectReader().treesOf(ObjectId.fromString(id))
+            ByteArrayOutputStream().use {
+                Git(gitRepo).diff().setPathFilter(PathFilter.create(file.path)).setNewTree(newTree).setOldTree(oldTree).setOutputStream(it).call()
+                LocalDiff(it.toString("UTF-8"))
+            }
+        }
+    }
+
+    /**
      * - `git diff-tree --no-commit-id -r <[id]>`
      */
     fun diffTree(repository: LocalRepository, id: String): List<LocalFile> {
         return repository.open { gitRepo ->
             val reader = gitRepo.newObjectReader()
-            val (newTree, oldTree) = RevWalk(reader).use {
-                val commit = it.parseCommit(ObjectId.fromString(id))
-                val parent = if (commit.parentCount > 0) it.parseCommit(commit.parents[0]) else null
-                reader.iteratorOf(commit) to reader.iteratorOf(parent)
-            }
+            val (newTree, oldTree) = reader.treesOf(ObjectId.fromString(id))
             val formatter = DiffFormatter(DisabledOutputStream.INSTANCE)
             formatter.setReader(reader, gitRepo.config)
             formatter.setDiffComparator(RawTextComparator.DEFAULT)
@@ -175,6 +185,14 @@ object LocalGit {
                     }
                 }.sortedBy { it.status }
             }
+        }
+    }
+
+    private fun ObjectReader.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {
+        return RevWalk(this).use {
+            val commit = it.parseCommit(commitId)
+            val parent = if (commit.parentCount > 0) it.parseCommit(commit.parents[0]) else null
+            this.iteratorOf(commit) to this.iteratorOf(parent)
         }
     }
 

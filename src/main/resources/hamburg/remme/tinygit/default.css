@@ -46,7 +46,8 @@
 }
 
 .tab-pane > .tab-header-area > .tab-header-background {
-    -fx-background-color: -fx-outer-border, -fx-text-box-border, -fx-background;
+    -fx-background-color: -fx-outer-border, -fx-background;
+    -fx-background-insets: 0, 0 0 1 0;
 }
 
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {

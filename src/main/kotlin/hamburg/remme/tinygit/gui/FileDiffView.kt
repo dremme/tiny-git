@@ -19,7 +19,7 @@ class FileDiffView : StackPane() {
     }
 
     // TODO: solve with observable?
-    fun setFile(repository: LocalRepository, file: LocalFile) {
+    fun update(repository: LocalRepository, file: LocalFile) {
         setContent(when (file.status) {
             LocalFile.Status.ADDED -> LocalGit.diffCached(repository, file)
             LocalFile.Status.CHANGED -> LocalGit.diffCached(repository, file)
@@ -27,11 +27,15 @@ class FileDiffView : StackPane() {
             LocalFile.Status.MODIFIED -> LocalGit.diff(repository, file)
             LocalFile.Status.UNTRACKED -> LocalGit.diff(repository, file)
         }.diff)
-        webView.childrenUnmodifiable.forEach { println(it) }
     }
 
     // TODO: solve with observable?
-    fun clearFile() {
+    fun update(repository: LocalRepository, file: LocalFile, id: String) {
+        setContent(LocalGit.diff(repository, file, id).diff)
+    }
+
+    // TODO: solve with observable?
+    fun clear() {
         setContent(null)
     }
 
@@ -91,6 +95,8 @@ class FileDiffView : StackPane() {
                         color: rgba(255,255,255,0.6);
                     }
                     .marker {
+                        -webkit-user-select: none;
+                        user-select: none;
                         margin-left: 4px;
                         padding: 0 2px;
                         color: rgba(255,255,255,0.45);
