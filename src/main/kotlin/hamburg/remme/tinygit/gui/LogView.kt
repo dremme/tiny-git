@@ -19,10 +19,10 @@ import javafx.util.Callback
 
 class LogView : Tab() {
 
-    private val pane = SplitPane()
     private val error = StackPane()
     private val overlay = StackPane(ProgressIndicator(-1.0))
     private val localCommits = TableView<LocalCommit>()
+    private val commitDetails = CommitDetailsView()
     private var logTask: Task<*>? = null
 
     init {
@@ -43,11 +43,12 @@ class LogView : Tab() {
         localCommits.columns.addAll(message, date, author, commit)
         localCommits.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
         localCommits.selectionModel.selectedItemProperty().addListener { _, _, it ->
-            setCommit(State.getSelectedRepository(), it)
+            it?.let { commitDetails.update(State.getSelectedRepository(), it) }
         }
 
+        val pane = SplitPane()
         pane.styleClass += "log-view"
-        pane.items += localCommits
+        pane.items.addAll(localCommits, commitDetails)
 
         error.children += HBox(
                 Label("Fetching repository failed. Check the settings. "),
@@ -62,18 +63,6 @@ class LogView : Tab() {
 
         State.selectedRepositoryProperty().addListener { _, _, it -> fetchCommits(it) }
         State.addRefreshListener { fetchCurrent() }
-    }
-
-    private fun setCommit(repository: LocalRepository, commit: LocalCommit?) {
-        var dividerPosition = 0.5
-        if (pane.items.size > 1) {
-            dividerPosition = pane.dividerPositions[0]
-            pane.items.removeAt(1)
-        }
-        commit?.let {
-            pane.items += CommitDetailsView(repository, it)
-            pane.setDividerPosition(0, dividerPosition)
-        }
     }
 
     private fun fetchCurrent() {

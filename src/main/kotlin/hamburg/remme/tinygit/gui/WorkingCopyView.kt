@@ -33,7 +33,7 @@ class WorkingCopyView : Tab() {
         stagedFiles.selectionModel.selectedItems.addListener(ListChangeListener {
             unstageSelected.isDisable = it.list.isEmpty()
             if (it.list.isNotEmpty()) {
-                fileDiff.setFile(State.getSelectedRepository(), stagedFiles.selectionModel.selectedItem)
+                fileDiff.update(State.getSelectedRepository(), stagedFiles.selectionModel.selectedItem)
                 unstagedFiles.selectionModel.clearSelection()
             }
         })
@@ -59,7 +59,7 @@ class WorkingCopyView : Tab() {
         unstagedFiles.selectionModel.selectedItems.addListener(ListChangeListener {
             stageSelected.isDisable = it.list.isEmpty()
             if (it.list.isNotEmpty()) {
-                fileDiff.setFile(State.getSelectedRepository(), unstagedFiles.selectionModel.selectedItem)
+                fileDiff.update(State.getSelectedRepository(), unstagedFiles.selectionModel.selectedItem)
                 stagedFiles.selectionModel.clearSelection()
             }
         })
@@ -81,11 +81,11 @@ class WorkingCopyView : Tab() {
         content = pane
 
         State.selectedRepositoryProperty().addListener { _, _, it ->
-            fileDiff.clearFile()
+            fileDiff.clear()
             fetchFiles(it)
         }
         State.addRefreshListener {
-            fileDiff.clearFile()
+            fileDiff.clear()
             fetchCurrent()
         }
     }
@@ -103,8 +103,8 @@ class WorkingCopyView : Tab() {
         stagedFiles.items.setAll(status.staged)
         unstagedFiles.items.setAll(status.unstaged)
 
-        if (stagedSelected) stagedFiles.selectionModel.select(selected)
-        else unstagedFiles.selectionModel.select(selected)
+        if (stagedSelected) stagedFiles.items.find { it == selected }?.let { stagedFiles.selectionModel.select(it) }
+        else unstagedFiles.items.find { it == selected }?.let { unstagedFiles.selectionModel.select(it) }
     }
 
     private fun stage(repository: LocalRepository) {
