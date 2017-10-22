@@ -14,6 +14,7 @@
         <kotlin.version>1.1.51</kotlin.version>
         <org.eclipse.jgit.version>4.5.0.201609210915-r</org.eclipse.jgit.version>
         <snakeyaml.version>1.18</snakeyaml.version>
+        <ikonli.version>2.0.0</ikonli.version>
     </properties>
 
     <dependencies>
@@ -32,12 +33,21 @@
             <artifactId>snakeyaml</artifactId>
             <version>${snakeyaml.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-javafx</artifactId>
+            <version>${ikonli.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-fontawesome-pack</artifactId>
+            <version>${ikonli.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
-        <finalName>${project.artifactId}-${version}</finalName>
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>

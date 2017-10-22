@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.event.EventHandler
@@ -11,6 +12,7 @@ import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.layout.HBox
+import org.kordamp.ikonli.fontawesome.FontAwesome
 
 class RepositoryView(repositories: ObservableList<LocalRepository>) : TreeView<RepositoryView.RepositoryEntry>() {
 
@@ -85,28 +87,27 @@ class RepositoryView(repositories: ObservableList<LocalRepository>) : TreeView<R
 
     private class RepositoryEntryListCell : TreeCell<RepositoryEntry>() {
 
-        // TODO: clean-up
         override fun updateItem(item: RepositoryEntry?, empty: Boolean) {
             super.updateItem(item, empty)
             graphic = if (empty) null else {
                 when (item!!.type) {
                     RepositoryEntryType.REPOSITORY -> repositoryBox(item)
-                    RepositoryEntryType.LOCAL -> HBox(FontAwesome.desktop(), Label(item.label))
-                    RepositoryEntryType.REMOTE -> HBox(FontAwesome.cloud(), Label(item.label))
-                    RepositoryEntryType.BRANCH -> HBox(FontAwesome.codeFork(), Label(item.label))
+                    RepositoryEntryType.LOCAL -> HBox(icon(FontAwesome.DESKTOP), Label(item.label))
+                    RepositoryEntryType.REMOTE -> HBox(icon(FontAwesome.CLOUD), Label(item.label))
+                    RepositoryEntryType.BRANCH -> HBox(icon(FontAwesome.CODE_FORK), Label(item.label))
                     RepositoryEntryType.CURRENT_BRANCH -> currentBox(item)
                 }.also { it.styleClass += "repository-cell" }
             }
         }
 
         private fun repositoryBox(item: RepositoryEntry) =
-                HBox(FontAwesome.git(), Label(item.label).also { it.style = "-fx-font-weight:bold" },
-                        button(icon = FontAwesome.cog(),
+                HBox(icon(FontAwesome.GIT), Label(item.label).also { it.style = "-fx-font-weight:bold" },
+                        button(icon = icon(FontAwesome.COG),
                                 styleClass = "settings",
                                 action = EventHandler { SettingsDialog(item.repository, scene.window).show() }))
 
         private fun currentBox(item: RepositoryEntry) =
-                HBox(FontAwesome.codeFork(), Label(item.label), FontAwesome.check()).also { it.styleClass += "current" }
+                HBox(icon(FontAwesome.CODE_FORK), Label(item.label), icon(FontAwesome.CHECK)).also { it.styleClass += "current" }
 
     }
 

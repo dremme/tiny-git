@@ -3,8 +3,9 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import javafx.application.Platform
-import javafx.collections.ListChangeListener
+import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
 import javafx.event.EventHandler
 import javafx.scene.control.Label
@@ -18,6 +19,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.stage.DirectoryChooser
+import org.kordamp.ikonli.fontawesome.FontAwesome
 import java.io.File
 
 class GitView : VBox() {
@@ -30,11 +32,11 @@ class GitView : VBox() {
         styleClass += "git-view"
 
         val toolBar = ToolBar(
-                button(icon = FontAwesome.database(),
-                        tooltip = "Open working copy",
-                        action = EventHandler {
+                button("Add Working Copy",
+                        icon(FontAwesome.DATABASE),
+                        EventHandler {
                             val chooser = DirectoryChooser()
-                            chooser.title = "Choose a Working Copy"
+                            chooser.title = "Add Working Copy"
                             chooser.showDialog(this.scene.window)?.let {
                                 if (File("${it.absolutePath}/.git").exists()) {
                                     State.addRepository(LocalRepository(it.absolutePath))
@@ -43,64 +45,62 @@ class GitView : VBox() {
                             }
                         }),
                 Separator(),
-                button(icon = FontAwesome.plus(),
-                        tooltip = "New commit",
+                button("Commit",
+                        icon(FontAwesome.PLUS),
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
                         action = EventHandler { commit(State.getSelectedRepository()) }),
                 Separator(),
-                button(icon = FontAwesome.arrowUp(),
-                        tooltip = "Push",
+                button("Push",
+                        icon(FontAwesome.ARROW_UP),
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
                         action = EventHandler { push(State.getSelectedRepository()) }),
-                button(icon = FontAwesome.arrowDown(),
-                        tooltip = "Pull",
+                button("Pull",
+                        icon(FontAwesome.ARROW_DOWN),
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
                         action = EventHandler { pull(State.getSelectedRepository()) }),
-                button(icon = FontAwesome.refresh(),
-                        tooltip = "Fetch and prune",
+                button("Fetch",
+                        icon(FontAwesome.REFRESH),
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
                         action = EventHandler { fetch(State.getSelectedRepository()) }),
-                button(icon = FontAwesome.tag(),
-                        tooltip = "Tag",
+                button("Tag",
+                        icon(FontAwesome.TAG),
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
                         action = EventHandler { }),
                 Separator(),
-                button(icon = FontAwesome.codeFork(),
-                        tooltip = "Branch",
+                button("Branch",
+                        icon(FontAwesome.CODE_FORK),
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
                         action = EventHandler { }),
-                button(icon = FontAwesome.codeFork().also { it.scaleY = -1.0 },
-                        tooltip = "Merge",
+                button("Merge",
+                        icon(FontAwesome.CODE_FORK).also { it.scaleY = -1.0 },
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
                         action = EventHandler { }),
                 Separator(),
-                button(icon = FontAwesome.download(),
-                        tooltip = "Stash",
+                button("Stash",
+                        icon(FontAwesome.DOWNLOAD),
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
                         action = EventHandler { stash(State.getSelectedRepository()) }),
-                button(icon = FontAwesome.upload(),
-                        tooltip = "Apply stash",
+                button("Apply Stash",
+                        icon(FontAwesome.UPLOAD),
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
                         action = EventHandler { stashApply(State.getSelectedRepository()) }),
                 Separator(),
-                button(icon = FontAwesome.undo(),
-                        tooltip = "Soft reset",
+                button("Reset",
+                        icon(FontAwesome.UNDO),
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
                         action = EventHandler { }))
 
         val tabs = TabPane(LogView(), WorkingCopyView())
         val content = SplitPane(localRepositories, tabs)
         Platform.runLater { content.setDividerPosition(0, 0.20) }
-        Platform.runLater { content.setDividerPosition(1, 0.40) }
 
         val info = StackPane(HBox(
                 Label("Click "),
-                Label("", FontAwesome.cloud()),
+                Label("", icon(FontAwesome.CLOUD)),
                 Label(" to add a working copy."))
                 .also { it.styleClass += "box" })
         info.styleClass += "overlay"
-        info.isVisible = repositories.isEmpty()
-        repositories.addListener(ListChangeListener { info.isVisible = it.list.isEmpty() })
+        info.visibleProperty().bind(Bindings.isEmpty(repositories))
 
         overlay.styleClass += "progress-overlay"
         overlay.isVisible = false

@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
 import javafx.event.EventHandler
 import javafx.scene.control.SplitPane
@@ -11,6 +12,7 @@ import javafx.scene.control.Tab
 import javafx.scene.control.ToolBar
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
+import org.kordamp.ikonli.fontawesome.FontAwesome
 
 class WorkingCopyView : Tab() {
 
@@ -20,18 +22,16 @@ class WorkingCopyView : Tab() {
 
     init {
         text = "Files"
-        graphic = FontAwesome.desktop()
+        graphic = icon(FontAwesome.DESKTOP)
         isClosable = false
 
         val unstageAll = button("Unstage all",
                 action = EventHandler { unstage(State.getSelectedRepository()) })
         val unstageSelected = button("Unstage selected",
                 action = EventHandler { unstage(State.getSelectedRepository(), stagedFiles.selectionModel.selectedItems) })
-        unstageAll.isDisable = true
-        unstageSelected.isDisable = true
-        stagedFiles.items.addListener(ListChangeListener { unstageAll.isDisable = it.list.isEmpty() })
+        unstageAll.disableProperty().bind(Bindings.isEmpty(stagedFiles.items))
+        unstageSelected.disableProperty().bind(Bindings.isEmpty(stagedFiles.selectionModel.selectedItems))
         stagedFiles.selectionModel.selectedItems.addListener(ListChangeListener {
-            unstageSelected.isDisable = it.list.isEmpty()
             if (it.list.isNotEmpty()) {
                 fileDiff.update(State.getSelectedRepository(), stagedFiles.selectionModel.selectedItem)
                 unstagedFiles.selectionModel.clearSelection()
@@ -49,15 +49,10 @@ class WorkingCopyView : Tab() {
                 action = EventHandler { stage(State.getSelectedRepository()) })
         val stageSelected = button("Stage selected",
                 action = EventHandler { stage(State.getSelectedRepository(), unstagedFiles.selectionModel.selectedItems) })
-        update.isDisable = true
-        stageAll.isDisable = true
-        stageSelected.isDisable = true
-        unstagedFiles.items.addListener(ListChangeListener {
-            update.isDisable = it.list.isEmpty()
-            stageAll.isDisable = it.list.isEmpty()
-        })
+        update.disableProperty().bind(Bindings.isEmpty(unstagedFiles.items))
+        stageAll.disableProperty().bind(Bindings.isEmpty(unstagedFiles.items))
+        stageSelected.disableProperty().bind(Bindings.isEmpty(unstagedFiles.selectionModel.selectedItems))
         unstagedFiles.selectionModel.selectedItems.addListener(ListChangeListener {
-            stageSelected.isDisable = it.list.isEmpty()
             if (it.list.isNotEmpty()) {
                 fileDiff.update(State.getSelectedRepository(), unstagedFiles.selectionModel.selectedItem)
                 stagedFiles.selectionModel.clearSelection()

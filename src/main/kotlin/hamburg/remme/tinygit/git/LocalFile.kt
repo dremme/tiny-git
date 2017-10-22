@@ -21,6 +21,6 @@ class LocalFile(val path: String, val status: Status) {
         return path.hashCode()
     }
 
-    enum class Status { ADDED, CHANGED, MODIFIED, REMOVED, UNTRACKED }
+    enum class Status { CONFLICT, ADDED, CHANGED, MODIFIED, REMOVED, MISSING, UNTRACKED }
 
 }

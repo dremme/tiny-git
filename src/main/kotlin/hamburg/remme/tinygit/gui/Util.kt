@@ -6,6 +6,7 @@ import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.control.Button
+import javafx.scene.control.Label
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TextArea
@@ -14,11 +15,31 @@ import javafx.scene.control.Tooltip
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
+import javafx.scene.paint.Color
 import javafx.util.Callback
+import org.kordamp.ikonli.Ikon
+import org.kordamp.ikonli.javafx.FontIcon
 import java.time.format.DateTimeFormatter
 
 val shortDate = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val fullDate = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
+
+fun label(text: String = "",
+          icon: Node? = null,
+          color: String? = null,
+          tooltip: String? = null): Label {
+    val label = Label(text)
+    icon?.let { label.graphic = it }
+    color?.let { label.style = "-fx-text-fill:$it;" }
+    tooltip?.let { label.tooltip = Tooltip(it) }
+    return label
+}
+
+fun icon(ikon: Ikon, color: String = "#fff"): FontIcon {
+    val icon = FontIcon(ikon)
+    icon.iconColor = Color.web(color)
+    return icon
+}
 
 fun button(label: String = "",
            icon: Node? = null,

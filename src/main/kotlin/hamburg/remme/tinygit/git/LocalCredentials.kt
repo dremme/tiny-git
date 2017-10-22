@@ -1,9 +1,35 @@
 package hamburg.remme.tinygit.git
 
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.Session
+import org.eclipse.jgit.api.TransportConfigCallback
+import org.eclipse.jgit.transport.JschConfigSessionFactory
+import org.eclipse.jgit.transport.OpenSshConfig.Host
+import org.eclipse.jgit.transport.SshTransport
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+import org.eclipse.jgit.util.FS
+
 
 class LocalCredentials(var ssh: String = "", var username: String = "", var password: String = "") {
 
-    fun toCredentialsProvider() = UsernamePasswordCredentialsProvider(username, password)
+    val userCredentials by lazy { UsernamePasswordCredentialsProvider(username, password) }
+
+    val sshTransport by lazy {
+        TransportConfigCallback {
+            (it as SshTransport).sshSessionFactory = object : JschConfigSessionFactory() {
+                override fun createDefaultJSch(fs: FS): JSch {
+                    val jsch = super.createDefaultJSch(fs)
+                    if (password.isNotBlank()) jsch.addIdentity(ssh, password)
+                    else jsch.addIdentity(ssh)
+                    return jsch
+                }
+
+                override fun configure(host: Host, session: Session) {
+                }
+            }
+        }
+    }
+
+    fun isSSH() = ssh.isNotBlank()
 
 }

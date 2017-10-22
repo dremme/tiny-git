@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.git.LocalFile
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
+import org.kordamp.ikonli.fontawesome.FontAwesome
 
 class FileStatusView : ListView<LocalFile>() {
 
@@ -19,20 +20,14 @@ class FileStatusView : ListView<LocalFile>() {
             super.updateItem(item, empty)
             text = item?.path
             graphic = when (item?.status) {
-                LocalFile.Status.ADDED -> FontAwesome.plus()
-                LocalFile.Status.MODIFIED -> FontAwesome.pencil()
-                LocalFile.Status.CHANGED -> FontAwesome.pencil()
-                LocalFile.Status.REMOVED -> FontAwesome.minus()
-                LocalFile.Status.UNTRACKED -> FontAwesome.question()
+                LocalFile.Status.CONFLICT -> icon(FontAwesome.WARNING, "#d9534f")
+                LocalFile.Status.ADDED -> icon(FontAwesome.PLUS, "#5cb85c")
+                LocalFile.Status.MODIFIED -> icon(FontAwesome.PENCIL, "#f0ad4e")
+                LocalFile.Status.CHANGED -> icon(FontAwesome.PENCIL, "#f0ad4e")
+                LocalFile.Status.REMOVED -> icon(FontAwesome.MINUS, "#d9534f")
+                LocalFile.Status.MISSING -> icon(FontAwesome.MINUS, "#999")
+                LocalFile.Status.UNTRACKED -> icon(FontAwesome.QUESTION, "#5bc0de")
                 else -> null
-            }
-            graphic?.style = "-fx-text-fill:" + when (item?.status) {
-                LocalFile.Status.ADDED -> "#5cb85c"
-                LocalFile.Status.MODIFIED -> "#f0ad4e"
-                LocalFile.Status.CHANGED -> "#f0ad4e"
-                LocalFile.Status.REMOVED -> "#d9534f"
-                LocalFile.Status.UNTRACKED -> "#5bc0de"
-                else -> ""
             }
         }
 

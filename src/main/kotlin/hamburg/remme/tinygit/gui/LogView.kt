@@ -16,6 +16,7 @@ import javafx.scene.control.TableView
 import javafx.scene.layout.HBox
 import javafx.scene.layout.StackPane
 import javafx.util.Callback
+import org.kordamp.ikonli.fontawesome.FontAwesome
 
 class LogView : Tab() {
 
@@ -27,7 +28,7 @@ class LogView : Tab() {
 
     init {
         text = "Log"
-        graphic = FontAwesome.list()
+        graphic = icon(FontAwesome.LIST)
         isClosable = false
 
         val message = tableColumn<LocalCommit, LocalCommit>("Message",
@@ -52,7 +53,7 @@ class LogView : Tab() {
 
         error.children += HBox(
                 Label("Fetching repository failed. Check the settings. "),
-                Label("", FontAwesome.cog()))
+                Label("", icon(FontAwesome.COG)))
                 .also { it.styleClass += "box" }
         error.styleClass += "overlay"
         error.isVisible = false
@@ -80,6 +81,7 @@ class LogView : Tab() {
             }
 
             override fun succeeded() {
+                error.isVisible = false
                 overlay.isVisible = false
                 localCommits.items.setAll(value)
                 localCommits.items.find { it == selected }?.let { localCommits.selectionModel.select(it) }
@@ -92,7 +94,6 @@ class LogView : Tab() {
                 exception.printStackTrace()
             }
         }
-        error.isVisible = false
         overlay.isVisible = true
         State.cachedThreadPool.execute(logTask)
     }
@@ -111,7 +112,7 @@ class LogView : Tab() {
 
     }
 
-    private class BranchBadge(name: String, current: Boolean) : Label(name, FontAwesome.codeFork()) {
+    private class BranchBadge(name: String, current: Boolean) : Label(name, icon(FontAwesome.CODE_FORK)) {
 
         init {
             styleClass += "branch-badge"
