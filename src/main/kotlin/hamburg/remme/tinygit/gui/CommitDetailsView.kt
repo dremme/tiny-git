@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import javafx.geometry.Orientation
 import javafx.scene.control.Label
+import javafx.scene.control.ScrollPane
 import javafx.scene.control.SplitPane
 import javafx.scene.control.ToolBar
 import javafx.scene.layout.GridPane
@@ -43,7 +44,7 @@ class CommitDetailsView : SplitPane() {
             it?.let { fileDiff.update(repository!!, files.selectionModel.selectedItem, commit!!.id) } ?: fileDiff.clear()
         }
 
-        val pane = SplitPane(form, VBox(ToolBar(StatusCountView(files)), files))
+        val pane = SplitPane(ScrollPane(form), VBox(ToolBar(StatusCountView(files)), files))
         pane.orientation = Orientation.VERTICAL
 
         items.addAll(pane, fileDiff)

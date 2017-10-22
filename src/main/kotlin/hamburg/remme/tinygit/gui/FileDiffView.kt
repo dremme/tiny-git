@@ -8,38 +8,35 @@ import javafx.scene.web.WebView
 
 class FileDiffView : StackPane() {
 
-    private val webView = WebView()
+    private val webView = WebView().also { it.isContextMenuEnabled = false }
 
     init {
         children += webView
-
-        webView.isContextMenuEnabled = false
-
-        setContent(null)
+        clearContent()
     }
 
-    // TODO: solve with observable?
     fun update(repository: LocalRepository, file: LocalFile) {
         setContent(when (file.status) {
+            LocalFile.Status.CONFLICT -> LocalGit.diffCached(repository, file) // TODO: incorrect diff
             LocalFile.Status.ADDED -> LocalGit.diffCached(repository, file)
             LocalFile.Status.CHANGED -> LocalGit.diffCached(repository, file)
             LocalFile.Status.REMOVED -> LocalGit.diffCached(repository, file)
             LocalFile.Status.MODIFIED -> LocalGit.diff(repository, file)
+            LocalFile.Status.MISSING -> LocalGit.diff(repository, file)
             LocalFile.Status.UNTRACKED -> LocalGit.diff(repository, file)
-        }.diff)
+        })
     }
 
-    // TODO: solve with observable?
     fun update(repository: LocalRepository, file: LocalFile, id: String) {
-        setContent(LocalGit.diff(repository, file, id).diff)
+        setContent(LocalGit.diff(repository, file, id))
     }
 
-    // TODO: solve with observable?
     fun clear() {
-        setContent(null)
+        clearContent()
     }
 
-    private fun setContent(diff: String? = "") {
+    private fun setContent(diff: String) {
+        //language=HTML
         webView.engine.loadContent("""
             <html>
             <head>
@@ -47,9 +44,9 @@ class FileDiffView : StackPane() {
                     html, body {
                         padding: 0;
                         margin: 0;
-                        background-color: #3c3f41;
-                        color: #ccc;
                         font: 12px "Liberation Mono", monospace;
+                        color: #ccc;
+                        background-color: #3c3f41;
                     }
                     hr {
                         height: 1px;
@@ -115,10 +112,41 @@ class FileDiffView : StackPane() {
         """)
     }
 
-    private fun format(diff: String?): String {
-        if (diff == null) {
-            return ""
-        } else if (diff.isBlank() || diff.contains("Binary files differ")) {
+    private fun clearContent() {
+        //language=HTML
+        webView.engine.loadContent("""
+            <html>
+            <head>
+                <style>
+                    html, body {
+                        padding: 0;
+                        margin: 0;
+                        width: 100%;
+                        height: 100%;
+                        font: 18px "Roboto", sans-serif;
+                        color: #ccc;
+                        background-color: #3c3f41;
+                    }
+                    body {
+                        display: -webkit-flex;
+                        display: flex;
+                        -webkit-justify-content: center;
+                        justify-content: center;
+                        -webkit-align-items: center;
+                        align-items: center;
+                    }
+                </style>
+            </head>
+            <body>
+                Select a file to view its diff.
+            </body>
+            </html>
+        """)
+    }
+
+    private fun format(diff: String): String {
+        if (diff.isBlank() || diff.contains("Binary files differ")) {
+            //language=HTML
             return """
                 <tr>
                     <td class="line-number header">&nbsp;</td>
@@ -154,16 +182,17 @@ class FileDiffView : StackPane() {
     private fun String.isBlockHeader() = this.startsWith("@@")
 
     private fun parseBlockHeader(line: String): DiffBlock {
-        val match = ".*?(\\d+,\\d+).*?(\\d+,\\d+).*".toRegex().matchEntire(line)!!.groups
+        val match = ".*?(\\d+)(,\\d+)?.*?(\\d+)(,\\d+)?.*".toRegex().matchEntire(line)!!.groups
         return DiffBlock(
-                match[1]!!.value.substringBefore(",").toInt(),
-                match[1]!!.value.substringAfter(",").toInt(),
-                match[2]!!.value.substringBefore(",").toInt(),
-                match[2]!!.value.substringAfter(",").toInt())
+                match[1]?.value?.toInt() ?: 1,
+                match[2]?.value?.substring(1)?.toInt() ?: 1,
+                match[3]?.value?.toInt() ?: 1,
+                match[4]?.value?.substring(1)?.toInt() ?: 1)
     }
 
     private fun formatLine(line: String, numbers: Array<Int>, block: DiffBlock): String {
         if (line.isBlockHeader()) {
+            //language=HTML
             return """
                 <tr>
                     <td class="line-number header">&nbsp;</td>
@@ -202,6 +231,7 @@ class FileDiffView : StackPane() {
                 codeClass = "&nbsp;"
             }
         }
+        //language=HTML
         return """
             <tr>
                 <td class="line-number $codeClass">$oldLineNumber</td>

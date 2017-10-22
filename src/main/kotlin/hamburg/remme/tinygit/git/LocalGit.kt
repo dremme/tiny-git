@@ -1,14 +1,11 @@
 package hamburg.remme.tinygit.git
 
-import org.eclipse.jgit.api.FetchCommand
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.ListBranchCommand
 import org.eclipse.jgit.api.MergeResult
-import org.eclipse.jgit.api.PullCommand
-import org.eclipse.jgit.api.PushCommand
+import org.eclipse.jgit.api.TransportCommand
 import org.eclipse.jgit.diff.DiffEntry
-import org.eclipse.jgit.diff.DiffFormatter
-import org.eclipse.jgit.diff.RawTextComparator
 import org.eclipse.jgit.lib.AnyObjectId
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.ObjectReader
@@ -20,7 +17,6 @@ import org.eclipse.jgit.treewalk.AbstractTreeIterator
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.treewalk.EmptyTreeIterator
 import org.eclipse.jgit.treewalk.filter.PathFilter
-import org.eclipse.jgit.util.io.DisabledOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -43,11 +39,10 @@ object LocalGit {
             private val delegate = ProxySelector.getDefault()
 
             override fun select(uri: URI): List<Proxy> {
-                return if (proxyHost.get().isNotBlank()) {
+                return if (proxyHost.get().isNotBlank())
                     listOf(Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(proxyHost.get(), proxyPort.get())))
-                } else {
+                else
                     delegate.select(uri)
-                }
             }
 
             override fun connectFailed(uri: URI?, sa: SocketAddress?, ioe: IOException?) {
@@ -111,12 +106,15 @@ object LocalGit {
             val status = Git(it).status().call()
 
             val staged = mutableListOf<LocalFile>()
+            staged += status.conflicting.toLocalFileList(LocalFile.Status.CONFLICT)
             staged += status.added.toLocalFileList(LocalFile.Status.ADDED)
             staged += status.changed.toLocalFileList(LocalFile.Status.CHANGED)
             staged += status.removed.toLocalFileList(LocalFile.Status.REMOVED)
 
             val unstaged = mutableListOf<LocalFile>()
+            unstaged += status.conflicting.toLocalFileList(LocalFile.Status.CONFLICT)
             unstaged += status.modified.toLocalFileList(LocalFile.Status.MODIFIED)
+            unstaged += status.missing.toLocalFileList(LocalFile.Status.MISSING)
             unstaged += status.untracked.toLocalFileList(LocalFile.Status.UNTRACKED)
 
             LocalStatus(staged, unstaged)
@@ -130,22 +128,22 @@ object LocalGit {
     /**
      * - `git diff <[file]>`
      */
-    fun diff(repository: LocalRepository, file: LocalFile): LocalDiff {
+    fun diff(repository: LocalRepository, file: LocalFile): String {
         return diff(repository, file, false)
     }
 
     /**
      * - `git diff --cached <[file]>`
      */
-    fun diffCached(repository: LocalRepository, file: LocalFile): LocalDiff {
+    fun diffCached(repository: LocalRepository, file: LocalFile): String {
         return diff(repository, file, true)
     }
 
-    private fun diff(repository: LocalRepository, file: LocalFile, cached: Boolean): LocalDiff {
+    private fun diff(repository: LocalRepository, file: LocalFile, cached: Boolean): String {
         return repository.open { gitRepo ->
             ByteArrayOutputStream().use {
                 Git(gitRepo).diff().setCached(cached).setPathFilter(PathFilter.create(file.path)).setOutputStream(it).call()
-                LocalDiff(it.toString("UTF-8"))
+                it.toString("UTF-8")
             }
         }
     }
@@ -153,51 +151,44 @@ object LocalGit {
     /**
      * - `git diff <[id]> <parent-id> <[file]>`
      */
-    fun diff(repository: LocalRepository, file: LocalFile, id: String): LocalDiff {
+    fun diff(repository: LocalRepository, file: LocalFile, id: String): String {
         return repository.open { gitRepo ->
             val (newTree, oldTree) = gitRepo.newObjectReader().treesOf(ObjectId.fromString(id))
             ByteArrayOutputStream().use {
                 Git(gitRepo).diff().setPathFilter(PathFilter.create(file.path)).setNewTree(newTree).setOldTree(oldTree).setOutputStream(it).call()
-                LocalDiff(it.toString("UTF-8"))
+                it.toString("UTF-8")
             }
         }
     }
 
     /**
-     * - `git diff-tree --no-commit-id -r <[id]>`
+     * - `git diff-tree -r <[id]>`
      */
     fun diffTree(repository: LocalRepository, id: String): List<LocalFile> {
         return repository.open { gitRepo ->
-            val reader = gitRepo.newObjectReader()
-            val (newTree, oldTree) = reader.treesOf(ObjectId.fromString(id))
-            val formatter = DiffFormatter(DisabledOutputStream.INSTANCE)
-            formatter.setReader(reader, gitRepo.config)
-            formatter.setDiffComparator(RawTextComparator.DEFAULT)
-            formatter.isDetectRenames = true
-            formatter.use {
-                it.scan(oldTree, newTree).map {
-                    when (it.changeType!!) {
-                        DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED)
-                        DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.ADDED)
-                        DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.MODIFIED)
-                        DiffEntry.ChangeType.RENAME -> LocalFile(it.newPath, LocalFile.Status.MODIFIED) // TODO: status for renamed files
-                        DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED)
-                    }
-                }.sortedBy { it.status }
-            }
+            val (newTree, oldTree) = gitRepo.newObjectReader().treesOf(ObjectId.fromString(id))
+            Git(gitRepo).diff().setNewTree(newTree).setOldTree(oldTree).call().map {
+                when (it.changeType!!) {
+                    DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED)
+                    DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.ADDED)
+                    DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.MODIFIED)
+                    DiffEntry.ChangeType.RENAME -> LocalFile(it.newPath, LocalFile.Status.MODIFIED) // TODO: status for renamed files
+                    DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED)
+                }
+            }.sortedBy { it.status }
         }
     }
 
     private fun ObjectReader.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {
-        return RevWalk(this).use {
-            val commit = it.parseCommit(commitId)
-            val parent = if (commit.parentCount > 0) it.parseCommit(commit.parents[0]) else null
+        return RevWalk(this).use { walker ->
+            val commit = walker.parseCommit(commitId)
+            val parent = commit.parents.takeIf { it.isNotEmpty() }?.let { walker.parseCommit(it[0]) }
             this.iteratorOf(commit) to this.iteratorOf(parent)
         }
     }
 
     private fun ObjectReader.iteratorOf(commit: RevCommit?): AbstractTreeIterator {
-        return commit?.let { CanonicalTreeParser(null, this, commit.tree) } ?: EmptyTreeIterator()
+        return commit?.let { CanonicalTreeParser(null, this, it.tree) } ?: EmptyTreeIterator()
     }
 
     /**
@@ -345,14 +336,12 @@ object LocalGit {
         }
     }
 
-    private fun FetchCommand.applyAuth(repository: LocalRepository)
-            = repository.credentials?.let { this.setCredentialsProvider(it.toCredentialsProvider()) } ?: this
-
-    private fun PushCommand.applyAuth(repository: LocalRepository)
-            = repository.credentials?.let { this.setCredentialsProvider(it.toCredentialsProvider()) } ?: this
-
-    private fun PullCommand.applyAuth(repository: LocalRepository)
-            = repository.credentials?.let { this.setCredentialsProvider(it.toCredentialsProvider()) } ?: this
+    private fun <C : GitCommand<T>, T> TransportCommand<C, T>.applyAuth(repository: LocalRepository): C {
+        return if (repository.credentials?.isSSH() == true)
+            this.setTransportConfigCallback(repository.credentials!!.sshTransport)
+        else
+            this.setCredentialsProvider(repository.credentials?.userCredentials)
+    }
 
     private fun <T> LocalRepository.open(block: (Repository) -> T): T {
         this@LocalGit.proxyHost.set(proxyHost ?: "")

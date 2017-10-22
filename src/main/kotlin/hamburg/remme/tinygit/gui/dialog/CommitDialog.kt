@@ -1,7 +1,10 @@
-package hamburg.remme.tinygit.gui
+package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.gui.FileStatusView
+import hamburg.remme.tinygit.gui.textArea
+import javafx.beans.binding.Bindings
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
 import javafx.scene.control.CheckBox
@@ -30,9 +33,6 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>()
         GridPane.setVgrow(files, Priority.ALWAYS)
 
         val message = textArea(placeholder = "Enter commit message")
-        message.textProperty().addListener { _, _, new ->
-            dialogPane.lookupButton(ok).isDisable = new.isBlank() || files.items.isEmpty()
-        }
         message.prefHeight = 100.0
         GridPane.setHgrow(message, Priority.ALWAYS)
 
@@ -45,7 +45,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>()
         content.add(amend, 0, 2)
 
         resultConverter = Callback {
-            if (it != null && it.buttonData.isDefaultButton) {
+            if (it.buttonData.isDefaultButton) {
                 if (amend.isSelected) LocalGit.commitAmend(repository, message.text)
                 else LocalGit.commit(repository, message.text)
 //                State.fireRefresh()
@@ -53,7 +53,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>()
         }
         dialogPane.content = content
         dialogPane.buttonTypes.addAll(cancel, ok)
-        dialogPane.lookupButton(ok).isDisable = true
+        dialogPane.lookupButton(ok).disableProperty().bind(message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
     }
 
 }

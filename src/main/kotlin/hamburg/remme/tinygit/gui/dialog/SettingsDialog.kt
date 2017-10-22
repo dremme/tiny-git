@@ -1,7 +1,10 @@
-package hamburg.remme.tinygit.gui
+package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.git.LocalCredentials
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.gui.button
+import hamburg.remme.tinygit.gui.icon
+import hamburg.remme.tinygit.gui.textField
 import javafx.event.EventHandler
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
@@ -15,6 +18,7 @@ import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
 import javafx.util.converter.IntegerStringConverter
+import org.kordamp.ikonli.fontawesome.FontAwesome
 import java.io.File
 
 class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>() {
@@ -30,10 +34,10 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         val url = textField(repository.path, editable = false)
         val ssh = textField(repository.credentials?.ssh ?: "")
         val sshSearch = button(
-                icon = FontAwesome.folderOpen(),
+                icon = icon(FontAwesome.FOLDER_OPEN),
                 action = EventHandler {
                     val chooser = FileChooser()
-                    chooser.title = "Choose a Public Key"
+                    chooser.title = "Choose a SSH Key"
                     chooser.initialDirectory = File(System.getProperty("user.home"))
                     chooser.showOpenDialog(this.owner)?.let { ssh.text = it.absolutePath }
                 })
@@ -64,9 +68,11 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         content.add(port, 3, 4)
 
         resultConverter = Callback {
-            if (it != null && it.buttonData.isDefaultButton) {
-                if (username.text.isNotBlank()) {
+            if (it.buttonData.isDefaultButton) {
+                if (ssh.text.isNotBlank() || username.text.isNotBlank()) {
                     repository.credentials = LocalCredentials(ssh.text, username.text, password.text)
+                } else {
+                    repository.credentials = null
                 }
                 repository.proxyHost = host.text
                 repository.proxyPort = port.text.toInt()
