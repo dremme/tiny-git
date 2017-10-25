@@ -84,6 +84,7 @@
 }
 
 .table-row-cell {
+    -fx-border-width: 0;
     -fx-border-color: transparent;
     -fx-table-cell-border-color: transparent;
 }

@@ -4,8 +4,10 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.git.LocalStatus
 import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
+import javafx.concurrent.Task
 import javafx.event.EventHandler
 import javafx.scene.control.SplitPane
 import javafx.scene.control.Tab
@@ -19,6 +21,7 @@ class WorkingCopyView : Tab() {
     private val stagedFiles = FileStatusView()
     private val unstagedFiles = FileStatusView()
     private val fileDiff = FileDiffView()
+    private var task: Task<*>? = null
 
     init {
         text = "Files"
@@ -91,15 +94,22 @@ class WorkingCopyView : Tab() {
 
     private fun fetchFiles(repository: LocalRepository) {
         println("Status for working copy: $repository")
-        val stagedSelected = stagedFiles.selectionModel.selectedIndex >= 0
-        val selected = if (stagedSelected) stagedFiles.selectionModel.selectedItem else unstagedFiles.selectionModel.selectedItem
+        task?.cancel()
+        task = object : Task<LocalStatus>() {
+            val stagedSelected = stagedFiles.selectionModel.selectedIndex >= 0
+            val selected = if (stagedSelected) stagedFiles.selectionModel.selectedItem else unstagedFiles.selectionModel.selectedItem
 
-        val status = LocalGit.status(repository) // TODO: git status might not be good enough here
-        stagedFiles.items.setAll(status.staged)
-        unstagedFiles.items.setAll(status.unstaged)
+            override fun call() = LocalGit.status(repository)// TODO: git status might not be good enough here
 
-        if (stagedSelected) stagedFiles.items.find { it == selected }?.let { stagedFiles.selectionModel.select(it) }
-        else unstagedFiles.items.find { it == selected }?.let { unstagedFiles.selectionModel.select(it) }
+            override fun succeeded() {
+                stagedFiles.items.setAll(value.staged)
+                unstagedFiles.items.setAll(value.unstaged)
+
+                if (stagedSelected) stagedFiles.items.find { it == selected }?.let { stagedFiles.selectionModel.select(it) }
+                else unstagedFiles.items.find { it == selected }?.let { unstagedFiles.selectionModel.select(it) }
+            }
+        }
+        State.cachedThreadPool.execute(task)
     }
 
     private fun stage(repository: LocalRepository) {
