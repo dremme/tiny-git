@@ -1,8 +1,11 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCommit
+import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import javafx.concurrent.Task
 import javafx.geometry.Orientation
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane
@@ -22,6 +25,7 @@ class CommitDetailsView : SplitPane() {
     private val message = textArea("", editable = false)
     private var repository: LocalRepository? = null
     private var commit: LocalCommit? = null
+    private var task: Task<*>? = null
 
     init {
         styleClass += "commit-details-view"
@@ -61,7 +65,16 @@ class CommitDetailsView : SplitPane() {
             date.text = commit.date.format(fullDate)
             message.text = commit.fullMessage
 
-            files.items.setAll(LocalGit.diffTree(repository, commit.id))
+            println("Status for commit: ${commit.shortId}")
+            task?.cancel()
+            task = object : Task<List<LocalFile>>() {
+                override fun call() = LocalGit.diffTree(repository, commit.id)
+
+                override fun succeeded() {
+                    files.items.setAll(value)
+                }
+            }
+            State.cachedThreadPool.execute(task)
         }
     }
 

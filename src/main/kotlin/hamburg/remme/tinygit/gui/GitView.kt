@@ -115,9 +115,7 @@ class GitView : VBox() {
     private fun fetch(repository: LocalRepository) {
         overlay.isVisible = true
         State.cachedThreadPool.execute(object : Task<Unit>() {
-            override fun call() {
-                LocalGit.fetchPrune(repository)
-            }
+            override fun call() = LocalGit.fetchPrune(repository)
 
             override fun succeeded() {
                 overlay.isVisible = false
@@ -134,9 +132,7 @@ class GitView : VBox() {
     private fun pull(repository: LocalRepository) {
         overlay.isVisible = true
         State.cachedThreadPool.execute(object : Task<Boolean>() {
-            override fun call(): Boolean {
-                return LocalGit.pull(repository)
-            }
+            override fun call() = LocalGit.pull(repository)
 
             override fun succeeded() {
                 overlay.isVisible = false
@@ -153,9 +149,7 @@ class GitView : VBox() {
     private fun push(repository: LocalRepository) {
         overlay.isVisible = true
         State.cachedThreadPool.execute(object : Task<Unit>() {
-            override fun call() {
-                LocalGit.push(repository)
-            }
+            override fun call() = LocalGit.push(repository)
 
             override fun succeeded() {
                 overlay.isVisible = false
@@ -172,9 +166,7 @@ class GitView : VBox() {
     private fun stash(repository: LocalRepository) {
         overlay.isVisible = true
         State.cachedThreadPool.execute(object : Task<Unit>() {
-            override fun call() {
-                LocalGit.stash(repository)
-            }
+            override fun call() = LocalGit.stash(repository)
 
             override fun succeeded() {
                 overlay.isVisible = false
@@ -191,9 +183,7 @@ class GitView : VBox() {
     private fun stashApply(repository: LocalRepository) {
         overlay.isVisible = true
         State.cachedThreadPool.execute(object : Task<Unit>() {
-            override fun call() {
-                LocalGit.stashPop(repository)
-            }
+            override fun call() = LocalGit.stashPop(repository)
 
             override fun succeeded() {
                 overlay.isVisible = false

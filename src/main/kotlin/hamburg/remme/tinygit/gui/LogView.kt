@@ -24,7 +24,7 @@ class LogView : Tab() {
     private val overlay = StackPane(ProgressIndicator(-1.0))
     private val localCommits = TableView<LocalCommit>()
     private val commitDetails = CommitDetailsView()
-    private var logTask: Task<*>? = null
+    private var task: Task<*>? = null
 
     init {
         text = "Log"
@@ -72,13 +72,11 @@ class LogView : Tab() {
 
     private fun fetchCommits(repository: LocalRepository) {
         println("Fetching: $repository")
-        logTask?.cancel()
-        logTask = object : Task<List<LocalCommit>>() {
+        task?.cancel()
+        task = object : Task<List<LocalCommit>>() {
             val selected = localCommits.selectionModel.selectedItem
 
-            override fun call(): List<LocalCommit> {
-                return LocalGit.log(repository)
-            }
+            override fun call() = LocalGit.log(repository)
 
             override fun succeeded() {
                 error.isVisible = false
@@ -95,7 +93,7 @@ class LogView : Tab() {
             }
         }
         overlay.isVisible = true
-        State.cachedThreadPool.execute(logTask)
+        State.cachedThreadPool.execute(task)
     }
 
     private class LogMessageTableCell : TableCell<LocalCommit, LocalCommit>() {
