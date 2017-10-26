@@ -93,6 +93,14 @@
     -fx-icon-size: 14px;
 }
 
+.dialog-pane:header .header-panel {
+    -fx-background-color: -fx-box-border, -fx-body-color;
+}
+
+.dialog-pane:header .header-panel .graphic-container .ikonli-font-icon {
+    -fx-icon-size: 32px;
+}
+
 .git-view > .tool-bar .button {
     -fx-min-width: 48px;
     -fx-content-display: top;

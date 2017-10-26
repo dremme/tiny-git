@@ -70,7 +70,7 @@ class GitView : VBox() {
                 button("Branch",
                         icon(FontAwesome.CODE_FORK),
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
-                        action = EventHandler { }),
+                        action = EventHandler { createBranch(State.getSelectedRepository()) }),
                 button("Merge",
                         icon(FontAwesome.CODE_FORK).also { it.scaleY = -1.0 },
                         disable = State.selectedRepositoryProperty().isNull.or(overlay.visibleProperty()),
@@ -161,6 +161,27 @@ class GitView : VBox() {
                 exception.printStackTrace()
             }
         })
+    }
+
+    private fun createBranch(repository: LocalRepository) {
+        textInputDialog(scene.window, icon(FontAwesome.CODE_FORK))?.let { name ->
+            overlay.isVisible = true
+            State.cachedThreadPool.execute(object : Task<Unit>() {
+                override fun call() {
+                    LocalGit.branchCreate(repository, name)
+                }
+
+                override fun succeeded() {
+                    overlay.isVisible = false
+                    State.fireRefresh()
+                }
+
+                override fun failed() {
+                    overlay.isVisible = false
+                    exception.printStackTrace()
+                }
+            })
+        }
     }
 
     private fun stash(repository: LocalRepository) {
