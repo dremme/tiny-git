@@ -214,7 +214,7 @@ object LocalGit {
     /**
      * - `git add --update <[files]>`
      */
-    fun update(repository: LocalRepository, files: List<LocalFile>) {
+    fun addUpdate(repository: LocalRepository, files: List<LocalFile>) {
         return repository.open {
             val git = Git(it).add().setUpdate(true)
             files.forEach { git.addFilepattern(it.path) }
@@ -225,7 +225,7 @@ object LocalGit {
     /**
      * - `git add --update .`
      */
-    fun updateAll(repository: LocalRepository) {
+    fun addAllUpdate(repository: LocalRepository) {
         return repository.open {
             Git(it).add().setUpdate(true).addFilepattern(".").call()
         }
@@ -298,6 +298,13 @@ object LocalGit {
 
     private fun push(repository: LocalRepository, force: Boolean) {
         repository.open { Git(it).push().applyAuth(repository).setForce(force).call() }
+    }
+
+    /**
+     * - `git checkout -b [name]`
+     */
+    fun branchCreate(repository: LocalRepository, name: String) {
+        repository.open { Git(it).checkout().setCreateBranch(true).setName(name).call() }
     }
 
     /**

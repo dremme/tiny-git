@@ -11,11 +11,14 @@ import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
+import javafx.scene.control.TextInputDialog
 import javafx.scene.control.Tooltip
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
+import javafx.stage.Modality
+import javafx.stage.Window
 import javafx.util.Callback
 import org.kordamp.ikonli.Ikon
 import org.kordamp.ikonli.javafx.FontIcon
@@ -85,3 +88,14 @@ fun textArea(value: String = "",
 }
 
 fun spacer() = Pane().also { HBox.setHgrow(it, Priority.ALWAYS) }
+
+fun textInputDialog(window: Window,
+                    icon: Node? = null): String? {
+    val dialog = TextInputDialog()
+    dialog.initModality(Modality.WINDOW_MODAL)
+    dialog.initOwner(window)
+    dialog.title = "Input"
+    dialog.headerText = "Enter a New Branch Name"
+    dialog.graphic = icon
+    return dialog.showAndWait().orElse(null)
+}

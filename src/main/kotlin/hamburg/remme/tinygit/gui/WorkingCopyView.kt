@@ -123,7 +123,7 @@ class WorkingCopyView : Tab() {
     }
 
     private fun update(repository: LocalRepository) {
-        LocalGit.updateAll(repository)
+        LocalGit.addAllUpdate(repository)
         fetchFiles(repository)
     }
 
