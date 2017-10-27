@@ -11,6 +11,7 @@ import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
+import javafx.scene.control.TextFormatter
 import javafx.scene.control.TextInputDialog
 import javafx.scene.control.Tooltip
 import javafx.scene.layout.HBox
@@ -20,6 +21,7 @@ import javafx.scene.paint.Color
 import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
+import javafx.util.converter.IntegerStringConverter
 import org.kordamp.ikonli.Ikon
 import org.kordamp.ikonli.javafx.FontIcon
 import java.time.format.DateTimeFormatter
@@ -74,6 +76,13 @@ fun textField(value: String = "",
               editable: Boolean = true): TextField {
     val textField = TextField(value)
     textField.isEditable = editable
+    return textField
+}
+
+fun intTextField(value: Int = 0,
+                 editable: Boolean = true): TextField {
+    val textField = textField(value.toString(), editable)
+    textField.textFormatter = TextFormatter<Int>(IntegerStringConverter(), value)
     return textField
 }
 
