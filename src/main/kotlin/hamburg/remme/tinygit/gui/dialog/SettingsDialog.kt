@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.git.LocalCredentials
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.gui.button
 import hamburg.remme.tinygit.gui.icon
+import hamburg.remme.tinygit.gui.intTextField
 import hamburg.remme.tinygit.gui.textField
 import javafx.event.EventHandler
 import javafx.scene.control.ButtonBar
@@ -11,13 +12,11 @@ import javafx.scene.control.ButtonType
 import javafx.scene.control.Dialog
 import javafx.scene.control.Label
 import javafx.scene.control.PasswordField
-import javafx.scene.control.TextFormatter
 import javafx.scene.layout.GridPane
 import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
-import javafx.util.converter.IntegerStringConverter
 import org.kordamp.ikonli.fontawesome.FontAwesome
 import java.io.File
 
@@ -48,8 +47,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         val username = textField(repository.credentials?.username ?: "")
         val password = PasswordField().also { it.text = repository.credentials?.password ?: "" }
         val host = textField(repository.proxyHost ?: "")
-        val port = textField().also { it.prefColumnCount = 4 }
-        port.textFormatter = TextFormatter<Int>(IntegerStringConverter(), repository.proxyPort)
+        val port = intTextField(repository.proxyPort ?: 80).also { it.prefColumnCount = 4 }
 
         val content = GridPane()
         content.styleClass += "settings-view"
@@ -76,6 +74,8 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
                 }
                 repository.proxyHost = host.text
                 repository.proxyPort = port.text.toInt()
+
+//                State.fireRefresh()
             }
         }
         dialogPane.content = content
