@@ -1,9 +1,11 @@
 package hamburg.remme.tinygit.gui.dialog
 
+import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.gui.FileStatusView
 import hamburg.remme.tinygit.gui.textArea
+import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
@@ -48,12 +50,15 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>()
             if (it.buttonData.isDefaultButton) {
                 if (amend.isSelected) LocalGit.commitAmend(repository, message.text)
                 else LocalGit.commit(repository, message.text)
-//                State.fireRefresh()
+
+                State.fireRefresh()
             }
         }
         dialogPane.content = content
         dialogPane.buttonTypes.addAll(cancel, ok)
         dialogPane.lookupButton(ok).disableProperty().bind(message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
+
+        Platform.runLater { message.requestFocus() }
     }
 
 }

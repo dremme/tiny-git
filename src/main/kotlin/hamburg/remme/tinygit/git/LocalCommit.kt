@@ -11,9 +11,7 @@ class LocalCommit(val id: String,
                   val author: String,
                   val branches: List<LocalBranch>) {
 
-    override fun toString(): String {
-        return id
-    }
+    override fun toString() = id
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -26,8 +24,6 @@ class LocalCommit(val id: String,
         return true
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode() = id.hashCode()
 
 }

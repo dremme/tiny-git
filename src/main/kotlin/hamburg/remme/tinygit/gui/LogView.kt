@@ -44,7 +44,7 @@ class LogView : Tab() {
         localCommits.columns.addAll(message, date, author, commit)
         localCommits.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
         localCommits.selectionModel.selectedItemProperty().addListener { _, _, it ->
-            it?.let { commitDetails.update(State.getSelectedRepository(), it) }
+            it?.let { commitDetails.update(State.getSelectedRepository()!!, it) }
         }
 
         val pane = SplitPane()
@@ -64,10 +64,11 @@ class LogView : Tab() {
 
         State.selectedRepositoryProperty().addListener { _, _, it -> fetchCommits(it) }
         State.addRefreshListener { fetchCurrent() }
+        fetchCurrent()
     }
 
     private fun fetchCurrent() {
-        if (State.hasSelectedRepository()) fetchCommits(State.getSelectedRepository())
+        State.getSelectedRepository()?.let { fetchCommits(it) }
     }
 
     private fun fetchCommits(repository: LocalRepository) {

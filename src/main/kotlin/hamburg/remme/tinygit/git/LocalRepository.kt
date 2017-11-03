@@ -6,9 +6,7 @@ class LocalRepository(var path: String = "") {
     var proxyHost: String? = null
     var proxyPort: Int? = 80
 
-    override fun toString(): String {
-        return path
-    }
+    override fun toString() = path
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -21,8 +19,6 @@ class LocalRepository(var path: String = "") {
         return true
     }
 
-    override fun hashCode(): Int {
-        return path.hashCode()
-    }
+    override fun hashCode() = path.hashCode()
 
 }

@@ -16,11 +16,10 @@ class LocalCredentials(var ssh: String = "", var username: String = "", var pass
     val sshTransport by lazy {
         TransportConfigCallback {
             (it as SshTransport).sshSessionFactory = object : JschConfigSessionFactory() {
-                override fun createDefaultJSch(fs: FS) =
-                        super.createDefaultJSch(fs).also { it.addIdentity(ssh, password.takeIf { it.isNotBlank() }) }
+                override fun createDefaultJSch(fs: FS)
+                        = super.createDefaultJSch(fs).also { it.addIdentity(ssh, password.takeIf { it.isNotBlank() }) }
 
-                override fun configure(host: Host, session: Session) {
-                }
+                override fun configure(host: Host, session: Session) = Unit
             }
         }
     }

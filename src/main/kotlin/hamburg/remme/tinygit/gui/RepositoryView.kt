@@ -100,14 +100,14 @@ class RepositoryView(repositories: ObservableList<LocalRepository>) : TreeView<R
             }
         }
 
-        private fun repositoryBox(item: RepositoryEntry) =
-                HBox(icon(FontAwesome.GIT), Label(item.label).also { it.style = "-fx-font-weight:bold" },
-                        button(icon = icon(FontAwesome.COG),
-                                styleClass = "settings",
-                                action = EventHandler { SettingsDialog(item.repository, scene.window).show() }))
+        private fun repositoryBox(item: RepositoryEntry)
+                = HBox(Label(item.label).also { it.style = "-fx-font-weight:bold" },
+                button(icon = icon(FontAwesome.COG),
+                        styleClass = "settings",
+                        action = EventHandler { SettingsDialog(item.repository, scene.window).show() }))
 
-        private fun currentBox(item: RepositoryEntry) =
-                HBox(icon(FontAwesome.CODE_FORK), Label(item.label), icon(FontAwesome.CHECK)).also { it.styleClass += "current" }
+        private fun currentBox(item: RepositoryEntry)
+                = HBox(icon(FontAwesome.CODE_FORK), Label(item.label), icon(FontAwesome.CHECK)).also { it.styleClass += "current" }
 
     }
 

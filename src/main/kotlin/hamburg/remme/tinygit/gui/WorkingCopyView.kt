@@ -29,14 +29,14 @@ class WorkingCopyView : Tab() {
         isClosable = false
 
         val unstageAll = button("Unstage all",
-                action = EventHandler { unstage(State.getSelectedRepository()) })
+                action = EventHandler { unstage(State.getSelectedRepository()!!) })
         val unstageSelected = button("Unstage selected",
-                action = EventHandler { unstage(State.getSelectedRepository(), stagedFiles.selectionModel.selectedItems) })
+                action = EventHandler { unstage(State.getSelectedRepository()!!, stagedFiles.selectionModel.selectedItems) })
         unstageAll.disableProperty().bind(Bindings.isEmpty(stagedFiles.items))
         unstageSelected.disableProperty().bind(Bindings.isEmpty(stagedFiles.selectionModel.selectedItems))
         stagedFiles.selectionModel.selectedItems.addListener(ListChangeListener {
             if (it.list.isNotEmpty()) {
-                fileDiff.update(State.getSelectedRepository(), stagedFiles.selectionModel.selectedItem)
+                fileDiff.update(State.getSelectedRepository()!!, stagedFiles.selectionModel.selectedItem)
                 unstagedFiles.selectionModel.clearSelection()
             }
         })
@@ -47,17 +47,17 @@ class WorkingCopyView : Tab() {
                 unstageSelected)
 
         val update = button("Update all",
-                action = EventHandler { update(State.getSelectedRepository()) })
+                action = EventHandler { update(State.getSelectedRepository()!!) })
         val stageAll = button("Stage all",
-                action = EventHandler { stage(State.getSelectedRepository()) })
+                action = EventHandler { stage(State.getSelectedRepository()!!) })
         val stageSelected = button("Stage selected",
-                action = EventHandler { stage(State.getSelectedRepository(), unstagedFiles.selectionModel.selectedItems) })
+                action = EventHandler { stage(State.getSelectedRepository()!!, unstagedFiles.selectionModel.selectedItems) })
         update.disableProperty().bind(Bindings.isEmpty(unstagedFiles.items))
         stageAll.disableProperty().bind(Bindings.isEmpty(unstagedFiles.items))
         stageSelected.disableProperty().bind(Bindings.isEmpty(unstagedFiles.selectionModel.selectedItems))
         unstagedFiles.selectionModel.selectedItems.addListener(ListChangeListener {
             if (it.list.isNotEmpty()) {
-                fileDiff.update(State.getSelectedRepository(), unstagedFiles.selectionModel.selectedItem)
+                fileDiff.update(State.getSelectedRepository()!!, unstagedFiles.selectionModel.selectedItem)
                 stagedFiles.selectionModel.clearSelection()
             }
         })
@@ -82,14 +82,14 @@ class WorkingCopyView : Tab() {
             fileDiff.clear()
             fetchFiles(it)
         }
-        State.addRefreshListener {
+        State.addFocusListener {
             fileDiff.clear()
             fetchCurrent()
         }
     }
 
     private fun fetchCurrent() {
-        if (State.hasSelectedRepository()) fetchFiles(State.getSelectedRepository())
+        State.getSelectedRepository()?.let { fetchFiles(it) }
     }
 
     private fun fetchFiles(repository: LocalRepository) {
