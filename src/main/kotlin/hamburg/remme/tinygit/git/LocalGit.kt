@@ -6,7 +6,6 @@ import org.eclipse.jgit.api.ListBranchCommand
 import org.eclipse.jgit.api.MergeResult
 import org.eclipse.jgit.api.TransportCommand
 import org.eclipse.jgit.diff.DiffEntry
-import org.eclipse.jgit.errors.TransportException
 import org.eclipse.jgit.lib.AnyObjectId
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.ObjectReader
@@ -304,8 +303,6 @@ object LocalGit {
                 result.first().remoteUpdates.forEach {
                     if (it.status == RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD) {
                         throw PushRejectedException()
-                    } else if (it.status != RemoteRefUpdate.Status.OK) {
-                        throw TransportException(it.status.name)
                     }
                 }
             }
