@@ -35,6 +35,38 @@ class FileDiffView : StackPane() {
         clearContent()
     }
 
+    private fun clearContent() {
+        //language=HTML
+        webView.engine.loadContent("""
+            <html>
+            <head>
+                <style>
+                    html, body {
+                        padding: 0;
+                        margin: 0;
+                        width: 100%;
+                        height: 100%;
+                        font: 18px "Roboto", sans-serif;
+                        color: #ccc;
+                        background-color: #3c3f41;
+                    }
+                    body {
+                        display: -webkit-flex;
+                        display: flex;
+                        -webkit-justify-content: center;
+                        justify-content: center;
+                        -webkit-align-items: center;
+                        align-items: center;
+                    }
+                </style>
+            </head>
+            <body>
+                Select a file to view its diff.
+            </body>
+            </html>
+        """)
+    }
+
     private fun setContent(diff: String) {
         //language=HTML
         webView.engine.loadContent("""
@@ -53,7 +85,7 @@ class FileDiffView : StackPane() {
                         background-color: #aaa;
                         border: none;
                     }
-                    .line-list {
+                    table {
                         position: absolute;
                         min-width: 100%;
                         font-size: 13px;
@@ -104,41 +136,9 @@ class FileDiffView : StackPane() {
                 </style>
             </head>
             <body>
-                <table class="line-list" cellpadding="0" cellspacing="0">
+                <table cellpadding="0" cellspacing="0">
                     ${format(diff)}
                 </table>
-            </body>
-            </html>
-        """)
-    }
-
-    private fun clearContent() {
-        //language=HTML
-        webView.engine.loadContent("""
-            <html>
-            <head>
-                <style>
-                    html, body {
-                        padding: 0;
-                        margin: 0;
-                        width: 100%;
-                        height: 100%;
-                        font: 18px "Roboto", sans-serif;
-                        color: #ccc;
-                        background-color: #3c3f41;
-                    }
-                    body {
-                        display: -webkit-flex;
-                        display: flex;
-                        -webkit-justify-content: center;
-                        justify-content: center;
-                        -webkit-align-items: center;
-                        align-items: center;
-                    }
-                </style>
-            </head>
-            <body>
-                Select a file to view its diff.
             </body>
             </html>
         """)
@@ -241,9 +241,9 @@ class FileDiffView : StackPane() {
         """
     }
 
-    private fun String.replaceMarkers() =
-            this.replace("\\\$CR\\$\\\$LF\\$$".toRegex(), "<span class=\"marker\">&#92;r&#92;n</span>")
-                    .replace("\\\$LF\\$$".toRegex(), "<span class=\"marker\">&#92;n</span>")
+    private fun String.replaceMarkers()
+            = this.replace("\\\$CR\\$\\\$LF\\$$".toRegex(), "<span class=\"marker\">&#92;r&#92;n</span>")
+            .replace("\\\$LF\\$$".toRegex(), "<span class=\"marker\">&#92;n</span>")
 
     private fun String.stripMarkers() = this.replace("(\\\$CR\\$)?\\\$LF\\$$".toRegex(), "")
 

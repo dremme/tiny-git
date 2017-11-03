@@ -5,8 +5,11 @@ import javafx.beans.value.ObservableValue
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.scene.Node
+import javafx.scene.control.Alert
 import javafx.scene.control.Button
+import javafx.scene.control.ButtonType
 import javafx.scene.control.Label
+import javafx.scene.control.MenuItem
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TextArea
@@ -14,6 +17,7 @@ import javafx.scene.control.TextField
 import javafx.scene.control.TextFormatter
 import javafx.scene.control.TextInputDialog
 import javafx.scene.control.Tooltip
+import javafx.scene.input.KeyCombination
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
@@ -23,6 +27,7 @@ import javafx.stage.Window
 import javafx.util.Callback
 import javafx.util.converter.IntegerStringConverter
 import org.kordamp.ikonli.Ikon
+import org.kordamp.ikonli.fontawesome.FontAwesome
 import org.kordamp.ikonli.javafx.FontIcon
 import java.time.format.DateTimeFormatter
 
@@ -98,6 +103,53 @@ fun textArea(value: String = "",
 
 fun spacer() = Pane().also { HBox.setHgrow(it, Priority.ALWAYS) }
 
+fun menuItem(label: String,
+             icon: Node? = null,
+             shortcut: String? = null,
+             action: EventHandler<ActionEvent>,
+             disable: BooleanBinding? = null): MenuItem {
+    val menuItem = MenuItem(label)
+    menuItem.onAction = action
+    shortcut?.let { menuItem.accelerator = KeyCombination.valueOf(it) }
+    icon?.let { menuItem.graphic = it }
+    disable?.let { menuItem.disableProperty().bind(it) }
+    return menuItem
+}
+
+fun confirmAlert(window: Window,
+                 header: String,
+                 text: String): Boolean {
+    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, icon(FontAwesome.QUESTION_CIRCLE, "#5bc0de"))
+    return alert.showAndWait().get() == ButtonType.OK
+}
+
+fun confirmWarningAlert(window: Window,
+                        header: String,
+                        text: String): Boolean {
+    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, icon(FontAwesome.EXCLAMATION_TRIANGLE, "#f0ad4e"))
+    return alert.showAndWait().get() == ButtonType.OK
+}
+
+fun errorAlert(window: Window,
+               header: String,
+               text: String) {
+    val alert = alert(window, Alert.AlertType.ERROR, header, text, icon(FontAwesome.EXCLAMATION_TRIANGLE, "#d9534f"))
+    alert.showAndWait()
+}
+
+private fun alert(window: Window,
+                  type: Alert.AlertType,
+                  header: String,
+                  text: String,
+                  icon: Node): Alert {
+    val alert = Alert(type, text)
+    alert.initModality(Modality.WINDOW_MODAL)
+    alert.initOwner(window)
+    alert.headerText = header
+    alert.graphic = icon
+    return alert
+}
+
 fun textInputDialog(window: Window,
                     icon: Node? = null): String? {
     val dialog = TextInputDialog()
@@ -106,5 +158,5 @@ fun textInputDialog(window: Window,
     dialog.title = "Input"
     dialog.headerText = "Enter a New Branch Name"
     dialog.graphic = icon
-    return dialog.showAndWait().orElse(null)
+    return dialog.showAndWait().get()
 }

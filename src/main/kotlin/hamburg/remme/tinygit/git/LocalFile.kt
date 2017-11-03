@@ -2,9 +2,7 @@ package hamburg.remme.tinygit.git
 
 class LocalFile(val path: String, val status: Status) {
 
-    override fun toString(): String {
-        return path
-    }
+    override fun toString() = path
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -17,9 +15,7 @@ class LocalFile(val path: String, val status: Status) {
         return true
     }
 
-    override fun hashCode(): Int {
-        return path.hashCode()
-    }
+    override fun hashCode() = path.hashCode()
 
     enum class Status { CONFLICT, ADDED, CHANGED, MODIFIED, REMOVED, MISSING, UNTRACKED }
 

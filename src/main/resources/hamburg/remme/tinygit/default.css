@@ -64,6 +64,28 @@
     -fx-prompt-text-fill: derive(-fx-text-inner-color, -50%)
 }
 
+.menu-bar {
+    -fx-background-color: -fx-body-color;
+}
+
+.menu-item > .graphic-container {
+    -fx-padding: 0em 0.75em 0em 0em;
+    -fx-alignment: center;
+}
+
+.menu-item > .accelerator-text {
+    -fx-text-fill: #aaa;
+}
+
+.context-menu {
+    -fx-background-color: -fx-body-color;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 12, 0.0, 0, 8);
+}
+
+.context-menu .separator:horizontal .line {
+    -fx-border-color: derive(-fx-body-color, 25%) transparent transparent transparent;
+}
+
 .tool-bar {
     -fx-background-color: linear-gradient(to bottom, derive(-fx-background, 25%) 0%, derive(-fx-background, -25%) 90%),
     linear-gradient(to bottom, -fx-background 2%, derive(-fx-background, -5%) 95%);
@@ -91,6 +113,7 @@
 
 .ikonli-font-icon {
     -fx-icon-size: 14px;
+    /*-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 1, 0, 1, 1);*/
 }
 
 .dialog-pane:header .header-panel {
@@ -99,6 +122,7 @@
 
 .dialog-pane:header .header-panel .graphic-container .ikonli-font-icon {
     -fx-icon-size: 32px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 2, 0, 2, 2);
 }
 
 .git-view > .tool-bar .button {
@@ -125,7 +149,8 @@
 }
 
 .git-view .overlay .ikonli-font-icon {
-    -fx-icon-size: 24px;
+    -fx-icon-size: 32px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 2, 0, 2, 2);
 }
 
 .git-view .overlay .box {
@@ -204,33 +229,8 @@
     -fx-graphic-text-gap: 1em;
 }
 
-.commit-details-view .commit-details {
-    -fx-padding: 16px;
-    -fx-hgap: 0.333em;
-    -fx-vgap: 0.333em;
-}
-
-.commit-details-view .commit-details > .label {
-    -fx-font-weight: bold;
-}
-
-.commit-details-view .commit-details > .text-field,
-.commit-details-view .commit-details > .text-field:focused,
-.commit-details-view .commit-details > .text-area,
-.commit-details-view .commit-details > .text-area:focused,
-.commit-details-view .commit-details > .text-area .content,
-.commit-details-view .commit-details > .text-area:focused .content {
-    -fx-padding: 0;
-    -fx-background-color: transparent;
-    -fx-background-insets: 0;
-}
-
-.commit-details-view .commit-details > .text-area {
-    -fx-highlight-fill: -fx-background;
-}
-
-.commit-details-view .commit-details > .text-area:focused {
-    -fx-highlight-fill: -fx-accent;
+.commit-details-view > * > .split-pane {
+    -fx-orientation: vertical;
 }
 
 .commit-details-view .file-status-view {

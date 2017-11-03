@@ -6,6 +6,7 @@ import org.eclipse.jgit.api.ListBranchCommand
 import org.eclipse.jgit.api.MergeResult
 import org.eclipse.jgit.api.TransportCommand
 import org.eclipse.jgit.diff.DiffEntry
+import org.eclipse.jgit.errors.TransportException
 import org.eclipse.jgit.lib.AnyObjectId
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.ObjectReader
@@ -13,6 +14,7 @@ import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.eclipse.jgit.transport.RemoteRefUpdate
 import org.eclipse.jgit.treewalk.AbstractTreeIterator
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.treewalk.EmptyTreeIterator
@@ -45,8 +47,7 @@ object LocalGit {
                     delegate.select(uri)
             }
 
-            override fun connectFailed(uri: URI?, sa: SocketAddress?, ioe: IOException?) {
-            }
+            override fun connectFailed(uri: URI, sa: SocketAddress, ioe: IOException) = Unit
         })
     }
 
@@ -58,7 +59,7 @@ object LocalGit {
     fun log(repository: LocalRepository, max: Int = 50): List<LocalCommit> {
         return repository.open {
             val git = Git(it)
-            git.fetch(repository, false)
+            git.fetch(repository)
             val branches = git.branchListAll()
             git.log().all().setMaxCount(max).call().map { c ->
                 LocalCommit(
@@ -67,7 +68,7 @@ object LocalGit {
                         c.fullMessage, c.shortMessage,
                         c.commitTime(),
                         c.author(),
-                        branches.filter { c.id.name == it.commit })
+                        branches.filter { it.commit == c.id.name })
             }
         }
     }
@@ -91,7 +92,7 @@ object LocalGit {
                 val shortRef = Repository.shortenRefName(it.name)
                 LocalBranch(
                         shortRef,
-                        walker.parseCommit(it.objectId).id.name,
+                        walker.lookupCommit(it.objectId).id.name,
                         shortRef == this.repository.branch,
                         it.name.contains("remotes"))
             }
@@ -170,7 +171,7 @@ object LocalGit {
             Git(gitRepo).diff().setNewTree(newTree).setOldTree(oldTree).call().map {
                 when (it.changeType!!) {
                     DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED)
-                    DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.ADDED)
+                    DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.ADDED) // TODO: status for copied files
                     DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.MODIFIED)
                     DiffEntry.ChangeType.RENAME -> LocalFile(it.newPath, LocalFile.Status.MODIFIED) // TODO: status for renamed files
                     DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED)
@@ -297,7 +298,18 @@ object LocalGit {
     }
 
     private fun push(repository: LocalRepository, force: Boolean) {
-        repository.open { Git(it).push().applyAuth(repository).setForce(force).call() }
+        repository.open {
+            val result = Git(it).push().applyAuth(repository).setForce(force).call()
+            if (result.count() > 0) {
+                result.first().remoteUpdates.forEach {
+                    if (it.status == RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD) {
+                        throw PushRejectedException()
+                    } else if (it.status != RemoteRefUpdate.Status.OK) {
+                        throw TransportException(it.status.name)
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -333,12 +345,9 @@ object LocalGit {
         if (!fetchedRepos.contains(repository)) fetchedRepos.add(repository)
     }
 
-    /**
-     * `git fetch`; or `git fetch --prune` if [prune]` == true`
-     */
-    private fun Git.fetch(repository: LocalRepository, prune: Boolean) {
+    private fun Git.fetch(repository: LocalRepository) {
         if (!fetchedRepos.contains(repository)) {
-            this.fetch().applyAuth(repository).setRemoveDeletedRefs(prune).call()
+            this.fetch().applyAuth(repository).call()
             fetchedRepos.add(repository)
         }
     }

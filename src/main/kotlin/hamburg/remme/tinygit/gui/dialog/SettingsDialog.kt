@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
+import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCredentials
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.gui.button
@@ -75,7 +76,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
                 repository.proxyHost = host.text
                 repository.proxyPort = port.text.toInt()
 
-//                State.fireRefresh()
+                State.fireRefresh()
             }
         }
         dialogPane.content = content

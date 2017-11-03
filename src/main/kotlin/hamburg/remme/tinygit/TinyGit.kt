@@ -22,7 +22,7 @@ class TinyGit : Application() {
 
     override fun start(stage: Stage) {
         State.setRepositories(Settings.load())
-        stage.focusedProperty().addListener { _, _, it -> if (it) State.fireRefresh() }
+        stage.focusedProperty().addListener { _, _, it -> if (it) State.fireFocus() }
         stage.scene = Scene(GitView())
         stage.scene.stylesheets += "default.css".asResource()
         stage.title = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
