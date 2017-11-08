@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStatus
+import hamburg.remme.tinygit.gui.FontAwesome.DESKTOP
 import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
@@ -14,7 +15,6 @@ import javafx.scene.control.Tab
 import javafx.scene.control.ToolBar
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
-import org.kordamp.ikonli.fontawesome.FontAwesome
 
 class WorkingCopyView : Tab() {
 
@@ -25,7 +25,7 @@ class WorkingCopyView : Tab() {
 
     init {
         text = "Files"
-        graphic = icon(FontAwesome.DESKTOP)
+        graphic = DESKTOP()
         isClosable = false
 
         val unstageAll = button("Unstage all",
@@ -40,6 +40,8 @@ class WorkingCopyView : Tab() {
                 unstagedFiles.selectionModel.clearSelection()
             }
         })
+        stagedFiles.items.addListener(ListChangeListener { State.setStagedFiles(it.list.size) })
+
         val stagedTools = ToolBar(
                 StatusCountView(stagedFiles),
                 spacer(),

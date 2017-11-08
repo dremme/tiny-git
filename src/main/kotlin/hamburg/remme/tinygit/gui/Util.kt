@@ -1,5 +1,7 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.gui.FontAwesome.EXCLAMATION_TRIANGLE
+import hamburg.remme.tinygit.gui.FontAwesome.QUESTION_CIRCLE
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.value.ObservableValue
 import javafx.event.ActionEvent
@@ -21,14 +23,10 @@ import javafx.scene.input.KeyCombination
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
-import javafx.scene.paint.Color
 import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
 import javafx.util.converter.IntegerStringConverter
-import org.kordamp.ikonli.Ikon
-import org.kordamp.ikonli.fontawesome.FontAwesome
-import org.kordamp.ikonli.javafx.FontIcon
 import java.time.format.DateTimeFormatter
 
 val shortDate = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
@@ -43,12 +41,6 @@ fun label(text: String = "",
     color?.let { label.style = "-fx-text-fill:$it;" }
     tooltip?.let { label.tooltip = Tooltip(it) }
     return label
-}
-
-fun icon(ikon: Ikon, color: String = "#fff"): FontIcon {
-    val icon = FontIcon(ikon)
-    icon.iconColor = Color.web(color)
-    return icon
 }
 
 fun button(label: String = "",
@@ -119,21 +111,21 @@ fun menuItem(label: String,
 fun confirmAlert(window: Window,
                  header: String,
                  text: String): Boolean {
-    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, icon(FontAwesome.QUESTION_CIRCLE, "#5bc0de"))
+    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, QUESTION_CIRCLE("#5bc0de"))
     return alert.showAndWait().get() == ButtonType.OK
 }
 
 fun confirmWarningAlert(window: Window,
                         header: String,
                         text: String): Boolean {
-    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, icon(FontAwesome.EXCLAMATION_TRIANGLE, "#f0ad4e"))
+    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, EXCLAMATION_TRIANGLE("#f0ad4e"))
     return alert.showAndWait().get() == ButtonType.OK
 }
 
 fun errorAlert(window: Window,
                header: String,
                text: String) {
-    val alert = alert(window, Alert.AlertType.ERROR, header, text, icon(FontAwesome.EXCLAMATION_TRIANGLE, "#d9534f"))
+    val alert = alert(window, Alert.AlertType.ERROR, header, text, EXCLAMATION_TRIANGLE("#d9534f"))
     alert.showAndWait()
 }
 

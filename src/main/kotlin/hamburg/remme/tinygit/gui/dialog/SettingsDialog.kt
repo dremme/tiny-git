@@ -3,8 +3,8 @@ package hamburg.remme.tinygit.gui.dialog
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCredentials
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.gui.FontAwesome.FOLDER_OPEN
 import hamburg.remme.tinygit.gui.button
-import hamburg.remme.tinygit.gui.icon
 import hamburg.remme.tinygit.gui.intTextField
 import hamburg.remme.tinygit.gui.textField
 import javafx.event.EventHandler
@@ -18,7 +18,6 @@ import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
-import org.kordamp.ikonli.fontawesome.FontAwesome
 import java.io.File
 
 class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>() {
@@ -34,7 +33,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         val url = textField(repository.path, editable = false)
         val ssh = textField(repository.credentials?.ssh ?: "")
         val sshSearch = button(
-                icon = icon(FontAwesome.FOLDER_OPEN),
+                icon = FOLDER_OPEN(),
                 action = EventHandler {
                     val chooser = FileChooser()
                     chooser.title = "Choose a SSH Key"
