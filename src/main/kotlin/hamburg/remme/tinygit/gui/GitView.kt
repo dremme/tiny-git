@@ -4,6 +4,17 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.PushRejectedException
+import hamburg.remme.tinygit.gui.FontAwesome.CLOUD_DOWNLOAD
+import hamburg.remme.tinygit.gui.FontAwesome.CLOUD_UPLOAD
+import hamburg.remme.tinygit.gui.FontAwesome.CODE_FORK
+import hamburg.remme.tinygit.gui.FontAwesome.COG
+import hamburg.remme.tinygit.gui.FontAwesome.DATABASE
+import hamburg.remme.tinygit.gui.FontAwesome.DOWNLOAD
+import hamburg.remme.tinygit.gui.FontAwesome.PLUS
+import hamburg.remme.tinygit.gui.FontAwesome.REFRESH
+import hamburg.remme.tinygit.gui.FontAwesome.TAG
+import hamburg.remme.tinygit.gui.FontAwesome.UNDO
+import hamburg.remme.tinygit.gui.FontAwesome.UPLOAD
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
@@ -25,7 +36,6 @@ import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.stage.DirectoryChooser
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
-import org.kordamp.ikonli.fontawesome.FontAwesome
 import java.io.File
 
 class GitView : VBox() {
@@ -46,10 +56,11 @@ class GitView : VBox() {
         val stash = EventHandler<ActionEvent> { stash(State.getSelectedRepository()!!) }
         val stashApply = EventHandler<ActionEvent> { stashApply(State.getSelectedRepository()!!) }
 
+        //<editor-fold desc="MenuBar">
         val menuBar = MenuBar(
                 Menu("File", null,
                         menuItem("Add Working Copy",
-                                icon(FontAwesome.DATABASE),
+                                DATABASE(),
                                 shortcut = "Shortcut+O",
                                 action = addCopy),
                         SeparatorMenuItem(),
@@ -57,65 +68,65 @@ class GitView : VBox() {
                                 action = EventHandler { Platform.exit() })),
                 Menu("Repository", null,
                         menuItem("Settings",
-                                icon(FontAwesome.COG),
+                                COG(),
                                 action = EventHandler { SettingsDialog(State.getSelectedRepository()!!, scene.window).show() })),
                 Menu("Actions", null,
                         menuItem("Commit",
-                                icon(FontAwesome.PLUS),
+                                PLUS(),
                                 shortcut = "Shortcut+Plus",
                                 disable = State.canCommit.not(),
                                 action = commit),
                         SeparatorMenuItem(),
                         menuItem("Push",
-                                icon(FontAwesome.CLOUD_UPLOAD),
+                                CLOUD_UPLOAD(),
                                 shortcut = "Shortcut+P",
                                 disable = State.canPush.not(),
                                 action = push),
                         menuItem("Force Push",
-                                icon(FontAwesome.CLOUD_UPLOAD),
+                                CLOUD_UPLOAD(),
                                 shortcut = "Shortcut+Shift+P",
                                 disable = State.canPush.not(),
                                 action = pushForce),
                         menuItem("Pull",
-                                icon(FontAwesome.CLOUD_DOWNLOAD),
+                                CLOUD_DOWNLOAD(),
                                 disable = State.canPull.not(),
                                 shortcut = "Shortcut+L",
                                 action = pull),
                         menuItem("Fetch",
-                                icon(FontAwesome.REFRESH),
+                                REFRESH(),
                                 shortcut = "Shortcut+F",
                                 disable = State.canFetch.not(),
                                 action = fetch),
                         menuItem("Tag",
-                                icon(FontAwesome.TAG),
+                                TAG(),
                                 shortcut = "Shortcut+T",
                                 disable = State.canTag.not(),
                                 action = EventHandler { }),
                         SeparatorMenuItem(),
                         menuItem("Branch",
-                                icon(FontAwesome.CODE_FORK),
+                                CODE_FORK(),
                                 shortcut = "Shortcut+B",
                                 disable = State.canBranch.not(),
                                 action = createBranch),
                         menuItem("Merge",
-                                icon(FontAwesome.CODE_FORK),
+                                CODE_FORK(),
                                 shortcut = "Shortcut+M",
                                 disable = State.canMerge.not(),
                                 action = EventHandler { }),
                         SeparatorMenuItem(),
                         menuItem("Stash",
-                                icon(FontAwesome.DOWNLOAD),
+                                DOWNLOAD(),
                                 shortcut = "Shortcut+S",
                                 disable = State.canStash.not(),
                                 action = stash),
                         menuItem("Apply Stash",
-                                icon(FontAwesome.UPLOAD),
+                                UPLOAD(),
                                 shortcut = "Shortcut+Shift+S",
                                 disable = State.canApplyStash.not(),
                                 action = stashApply),
                         SeparatorMenuItem(),
                         menuItem("Reset",
-                                icon(FontAwesome.UNDO),
+                                UNDO(),
                                 shortcut = "Shortcut+R",
                                 disable = State.canReset.not(),
                                 action = EventHandler { })),
@@ -123,56 +134,59 @@ class GitView : VBox() {
                         menuItem("About TinyGit",
                                 action = EventHandler { })))
         menuBar.isUseSystemMenuBar = true
+        //</editor-fold>
 
+        //<editor-fold desc="ToolBar">
         val toolBar = ToolBar(
                 button("Add Working Copy",
-                        icon(FontAwesome.DATABASE),
+                        DATABASE(),
                         addCopy),
                 Separator(),
                 button("Commit",
-                        icon(FontAwesome.PLUS),
+                        PLUS(),
                         disable = State.canCommit.not(),
                         action = commit),
                 Separator(),
                 button("Push",
-                        icon(FontAwesome.CLOUD_UPLOAD),
+                        CLOUD_UPLOAD(),
                         disable = State.canPush.not(),
                         action = push),
                 button("Pull",
-                        icon(FontAwesome.CLOUD_DOWNLOAD),
+                        CLOUD_DOWNLOAD(),
                         disable = State.canPull.not(),
                         action = pull),
                 button("Fetch",
-                        icon(FontAwesome.REFRESH),
+                        REFRESH(),
                         disable = State.canFetch.not(),
                         action = fetch),
                 button("Tag",
-                        icon(FontAwesome.TAG),
+                        TAG(),
                         disable = State.canTag.not(),
                         action = EventHandler { }),
                 Separator(),
                 button("Branch",
-                        icon(FontAwesome.CODE_FORK),
+                        CODE_FORK(),
                         disable = State.canBranch.not(),
                         action = createBranch),
                 button("Merge",
-                        icon(FontAwesome.CODE_FORK).also { it.scaleY = -1.0 },
+                        CODE_FORK().also { it.scaleY = -1.0 },
                         disable = State.canMerge.not(),
                         action = EventHandler { }),
                 Separator(),
                 button("Stash",
-                        icon(FontAwesome.DOWNLOAD),
+                        DOWNLOAD(),
                         disable = State.canStash.not(),
                         action = stash),
                 button("Apply Stash",
-                        icon(FontAwesome.UPLOAD),
+                        UPLOAD(),
                         disable = State.canApplyStash.not(),
                         action = stashApply),
                 Separator(),
                 button("Reset",
-                        icon(FontAwesome.UNDO),
+                        UNDO(),
                         disable = State.canReset.not(),
                         action = EventHandler { }))
+        //</editor-fold>
 
         val tabs = TabPane(LogView(), WorkingCopyView())
         val content = SplitPane(localRepositories, tabs)
@@ -180,7 +194,7 @@ class GitView : VBox() {
 
         val info = StackPane(HBox(
                 Label("Click "),
-                Label("", icon(FontAwesome.DATABASE)),
+                Label("", DATABASE()),
                 Label(" to add a working copy."))
                 .also { it.styleClass += "box" })
         info.styleClass += "overlay"
@@ -286,7 +300,7 @@ class GitView : VBox() {
     }
 
     private fun createBranch(repository: LocalRepository) {
-        textInputDialog(scene.window, icon(FontAwesome.CODE_FORK))?.let { name ->
+        textInputDialog(scene.window, CODE_FORK())?.let { name ->
             State.addProcess()
             State.cachedThreadPool.execute(object : Task<Unit>() {
                 override fun call() {

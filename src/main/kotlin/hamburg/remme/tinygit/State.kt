@@ -34,7 +34,6 @@ object State {
         runningProcesses.value -= 1
     }
 
-
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
      * REPOSITORIES                                                                                                  *
@@ -63,6 +62,22 @@ object State {
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
+     * WORKING FILES                                                                                                 *
+     *                                                                                                               *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    private val stagedFiles = ReadOnlyIntegerWrapper()
+    private val unstagedFiles = ReadOnlyIntegerWrapper()
+
+    fun setStagedFiles(count: Int) {
+        stagedFiles.set(count)
+    }
+
+    fun setUnstagedFiles(count: Int) {
+        unstagedFiles.set(count)
+    }
+
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     *                                                                                                               *
      * VISIBILITY                                                                                                       *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -73,7 +88,7 @@ object State {
      * ACTIONS                                                                                                       *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    val canCommit = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
+    val canCommit = selectedRepository.isNotNull.and(stagedFiles.isGreaterZero()).and(runningProcesses.isZero())!!
     val canPush = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
     val canPull = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
     val canFetch = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
@@ -85,6 +100,7 @@ object State {
     val canReset = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
 
     private fun IntegerProperty.isZero() = this.isEqualTo(0)
+    private fun IntegerProperty.isGreaterZero() = this.greaterThan(0)
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *

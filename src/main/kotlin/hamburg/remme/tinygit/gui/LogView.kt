@@ -4,6 +4,9 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.gui.FontAwesome.CODE_FORK
+import hamburg.remme.tinygit.gui.FontAwesome.COG
+import hamburg.remme.tinygit.gui.FontAwesome.LIST
 import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.concurrent.Task
@@ -16,7 +19,6 @@ import javafx.scene.control.TableView
 import javafx.scene.layout.HBox
 import javafx.scene.layout.StackPane
 import javafx.util.Callback
-import org.kordamp.ikonli.fontawesome.FontAwesome
 
 class LogView : Tab() {
 
@@ -28,7 +30,7 @@ class LogView : Tab() {
 
     init {
         text = "Log"
-        graphic = icon(FontAwesome.LIST)
+        graphic = LIST()
         isClosable = false
 
         val message = tableColumn<LocalCommit, LocalCommit>("Message",
@@ -53,7 +55,7 @@ class LogView : Tab() {
 
         error.children += HBox(
                 Label("Fetching repository failed. Check the settings. "),
-                Label("", icon(FontAwesome.COG)))
+                Label("", COG()))
                 .also { it.styleClass += "box" }
         error.styleClass += "overlay"
         error.isVisible = false
@@ -111,7 +113,7 @@ class LogView : Tab() {
 
     }
 
-    private class BranchBadge(name: String, current: Boolean) : Label(name, icon(FontAwesome.CODE_FORK)) {
+    private class BranchBadge(name: String, current: Boolean) : Label(name, CODE_FORK()) {
 
         init {
             styleClass += "branch-badge"
