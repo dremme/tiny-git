@@ -126,6 +126,15 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 2, 0, 2, 2);
 }
 
+.check-box > .box {
+    -fx-padding: 0.3em 0.25em 0.4em 0.25em;
+}
+
+.check-box > .box > .mark {
+    -fx-padding: 0.4em 0.5em 0.4em 0.5em;
+    -fx-shape: "M39.363,79L16,55.49l11.347-11.419L39.694,56.49L72.983,23L84,34.085L39.363,79z";
+}
+
 .git-view > .tool-bar .button {
     -fx-min-width: 48px;
     -fx-content-display: top;
@@ -147,20 +156,6 @@
 .git-view > * > .split-pane {
     -fx-background-insets: 0, 0;
     -fx-padding: 0;
-}
-
-.git-view > .overlay {
-    -fx-background-color: -fx-background;
-    -fx-font-size: 2em;
-}
-
-.git-view > .overlay .icon {
-    -fx-font-size: 32px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 2, 0, 2, 2);
-}
-
-.git-view > .overlay .box {
-    -fx-alignment: center;
 }
 
 .settings-view {
@@ -210,8 +205,7 @@
 }
 
 .commit-view {
-    -fx-hgap: 0.333em;
-    -fx-vgap: 0.333em;
+    -fx-spacing: 0.75em;
 }
 
 .working-copy-view {
@@ -251,6 +245,20 @@
     -fx-accent: -fx-focus-color;
 }
 
+.overlay {
+    -fx-background-color: -fx-background;
+    -fx-font-size: 2em;
+}
+
+.overlay .icon {
+    -fx-font-size: 32px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 2, 0, 2, 2);
+}
+
+.overlay .box {
+    -fx-alignment: center;
+}
+
 .progress-overlay {
     -fx-background-color: rgba(0, 0, 0, 0.5);
 }
@@ -258,6 +266,10 @@
 .progress-overlay .progress-indicator {
     -fx-max-width: 400px;
     -fx-max-height: 400px;
+}
+
+.progress-overlay .label {
+    -fx-font-size: 2em;
 }
 
 .progress-overlay .progress-indicator:indeterminate .segment {

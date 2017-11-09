@@ -29,18 +29,18 @@ class WorkingCopyView : Tab() {
         isClosable = false
 
         val unstageAll = button("Unstage all",
-                action = EventHandler { unstage(State.getSelectedRepository()!!) })
+                action = EventHandler { unstage(State.getSelectedRepository()) })
         val unstageSelected = button("Unstage selected",
-                action = EventHandler { unstage(State.getSelectedRepository()!!, stagedFiles.selectionModel.selectedItems) })
+                action = EventHandler { unstage(State.getSelectedRepository(), stagedFiles.selectionModel.selectedItems) })
         unstageAll.disableProperty().bind(Bindings.isEmpty(stagedFiles.items))
         unstageSelected.disableProperty().bind(Bindings.isEmpty(stagedFiles.selectionModel.selectedItems))
         stagedFiles.selectionModel.selectedItems.addListener(ListChangeListener {
             if (it.list.isNotEmpty()) {
-                fileDiff.update(State.getSelectedRepository()!!, stagedFiles.selectionModel.selectedItem)
+                fileDiff.update(State.getSelectedRepository(), stagedFiles.selectionModel.selectedItem)
                 unstagedFiles.selectionModel.clearSelection()
             }
         })
-        stagedFiles.items.addListener(ListChangeListener { State.setStagedFiles(it.list.size) })
+        stagedFiles.items.addListener(ListChangeListener { State.stagedFiles.set(it.list.size) })
 
         val stagedTools = ToolBar(
                 StatusCountView(stagedFiles),
@@ -49,17 +49,17 @@ class WorkingCopyView : Tab() {
                 unstageSelected)
 
         val update = button("Update all",
-                action = EventHandler { update(State.getSelectedRepository()!!) })
+                action = EventHandler { update(State.getSelectedRepository()) })
         val stageAll = button("Stage all",
-                action = EventHandler { stage(State.getSelectedRepository()!!) })
+                action = EventHandler { stage(State.getSelectedRepository()) })
         val stageSelected = button("Stage selected",
-                action = EventHandler { stage(State.getSelectedRepository()!!, unstagedFiles.selectionModel.selectedItems) })
+                action = EventHandler { stage(State.getSelectedRepository(), unstagedFiles.selectionModel.selectedItems) })
         update.disableProperty().bind(Bindings.isEmpty(unstagedFiles.items))
         stageAll.disableProperty().bind(Bindings.isEmpty(unstagedFiles.items))
         stageSelected.disableProperty().bind(Bindings.isEmpty(unstagedFiles.selectionModel.selectedItems))
         unstagedFiles.selectionModel.selectedItems.addListener(ListChangeListener {
             if (it.list.isNotEmpty()) {
-                fileDiff.update(State.getSelectedRepository()!!, unstagedFiles.selectionModel.selectedItem)
+                fileDiff.update(State.getSelectedRepository(), unstagedFiles.selectionModel.selectedItem)
                 stagedFiles.selectionModel.clearSelection()
             }
         })
@@ -91,7 +91,7 @@ class WorkingCopyView : Tab() {
     }
 
     private fun fetchCurrent() {
-        State.getSelectedRepository()?.let { fetchFiles(it) }
+        State.getSelectedRepository { fetchFiles(it) }
     }
 
     private fun fetchFiles(repository: LocalRepository) {
@@ -107,6 +107,7 @@ class WorkingCopyView : Tab() {
                 stagedFiles.items.setAll(value.staged)
                 unstagedFiles.items.setAll(value.unstaged)
 
+                // TODO: may wobble when clicking into an unfocused window
                 if (stagedSelected) stagedFiles.items.find { it == selected }?.let { stagedFiles.selectionModel.select(it) }
                 else unstagedFiles.items.find { it == selected }?.let { unstagedFiles.selectionModel.select(it) }
             }

@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.gui.dialog
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.gui.FileDiffView
 import hamburg.remme.tinygit.gui.FileStatusView
 import hamburg.remme.tinygit.gui.textArea
 import javafx.application.Platform
@@ -11,8 +12,9 @@ import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
 import javafx.scene.control.CheckBox
 import javafx.scene.control.Dialog
-import javafx.scene.layout.GridPane
+import javafx.scene.control.SplitPane
 import javafx.scene.layout.Priority
+import javafx.scene.layout.VBox
 import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
@@ -28,23 +30,28 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>()
         val ok = ButtonType("Commit", ButtonBar.ButtonData.OK_DONE)
         val cancel = ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
 
+        val fileDiff = FileDiffView()
+
         val files = FileStatusView()
+        files.prefWidth = 400.0
+        files.prefHeight = 500.0
         files.items.addAll(LocalGit.status(repository).staged)
-        files.prefHeight = 250.0
-        GridPane.setHgrow(files, Priority.ALWAYS)
-        GridPane.setVgrow(files, Priority.ALWAYS)
+        files.selectionModel.selectedItemProperty().addListener { _, _, it ->
+            fileDiff.update(repository, it)
+        }
+        files.selectionModel.selectFirst()
 
         val message = textArea(placeholder = "Enter commit message")
         message.prefHeight = 100.0
-        GridPane.setHgrow(message, Priority.ALWAYS)
+        message.textProperty().bindBidirectional(State.commitMessage)
 
+        // TODO: get previous message on amend
         val amend = CheckBox("Amend last commit.")
 
-        val content = GridPane()
+        val content = VBox(
+                SplitPane(files, fileDiff).also { VBox.setVgrow(it, Priority.ALWAYS) },
+                message, amend)
         content.styleClass += "commit-view"
-        content.add(files, 0, 0)
-        content.add(message, 0, 1)
-        content.add(amend, 0, 2)
 
         resultConverter = Callback {
             if (it.buttonData.isDefaultButton) {

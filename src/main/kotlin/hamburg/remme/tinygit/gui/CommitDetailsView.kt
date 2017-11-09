@@ -25,7 +25,7 @@ class CommitDetailsView : SplitPane() {
 
         val fileDiff = FileDiffView()
         files.selectionModel.selectedItemProperty().addListener { _, _, it ->
-            it?.let { fileDiff.update(repository!!, files.selectionModel.selectedItem, commit!!.id) } ?: fileDiff.clear()
+            it?.let { fileDiff.update(repository!!, it, commit!!.id) } ?: fileDiff.clear()
         }
 
         items.addAll(SplitPane(webView, VBox(ToolBar(StatusCountView(files)), files)), fileDiff)

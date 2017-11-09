@@ -8,9 +8,13 @@ import javafx.scene.web.WebView
 
 class FileDiffView : StackPane() {
 
-    private val webView = WebView().also { it.isContextMenuEnabled = false }
+    private val webView = WebView()
 
     init {
+        webView.isContextMenuEnabled = false
+        webView.prefWidth = 400.0
+        webView.prefHeight = 300.0
+
         children += webView
         clearContent()
     }
@@ -24,11 +28,11 @@ class FileDiffView : StackPane() {
             LocalFile.Status.MODIFIED -> LocalGit.diff(repository, file)
             LocalFile.Status.MISSING -> LocalGit.diff(repository, file)
             LocalFile.Status.UNTRACKED -> LocalGit.diff(repository, file)
-        })
+        }, file.resolve(repository))
     }
 
     fun update(repository: LocalRepository, file: LocalFile, id: String) {
-        setContent(LocalGit.diff(repository, file, id))
+        setContent(LocalGit.diff(repository, file, id), file.resolve(repository))
     }
 
     fun clear() {
@@ -67,7 +71,7 @@ class FileDiffView : StackPane() {
         """)
     }
 
-    private fun setContent(diff: String) {
+    private fun setContent(diff: String, file: String) {
         //language=HTML
         webView.engine.loadContent("""
             <html>
@@ -89,6 +93,13 @@ class FileDiffView : StackPane() {
                         position: absolute;
                         min-width: 100%;
                         font-size: 13px;
+                    }
+                    .image-box {
+                        padding: 20px;
+                    }
+                    .image-box img {
+                        width: 100%;
+                        box-shadow: 0 2px 10px 2px rgba(0, 0, 0, 0.5);
                     }
                     .line-number {
                         padding: 3px 6px;
@@ -137,15 +148,26 @@ class FileDiffView : StackPane() {
             </head>
             <body>
                 <table cellpadding="0" cellspacing="0">
-                    ${format(diff)}
+                    ${format(diff, file)}
                 </table>
             </body>
             </html>
         """)
     }
 
-    private fun format(diff: String): String {
-        if (diff.isBlank() || diff.contains("Binary files differ")) {
+    private fun format(diff: String, file: String): String {
+        if (diff.isBlank() || diff.matches(".*Binary files differ\\r?\\n?$".toRegex(RegexOption.DOT_MATCHES_ALL))) {
+            val image: String
+            if (file.toLowerCase().matches(".*\\.(png|jpe?g|gif)$".toRegex())) {
+                //language=HTML
+                image = """
+                    <tr>
+                        <td colspan="3"><div class="image-box"><img src="file://$file"></div></td>
+                    </tr>
+                """
+            } else {
+                image = ""
+            }
             //language=HTML
             return """
                 <tr>
@@ -153,6 +175,7 @@ class FileDiffView : StackPane() {
                     <td class="line-number header">&nbsp;</td>
                     <td class="code header">&nbsp;@@ No changes detected or binary file @@</td>
                 </tr>
+                $image
             """
         }
         val blocks = mutableListOf<DiffBlock>()

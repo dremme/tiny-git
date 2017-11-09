@@ -51,7 +51,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
 
         val content = GridPane()
         content.styleClass += "settings-view"
-        content.add(Label("URL:"), 0, 0)
+        content.add(Label("Location:"), 0, 0)
         content.add(url, 1, 0, 3, 1)
         content.add(Label("SSH Key:"), 0, 1)
         content.add(ssh, 1, 1, 2, 1)
