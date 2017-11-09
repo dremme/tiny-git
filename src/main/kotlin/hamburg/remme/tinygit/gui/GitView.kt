@@ -47,14 +47,14 @@ class GitView : VBox() {
         styleClass += "git-view"
 
         val addCopy = EventHandler<ActionEvent> { addCopy() }
-        val commit = EventHandler<ActionEvent> { commit(State.getSelectedRepository()!!) }
-        val push = EventHandler<ActionEvent> { push(State.getSelectedRepository()!!, false) }
-        val pushForce = EventHandler<ActionEvent> { push(State.getSelectedRepository()!!, true) }
-        val pull = EventHandler<ActionEvent> { pull(State.getSelectedRepository()!!) }
-        val fetch = EventHandler<ActionEvent> { fetch(State.getSelectedRepository()!!) }
-        val createBranch = EventHandler<ActionEvent> { createBranch(State.getSelectedRepository()!!) }
-        val stash = EventHandler<ActionEvent> { stash(State.getSelectedRepository()!!) }
-        val stashApply = EventHandler<ActionEvent> { stashApply(State.getSelectedRepository()!!) }
+        val commit = EventHandler<ActionEvent> { commit(State.getSelectedRepository()) }
+        val push = EventHandler<ActionEvent> { push(State.getSelectedRepository(), false) }
+        val pushForce = EventHandler<ActionEvent> { push(State.getSelectedRepository(), true) }
+        val pull = EventHandler<ActionEvent> { pull(State.getSelectedRepository()) }
+        val fetch = EventHandler<ActionEvent> { fetch(State.getSelectedRepository()) }
+        val createBranch = EventHandler<ActionEvent> { createBranch(State.getSelectedRepository()) }
+        val stash = EventHandler<ActionEvent> { stash(State.getSelectedRepository()) }
+        val stashApply = EventHandler<ActionEvent> { stashApply(State.getSelectedRepository()) }
 
         //<editor-fold desc="MenuBar">
         val menuBar = MenuBar(
@@ -69,7 +69,7 @@ class GitView : VBox() {
                 Menu("Repository", null,
                         menuItem("Settings",
                                 COG(),
-                                action = EventHandler { SettingsDialog(State.getSelectedRepository()!!, scene.window).show() })),
+                                action = EventHandler { SettingsDialog(State.getSelectedRepository(), scene.window).show() })),
                 Menu("Actions", null,
                         menuItem("Commit",
                                 PLUS(),
@@ -198,11 +198,13 @@ class GitView : VBox() {
                 Label(" to add a working copy."))
                 .also { it.styleClass += "box" })
         info.styleClass += "overlay"
-        info.visibleProperty().bind(State.showInfo)
+        info.visibleProperty().bind(State.showGlobalInfo)
 
-        val overlay = StackPane(ProgressIndicator(-1.0))
+        val overlay = StackPane(
+                ProgressIndicator(-1.0),
+                Label().also { it.textProperty().bind(State.processTextProperty()) })
         overlay.styleClass += "progress-overlay"
-        overlay.visibleProperty().bind(State.runningProcessesProperty().greaterThan(0))
+        overlay.visibleProperty().bind(State.showGlobalOverlay)
 
         children.addAll(
                 menuBar,
@@ -233,7 +235,7 @@ class GitView : VBox() {
     }
 
     private fun fetch(repository: LocalRepository) {
-        State.addProcess()
+        State.addProcess("Fetching...")
         State.cachedThreadPool.execute(object : Task<Unit>() {
             override fun call() = LocalGit.fetchPrune(repository)
 
@@ -250,7 +252,7 @@ class GitView : VBox() {
     }
 
     private fun pull(repository: LocalRepository) {
-        State.addProcess()
+        State.addProcess("Pulling commits...")
         State.cachedThreadPool.execute(object : Task<Boolean>() {
             override fun call() = LocalGit.pull(repository)
 
@@ -275,7 +277,7 @@ class GitView : VBox() {
                 "Force Push",
                 "This will rewrite the remote branch's history.\nChanges by others will be lost.")) return
 
-        State.addProcess()
+        State.addProcess("Pushing commits...")
         State.cachedThreadPool.execute(object : Task<Unit>() {
             override fun call() {
                 if (force) LocalGit.pushForce(repository)
@@ -301,7 +303,7 @@ class GitView : VBox() {
 
     private fun createBranch(repository: LocalRepository) {
         textInputDialog(scene.window, CODE_FORK())?.let { name ->
-            State.addProcess()
+            State.addProcess("Branching...")
             State.cachedThreadPool.execute(object : Task<Unit>() {
                 override fun call() {
                     LocalGit.branchCreate(repository, name)
@@ -326,7 +328,7 @@ class GitView : VBox() {
     }
 
     private fun stash(repository: LocalRepository) {
-        State.addProcess()
+        State.addProcess("Stashing files...")
         State.cachedThreadPool.execute(object : Task<Unit>() {
             override fun call() = LocalGit.stash(repository)
 
@@ -343,7 +345,7 @@ class GitView : VBox() {
     }
 
     private fun stashApply(repository: LocalRepository) {
-        State.addProcess()
+        State.addProcess("Applying stash...")
         State.cachedThreadPool.execute(object : Task<Unit>() {
             override fun call() = LocalGit.stashPop(repository)
 

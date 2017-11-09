@@ -139,10 +139,15 @@ object LocalGit {
         return diff(repository, file, true)
     }
 
-    private fun diff(repository: LocalRepository, file: LocalFile, cached: Boolean): String {
+    private fun diff(repository: LocalRepository, file: LocalFile, cached: Boolean, lines: Int = -1): String {
         return repository.open { gitRepo ->
             ByteArrayOutputStream().use {
-                Git(gitRepo).diff().setCached(cached).setPathFilter(PathFilter.create(file.path)).setOutputStream(it).call()
+                Git(gitRepo).diff()
+                        .setCached(cached)
+                        .setPathFilter(PathFilter.create(file.path))
+                        .setContextLines(lines)
+                        .setOutputStream(it)
+                        .call()
                 it.toString("UTF-8")
             }
         }

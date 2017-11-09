@@ -5,6 +5,9 @@ import javafx.beans.binding.Bindings
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.ReadOnlyIntegerWrapper
 import javafx.beans.property.ReadOnlyObjectWrapper
+import javafx.beans.property.ReadOnlyStringWrapper
+import javafx.beans.property.SimpleIntegerProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import java.util.concurrent.Executors
 
@@ -23,16 +26,18 @@ object State {
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private val runningProcesses = ReadOnlyIntegerWrapper(0)
+    private val processText = ReadOnlyStringWrapper()
 
-    fun runningProcessesProperty() = runningProcesses.readOnlyProperty!!
-
-    fun addProcess() {
+    fun addProcess(message: String) {
+        processText.set(message)
         runningProcesses.value += 1
     }
 
     fun removeProcess() {
         runningProcesses.value -= 1
     }
+
+    fun processTextProperty() = processText.readOnlyProperty!!
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
@@ -54,7 +59,9 @@ object State {
 
     fun selectedRepositoryProperty() = selectedRepository.readOnlyProperty!!
 
-    fun getSelectedRepository(): LocalRepository? = selectedRepository.readOnlyProperty.value
+    fun getSelectedRepository(): LocalRepository = selectedRepository.readOnlyProperty.value!!
+
+    fun getSelectedRepository(block: (LocalRepository) -> Unit) = selectedRepository.readOnlyProperty.value?.let(block)
 
     fun setSelectedRepository(repository: LocalRepository) {
         selectedRepository.set(repository)
@@ -65,23 +72,23 @@ object State {
      * WORKING FILES                                                                                                 *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val stagedFiles = ReadOnlyIntegerWrapper()
-    private val unstagedFiles = ReadOnlyIntegerWrapper()
+    val stagedFiles = SimpleIntegerProperty()
+    val unstagedFiles = SimpleIntegerProperty()
 
-    fun setStagedFiles(count: Int) {
-        stagedFiles.set(count)
-    }
-
-    fun setUnstagedFiles(count: Int) {
-        unstagedFiles.set(count)
-    }
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     *                                                                                                               *
+     * COMMIT MESSAGE                                                                                                *
+     *                                                                                                               *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    val commitMessage = SimpleStringProperty()
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
      * VISIBILITY                                                                                                       *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    val showInfo = Bindings.isEmpty(repositories)!!
+    val showGlobalInfo = Bindings.isEmpty(repositories)!!
+    val showGlobalOverlay = runningProcesses.greaterThan(0)!!
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
