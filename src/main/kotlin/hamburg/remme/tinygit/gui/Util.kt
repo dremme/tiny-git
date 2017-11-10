@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.gui.FontAwesome.EXCLAMATION_TRIANGLE
-import hamburg.remme.tinygit.gui.FontAwesome.QUESTION_CIRCLE
+import hamburg.remme.tinygit.gui.FontAwesome.exclamationTriangle
+import hamburg.remme.tinygit.gui.FontAwesome.questionCircle
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.value.ObservableValue
 import javafx.event.ActionEvent
@@ -32,13 +32,33 @@ import java.time.format.DateTimeFormatter
 val shortDate = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val fullDate = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
 
+fun <T : Node> T.addClass(vararg styleClass: String): T {
+    this.styleClass += styleClass
+    return this
+}
+
+fun <T : Node> T.addStyle(style: String): T {
+    this.style += style
+    return this
+}
+
+fun <T : Node> T.flipX(): T {
+    this.scaleX = -1.0
+    return this
+}
+
+fun <T : Node> T.flipY(): T {
+    this.scaleY = -1.0
+    return this
+}
+
 fun label(text: String = "",
           icon: Node? = null,
           color: String? = null,
           tooltip: String? = null): Label {
     val label = Label(text)
     icon?.let { label.graphic = it }
-    color?.let { label.style = "-fx-text-fill:$it;" }
+    color?.let { label.style += "-fx-text-fill:$it;" }
     tooltip?.let { label.tooltip = Tooltip(it) }
     return label
 }
@@ -111,21 +131,21 @@ fun menuItem(label: String,
 fun confirmAlert(window: Window,
                  header: String,
                  text: String): Boolean {
-    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, QUESTION_CIRCLE("#5bc0de"))
+    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, questionCircle("#5bc0de"))
     return alert.showAndWait().get() == ButtonType.OK
 }
 
 fun confirmWarningAlert(window: Window,
                         header: String,
                         text: String): Boolean {
-    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, EXCLAMATION_TRIANGLE("#f0ad4e"))
+    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, exclamationTriangle("#f0ad4e"))
     return alert.showAndWait().get() == ButtonType.OK
 }
 
 fun errorAlert(window: Window,
                header: String,
                text: String) {
-    val alert = alert(window, Alert.AlertType.ERROR, header, text, EXCLAMATION_TRIANGLE("#d9534f"))
+    val alert = alert(window, Alert.AlertType.ERROR, header, text, exclamationTriangle("#d9534f"))
     alert.showAndWait()
 }
 
@@ -150,5 +170,5 @@ fun textInputDialog(window: Window,
     dialog.title = "Input"
     dialog.headerText = "Enter a New Branch Name"
     dialog.graphic = icon
-    return dialog.showAndWait().get()
+    return dialog.showAndWait().orElse(null)
 }

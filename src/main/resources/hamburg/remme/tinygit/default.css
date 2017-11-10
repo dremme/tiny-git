@@ -47,7 +47,7 @@
 
 .tab-pane > .tab-header-area > .tab-header-background {
     -fx-background-color: -fx-outer-border, -fx-background;
-    -fx-background-insets: 0, 0 0 1 0;
+    -fx-background-insets: 0, 1 0 2 0;
 }
 
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
@@ -133,6 +133,7 @@
 .check-box > .box > .mark {
     -fx-padding: 0.4em 0.5em 0.4em 0.5em;
     -fx-shape: "M39.363,79L16,55.49l11.347-11.419L39.694,56.49L72.983,23L84,34.085L39.363,79z";
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 1, 0, 1, 1);
 }
 
 .git-view > .tool-bar .button {
@@ -149,8 +150,8 @@
     -fx-background-color: rgba(0, 0, 0, 0.15);
 }
 
-.git-view > .tool-bar .button > .icon {
-    -fx-font-size: 18px;
+.git-view > .tool-bar .icon {
+    -fx-font-size: 20px;
 }
 
 .git-view > * > .split-pane {
@@ -202,6 +203,27 @@
 .log-view .table-view {
     -fx-background-insets: 0, 0;
     -fx-padding: 0;
+}
+
+.log-progress {
+    -fx-indeterminate-bar-length: 300;
+    -fx-indeterminate-bar-animation-time: 2.5;
+}
+
+.log-progress > .bar {
+    -fx-padding: 0.2em;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.log-progress:indeterminate > .bar {
+    -fx-background-color: -fx-focus-color;
+}
+
+.log-progress > .track {
+    -fx-background-color: -fx-background;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
 }
 
 .commit-view {

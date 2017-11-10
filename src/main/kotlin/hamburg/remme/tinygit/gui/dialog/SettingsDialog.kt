@@ -3,7 +3,7 @@ package hamburg.remme.tinygit.gui.dialog
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCredentials
 import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.gui.FontAwesome.FOLDER_OPEN
+import hamburg.remme.tinygit.gui.FontAwesome.folderOpen
 import hamburg.remme.tinygit.gui.button
 import hamburg.remme.tinygit.gui.intTextField
 import hamburg.remme.tinygit.gui.textField
@@ -33,7 +33,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         val url = textField(repository.path, editable = false)
         val ssh = textField(repository.credentials?.ssh ?: "")
         val sshSearch = button(
-                icon = FOLDER_OPEN(),
+                icon = folderOpen(),
                 action = EventHandler {
                     val chooser = FileChooser()
                     chooser.title = "Choose a SSH Key"

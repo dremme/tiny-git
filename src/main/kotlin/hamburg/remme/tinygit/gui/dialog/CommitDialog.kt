@@ -66,6 +66,8 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>()
         dialogPane.lookupButton(ok).disableProperty().bind(message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
 
         Platform.runLater { message.requestFocus() }
+
+        // TODO: needs a refresh listener on focus so evetually removed files are registered
     }
 
 }
