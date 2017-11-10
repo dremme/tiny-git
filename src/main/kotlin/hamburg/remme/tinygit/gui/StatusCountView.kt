@@ -1,22 +1,22 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.gui.FontAwesome.EXCLAMATION_TRIANGLE
-import hamburg.remme.tinygit.gui.FontAwesome.MINUS
-import hamburg.remme.tinygit.gui.FontAwesome.PENCIL
-import hamburg.remme.tinygit.gui.FontAwesome.PLUS
-import hamburg.remme.tinygit.gui.FontAwesome.QUESTION
+import hamburg.remme.tinygit.gui.FontAwesome.exclamationTriangle
+import hamburg.remme.tinygit.gui.FontAwesome.minus
+import hamburg.remme.tinygit.gui.FontAwesome.pencil
+import hamburg.remme.tinygit.gui.FontAwesome.plus
+import hamburg.remme.tinygit.gui.FontAwesome.question
 import javafx.collections.ListChangeListener
 import javafx.scene.layout.HBox
 
 class StatusCountView(statusView: FileStatusView) : HBox() {
 
-    private val conflicting = label(tooltip = "Conflicting", icon = EXCLAMATION_TRIANGLE("#d9534f"), color = "#d9534f")
-    private val added = label(tooltip = "Added", icon = PLUS("#5cb85c"), color = "#5cb85c")
-    private val changed = label(tooltip = "Changed", icon = PENCIL("#f0ad4e"), color = "#f0ad4e")
-    private val removed = label(tooltip = "Removed", icon = MINUS("#d9534f"), color = "#d9534f")
-    private val missing = label(tooltip = "Missing", icon = MINUS("#999"), color = "#999")
-    private val untracked = label(tooltip = "Untracked", icon = QUESTION("#5bc0de"), color = "#5bc0de")
+    private val conflicting = label(tooltip = "Conflicting", icon = exclamationTriangle("#d9534f"), color = "#d9534f")
+    private val added = label(tooltip = "Added", icon = plus("#5cb85c"), color = "#5cb85c")
+    private val changed = label(tooltip = "Changed", icon = pencil("#f0ad4e"), color = "#f0ad4e")
+    private val removed = label(tooltip = "Removed", icon = minus("#d9534f"), color = "#d9534f")
+    private val missing = label(tooltip = "Missing", icon = minus("#999"), color = "#999")
+    private val untracked = label(tooltip = "Untracked", icon = question("#5bc0de"), color = "#5bc0de")
 
     init {
         styleClass += "status-count-view"

@@ -5,7 +5,7 @@ import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStatus
-import hamburg.remme.tinygit.gui.FontAwesome.DESKTOP
+import hamburg.remme.tinygit.gui.FontAwesome.desktop
 import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
@@ -24,8 +24,8 @@ class WorkingCopyView : Tab() {
     private var task: Task<*>? = null
 
     init {
-        text = "Files"
-        graphic = DESKTOP()
+        text = "Working Copy"
+        graphic = desktop()
         isClosable = false
 
         val unstageAll = button("Unstage all",
@@ -76,68 +76,61 @@ class WorkingCopyView : Tab() {
         val files = SplitPane(VBox(stagedTools, stagedFiles), VBox(unstagedTools, unstagedFiles))
         files.styleClass += "files"
 
-        val pane = SplitPane(files, fileDiff)
-        pane.styleClass += "working-copy-view"
-        content = pane
+        content = SplitPane(files, fileDiff).addClass("working-copy-view")
 
         State.selectedRepositoryProperty().addListener { _, _, it ->
             fileDiff.clear()
-            fetchFiles(it)
+            diff(it)
         }
         State.addFocusListener {
             fileDiff.clear()
-            fetchCurrent()
+            State.getSelectedRepository { diff(it) }
         }
     }
 
-    private fun fetchCurrent() {
-        State.getSelectedRepository { fetchFiles(it) }
-    }
-
-    private fun fetchFiles(repository: LocalRepository) {
+    private fun diff(repository: LocalRepository) {
         println("Status for working copy: $repository")
         task?.cancel()
         task = object : Task<LocalStatus>() {
-            val stagedSelected = stagedFiles.selectionModel.selectedIndex >= 0
-            val selected = if (stagedSelected) stagedFiles.selectionModel.selectedItem else unstagedFiles.selectionModel.selectedItem
-
-            override fun call() = LocalGit.status(repository)// TODO: git status might not be good enough here
+            override fun call() = LocalGit.status(repository) // TODO: git status might not be good enough here
 
             override fun succeeded() {
+                // TODO: loosing multi selection
+                val stagedSelected = stagedFiles.selectionModel.selectedIndex >= 0
+                val selected = if (stagedSelected) stagedFiles.selectionModel.selectedItem else unstagedFiles.selectionModel.selectedItem
+
                 stagedFiles.items.setAll(value.staged)
                 unstagedFiles.items.setAll(value.unstaged)
 
-                // TODO: may wobble when clicking into an unfocused window
                 if (stagedSelected) stagedFiles.items.find { it == selected }?.let { stagedFiles.selectionModel.select(it) }
                 else unstagedFiles.items.find { it == selected }?.let { unstagedFiles.selectionModel.select(it) }
             }
-        }
-        State.cachedThreadPool.execute(task)
+        }.also { State.execute(it) }
     }
 
     private fun stage(repository: LocalRepository) {
         LocalGit.addAll(repository)
-        fetchFiles(repository)
+        diff(repository)
     }
 
     private fun stage(repository: LocalRepository, files: List<LocalFile>) {
         LocalGit.add(repository, files)
-        fetchFiles(repository)
+        diff(repository)
     }
 
     private fun update(repository: LocalRepository) {
         LocalGit.addAllUpdate(repository)
-        fetchFiles(repository)
+        diff(repository)
     }
 
     private fun unstage(repository: LocalRepository) {
         LocalGit.reset(repository)
-        fetchFiles(repository)
+        diff(repository)
     }
 
     private fun unstage(repository: LocalRepository, files: List<LocalFile>) {
         LocalGit.reset(repository, files)
-        fetchFiles(repository)
+        diff(repository)
     }
 
 }

@@ -31,7 +31,7 @@ import java.time.ZoneOffset
 
 object LocalGit {
 
-    private val fetchedRepos = mutableSetOf<LocalRepository>()
+    private val updatedRepositories = mutableSetOf<LocalRepository>()
     private var proxyHost = ThreadLocal<String>()
     private var proxyPort = ThreadLocal<Int>()
 
@@ -50,15 +50,19 @@ object LocalGit {
         })
     }
 
+    fun isUpdated(repository: LocalRepository) = updatedRepositories.contains(repository)
+
+    private fun updated(repository: LocalRepository) = updatedRepositories.add(repository)
+
     /**
      * - `git fetch`
      * - `git branch --all`
      * - `git log --all --max-count=[max]`
      */
-    fun log(repository: LocalRepository, max: Int = 50): List<LocalCommit> {
+    fun log(repository: LocalRepository, fetch: Boolean = false, max: Int = 50): List<LocalCommit> {
         return repository.open {
             val git = Git(it)
-            git.fetch(repository)
+            if (fetch) git.fetch(repository)
             val branches = git.branchListAll()
             git.log().all().setMaxCount(max).call().map { c ->
                 LocalCommit(
@@ -322,6 +326,13 @@ object LocalGit {
     }
 
     /**
+     * - `git checkout [name]`
+     */
+    fun checkout(repository: LocalRepository, name: String) {
+        repository.open { Git(it).checkout().setName(name).call() }
+    }
+
+    /**
      * - `git stash`
      */
     fun stash(repository: LocalRepository) {
@@ -344,13 +355,13 @@ object LocalGit {
      */
     fun fetchPrune(repository: LocalRepository) {
         repository.open { Git(it).fetch().applyAuth(repository).setRemoveDeletedRefs(true).call() }
-        if (!fetchedRepos.contains(repository)) fetchedRepos.add(repository)
+        updated(repository)
     }
 
     private fun Git.fetch(repository: LocalRepository) {
-        if (!fetchedRepos.contains(repository)) {
+        if (!isUpdated(repository)) {
             this.fetch().applyAuth(repository).call()
-            fetchedRepos.add(repository)
+            updated(repository)
         }
     }
 

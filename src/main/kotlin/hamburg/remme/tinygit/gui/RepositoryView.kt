@@ -3,29 +3,28 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.gui.FontAwesome.CHECK
-import hamburg.remme.tinygit.gui.FontAwesome.CLOUD
-import hamburg.remme.tinygit.gui.FontAwesome.CODE_FORK
-import hamburg.remme.tinygit.gui.FontAwesome.COG
-import hamburg.remme.tinygit.gui.FontAwesome.DESKTOP
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.collections.ListChangeListener
-import javafx.collections.ObservableList
+import javafx.concurrent.Task
 import javafx.event.EventHandler
 import javafx.scene.control.Label
 import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
+import javafx.scene.input.KeyCode
 import javafx.scene.layout.HBox
 
-class RepositoryView(repositories: ObservableList<LocalRepository>) : TreeView<RepositoryView.RepositoryEntry>() {
+class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     init {
         setCellFactory { RepositoryEntryListCell() }
         root = TreeItem()
         isShowRoot = false
-        selectionModel.selectedItemProperty().addListener { _, _, it -> State.setSelectedRepository(it.value.repository) }
+        selectionModel.selectedItemProperty().addListener { _, _, it ->
+            it?.let { State.setSelectedRepository(it.value.repository) }
+        }
 
+        val repositories = State.getRepositories()
         repositories.addListener(ListChangeListener {
             while (it.next()) {
                 when {
@@ -36,36 +35,71 @@ class RepositoryView(repositories: ObservableList<LocalRepository>) : TreeView<R
         })
         repositories.forEach { addRepo(it) }
         selectionModel.selectFirst()
+
+        setOnKeyPressed { if (it.code == KeyCode.SPACE) it.consume() }
+        setOnMouseClicked {
+            if (it.clickCount == 2) {
+                val entry = selectionModel.selectedItem.value
+                if (entry.type == RepositoryEntryType.LOCAL_BRANCH) checkout(entry.repository, entry.value)
+            }
+        }
+        State.addRefreshListener { refreshRepo(State.getSelectedRepository()) }
     }
 
     private fun addRepo(repository: LocalRepository) {
-        val branches = TreeItem(RepositoryEntry(
+        val repoTree = TreeItem(RepositoryEntry(
                 repository,
                 repository.path.split("[\\\\/]".toRegex()).last(),
                 RepositoryEntryType.REPOSITORY))
 
         val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", RepositoryEntryType.LOCAL))
         val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", RepositoryEntryType.REMOTE))
-        branches.children.addAll(localBranches, remoteBranches)
+        repoTree.children.addAll(localBranches, remoteBranches)
 
         val branchList = LocalGit.branchListAll(repository)
         localBranches.children.addAll(branchList.filter { !it.remote }.map {
             TreeItem(RepositoryEntry(repository, it.shortRef,
-                    if (it.current) RepositoryEntryType.CURRENT_BRANCH else RepositoryEntryType.BRANCH))
+                    if (it.current) RepositoryEntryType.CURRENT_BRANCH else RepositoryEntryType.LOCAL_BRANCH))
         })
         remoteBranches.children.addAll(branchList.filter { it.remote }.map {
-            TreeItem(RepositoryEntry(repository, it.shortRef,
-                    if (it.current) RepositoryEntryType.CURRENT_BRANCH else RepositoryEntryType.BRANCH))
+            TreeItem(RepositoryEntry(repository, it.shortRef, RepositoryEntryType.REMOTE_BRANCH))
         })
 
-        root.children += branches
+        root.children += repoTree
     }
 
     private fun removeRepo(repository: LocalRepository) {
         root.children.find { it.value.repository == repository }?.let { root.children.remove(it) }
     }
 
-    class RepositoryEntry(val repository: LocalRepository, val label: String, val type: RepositoryEntryType) {
+    private fun refreshRepo(repository: LocalRepository) {
+        root.children.find { it.value.repository == repository }?.let {
+            // TODO: not refreshing remote branches yet (e.g. after fetch --prune)
+            // TODO: selection might get lost on removed branches (e.g. after pruning)
+            val selected = selectionModel.selectedIndex
+            val branchList = LocalGit.branchListAll(repository)
+            it.children[0].children.setAll(branchList.filter { !it.remote }.map {
+                TreeItem(RepositoryEntry(repository, it.shortRef,
+                        if (it.current) RepositoryEntryType.CURRENT_BRANCH else RepositoryEntryType.LOCAL_BRANCH))
+            })
+            selectionModel.select(selected)
+        }
+    }
+
+    private fun checkout(repository: LocalRepository, branch: String) {
+        State.addProcess("Switching branches...")
+        State.execute(object : Task<Unit>() {
+            override fun call() = LocalGit.checkout(repository, branch)
+
+            override fun succeeded() = State.fireRefresh()
+
+            override fun failed() = exception.printStackTrace()
+
+            override fun done() = State.removeProcess()
+        })
+    }
+
+    class RepositoryEntry(val repository: LocalRepository, val value: String, val type: RepositoryEntryType) {
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -73,21 +107,21 @@ class RepositoryView(repositories: ObservableList<LocalRepository>) : TreeView<R
 
             other as RepositoryEntry
 
-            if (label != other.label) return false
+            if (value != other.value) return false
             if (repository != other.repository) return false
 
             return true
         }
 
         override fun hashCode(): Int {
-            var result = label.hashCode()
+            var result = value.hashCode()
             result = 31 * result + repository.hashCode()
             return result
         }
 
     }
 
-    enum class RepositoryEntryType { REPOSITORY, LOCAL, REMOTE, BRANCH, CURRENT_BRANCH }
+    enum class RepositoryEntryType { REPOSITORY, LOCAL, LOCAL_BRANCH, CURRENT_BRANCH, REMOTE, REMOTE_BRANCH }
 
     private class RepositoryEntryListCell : TreeCell<RepositoryEntry>() {
 
@@ -96,22 +130,23 @@ class RepositoryView(repositories: ObservableList<LocalRepository>) : TreeView<R
             graphic = if (empty) null else {
                 when (item!!.type) {
                     RepositoryEntryType.REPOSITORY -> repositoryBox(item)
-                    RepositoryEntryType.LOCAL -> HBox(DESKTOP(), Label(item.label))
-                    RepositoryEntryType.REMOTE -> HBox(CLOUD(), Label(item.label))
-                    RepositoryEntryType.BRANCH -> HBox(CODE_FORK(), Label(item.label))
+                    RepositoryEntryType.LOCAL -> HBox(FontAwesome.desktop(), Label(item.value))
+                    RepositoryEntryType.REMOTE -> HBox(FontAwesome.cloud(), Label(item.value))
+                    RepositoryEntryType.LOCAL_BRANCH -> HBox(FontAwesome.codeFork(), Label(item.value))
+                    RepositoryEntryType.REMOTE_BRANCH -> HBox(FontAwesome.codeFork(), Label(item.value))
                     RepositoryEntryType.CURRENT_BRANCH -> currentBox(item)
-                }.also { it.styleClass += "repository-cell" }
+                }.addClass("repository-cell")
             }
         }
 
         private fun repositoryBox(item: RepositoryEntry)
-                = HBox(Label(item.label).also { it.style = "-fx-font-weight:bold" },
-                button(icon = COG(),
+                = HBox(Label(item.value).addStyle("-fx-font-weight:bold"),
+                button(icon = FontAwesome.cog(),
                         styleClass = "settings",
                         action = EventHandler { SettingsDialog(item.repository, scene.window).show() }))
 
         private fun currentBox(item: RepositoryEntry)
-                = HBox(CODE_FORK(), Label(item.label), CHECK()).also { it.styleClass += "current" }
+                = HBox(FontAwesome.codeFork(), Label(item.value), FontAwesome.check()).addClass("current")
 
     }
 

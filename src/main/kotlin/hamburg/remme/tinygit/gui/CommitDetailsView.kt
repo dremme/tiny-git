@@ -47,8 +47,7 @@ class CommitDetailsView : SplitPane() {
                 override fun succeeded() {
                     files.items.setAll(value)
                 }
-            }
-            State.cachedThreadPool.execute(task)
+            }.also { State.execute(it) }
         }
     }
 

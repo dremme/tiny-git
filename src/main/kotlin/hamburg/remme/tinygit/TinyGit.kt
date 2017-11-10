@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
     Font.loadFont("font/Roboto-Regular.ttf".asResource(), 13.0)
     Font.loadFont("font/Roboto-Bold.ttf".asResource(), 13.0)
     Font.loadFont("font/LiberationMono-Regular.ttf".asResource(), 12.0)
-    Font.loadFont("font/fontawesome-webfont.ttf".asResource(), 16.0)
+    Font.loadFont("font/fontawesome-webfont.ttf".asResource(), 14.0)
     Application.launch(TinyGit::class.java, *args)
 }
 
@@ -35,7 +35,7 @@ class TinyGit : Application() {
     }
 
     override fun stop() {
-        State.cachedThreadPool.shutdownNow()
+        State.stop()
         Settings.save(State.getRepositories())
     }
 

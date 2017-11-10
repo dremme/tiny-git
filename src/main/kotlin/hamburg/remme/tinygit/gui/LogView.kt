@@ -4,33 +4,33 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.gui.FontAwesome.CODE_FORK
-import hamburg.remme.tinygit.gui.FontAwesome.COG
-import hamburg.remme.tinygit.gui.FontAwesome.LIST
+import javafx.application.Platform
 import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.concurrent.Task
+import javafx.concurrent.Worker
 import javafx.scene.control.Label
-import javafx.scene.control.ProgressIndicator
+import javafx.scene.control.ProgressBar
 import javafx.scene.control.SplitPane
 import javafx.scene.control.Tab
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
 import javafx.scene.layout.HBox
-import javafx.scene.layout.StackPane
+import javafx.scene.layout.Priority
+import javafx.scene.layout.VBox
 import javafx.util.Callback
+import org.eclipse.jgit.api.errors.TransportException
 
 class LogView : Tab() {
 
-    private val error = StackPane()
-    private val overlay = StackPane(ProgressIndicator(-1.0))
+    private val progress = ProgressBar(-1.0)
     private val localCommits = TableView<LocalCommit>()
     private val commitDetails = CommitDetailsView()
     private var task: Task<*>? = null
 
     init {
-        text = "Log"
-        graphic = LIST()
+        text = "Commits"
+        graphic = FontAwesome.list()
         isClosable = false
 
         val message = tableColumn<LocalCommit, LocalCommit>("Message",
@@ -52,53 +52,70 @@ class LogView : Tab() {
         val pane = SplitPane()
         pane.styleClass += "log-view"
         pane.items.addAll(localCommits, commitDetails)
+        VBox.setVgrow(pane, Priority.ALWAYS)
 
-        error.children += HBox(
-                Label("Fetching repository failed. Check the settings. "),
-                Label("", COG()))
-                .also { it.styleClass += "box" }
-        error.styleClass += "overlay"
-        error.isVisible = false
+        progress.styleClass += "log-progress"
+        progress.maxWidth = Double.MAX_VALUE
 
-        overlay.styleClass += "progress-overlay"
+        content = VBox(pane)
 
-        content = StackPane(pane, error, overlay)
-
-        State.selectedRepositoryProperty().addListener { _, _, it -> fetchCommits(it) }
-        State.addRefreshListener { fetchCurrent() }
-        fetchCurrent()
+        State.selectedRepositoryProperty().addListener { _, _, it -> logQuick(it) }
+        State.addRefreshListener { logCurrent() }
+        logCurrent()
     }
 
-    private fun fetchCurrent() {
-        State.getSelectedRepository { fetchCommits(it) }
+    private fun addProgress() {
+        // TODO: a little wobbly, maybe stackpane and show/hide
+        val box = (content as VBox)
+        if (!box.children.contains(progress)) box.children.add(0, progress)
     }
 
-    private fun fetchCommits(repository: LocalRepository) {
+    private fun removeProgress() {
+        (content as VBox).children.remove(progress)
+    }
+
+    private fun updateLog(commits: List<LocalCommit>) {
+        val selected = localCommits.selectionModel.selectedItem
+        localCommits.items.setAll(commits)
+        localCommits.items.find { it == selected }?.let { localCommits.selectionModel.select(it) }
+        localCommits.selectionModel.selectedItem ?: localCommits.selectionModel.selectFirst()
+    }
+
+    private fun logCurrent() {
+        State.getSelectedRepository { logQuick(it) }
+    }
+
+    private fun logQuick(repository: LocalRepository) {
+        updateLog(LocalGit.log(repository))
+        if (!LocalGit.isUpdated(repository)) logRemote(repository)
+    }
+
+    private fun logRemote(repository: LocalRepository) {
         println("Fetching: $repository")
         task?.cancel()
         task = object : Task<List<LocalCommit>>() {
-            val selected = localCommits.selectionModel.selectedItem
-
-            override fun call() = LocalGit.log(repository)
+            override fun call() = LocalGit.log(repository, true)
 
             override fun succeeded() {
-                error.isVisible = false
-                overlay.isVisible = false
-                localCommits.items.setAll(value)
-
-                // TODO: may wobble when clicking into an unfocused window
-                localCommits.items.find { it == selected }?.let { localCommits.selectionModel.select(it) }
-                localCommits.selectionModel.selectedItem ?: localCommits.selectionModel.selectFirst()
+                updateLog(value)
             }
 
             override fun failed() {
-                error.isVisible = true
-                overlay.isVisible = false
-                exception.printStackTrace()
+                when (exception) {
+                    is TransportException -> errorAlert(content.scene.window,
+                            "Cannot Fetch Remote",
+                            "Please check the repository settings.\nCredentials or proxy settings may have changed.")
+                    else -> exception.printStackTrace()
+                }
             }
+
+            override fun done() {
+                Platform.runLater { if (state != Worker.State.CANCELLED) removeProgress() }
+            }
+        }.also {
+            addProgress()
+            State.execute(it)
         }
-        overlay.isVisible = true
-        State.cachedThreadPool.execute(task)
     }
 
     private class LogMessageTableCell : TableCell<LocalCommit, LocalCommit>() {
@@ -115,7 +132,7 @@ class LogView : Tab() {
 
     }
 
-    private class BranchBadge(name: String, current: Boolean) : Label(name, CODE_FORK()) {
+    private class BranchBadge(name: String, current: Boolean) : Label(name, FontAwesome.codeFork()) {
 
         init {
             styleClass += "branch-badge"

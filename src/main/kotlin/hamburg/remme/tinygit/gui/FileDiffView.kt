@@ -32,7 +32,7 @@ class FileDiffView : StackPane() {
     }
 
     fun update(repository: LocalRepository, file: LocalFile, id: String) {
-        setContent(LocalGit.diff(repository, file, id), file.resolve(repository))
+        setContent(LocalGit.diff(repository, file, id))
     }
 
     fun clear() {
@@ -71,7 +71,7 @@ class FileDiffView : StackPane() {
         """)
     }
 
-    private fun setContent(diff: String, file: String) {
+    private fun setContent(diff: String, file: String? = null) {
         //language=HTML
         webView.engine.loadContent("""
             <html>
@@ -155,10 +155,10 @@ class FileDiffView : StackPane() {
         """)
     }
 
-    private fun format(diff: String, file: String): String {
+    private fun format(diff: String, file: String? = null): String {
         if (diff.isBlank() || diff.matches(".*Binary files differ\\r?\\n?$".toRegex(RegexOption.DOT_MATCHES_ALL))) {
             val image: String
-            if (file.toLowerCase().matches(".*\\.(png|jpe?g|gif)$".toRegex())) {
+            if (file?.toLowerCase()?.matches(".*\\.(png|jpe?g|gif)$".toRegex()) == true) {
                 //language=HTML
                 image = """
                     <tr>

@@ -1,11 +1,6 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.gui.FontAwesome.EXCLAMATION_TRIANGLE
-import hamburg.remme.tinygit.gui.FontAwesome.MINUS
-import hamburg.remme.tinygit.gui.FontAwesome.PENCIL
-import hamburg.remme.tinygit.gui.FontAwesome.PLUS
-import hamburg.remme.tinygit.gui.FontAwesome.QUESTION
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
@@ -24,13 +19,13 @@ class FileStatusView : ListView<LocalFile>() {
             super.updateItem(item, empty)
             text = item?.path
             graphic = when (item?.status) {
-                LocalFile.Status.CONFLICT -> EXCLAMATION_TRIANGLE("#d9534f")
-                LocalFile.Status.ADDED -> PLUS("#5cb85c")
-                LocalFile.Status.MODIFIED -> PENCIL("#f0ad4e")
-                LocalFile.Status.CHANGED -> PENCIL("#f0ad4e")
-                LocalFile.Status.REMOVED -> MINUS("#d9534f")
-                LocalFile.Status.MISSING -> MINUS("#999")
-                LocalFile.Status.UNTRACKED -> QUESTION("#5bc0de")
+                LocalFile.Status.CONFLICT -> FontAwesome.exclamationTriangle("#d9534f")
+                LocalFile.Status.ADDED -> FontAwesome.plus("#5cb85c")
+                LocalFile.Status.MODIFIED -> FontAwesome.pencil("#f0ad4e")
+                LocalFile.Status.CHANGED -> FontAwesome.pencil("#f0ad4e")
+                LocalFile.Status.REMOVED -> FontAwesome.minus("#d9534f")
+                LocalFile.Status.MISSING -> FontAwesome.minus("#999")
+                LocalFile.Status.UNTRACKED -> FontAwesome.question("#5bc0de")
                 else -> null
             }
         }
