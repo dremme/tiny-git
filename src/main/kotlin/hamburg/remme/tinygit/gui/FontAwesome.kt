@@ -6,6 +6,7 @@ import javafx.scene.text.Text
 
 object FontAwesome {
 
+    fun archive(color: String? = null) = icon('\uf187', color)
     fun check(color: String? = null) = icon('\uf00c', color)
     fun cloud(color: String? = null) = icon('\uf0c2', color)
     fun cloudDownload(color: String? = null) = icon('\uf0ed', color)
@@ -17,6 +18,7 @@ object FontAwesome {
     fun download(color: String? = null) = icon('\uf019', color)
     fun exclamationTriangle(color: String? = null) = icon('\uf071', color)
     fun folderOpen(color: String? = null) = icon('\uf07c', color)
+    fun githubAlt(color: String? = null) = icon('\uf113', color)
     fun list(color: String? = null) = icon('\uf03a', color)
     fun minus(color: String? = null) = icon('\uf068', color)
     fun pencil(color: String? = null) = icon('\uf040', color)
@@ -25,6 +27,7 @@ object FontAwesome {
     fun questionCircle(color: String? = null) = icon('\uf059', color)
     fun refresh(color: String? = null) = icon('\uf021', color)
     fun tag(color: String? = null) = icon('\uf02b', color)
+    fun tags(color: String? = null) = icon('\uf02c', color)
     fun undo(color: String? = null) = icon('\uf0e2', color)
     fun upload(color: String? = null) = icon('\uf093', color)
 
