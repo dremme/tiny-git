@@ -215,9 +215,7 @@ object LocalGit {
      * - `git add .`
      */
     fun addAll(repository: LocalRepository) {
-        return repository.open {
-            Git(it).add().addFilepattern(".").call()
-        }
+        return repository.open { Git(it).add().addFilepattern(".").call() }
     }
 
     /**
@@ -235,18 +233,14 @@ object LocalGit {
      * - `git add --update .`
      */
     fun addAllUpdate(repository: LocalRepository) {
-        return repository.open {
-            Git(it).add().setUpdate(true).addFilepattern(".").call()
-        }
+        return repository.open { Git(it).add().setUpdate(true).addFilepattern(".").call() }
     }
 
     /**
      * - `git reset`
      */
     fun reset(repository: LocalRepository) {
-        return repository.open {
-            Git(it).reset().call()
-        }
+        return repository.open { Git(it).reset().call() }
     }
 
     /**
@@ -275,9 +269,7 @@ object LocalGit {
     }
 
     private fun commit(repository: LocalRepository, message: String, amend: Boolean) {
-        repository.open {
-            Git(it).commit().setMessage(message).setAmend(amend).call()
-        }
+        repository.open { Git(it).commit().setMessage(message).setAmend(amend).call() }
     }
 
     /**
@@ -305,6 +297,7 @@ object LocalGit {
         push(repository, true)
     }
 
+    // TODO: return boolean if something changed
     private fun push(repository: LocalRepository, force: Boolean) {
         repository.open {
             val result = Git(it).push().applyAuth(repository).setForce(force).call()
@@ -348,6 +341,13 @@ object LocalGit {
             git.stashApply().call()
             git.stashDrop().call()
         }
+    }
+
+    /**
+     * - `git stash list`
+     */
+    fun stashList(repository: LocalRepository): Int {
+        return repository.open { Git(it).stashList().call().size }
     }
 
     /**

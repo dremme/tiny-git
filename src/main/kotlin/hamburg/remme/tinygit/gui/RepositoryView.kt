@@ -12,7 +12,9 @@ import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode
+import javafx.scene.input.MouseButton
 import javafx.scene.layout.HBox
+import org.eclipse.jgit.api.errors.CheckoutConflictException
 
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
@@ -28,7 +30,10 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         repositories.addListener(ListChangeListener {
             while (it.next()) {
                 when {
-                    it.wasAdded() -> it.addedSubList.forEach { addRepo(it) }
+                    it.wasAdded() -> {
+                        it.addedSubList.forEach { addRepo(it) }
+                        selectionModel.selectLast()
+                    }
                     it.wasRemoved() -> it.removed.forEach { removeRepo(it) }
                 }
             }
@@ -38,12 +43,15 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
         setOnKeyPressed { if (it.code == KeyCode.SPACE) it.consume() }
         setOnMouseClicked {
-            if (it.clickCount == 2) {
+            if (it.button == MouseButton.PRIMARY && it.clickCount == 2) {
                 val entry = selectionModel.selectedItem.value
                 if (entry.type == RepositoryEntryType.LOCAL_BRANCH) checkout(entry.repository, entry.value)
             }
         }
-        State.addRefreshListener { refreshRepo(State.getSelectedRepository()) }
+        State.addRefreshListener {
+            // TODO: prob needs to refresh all repos or refresh on selection
+            refreshRepo(State.getSelectedRepository())
+        }
     }
 
     private fun addRepo(repository: LocalRepository) {
@@ -54,7 +62,9 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
         val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", RepositoryEntryType.LOCAL))
         val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", RepositoryEntryType.REMOTE))
-        repoTree.children.addAll(localBranches, remoteBranches)
+        val tags = TreeItem(RepositoryEntry(repository, "Tags", RepositoryEntryType.TAGS))
+        val stash = TreeItem(RepositoryEntry(repository, "Stash", RepositoryEntryType.STASH))
+        repoTree.children.addAll(localBranches, remoteBranches, tags, stash)
 
         val branchList = LocalGit.branchListAll(repository)
         localBranches.children.addAll(branchList.filter { !it.remote }.map {
@@ -69,7 +79,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     }
 
     private fun removeRepo(repository: LocalRepository) {
-        root.children.find { it.value.repository == repository }?.let { root.children.remove(it) }
+        root.children.find { it.value.repository == repository }?.let { root.children -= it }
     }
 
     private fun refreshRepo(repository: LocalRepository) {
@@ -93,7 +103,14 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
             override fun succeeded() = State.fireRefresh()
 
-            override fun failed() = exception.printStackTrace()
+            override fun failed() {
+                when (exception) {
+                    is CheckoutConflictException -> errorAlert(scene.window,
+                            "Cannot Switch Branches",
+                            "There are local changes that would be overwritten by checkout.\nCommit or stash them.")
+                    else -> exception.printStackTrace()
+                }
+            }
 
             override fun done() = State.removeProcess()
         })
@@ -121,13 +138,14 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     }
 
-    enum class RepositoryEntryType { REPOSITORY, LOCAL, LOCAL_BRANCH, CURRENT_BRANCH, REMOTE, REMOTE_BRANCH }
+    enum class RepositoryEntryType { REPOSITORY, LOCAL, LOCAL_BRANCH, CURRENT_BRANCH, REMOTE, REMOTE_BRANCH, TAGS, STASH }
 
     private class RepositoryEntryListCell : TreeCell<RepositoryEntry>() {
 
         override fun updateItem(item: RepositoryEntry?, empty: Boolean) {
             super.updateItem(item, empty)
             graphic = if (empty) null else {
+                // TODO: clean-up this mess
                 when (item!!.type) {
                     RepositoryEntryType.REPOSITORY -> repositoryBox(item)
                     RepositoryEntryType.LOCAL -> HBox(FontAwesome.desktop(), Label(item.value))
@@ -135,6 +153,8 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                     RepositoryEntryType.LOCAL_BRANCH -> HBox(FontAwesome.codeFork(), Label(item.value))
                     RepositoryEntryType.REMOTE_BRANCH -> HBox(FontAwesome.codeFork(), Label(item.value))
                     RepositoryEntryType.CURRENT_BRANCH -> currentBox(item)
+                    RepositoryEntryType.TAGS -> HBox(FontAwesome.tags(), Label(item.value))
+                    RepositoryEntryType.STASH -> HBox(FontAwesome.archive(), Label(item.value))
                 }.addClass("repository-cell")
             }
         }

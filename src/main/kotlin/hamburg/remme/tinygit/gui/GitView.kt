@@ -25,11 +25,11 @@ import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.stage.DirectoryChooser
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
+import java.awt.Desktop
 import java.io.File
+import java.net.URI
 
 class GitView : VBox() {
-
-    private val localRepositories = RepositoryView()
 
     init {
         styleClass += "git-view"
@@ -43,6 +43,9 @@ class GitView : VBox() {
         val createBranch = EventHandler<ActionEvent> { createBranch(State.getSelectedRepository()) }
         val stash = EventHandler<ActionEvent> { stash(State.getSelectedRepository()) }
         val stashApply = EventHandler<ActionEvent> { stashApply(State.getSelectedRepository()) }
+        val github = EventHandler<ActionEvent> {
+            if (Desktop.isDesktopSupported()) Desktop.getDesktop().browse(URI("https://github.com/deso88/TinyGit"))
+        }
 
         //<editor-fold desc="MenuBar">
         val menuBar = MenuBar(
@@ -119,6 +122,9 @@ class GitView : VBox() {
                                 disable = State.canReset.not(),
                                 action = EventHandler { })),
                 Menu("?", null,
+                        menuItem("Star TinyGit on GitHub",
+                                FontAwesome.githubAlt(),
+                                action = github),
                         menuItem("About TinyGit",
                                 action = EventHandler { })))
         menuBar.isUseSystemMenuBar = true
@@ -177,7 +183,7 @@ class GitView : VBox() {
         //</editor-fold>
 
         val tabs = TabPane(LogView(), WorkingCopyView())
-        val content = SplitPane(localRepositories, tabs)
+        val content = SplitPane(RepositoryView(), tabs)
         Platform.runLater { content.setDividerPosition(0, 0.20) }
 
         val info = StackPane(HBox(
@@ -208,7 +214,6 @@ class GitView : VBox() {
                 val repository = LocalRepository(it.absolutePath)
                 if (State.getRepositories().none { it.path == repository.path }) {
                     State.addRepository(LocalRepository(it.absolutePath))
-                    localRepositories.selectionModel.selectLast()
                 }
             } else {
                 errorAlert(scene.window,

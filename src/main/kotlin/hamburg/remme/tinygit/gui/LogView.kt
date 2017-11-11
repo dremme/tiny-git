@@ -59,7 +59,7 @@ class LogView : Tab() {
 
         content = VBox(pane)
 
-        State.selectedRepositoryProperty().addListener { _, _, it -> logQuick(it) }
+        State.selectedRepositoryProperty().addListener { _, _, it -> it?.let { logQuick(it) } }
         State.addRefreshListener { logCurrent() }
         logCurrent()
     }
@@ -71,7 +71,7 @@ class LogView : Tab() {
     }
 
     private fun removeProgress() {
-        (content as VBox).children.remove(progress)
+        (content as VBox).children -= progress
     }
 
     private fun updateLog(commits: List<LocalCommit>) {

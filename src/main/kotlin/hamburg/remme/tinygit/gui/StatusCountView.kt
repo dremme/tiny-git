@@ -34,27 +34,27 @@ class StatusCountView(statusView: FileStatusView) : HBox() {
         val missingCount = counts[LocalFile.Status.MISSING] ?: 0
         val untrackedCount = counts[LocalFile.Status.UNTRACKED] ?: 0
 
-        if (conflictingCount == 0) children.remove(conflicting)
+        if (conflictingCount == 0) children -= conflicting
         else if (!children.contains(conflicting)) children += conflicting
         conflicting.text = conflictingCount.toString()
 
-        if (addedCount == 0) children.remove(added)
+        if (addedCount == 0) children -= added
         else if (!children.contains(added)) children += added
         added.text = addedCount.toString()
 
-        if (changedCount == 0) children.remove(changed)
+        if (changedCount == 0) children -= changed
         else if (!children.contains(changed)) children += changed
         changed.text = changedCount.toString()
 
-        if (removedCount == 0) children.remove(removed)
+        if (removedCount == 0) children -= removed
         else if (!children.contains(removed)) children += removed
         removed.text = removedCount.toString()
 
-        if (missingCount == 0) children.remove(missing)
+        if (missingCount == 0) children -= missing
         else if (!children.contains(missing)) children += missing
         missing.text = missingCount.toString()
 
-        if (untrackedCount == 0) children.remove(untracked)
+        if (untrackedCount == 0) children -= untracked
         else if (!children.contains(untracked)) children += untracked
         untracked.text = untrackedCount.toString()
     }

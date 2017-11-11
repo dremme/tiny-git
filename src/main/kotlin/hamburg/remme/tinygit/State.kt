@@ -78,17 +78,12 @@ object State {
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
-     * WORKING FILES                                                                                                 *
+     * WORKING COPY                                                                                                  *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     val stagedFiles = SimpleIntegerProperty()
     val unstagedFiles = SimpleIntegerProperty()
-
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     *                                                                                                               *
-     * COMMIT MESSAGE                                                                                                *
-     *                                                                                                               *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    val stashEntries = SimpleIntegerProperty()
     val commitMessage = SimpleStringProperty()
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -111,8 +106,9 @@ object State {
     val canTag = FALSE // TODO: selectedRepository.isNotNull.and(runningProcesses.isZero())!!
     val canBranch = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
     val canMerge = FALSE // TODO: selectedRepository.isNotNull.and(runningProcesses.isZero())!!
-    val canStash = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
-    val canApplyStash = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
+    val canStash = selectedRepository.isNotNull.and(runningProcesses.isZero())
+            .and(stagedFiles.isGreaterZero()).or(unstagedFiles.isGreaterZero())!!
+    val canApplyStash = selectedRepository.isNotNull.and(stashEntries.isGreaterZero()).and(runningProcesses.isZero())!!
     val canReset = FALSE // TODO: selectedRepository.isNotNull.and(runningProcesses.isZero())!!
 
     private fun IntegerProperty.isZero() = this.isEqualTo(0)
@@ -127,24 +123,24 @@ object State {
     private val focusListeners = mutableListOf<() -> Unit>()
 
 
-    fun addRefreshListener(listener: () -> Unit) {
-        refreshListeners += listener
+    fun addRefreshListener(block: () -> Unit) {
+        refreshListeners += block
     }
 
-    fun removeRefreshListener(listener: () -> Unit) {
-        refreshListeners -= listener
+    fun removeRefreshListener(block: () -> Unit) {
+        refreshListeners -= block
     }
 
     fun fireRefresh() {
         refreshListeners.forEach { it.invoke() }
     }
 
-    fun addFocusListener(listener: () -> Unit) {
-        focusListeners += listener
+    fun addFocusListener(block: () -> Unit) {
+        focusListeners += block
     }
 
-    fun removeFocusListener(listener: () -> Unit) {
-        focusListeners -= listener
+    fun removeFocusListener(block: () -> Unit) {
+        focusListeners -= block
     }
 
     fun fireFocus() {

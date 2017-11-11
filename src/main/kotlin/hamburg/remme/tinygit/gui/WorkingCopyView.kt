@@ -42,12 +42,6 @@ class WorkingCopyView : Tab() {
         })
         stagedFiles.items.addListener(ListChangeListener { State.stagedFiles.set(it.list.size) })
 
-        val stagedTools = ToolBar(
-                StatusCountView(stagedFiles),
-                spacer(),
-                unstageAll,
-                unstageSelected)
-
         val update = button("Update all",
                 action = EventHandler { update(State.getSelectedRepository()) })
         val stageAll = button("Stage all",
@@ -63,24 +57,35 @@ class WorkingCopyView : Tab() {
                 stagedFiles.selectionModel.clearSelection()
             }
         })
-        val unstagedTools = ToolBar(
-                StatusCountView(unstagedFiles),
-                spacer(),
-                update,
-                stageAll,
-                stageSelected)
+        unstagedFiles.items.addListener(ListChangeListener { State.unstagedFiles.set(it.list.size) })
 
         VBox.setVgrow(stagedFiles, Priority.ALWAYS)
         VBox.setVgrow(unstagedFiles, Priority.ALWAYS)
 
-        val files = SplitPane(VBox(stagedTools, stagedFiles), VBox(unstagedTools, unstagedFiles))
+        val files = SplitPane(
+                VBox(
+                        ToolBar(StatusCountView(stagedFiles),
+                                spacer(),
+                                unstageAll,
+                                unstageSelected),
+                        stagedFiles),
+                VBox(
+                        ToolBar(StatusCountView(unstagedFiles),
+                                spacer(),
+                                update,
+                                stageAll,
+                                stageSelected),
+                        unstagedFiles))
         files.styleClass += "files"
 
         content = SplitPane(files, fileDiff).addClass("working-copy-view")
 
         State.selectedRepositoryProperty().addListener { _, _, it ->
             fileDiff.clear()
-            diff(it)
+            it?.let {
+                diff(it)
+                State.stashEntries.set(LocalGit.stashList(it))
+            }
         }
         State.addFocusListener {
             fileDiff.clear()
@@ -88,6 +93,7 @@ class WorkingCopyView : Tab() {
         }
     }
 
+    // TODO: task needed here?
     private fun diff(repository: LocalRepository) {
         println("Status for working copy: $repository")
         task?.cancel()
@@ -105,7 +111,11 @@ class WorkingCopyView : Tab() {
                 if (stagedSelected) stagedFiles.items.find { it == selected }?.let { stagedFiles.selectionModel.select(it) }
                 else unstagedFiles.items.find { it == selected }?.let { unstagedFiles.selectionModel.select(it) }
             }
-        }.also { State.execute(it) }
+        }.also {
+            State.stagedFiles.set(0)
+            State.unstagedFiles.set(0)
+            State.execute(it)
+        }
     }
 
     private fun stage(repository: LocalRepository) {
