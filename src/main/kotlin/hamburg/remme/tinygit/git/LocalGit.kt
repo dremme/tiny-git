@@ -346,8 +346,8 @@ object LocalGit {
     /**
      * - `git stash list`
      */
-    fun stashList(repository: LocalRepository): Int {
-        return repository.open { Git(it).stashList().call().size }
+    fun stashList(repository: LocalRepository): List<LocalStashEntry> {
+        return repository.open { Git(it).stashList().call().map { LocalStashEntry(it.id.name, it.fullMessage) } }
     }
 
     /**

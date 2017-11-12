@@ -84,7 +84,7 @@ class WorkingCopyView : Tab() {
             fileDiff.clear()
             it?.let {
                 diff(it)
-                State.stashEntries.set(LocalGit.stashList(it))
+                State.stashEntries.set(LocalGit.stashList(it).size)
             }
         }
         State.addFocusListener {

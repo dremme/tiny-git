@@ -181,12 +181,10 @@ class FileDiffView : StackPane() {
         val blocks = mutableListOf<DiffBlock>()
         var blockNumber = -1
         val numbers = arrayOf(0, 0)
-        return diff.replace("\r\n", "\$CR$\n")
-                .replace("\n", "\$LF$\n")
-                .split("\\r?\\n".toRegex())
+        return diff.split("\\r?\\n".toRegex())
                 .dropLast(1)
                 .dropWhile { !it.isBlockHeader() }
-                .onEach { if (it.isBlockHeader()) blocks += parseBlockHeader(it) }
+                .onEach { if (it.isBlockHeader()) blocks += it.parseBlockHeader() }
                 .map { it.replace("&", "&amp;") }
                 .map { it.replace("<", "&lt;") }
                 .map { it.replace(">", "&gt;") }
@@ -202,17 +200,6 @@ class FileDiffView : StackPane() {
                 .joinToString("")
     }
 
-    private fun String.isBlockHeader() = this.startsWith("@@")
-
-    private fun parseBlockHeader(line: String): DiffBlock {
-        val match = ".*?(\\d+)(,\\d+)?.*?(\\d+)(,\\d+)?.*".toRegex().matchEntire(line)!!.groups
-        return DiffBlock(
-                match[1]?.value?.toInt() ?: 1,
-                match[2]?.value?.substring(1)?.toInt() ?: 1,
-                match[3]?.value?.toInt() ?: 1,
-                match[4]?.value?.substring(1)?.toInt() ?: 1)
-    }
-
     private fun formatLine(line: String, numbers: Array<Int>, block: DiffBlock): String {
         if (line.isBlockHeader()) {
             //language=HTML
@@ -224,33 +211,28 @@ class FileDiffView : StackPane() {
                 </tr>
             """
         }
-        val code: String
         val codeClass: String
         val oldLineNumber: String
         val newLineNumber: String
         when {
-            line.startsWith("+") -> {
+            line.startsWith('+') -> {
                 newLineNumber = numbers[1]++.toString()
                 oldLineNumber = "&nbsp;"
-                code = line.replaceMarkers()
                 codeClass = "added"
             }
-            line.startsWith("-") -> {
+            line.startsWith('-') -> {
                 newLineNumber = "&nbsp;"
                 oldLineNumber = numbers[0]++.toString()
-                code = line.replaceMarkers()
                 codeClass = "removed"
             }
-            line.startsWith("\\") -> {
+            line.startsWith('\\') -> {
                 newLineNumber = "&nbsp;"
                 oldLineNumber = "&nbsp;"
-                code = line.stripMarkers()
                 codeClass = "eof"
             }
             else -> {
                 oldLineNumber = numbers[0]++.toString()
                 newLineNumber = numbers[1]++.toString()
-                code = line.stripMarkers()
                 codeClass = "&nbsp;"
             }
         }
@@ -259,16 +241,21 @@ class FileDiffView : StackPane() {
             <tr>
                 <td class="line-number $codeClass">$oldLineNumber</td>
                 <td class="line-number $codeClass">$newLineNumber</td>
-                <td class="code $codeClass">$code</td>
+                <td class="code $codeClass">$line</td>
             </tr>
         """
     }
 
-    private fun String.replaceMarkers()
-            = this.replace("\\\$CR\\$\\\$LF\\$$".toRegex(), "<span class=\"marker\">&#92;r&#92;n</span>")
-            .replace("\\\$LF\\$$".toRegex(), "<span class=\"marker\">&#92;n</span>")
+    private fun String.isBlockHeader() = this.startsWith("@@")
 
-    private fun String.stripMarkers() = this.replace("(\\\$CR\\$)?\\\$LF\\$$".toRegex(), "")
+    private fun String.parseBlockHeader(): DiffBlock {
+        val match = ".*?(\\d+)(,\\d+)?.*?(\\d+)(,\\d+)?.*".toRegex().matchEntire(this)!!.groups
+        return DiffBlock(
+                match[1]?.value?.toInt() ?: 1,
+                match[2]?.value?.substring(1)?.toInt() ?: 1,
+                match[3]?.value?.toInt() ?: 1,
+                match[4]?.value?.substring(1)?.toInt() ?: 1)
+    }
 
     private class DiffBlock(val number1: Int, val length1: Int, val number2: Int, val length2: Int)
 

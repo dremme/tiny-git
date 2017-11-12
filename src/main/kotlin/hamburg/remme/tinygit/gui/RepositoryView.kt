@@ -64,7 +64,6 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", RepositoryEntryType.REMOTE))
         val tags = TreeItem(RepositoryEntry(repository, "Tags", RepositoryEntryType.TAGS))
         val stash = TreeItem(RepositoryEntry(repository, "Stash", RepositoryEntryType.STASH))
-        repoTree.children.addAll(localBranches, remoteBranches, tags, stash)
 
         val branchList = LocalGit.branchListAll(repository)
         localBranches.children.addAll(branchList.filter { !it.remote }.map {
@@ -75,6 +74,12 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             TreeItem(RepositoryEntry(repository, it.shortRef, RepositoryEntryType.REMOTE_BRANCH))
         })
 
+        val stashEntries = LocalGit.stashList(repository)
+        stash.children.addAll(stashEntries.map {
+            TreeItem(RepositoryEntry(repository, it.message, RepositoryEntryType.STASH_ENTRY))
+        })
+
+        repoTree.children.addAll(localBranches, remoteBranches, tags, stash)
         root.children += repoTree
     }
 
@@ -138,7 +143,15 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     }
 
-    enum class RepositoryEntryType { REPOSITORY, LOCAL, LOCAL_BRANCH, CURRENT_BRANCH, REMOTE, REMOTE_BRANCH, TAGS, STASH }
+    enum class RepositoryEntryType {
+
+        REPOSITORY,
+        LOCAL, LOCAL_BRANCH, CURRENT_BRANCH,
+        REMOTE, REMOTE_BRANCH,
+        TAGS, TAG,
+        STASH, STASH_ENTRY
+
+    }
 
     private class RepositoryEntryListCell : TreeCell<RepositoryEntry>() {
 
@@ -154,7 +167,9 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                     RepositoryEntryType.REMOTE_BRANCH -> HBox(FontAwesome.codeFork(), Label(item.value))
                     RepositoryEntryType.CURRENT_BRANCH -> currentBox(item)
                     RepositoryEntryType.TAGS -> HBox(FontAwesome.tags(), Label(item.value))
-                    RepositoryEntryType.STASH -> HBox(FontAwesome.archive(), Label(item.value))
+                    RepositoryEntryType.TAG -> HBox(FontAwesome.tag(), Label(item.value))
+                    RepositoryEntryType.STASH -> HBox(FontAwesome.cubes(), Label(item.value))
+                    RepositoryEntryType.STASH_ENTRY -> HBox(FontAwesome.cube(), Label(item.value))
                 }.addClass("repository-cell")
             }
         }
