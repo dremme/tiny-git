@@ -6,16 +6,16 @@ import javafx.scene.text.Text
 
 object FontAwesome {
 
-    fun archive(color: String? = null) = icon('\uf187', color)
     fun check(color: String? = null) = icon('\uf00c', color)
     fun cloud(color: String? = null) = icon('\uf0c2', color)
     fun cloudDownload(color: String? = null) = icon('\uf0ed', color)
     fun cloudUpload(color: String? = null) = icon('\uf0ee', color)
     fun codeFork(color: String? = null) = icon('\uf126', color)
     fun cog(color: String? = null) = icon('\uf013', color)
+    fun cube(color: String? = null) = icon('\uf1b2', color)
+    fun cubes(color: String? = null) = icon('\uf1b3', color)
     fun database(color: String? = null) = icon('\uf1c0', color)
     fun desktop(color: String? = null) = icon('\uf108', color)
-    fun download(color: String? = null) = icon('\uf019', color)
     fun exclamationTriangle(color: String? = null) = icon('\uf071', color)
     fun folderOpen(color: String? = null) = icon('\uf07c', color)
     fun githubAlt(color: String? = null) = icon('\uf113', color)
@@ -29,7 +29,6 @@ object FontAwesome {
     fun tag(color: String? = null) = icon('\uf02b', color)
     fun tags(color: String? = null) = icon('\uf02c', color)
     fun undo(color: String? = null) = icon('\uf0e2', color)
-    fun upload(color: String? = null) = icon('\uf093', color)
 
     private fun icon(glyph: Char, color: String? = null): Node {
         val icon = Text(glyph.toString())
