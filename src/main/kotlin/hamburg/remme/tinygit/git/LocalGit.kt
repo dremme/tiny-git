@@ -55,6 +55,20 @@ object LocalGit {
     private fun updated(repository: LocalRepository) = updatedRepositories.add(repository)
 
     /**
+     * - `git remote show origin`
+     */
+    fun url(repository: LocalRepository): String {
+        return repository.open {
+            Git(it).remoteList().call()
+                    .takeIf { it.isNotEmpty() }?.first()
+                    ?.urIs
+                    ?.takeIf { it.isNotEmpty() }?.first()
+                    ?.toString()
+                    ?: ""
+        }
+    }
+
+    /**
      * - `git fetch`
      * - `git branch --all`
      * - `git log --all --max-count=[max]`
