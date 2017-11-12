@@ -8,7 +8,6 @@ import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
 import javafx.concurrent.Task
-import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.scene.control.Label
 import javafx.scene.control.Menu
@@ -34,18 +33,17 @@ class GitView : VBox() {
     init {
         styleClass += "git-view"
 
-        val addCopy = EventHandler<ActionEvent> { addCopy() }
-        val commit = EventHandler<ActionEvent> { commit(State.getSelectedRepository()) }
-        val push = EventHandler<ActionEvent> { push(State.getSelectedRepository(), false) }
-        val pushForce = EventHandler<ActionEvent> { push(State.getSelectedRepository(), true) }
-        val pull = EventHandler<ActionEvent> { pull(State.getSelectedRepository()) }
-        val fetch = EventHandler<ActionEvent> { fetch(State.getSelectedRepository()) }
-        val createBranch = EventHandler<ActionEvent> { createBranch(State.getSelectedRepository()) }
-        val stash = EventHandler<ActionEvent> { stash(State.getSelectedRepository()) }
-        val stashApply = EventHandler<ActionEvent> { stashApply(State.getSelectedRepository()) }
-        val github = EventHandler<ActionEvent> {
-            if (Desktop.isDesktopSupported()) Desktop.getDesktop().browse(URI("https://github.com/deso88/TinyGit"))
-        }
+        val addCopy = Action("Add Working Copy", FontAwesome.database(), "Shortcut+O", action = EventHandler { addCopy() })
+        val settings = Action("Settings", FontAwesome.cog(), action = EventHandler { SettingsDialog(State.getSelectedRepository(), scene.window).show() })
+        val commit = Action("Commit", FontAwesome.plus(), "Shortcut+Plus", State.canCommit.not(), EventHandler { commit(State.getSelectedRepository()) })
+        val push = Action("Push", FontAwesome.cloudUpload(), "Shortcut+P", State.canPush.not(), EventHandler { push(State.getSelectedRepository(), false) })
+        val pushForce = Action("Force Push", FontAwesome.cloudUpload(), "Shortcut+Shift+P", State.canPush.not(), EventHandler { push(State.getSelectedRepository(), true) })
+        val pull = Action("Pull", FontAwesome.cloudDownload(), "Shortcut+L", State.canPull.not(), EventHandler { pull(State.getSelectedRepository()) })
+        val fetch = Action("Fetch", FontAwesome.refresh(), "Shortcut+F", State.canFetch.not(), EventHandler { fetch(State.getSelectedRepository()) })
+        val createBranch = Action("Tag", FontAwesome.tag(), "Shortcut+T", State.canTag.not(), EventHandler { createBranch(State.getSelectedRepository()) })
+        val stash = Action("Branch", FontAwesome.codeFork(), "Shortcut+B", State.canBranch.not(), EventHandler { stash(State.getSelectedRepository()) })
+        val stashApply = Action("Merge", FontAwesome.codeFork().flipY(), "Shortcut+M", State.canMerge.not(), EventHandler { stashApply(State.getSelectedRepository()) })
+        val github = Action("Star TinyGit on GitHub", FontAwesome.githubAlt(), action = EventHandler { if (Desktop.isDesktopSupported()) Desktop.getDesktop().browse(URI("https://github.com/deso88/TinyGit")) })
 
         //<editor-fold desc="MenuBar">
         val menuBar = MenuBar(

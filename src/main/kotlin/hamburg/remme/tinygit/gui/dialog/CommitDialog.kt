@@ -58,6 +58,9 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>()
                 if (amend.isSelected) LocalGit.commitAmend(repository, message.text)
                 else LocalGit.commit(repository, message.text)
 
+                message.textProperty().unbindBidirectional(State.commitMessage)
+                State.commitMessage.set("")
+
                 State.fireRefresh()
             }
         }
