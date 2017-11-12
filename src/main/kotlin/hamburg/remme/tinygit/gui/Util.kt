@@ -11,6 +11,8 @@ import javafx.scene.control.Alert
 import javafx.scene.control.Button
 import javafx.scene.control.ButtonType
 import javafx.scene.control.Label
+import javafx.scene.control.Menu
+import javafx.scene.control.MenuBar
 import javafx.scene.control.MenuItem
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
@@ -18,6 +20,7 @@ import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
 import javafx.scene.control.TextFormatter
 import javafx.scene.control.TextInputDialog
+import javafx.scene.control.ToolBar
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.HBox
@@ -29,9 +32,19 @@ import javafx.util.Callback
 import javafx.util.converter.IntegerStringConverter
 import java.time.format.DateTimeFormatter
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                                                               *
+ * DATES                                                                                                         *
+ *                                                                                                               *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 val shortDate = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val fullDate = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                                                               *
+ * NODE UTIL                                                                                                     *
+ *                                                                                                               *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 fun <T : Node> T.addClass(vararg styleClass: String): T {
     this.styleClass += styleClass
     return this
@@ -52,6 +65,11 @@ fun <T : Node> T.flipY(): T {
     return this
 }
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                                                               *
+ * UI BUILDER                                                                                                    *
+ *                                                                                                               *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 fun label(text: String = "",
           icon: Node? = null,
           color: String? = null,
@@ -128,6 +146,27 @@ fun menuItem(label: String,
     return menuItem
 }
 
+fun menuBar(vararg group: ActionGroup): MenuBar {
+    val menuBar = MenuBar(*group.map {
+        Menu(it.text, null, *it.action.map {
+            menuItem(it.text, it.icon, it.shortcut, it.action, it.disable)
+        }.toTypedArray())
+    }.toTypedArray())
+    menuBar.isUseSystemMenuBar = true
+    return menuBar
+}
+
+fun toolBar(vararg group: ActionGroup): ToolBar {
+    return ToolBar(*group.flatMap {
+        it.action.map { button(it.text, it.icon, it.action, null, it.disable) }
+    }.toTypedArray())
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                                                               *
+ * DIALOGS                                                                                                       *
+ *                                                                                                               *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 fun confirmAlert(window: Window,
                  header: String,
                  text: String): Boolean {
