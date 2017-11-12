@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCredentials
+import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.gui.FontAwesome.folderOpen
 import hamburg.remme.tinygit.gui.button
@@ -30,7 +31,8 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         val ok = ButtonType("OK", ButtonBar.ButtonData.OK_DONE)
         val cancel = ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
 
-        val url = textField(repository.path, editable = false)
+        val location = textField(repository.path, editable = false)
+        val url = textField(LocalGit.url(repository), editable = false)
         val ssh = textField(repository.credentials?.ssh ?: "")
         val sshSearch = button(
                 icon = folderOpen(),
@@ -49,21 +51,24 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         val host = textField(repository.proxyHost ?: "")
         val port = intTextField(repository.proxyPort ?: 80).also { it.prefColumnCount = 4 }
 
+        var row = 0
         val content = GridPane()
         content.styleClass += "settings-view"
-        content.add(Label("Location:"), 0, 0)
-        content.add(url, 1, 0, 3, 1)
-        content.add(Label("SSH Key:"), 0, 1)
-        content.add(ssh, 1, 1, 2, 1)
-        content.add(sshSearch, 3, 1)
-        content.add(Label("User:"), 0, 2)
-        content.add(username, 1, 2, 3, 1)
-        content.add(Label("Password:"), 0, 3)
-        content.add(password, 1, 3, 3, 1)
-        content.add(Label("Proxy:"), 0, 4)
-        content.add(host, 1, 4)
-        content.add(Label(":"), 2, 4)
-        content.add(port, 3, 4)
+        content.add(Label("Location:"), 0, row)
+        content.add(location, 1, row++, 3, 1)
+        content.add(Label("Remote:"), 0, row)
+        content.add(url, 1, row++, 3, 1)
+        content.add(Label("SSH Key:"), 0, row)
+        content.add(ssh, 1, row, 2, 1)
+        content.add(sshSearch, 3, row++)
+        content.add(Label("User:"), 0, row)
+        content.add(username, 1, row++, 3, 1)
+        content.add(Label("Password:"), 0, row)
+        content.add(password, 1, row++, 3, 1)
+        content.add(Label("Proxy:"), 0, row)
+        content.add(host, 1, row)
+        content.add(Label(":"), 2, row)
+        content.add(port, 3, row)
 
         resultConverter = Callback {
             if (it.buttonData.isDefaultButton) {
