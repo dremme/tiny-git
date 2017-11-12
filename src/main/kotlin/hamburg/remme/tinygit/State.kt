@@ -88,7 +88,7 @@ object State {
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
-     * VISIBILITY                                                                                                       *
+     * VISIBILITY                                                                                                    *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     val showGlobalInfo = Bindings.isEmpty(repositories)!!
