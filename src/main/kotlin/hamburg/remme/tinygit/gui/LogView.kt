@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCommit
+import hamburg.remme.tinygit.git.LocalDivergence
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import javafx.application.Platform
@@ -68,12 +69,18 @@ class LogView : Tab() {
         localCommits.selectionModel.selectedItem ?: localCommits.selectionModel.selectFirst()
     }
 
+    private fun updateDivergence(divergence: LocalDivergence) {
+        State.ahead.set(divergence.ahead)
+        State.behind.set(divergence.behind)
+    }
+
     private fun logCurrent() {
         State.getSelectedRepository { logQuick(it) }
     }
 
     private fun logQuick(repository: LocalRepository) {
         updateLog(LocalGit.log(repository))
+        updateDivergence(LocalGit.divergence(repository))
         logRemote(repository)
     }
 
@@ -86,6 +93,7 @@ class LogView : Tab() {
 
                 override fun succeeded() {
                     updateLog(value)
+                    updateDivergence(LocalGit.divergence(repository))
                 }
 
                 override fun failed() {

@@ -53,6 +53,8 @@ object State {
      * REPOSITORIES                                                                                                  *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    val ahead = ReadOnlyIntegerWrapper()
+    val behind = ReadOnlyIntegerWrapper()
     private val repositories = FXCollections.observableArrayList<LocalRepository>()!!
     private val selectedRepository = ReadOnlyObjectWrapper<LocalRepository>()
 
@@ -101,8 +103,8 @@ object State {
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     val canSettings = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
     val canCommit = selectedRepository.isNotNull.and(stagedFiles.isGreaterZero()).and(runningProcesses.isZero())!!
-    val canPush = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
-    val canPull = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
+    val canPush = selectedRepository.isNotNull.and(ahead.isGreaterZero()).and(runningProcesses.isZero())!!
+    val canPull = selectedRepository.isNotNull.and(behind.isGreaterZero()).and(runningProcesses.isZero())!!
     val canFetch = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
     val canTag = FALSE // TODO: selectedRepository.isNotNull.and(runningProcesses.isZero())!!
     val canBranch = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
