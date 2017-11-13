@@ -60,6 +60,13 @@ class LogView : Tab() {
         State.selectedRepositoryProperty().addListener { _, _, it -> it?.let { logQuick(it) } }
         State.addRefreshListener { logCurrent() }
         logCurrent()
+
+        Platform.runLater {
+            localCommits.resizeColumn(message, 0.6 * localCommits.width)
+            localCommits.resizeColumn(date, -0.1 * localCommits.width)
+            localCommits.resizeColumn(author, 0.3 * localCommits.width)
+            localCommits.resizeColumn(commit, -0.1 * localCommits.width)
+        }
     }
 
     private fun updateLog(commits: List<LocalCommit>) {
