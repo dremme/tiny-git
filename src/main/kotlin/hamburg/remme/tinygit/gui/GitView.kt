@@ -10,14 +10,9 @@ import javafx.application.Platform
 import javafx.concurrent.Task
 import javafx.event.EventHandler
 import javafx.scene.control.Label
-import javafx.scene.control.Menu
-import javafx.scene.control.MenuBar
 import javafx.scene.control.ProgressIndicator
-import javafx.scene.control.Separator
-import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.SplitPane
 import javafx.scene.control.TabPane
-import javafx.scene.control.ToolBar
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
@@ -33,152 +28,42 @@ class GitView : VBox() {
     init {
         styleClass += "git-view"
 
-        val addCopy = Action("Add Working Copy", FontAwesome.database(), "Shortcut+O", action = EventHandler { addCopy() })
-        val settings = Action("Settings", FontAwesome.cog(), action = EventHandler { SettingsDialog(State.getSelectedRepository(), scene.window).show() })
-        val commit = Action("Commit", FontAwesome.plus(), "Shortcut+Plus", State.canCommit.not(), EventHandler { commit(State.getSelectedRepository()) })
-        val push = Action("Push", FontAwesome.cloudUpload(), "Shortcut+P", State.canPush.not(), EventHandler { push(State.getSelectedRepository(), false) })
-        val pushForce = Action("Force Push", FontAwesome.cloudUpload(), "Shortcut+Shift+P", State.canPush.not(), EventHandler { push(State.getSelectedRepository(), true) })
-        val pull = Action("Pull", FontAwesome.cloudDownload(), "Shortcut+L", State.canPull.not(), EventHandler { pull(State.getSelectedRepository()) })
-        val fetch = Action("Fetch", FontAwesome.refresh(), "Shortcut+F", State.canFetch.not(), EventHandler { fetch(State.getSelectedRepository()) })
-        val createBranch = Action("Tag", FontAwesome.tag(), "Shortcut+T", State.canTag.not(), EventHandler { createBranch(State.getSelectedRepository()) })
-        val stash = Action("Branch", FontAwesome.codeFork(), "Shortcut+B", State.canBranch.not(), EventHandler { stash(State.getSelectedRepository()) })
-        val stashApply = Action("Merge", FontAwesome.codeFork().flipY(), "Shortcut+M", State.canMerge.not(), EventHandler { stashApply(State.getSelectedRepository()) })
-        val github = Action("Star TinyGit on GitHub", FontAwesome.githubAlt(), action = EventHandler { if (Desktop.isDesktopSupported()) Desktop.getDesktop().browse(URI("https://github.com/deso88/TinyGit")) })
+        val addCopy = Action("Add Working Copy", { FontAwesome.database() }, "Shortcut+O", action = EventHandler { addCopy() })
+        val quit = Action("Quit TinyGit", action = EventHandler { addCopy() })
+        val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(), action = EventHandler { SettingsDialog(State.getSelectedRepository(), scene.window).show() })
+        val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+Plus", State.canCommit.not(), EventHandler { commit(State.getSelectedRepository()) })
+        val push = Action("Push", { FontAwesome.cloudUpload() }, "Shortcut+P", State.canPush.not(), EventHandler { push(State.getSelectedRepository(), false) })
+        val pushForce = Action("Force Push", { FontAwesome.cloudUpload() }, "Shortcut+Shift+P", State.canPush.not(), EventHandler { push(State.getSelectedRepository(), true) })
+        val pull = Action("Pull", { FontAwesome.cloudDownload() }, "Shortcut+L", State.canPull.not(), EventHandler { pull(State.getSelectedRepository()) })
+        val fetch = Action("Fetch", { FontAwesome.refresh() }, "Shortcut+F", State.canFetch.not(), EventHandler { fetch(State.getSelectedRepository()) })
+        val tag = Action("Tag", { FontAwesome.tag() }, "Shortcut+T", State.canTag.not(), action = EventHandler { })
+        val branch = Action("Branch", { FontAwesome.codeFork() }, "Shortcut+B", State.canBranch.not(), EventHandler { createBranch(State.getSelectedRepository()) })
+        val merge = Action("Merge", { FontAwesome.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(), action = EventHandler { })
+        val stash = Action("Stash", { FontAwesome.cube() }, "Shortcut+S", State.canStash.not(), EventHandler { stash(State.getSelectedRepository()) })
+        val stashApply = Action("Apply Stash", { FontAwesome.cube() }, "Shortcut+Shift+S", State.canApplyStash.not(), EventHandler { stashApply(State.getSelectedRepository()) })
+        val reset = Action("Reset", { FontAwesome.undo() }, "Shortcut+R", State.canReset.not(), action = EventHandler { })
+        val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() }, action = EventHandler {
+            if (Desktop.isDesktopSupported()) Desktop.getDesktop().browse(URI("https://github.com/deso88/TinyGit"))
+        })
+        val about = Action("About TinyGit", action = EventHandler {})
 
-        //<editor-fold desc="MenuBar">
-        val menuBar = MenuBar(
-                Menu("File", null,
-                        menuItem("Add Working Copy",
-                                FontAwesome.database(),
-                                shortcut = "Shortcut+O",
-                                action = addCopy),
-                        SeparatorMenuItem(),
-                        menuItem("Quit TinyGit",
-                                action = EventHandler { Platform.exit() })),
-                Menu("Repository", null,
-                        menuItem("Settings",
-                                FontAwesome.cog(),
-                                action = EventHandler { SettingsDialog(State.getSelectedRepository(), scene.window).show() })),
-                Menu("Actions", null,
-                        menuItem("Commit",
-                                FontAwesome.plus(),
-                                shortcut = "Shortcut+Plus",
-                                disable = State.canCommit.not(),
-                                action = commit),
-                        SeparatorMenuItem(),
-                        menuItem("Push",
-                                FontAwesome.cloudUpload(),
-                                shortcut = "Shortcut+P",
-                                disable = State.canPush.not(),
-                                action = push),
-                        menuItem("Force Push",
-                                FontAwesome.cloudUpload(),
-                                shortcut = "Shortcut+Shift+P",
-                                disable = State.canPush.not(),
-                                action = pushForce),
-                        menuItem("Pull",
-                                FontAwesome.cloudDownload(),
-                                disable = State.canPull.not(),
-                                shortcut = "Shortcut+L",
-                                action = pull),
-                        menuItem("Fetch",
-                                FontAwesome.refresh(),
-                                shortcut = "Shortcut+F",
-                                disable = State.canFetch.not(),
-                                action = fetch),
-                        menuItem("Tag",
-                                FontAwesome.tag(),
-                                shortcut = "Shortcut+T",
-                                disable = State.canTag.not(),
-                                action = EventHandler { }),
-                        SeparatorMenuItem(),
-                        menuItem("Branch",
-                                FontAwesome.codeFork(),
-                                shortcut = "Shortcut+B",
-                                disable = State.canBranch.not(),
-                                action = createBranch),
-                        menuItem("Merge",
-                                FontAwesome.codeFork().flipY(),
-                                shortcut = "Shortcut+M",
-                                disable = State.canMerge.not(),
-                                action = EventHandler { }),
-                        SeparatorMenuItem(),
-                        menuItem("Stash",
-                                FontAwesome.cube(),
-                                shortcut = "Shortcut+S",
-                                disable = State.canStash.not(),
-                                action = stash),
-                        menuItem("Apply Stash",
-                                FontAwesome.cube(),
-                                shortcut = "Shortcut+Shift+S",
-                                disable = State.canApplyStash.not(),
-                                action = stashApply),
-                        SeparatorMenuItem(),
-                        menuItem("Reset",
-                                FontAwesome.undo(),
-                                shortcut = "Shortcut+R",
-                                disable = State.canReset.not(),
-                                action = EventHandler { })),
-                Menu("?", null,
-                        menuItem("Star TinyGit on GitHub",
-                                FontAwesome.githubAlt(),
-                                action = github),
-                        menuItem("About TinyGit",
-                                action = EventHandler { })))
-        menuBar.isUseSystemMenuBar = true
-        //</editor-fold>
+        val menuBar = menuBar(
+                ActionCollection("File", ActionGroup(addCopy), ActionGroup(quit)),
+                ActionCollection("Repository", ActionGroup(settings)),
+                ActionCollection("Actions",
+                        ActionGroup(commit),
+                        ActionGroup(push, pushForce, pull, fetch, tag),
+                        ActionGroup(branch, merge),
+                        ActionGroup(stash, stashApply),
+                        ActionGroup(reset)),
+                ActionCollection("?", ActionGroup(github, about)))
 
-        //<editor-fold desc="ToolBar">
-        val toolBar = ToolBar(
-                button("Add Working Copy",
-                        FontAwesome.database(),
-                        addCopy),
-                Separator(),
-                button("Commit",
-                        FontAwesome.plus(),
-                        disable = State.canCommit.not(),
-                        action = commit),
-                Separator(),
-                button("Push",
-                        FontAwesome.cloudUpload(),
-                        disable = State.canPush.not(),
-                        action = push),
-                button("Pull",
-                        FontAwesome.cloudDownload(),
-                        disable = State.canPull.not(),
-                        action = pull),
-                button("Fetch",
-                        FontAwesome.refresh(),
-                        disable = State.canFetch.not(),
-                        action = fetch),
-                button("Tag",
-                        FontAwesome.tag(),
-                        disable = State.canTag.not(),
-                        action = EventHandler { }),
-                Separator(),
-                button("Branch",
-                        FontAwesome.codeFork(),
-                        disable = State.canBranch.not(),
-                        action = createBranch),
-                button("Merge",
-                        FontAwesome.codeFork().flipY(),
-                        disable = State.canMerge.not(),
-                        action = EventHandler { }),
-                Separator(),
-                button("Stash",
-                        FontAwesome.cube(),
-                        disable = State.canStash.not(),
-                        action = stash),
-                button("Apply Stash",
-                        FontAwesome.cube(),
-                        disable = State.canApplyStash.not(),
-                        action = stashApply),
-                Separator(),
-                button("Reset",
-                        FontAwesome.undo(),
-                        disable = State.canReset.not(),
-                        action = EventHandler { }))
-        //</editor-fold>
+        val toolBar = toolBar(
+                ActionGroup(addCopy),
+                ActionGroup(commit, push, pull, fetch, tag),
+                ActionGroup(branch, merge),
+                ActionGroup(stash, stashApply),
+                ActionGroup(reset))
 
         val tabs = TabPane(LogView(), WorkingCopyView())
         val content = SplitPane(RepositoryView(), tabs)

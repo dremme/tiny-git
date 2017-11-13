@@ -14,6 +14,8 @@ import javafx.scene.control.Label
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuBar
 import javafx.scene.control.MenuItem
+import javafx.scene.control.Separator
+import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TextArea
@@ -146,20 +148,22 @@ fun menuItem(label: String,
     return menuItem
 }
 
-fun menuBar(vararg group: ActionGroup): MenuBar {
-    val menuBar = MenuBar(*group.map {
-        Menu(it.text, null, *it.action.map {
-            menuItem(it.text, it.icon, it.shortcut, it.action, it.disable)
-        }.toTypedArray())
+fun menuBar(vararg collection: ActionCollection): MenuBar {
+    val menuBar = MenuBar(*collection.map { col ->
+        Menu(col.text, null, *col.group.mapIndexed { i, it ->
+            it.action.map { menuItem(it.text, it.icon.invoke(), it.shortcut, it.action, it.disable) }
+                    .let { if (i < col.group.size - 1) it + SeparatorMenuItem() else it }
+        }.flatten().toTypedArray())
     }.toTypedArray())
     menuBar.isUseSystemMenuBar = true
     return menuBar
 }
 
 fun toolBar(vararg group: ActionGroup): ToolBar {
-    return ToolBar(*group.flatMap {
-        it.action.map { button(it.text, it.icon, it.action, null, it.disable) }
-    }.toTypedArray())
+    return ToolBar(*group.mapIndexed { i, it ->
+        it.action.map { button(it.text, it.icon.invoke(), it.action, null, it.disable) }
+                .let { if (i < group.size - 1) it + Separator() else it }
+    }.flatten().toTypedArray())
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

@@ -112,6 +112,8 @@ class WorkingCopyView : Tab() {
                 else unstagedFiles.items.find { it == selected }?.let { unstagedFiles.selectionModel.select(it) }
             }
         }.also {
+            stagedFiles.items.clear()
+            unstagedFiles.items.clear()
             State.stagedFiles.set(0)
             State.unstagedFiles.set(0)
             State.execute(it)
