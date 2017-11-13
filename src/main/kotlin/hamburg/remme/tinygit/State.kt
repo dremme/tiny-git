@@ -99,6 +99,7 @@ object State {
      * ACTIONS                                                                                                       *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    val canSettings = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
     val canCommit = selectedRepository.isNotNull.and(stagedFiles.isGreaterZero()).and(runningProcesses.isZero())!!
     val canPush = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
     val canPull = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
