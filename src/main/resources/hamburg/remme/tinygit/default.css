@@ -206,12 +206,11 @@
 }
 
 .log-progress {
-    -fx-indeterminate-bar-length: 300;
-    -fx-indeterminate-bar-animation-time: 2.5;
+    -fx-indeterminate-bar-length: 400;
 }
 
 .log-progress > .bar {
-    -fx-padding: 0.2em;
+    -fx-padding: 0.15em;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
 }
@@ -221,7 +220,7 @@
 }
 
 .log-progress > .track {
-    -fx-background-color: -fx-background;
+    -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
 }

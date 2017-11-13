@@ -10,7 +10,6 @@ import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.concurrent.Task
 import javafx.concurrent.Worker
 import javafx.scene.control.Label
-import javafx.scene.control.ProgressBar
 import javafx.scene.control.SplitPane
 import javafx.scene.control.Tab
 import javafx.scene.control.TableCell
@@ -23,7 +22,6 @@ import org.eclipse.jgit.api.errors.TransportException
 
 class LogView : Tab() {
 
-    private val progress = ProgressBar(-1.0)
     private val localCommits = TableView<LocalCommit>()
     private val commitDetails = CommitDetailsView()
     private var task: Task<*>? = null
@@ -54,24 +52,11 @@ class LogView : Tab() {
         pane.items.addAll(localCommits, commitDetails)
         VBox.setVgrow(pane, Priority.ALWAYS)
 
-        progress.styleClass += "log-progress"
-        progress.maxWidth = Double.MAX_VALUE
-
-        content = VBox(pane)
+        content = ProgressPane(pane)
 
         State.selectedRepositoryProperty().addListener { _, _, it -> it?.let { logQuick(it) } }
         State.addRefreshListener { logCurrent() }
         logCurrent()
-    }
-
-    private fun addProgress() {
-        // TODO: a little wobbly, maybe stackpane and show/hide
-        val box = (content as VBox)
-        if (!box.children.contains(progress)) box.children.add(0, progress)
-    }
-
-    private fun removeProgress() {
-        (content as VBox).children -= progress
     }
 
     private fun updateLog(commits: List<LocalCommit>) {
@@ -110,10 +95,10 @@ class LogView : Tab() {
             }
 
             override fun done() {
-                Platform.runLater { if (state != Worker.State.CANCELLED) removeProgress() }
+                Platform.runLater { if (state != Worker.State.CANCELLED) (content as ProgressPane).hideProgress() }
             }
         }.also {
-            addProgress()
+            (content as ProgressPane).showProgress()
             State.execute(it)
         }
     }
