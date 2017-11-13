@@ -5,6 +5,7 @@ import javafx.scene.Node
 import javafx.scene.control.ProgressBar
 import javafx.scene.layout.StackPane
 
+// TODO: move task handling here aswell?
 class ProgressPane(vararg node: Node) : StackPane(*node) {
 
     private val progress = ProgressBar(-1.0)
