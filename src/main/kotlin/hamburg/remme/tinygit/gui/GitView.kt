@@ -32,9 +32,12 @@ class GitView : VBox() {
         val quit = Action("Quit TinyGit", action = EventHandler { addCopy() })
         val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(), action = EventHandler { SettingsDialog(State.getSelectedRepository(), scene.window).show() })
         val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+Plus", State.canCommit.not(), EventHandler { commit(State.getSelectedRepository()) })
-        val push = Action("Push", { FontAwesome.cloudUpload() }, "Shortcut+P", State.canPush.not(), EventHandler { push(State.getSelectedRepository(), false) })
-        val pushForce = Action("Force Push", { FontAwesome.cloudUpload() }, "Shortcut+Shift+P", State.canPush.not(), EventHandler { push(State.getSelectedRepository(), true) })
-        val pull = Action("Pull", { FontAwesome.cloudDownload() }, "Shortcut+L", State.canPull.not(), EventHandler { pull(State.getSelectedRepository()) })
+        val push = Action("Push", { FontAwesome.cloudUpload() }, "Shortcut+P", State.canPush.not(),
+                EventHandler { push(State.getSelectedRepository(), false) }, State.ahead)
+        val pushForce = Action("Force Push", { FontAwesome.cloudUpload() }, "Shortcut+Shift+P", State.canPush.not(),
+                EventHandler { push(State.getSelectedRepository(), true) }, State.ahead)
+        val pull = Action("Pull", { FontAwesome.cloudDownload() }, "Shortcut+L", State.canPull.not(),
+                EventHandler { pull(State.getSelectedRepository()) }, State.behind)
         val fetch = Action("Fetch", { FontAwesome.refresh() }, "Shortcut+F", State.canFetch.not(), EventHandler { fetch(State.getSelectedRepository()) })
         val tag = Action("Tag", { FontAwesome.tag() }, "Shortcut+T", State.canTag.not(), action = EventHandler { })
         val branch = Action("Branch", { FontAwesome.codeFork() }, "Shortcut+B", State.canBranch.not(), EventHandler { createBranch(State.getSelectedRepository()) })

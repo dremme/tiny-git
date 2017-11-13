@@ -2,10 +2,12 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.gui.FontAwesome.exclamationTriangle
 import hamburg.remme.tinygit.gui.FontAwesome.questionCircle
-import javafx.beans.binding.BooleanBinding
+import javafx.beans.binding.Bindings
+import javafx.beans.value.ObservableBooleanValue
 import javafx.beans.value.ObservableValue
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Alert
 import javafx.scene.control.Button
@@ -28,6 +30,7 @@ import javafx.scene.input.KeyCombination
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
+import javafx.scene.layout.StackPane
 import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
@@ -89,7 +92,7 @@ fun button(label: String = "",
            icon: Node? = null,
            action: EventHandler<ActionEvent>,
            tooltip: String? = null,
-           disable: BooleanBinding? = null,
+           disable: ObservableBooleanValue? = null,
            vararg styleClass: String): Button {
     val button = Button(label)
     button.onAction = action
@@ -141,7 +144,7 @@ fun menuItem(label: String,
              icon: Node? = null,
              shortcut: String? = null,
              action: EventHandler<ActionEvent>,
-             disable: BooleanBinding? = null): MenuItem {
+             disable: ObservableBooleanValue? = null): MenuItem {
     val menuItem = MenuItem(label)
     menuItem.onAction = action
     shortcut?.let { menuItem.accelerator = KeyCombination.valueOf(it) }
@@ -163,8 +166,20 @@ fun menuBar(vararg collection: ActionCollection): MenuBar {
 
 fun toolBar(vararg group: ActionGroup): ToolBar {
     return ToolBar(*group.mapIndexed { i, it ->
-        it.action.map { button(it.text, it.icon.invoke(), it.action, null, it.disable) }
-                .let { if (i < group.size - 1) it + Separator() else it }
+        it.action.map {
+            if (it.count != null) {
+                val count = Label()
+                count.styleClass += "count-badge"
+                count.textProperty().bind(Bindings.convert(it.count))
+                count.visibleProperty().bind(Bindings.lessThan(0, it.count))
+                StackPane.setAlignment(count, Pos.TOP_RIGHT)
+                StackPane(button(it.text, it.icon.invoke(), it.action, null, it.disable), count)
+            } else {
+                button(it.text, it.icon.invoke(), it.action, null, it.disable)
+            }
+        }.let {
+            if (i < group.size - 1) it + Separator() else it
+        }
     }.flatten().toTypedArray())
 }
 

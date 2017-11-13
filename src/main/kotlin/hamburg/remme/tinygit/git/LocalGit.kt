@@ -12,6 +12,8 @@ import org.eclipse.jgit.lib.ObjectReader
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.revwalk.RevWalk
+import org.eclipse.jgit.revwalk.RevWalkUtils
+import org.eclipse.jgit.revwalk.filter.RevFilter
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.transport.RemoteRefUpdate
 import org.eclipse.jgit.treewalk.AbstractTreeIterator
@@ -141,6 +143,29 @@ object LocalGit {
 
     private fun Set<String>.toLocalFileList(status: LocalFile.Status): List<LocalFile> {
         return this.map { LocalFile(it, status) }.sortedBy { it.path }
+    }
+
+    /**
+     * TODO
+     */
+    fun divergence(repository: LocalRepository, local: String? = null, remote: String? = null): LocalDivergence {
+        return repository.open {
+            val localBranch = it.findRef(local ?: it.branch).objectId
+            val remoteBranch = it.findRef(remote ?: "origin/${it.branch}").objectId
+            RevWalk(it).use {
+                val localCommit = it.parseCommit(localBranch)
+                val remoteCommit = it.parseCommit(remoteBranch)
+                it.revFilter = RevFilter.MERGE_BASE
+                it.markStart(localCommit)
+                it.markStart(remoteCommit)
+                val mergeBase = it.next()
+                it.reset()
+                it.revFilter = RevFilter.ALL
+                LocalDivergence(
+                        RevWalkUtils.count(it, localCommit, mergeBase),
+                        RevWalkUtils.count(it, remoteCommit, mergeBase))
+            }
+        }
     }
 
     /**
