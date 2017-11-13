@@ -79,8 +79,10 @@ object LocalGit {
         return repository.open {
             val git = Git(it)
             if (fetch) git.fetch(repository)
+            val log = git.log()
             val branches = git.branchListAll()
-            git.log().all().setMaxCount(max).call().map { c ->
+            branches.forEach { log.add(ObjectId.fromString(it.commit)) }
+            log.setMaxCount(max).call().map { c ->
                 LocalCommit(
                         c.id.name, c.abbreviate(10).name(),
                         c.parents.map { it.abbreviate(10).name() },
