@@ -151,8 +151,9 @@ object LocalGit {
     fun divergence(repository: LocalRepository, local: String? = null, remote: String? = null): LocalDivergence {
         return repository.open {
             val localBranch = it.findRef(local ?: it.branch).objectId
-            val remoteBranch = it.findRef(remote ?: "origin/${it.branch}").objectId
-            RevWalk(it).use {
+            val remoteBranch = it.findRef(remote ?: "origin/${it.branch}")?.objectId
+            if (remoteBranch == null) LocalDivergence(0, 0) // if there is no remote branch yet
+            else RevWalk(it).use {
                 val localCommit = it.parseCommit(localBranch)
                 val remoteCommit = it.parseCommit(remoteBranch)
                 it.revFilter = RevFilter.MERGE_BASE
