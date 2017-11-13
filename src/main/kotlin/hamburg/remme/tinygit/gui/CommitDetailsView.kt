@@ -39,6 +39,7 @@ class CommitDetailsView : SplitPane() {
 
             setContent(commit)
 
+            // TODO: add a process indicator
             println("Status for commit: ${commit.shortId}")
             task?.cancel()
             task = object : Task<List<LocalFile>>() {
