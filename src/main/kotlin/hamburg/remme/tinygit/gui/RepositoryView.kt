@@ -45,7 +45,13 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         setOnMouseClicked {
             if (it.button == MouseButton.PRIMARY && it.clickCount == 2) {
                 val entry = selectionModel.selectedItem.value
-                if (entry.type == RepositoryEntryType.LOCAL_BRANCH) checkout(entry.repository, entry.value)
+                when (entry.type) {
+                    RepositoryEntryType.LOCAL_BRANCH -> checkout(entry.repository, entry.value)
+                    RepositoryEntryType.REMOTE_BRANCH -> checkoutRemote(entry.repository, entry.value)
+                    else -> {
+                        // do nothing
+                    }
+                }
             }
         }
         State.addRefreshListener {
@@ -115,6 +121,21 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                             "There are local changes that would be overwritten by checkout.\nCommit or stash them.")
                     else -> exception.printStackTrace()
                 }
+            }
+
+            override fun done() = State.removeProcess()
+        })
+    }
+
+    private fun checkoutRemote(repository: LocalRepository, branch: String) {
+        State.addProcess("Getting remote branch...")
+        State.execute(object : Task<Unit>() {
+            override fun call() = LocalGit.checkoutRemote(repository, branch)
+
+            override fun succeeded() = State.fireRefresh()
+
+            override fun failed() {
+                exception.printStackTrace()
             }
 
             override fun done() = State.removeProcess()

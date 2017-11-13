@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.git
 
+import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.ListBranchCommand
@@ -361,10 +362,24 @@ object LocalGit {
     }
 
     /**
-     * - `git checkout [name]`
+     * - `git checkout [branch]`
      */
-    fun checkout(repository: LocalRepository, name: String) {
-        repository.open { Git(it).checkout().setName(name).call() }
+    fun checkout(repository: LocalRepository, branch: String) {
+        repository.open { Git(it).checkout().setName(branch).call() }
+    }
+
+    /**
+     * - `git checkout -b [local] [remote]`
+     */
+    fun checkoutRemote(repository: LocalRepository, remote: String, local: String? = null) {
+        repository.open {
+            Git(it).checkout()
+                    .setCreateBranch(true)
+                    .setName(local ?: remote.substringAfter('/'))
+                    .setStartPoint(remote)
+                    .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                    .call()
+        }
     }
 
     /**
