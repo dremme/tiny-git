@@ -40,11 +40,10 @@ class GitView : VBox() {
         val branch = Action("Branch", { FontAwesome.codeFork() }, "Shortcut+B", State.canBranch.not(), EventHandler { createBranch(State.getSelectedRepository()) })
         val merge = Action("Merge", { FontAwesome.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(), action = EventHandler { })
         val stash = Action("Stash", { FontAwesome.cube() }, "Shortcut+S", State.canStash.not(), EventHandler { stash(State.getSelectedRepository()) })
-        val stashApply = Action("Apply Stash", { FontAwesome.cube() }, "Shortcut+Shift+S", State.canApplyStash.not(), EventHandler { stashApply(State.getSelectedRepository()) })
+        val stashApply = Action("Apply Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(), EventHandler { stashApply(State.getSelectedRepository()) })
         val reset = Action("Reset", { FontAwesome.undo() }, "Shortcut+R", State.canReset.not(), action = EventHandler { })
-        val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() }, action = EventHandler {
-            if (Desktop.isDesktopSupported()) Desktop.getDesktop().browse(URI("https://github.com/deso88/TinyGit"))
-        })
+        val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
+                action = EventHandler { if (Desktop.isDesktopSupported()) Desktop.getDesktop().browse(URI("https://github.com/deso88/TinyGit")) })
         val about = Action("About TinyGit", action = EventHandler {})
 
         val info = StackPane(HBox(

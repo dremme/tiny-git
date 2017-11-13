@@ -67,6 +67,8 @@ fun <T : Node> T.flipY(): T {
     return this
 }
 
+fun <T : Node> T.flipXY() = this.flipX().flipY()
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                                                               *
  * UI BUILDER                                                                                                    *
@@ -133,7 +135,7 @@ fun textArea(value: String = "",
     return textArea
 }
 
-fun spacer() = Pane().also { HBox.setHgrow(it, Priority.ALWAYS) }
+fun spacer(): Node = Pane().also { HBox.setHgrow(it, Priority.ALWAYS) }
 
 fun menuItem(label: String,
              icon: Node? = null,
