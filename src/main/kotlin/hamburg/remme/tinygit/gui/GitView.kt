@@ -47,28 +47,6 @@ class GitView : VBox() {
         })
         val about = Action("About TinyGit", action = EventHandler {})
 
-        val menuBar = menuBar(
-                ActionCollection("File", ActionGroup(addCopy), ActionGroup(quit)),
-                ActionCollection("Repository", ActionGroup(settings)),
-                ActionCollection("Actions",
-                        ActionGroup(commit),
-                        ActionGroup(push, pushForce, pull, fetch, tag),
-                        ActionGroup(branch, merge),
-                        ActionGroup(stash, stashApply),
-                        ActionGroup(reset)),
-                ActionCollection("?", ActionGroup(github, about)))
-
-        val toolBar = toolBar(
-                ActionGroup(addCopy),
-                ActionGroup(commit, push, pull, fetch, tag),
-                ActionGroup(branch, merge),
-                ActionGroup(stash, stashApply),
-                ActionGroup(reset))
-
-        val tabs = TabPane(LogView(), WorkingCopyView())
-        val content = SplitPane(RepositoryView(), tabs)
-        Platform.runLater { content.setDividerPosition(0, 0.20) }
-
         val info = StackPane(HBox(
                 Label("Click "),
                 Label("", FontAwesome.database()),
@@ -83,9 +61,24 @@ class GitView : VBox() {
         overlay.styleClass += "progress-overlay"
         overlay.visibleProperty().bind(State.showGlobalOverlay)
 
+        val content = SplitPane(RepositoryView(), TabPane(LogView(), WorkingCopyView()))
+        Platform.runLater { content.setDividerPosition(0, 0.20) }
+
         children.addAll(
-                menuBar,
-                toolBar,
+                menuBar(ActionCollection("File", ActionGroup(addCopy), ActionGroup(quit)),
+                        ActionCollection("Repository", ActionGroup(settings)),
+                        ActionCollection("Actions",
+                                ActionGroup(commit),
+                                ActionGroup(push, pushForce, pull, fetch, tag),
+                                ActionGroup(branch, merge),
+                                ActionGroup(stash, stashApply),
+                                ActionGroup(reset)),
+                        ActionCollection("?", ActionGroup(github, about))),
+                toolBar(ActionGroup(addCopy),
+                        ActionGroup(commit, push, pull, fetch, tag),
+                        ActionGroup(branch, merge),
+                        ActionGroup(stash, stashApply),
+                        ActionGroup(reset)),
                 StackPane(content, info, overlay).also { VBox.setVgrow(it, Priority.ALWAYS) })
     }
 

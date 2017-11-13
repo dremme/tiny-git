@@ -111,13 +111,7 @@ class WorkingCopyView : Tab() {
                 if (stagedSelected) stagedFiles.items.find { it == selected }?.let { stagedFiles.selectionModel.select(it) }
                 else unstagedFiles.items.find { it == selected }?.let { unstagedFiles.selectionModel.select(it) }
             }
-        }.also {
-            stagedFiles.items.clear()
-            unstagedFiles.items.clear()
-            State.stagedFiles.set(0)
-            State.unstagedFiles.set(0)
-            State.execute(it)
-        }
+        }.also { State.execute(it) }
     }
 
     private fun stage(repository: LocalRepository) {
