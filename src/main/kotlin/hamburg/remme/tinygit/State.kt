@@ -7,6 +7,7 @@ import javafx.beans.property.ReadOnlyBooleanWrapper
 import javafx.beans.property.ReadOnlyIntegerWrapper
 import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
@@ -27,6 +28,10 @@ object State {
 
     fun execute(task: Task<*>) {
         cachedThreadPool.execute(task)
+    }
+
+    fun stop() {
+        cachedThreadPool.shutdownNow()
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -58,7 +63,7 @@ object State {
     private val repositories = FXCollections.observableArrayList<LocalRepository>()!!
     private val selectedRepository = ReadOnlyObjectWrapper<LocalRepository>()
 
-    fun getRepositories() = FXCollections.unmodifiableObservableList(repositories)!!
+    fun getRepositories() = repositories
 
     fun setRepositories(repositories: Collection<LocalRepository>) {
         this.repositories.setAll(repositories)
@@ -95,6 +100,7 @@ object State {
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     val showGlobalInfo = Bindings.isEmpty(repositories)!!
     val showGlobalOverlay = runningProcesses.greaterThan(0)!!
+    val modalVisible = SimpleBooleanProperty()
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
@@ -103,7 +109,7 @@ object State {
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     val canSettings = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
     val canCommit = selectedRepository.isNotNull.and(stagedFiles.isGreaterZero()).and(runningProcesses.isZero())!!
-    val canPush = selectedRepository.isNotNull.and(ahead.isGreaterZero()).and(runningProcesses.isZero())!!
+    val canPush = selectedRepository.isNotNull.and(ahead.isNotZero()).and(runningProcesses.isZero())!!
     val canPull = selectedRepository.isNotNull.and(behind.isGreaterZero()).and(runningProcesses.isZero())!!
     val canFetch = selectedRepository.isNotNull.and(runningProcesses.isZero())!!
     val canTag = FALSE // TODO: selectedRepository.isNotNull.and(runningProcesses.isZero())!!
@@ -115,6 +121,7 @@ object State {
     val canReset = FALSE // TODO: selectedRepository.isNotNull.and(runningProcesses.isZero())!!
 
     private fun IntegerProperty.isZero() = this.isEqualTo(0)
+    private fun IntegerProperty.isNotZero() = this.isNotEqualTo(0)
     private fun IntegerProperty.isGreaterZero() = this.greaterThan(0)
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -123,8 +130,6 @@ object State {
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private val refreshListeners = mutableListOf<() -> Unit>()
-    private val focusListeners = mutableListOf<() -> Unit>()
-
 
     fun addRefreshListener(block: () -> Unit) {
         refreshListeners += block
@@ -136,27 +141,6 @@ object State {
 
     fun fireRefresh() {
         refreshListeners.forEach { it.invoke() }
-    }
-
-    fun addFocusListener(block: () -> Unit) {
-        focusListeners += block
-    }
-
-    fun removeFocusListener(block: () -> Unit) {
-        focusListeners -= block
-    }
-
-    fun fireFocus() {
-        focusListeners.forEach { it.invoke() }
-    }
-
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     *                                                                                                               *
-     * LISTENERS                                                                                                     *
-     *                                                                                                               *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    fun stop() {
-        cachedThreadPool.shutdownNow()
     }
 
 }

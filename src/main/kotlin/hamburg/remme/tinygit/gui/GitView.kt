@@ -17,42 +17,52 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
-import javafx.stage.DirectoryChooser
+import javafx.scene.text.Text
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
-import java.awt.Desktop
 import java.io.File
-import java.net.URI
 
 class GitView : VBox() {
 
     init {
         styleClass += "git-view"
 
-        val addCopy = Action("Add Working Copy", { FontAwesome.database() }, "Shortcut+O", action = EventHandler { addCopy() })
-        val quit = Action("Quit TinyGit", action = EventHandler { addCopy() })
-        val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(), action = EventHandler { SettingsDialog(State.getSelectedRepository(), scene.window).show() })
-        val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+Plus", State.canCommit.not(), EventHandler { commit(State.getSelectedRepository()) })
+        val addCopy = Action("Add Working Copy", { FontAwesome.database() }, "Shortcut+O",
+                action = EventHandler { addCopy() })
+        val quit = Action("Quit TinyGit",
+                action = EventHandler { Platform.exit() })
+        val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+Plus", State.canCommit.not(),
+                EventHandler { commit(State.getSelectedRepository()) })
         val push = Action("Push", { FontAwesome.cloudUpload() }, "Shortcut+P", State.canPush.not(),
                 EventHandler { push(State.getSelectedRepository(), false) }, State.ahead)
         val pushForce = Action("Force Push", { FontAwesome.cloudUpload() }, "Shortcut+Shift+P", State.canPush.not(),
                 EventHandler { push(State.getSelectedRepository(), true) }, State.ahead)
         val pull = Action("Pull", { FontAwesome.cloudDownload() }, "Shortcut+L", State.canPull.not(),
                 EventHandler { pull(State.getSelectedRepository()) }, State.behind)
-        val fetch = Action("Fetch", { FontAwesome.refresh() }, "Shortcut+F", State.canFetch.not(), EventHandler { fetch(State.getSelectedRepository()) })
-        val tag = Action("Tag", { FontAwesome.tag() }, "Shortcut+T", State.canTag.not(), action = EventHandler { })
-        val branch = Action("Branch", { FontAwesome.codeFork() }, "Shortcut+B", State.canBranch.not(), EventHandler { createBranch(State.getSelectedRepository()) })
-        val merge = Action("Merge", { FontAwesome.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(), action = EventHandler { })
-        val stash = Action("Stash", { FontAwesome.cube() }, "Shortcut+S", State.canStash.not(), EventHandler { stash(State.getSelectedRepository()) })
-        val stashApply = Action("Apply Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(), EventHandler { stashApply(State.getSelectedRepository()) })
-        val reset = Action("Reset", { FontAwesome.undo() }, "Shortcut+R", State.canReset.not(), action = EventHandler { })
+        val fetch = Action("Fetch", { FontAwesome.refresh() }, "Shortcut+F", State.canFetch.not(),
+                EventHandler { fetch(State.getSelectedRepository()) })
+        val tag = Action("Tag", { FontAwesome.tag() }, "Shortcut+T", State.canTag.not(),
+                action = EventHandler { /* TODO */ })
+        val branch = Action("Branch", { FontAwesome.codeFork() }, "Shortcut+B", State.canBranch.not(),
+                EventHandler { createBranch(State.getSelectedRepository()) })
+        val merge = Action("Merge", { FontAwesome.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
+                action = EventHandler { /* TODO */ })
+        val stash = Action("Stash", { FontAwesome.cube() }, "Shortcut+S", State.canStash.not(),
+                EventHandler { stash(State.getSelectedRepository()) })
+        val stashApply = Action("Apply Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
+                EventHandler { stashApply(State.getSelectedRepository()) })
+        val reset = Action("Reset", { FontAwesome.undo() }, "Shortcut+R", State.canReset.not(),
+                action = EventHandler { /* TODO */ })
+        val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
+                action = EventHandler { SettingsDialog(State.getSelectedRepository(), scene.window).show() })
         val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
-                action = EventHandler { if (Desktop.isDesktopSupported()) Desktop.getDesktop().browse(URI("https://github.com/deso88/TinyGit")) })
-        val about = Action("About TinyGit", action = EventHandler {})
+                action = EventHandler { /*"https://github.com/deso88/TinyGit"*/ })
+        val about = Action("About TinyGit",
+                action = EventHandler { /* TODO */ })
 
         val info = StackPane(HBox(
-                Label("Click "),
-                Label("", FontAwesome.database()),
-                Label(" to add a working copy."))
+                Text("Click "),
+                FontAwesome.database(),
+                Text(" to add a working copy."))
                 .addClass("box"))
         info.styleClass += "overlay"
         info.visibleProperty().bind(State.showGlobalInfo)
@@ -68,13 +78,13 @@ class GitView : VBox() {
 
         children.addAll(
                 menuBar(ActionCollection("File", ActionGroup(addCopy), ActionGroup(quit)),
-                        ActionCollection("Repository", ActionGroup(settings)),
-                        ActionCollection("Actions",
+                        ActionCollection("Repository",
                                 ActionGroup(commit),
                                 ActionGroup(push, pushForce, pull, fetch, tag),
                                 ActionGroup(branch, merge),
                                 ActionGroup(stash, stashApply),
-                                ActionGroup(reset)),
+                                ActionGroup(reset),
+                                ActionGroup(settings)),
                         ActionCollection("?", ActionGroup(github, about))),
                 toolBar(ActionGroup(addCopy),
                         ActionGroup(commit, push, pull, fetch, tag),
@@ -85,9 +95,7 @@ class GitView : VBox() {
     }
 
     private fun addCopy() {
-        val chooser = DirectoryChooser()
-        chooser.title = "Add Working Copy"
-        chooser.showDialog(this.scene.window)?.let {
+        directoryChooser(scene.window, "Add Working Copy")?.let {
             if (File("${it.absolutePath}/.git").exists()) {
                 val repository = LocalRepository(it.absolutePath)
                 if (State.getRepositories().none { it.path == repository.path }) {
@@ -114,7 +122,7 @@ class GitView : VBox() {
 
             override fun failed() = exception.printStackTrace()
 
-            override fun done() = State.removeProcess()
+            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
@@ -135,7 +143,7 @@ class GitView : VBox() {
                         "${exception.message}\n\nPlease commit or stash them before pulling.")
             }
 
-            override fun done() = State.removeProcess()
+            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
@@ -162,7 +170,7 @@ class GitView : VBox() {
                 }
             }
 
-            override fun done() = State.removeProcess()
+            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
@@ -183,7 +191,7 @@ class GitView : VBox() {
                     }
                 }
 
-                override fun done() = State.removeProcess()
+                override fun done() = Platform.runLater { State.removeProcess() }
             })
         }
     }
@@ -197,7 +205,7 @@ class GitView : VBox() {
 
             override fun failed() = exception.printStackTrace()
 
-            override fun done() = State.removeProcess()
+            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
@@ -210,7 +218,7 @@ class GitView : VBox() {
 
             override fun failed() = exception.printStackTrace()
 
-            override fun done() = State.removeProcess()
+            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
