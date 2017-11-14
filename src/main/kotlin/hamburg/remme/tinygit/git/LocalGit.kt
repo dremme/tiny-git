@@ -155,19 +155,32 @@ object LocalGit {
         return repository.open {
             val localBranch = it.findRef(local ?: it.branch).objectId
             val remoteBranch = it.findRef(remote ?: "origin/${it.branch}")?.objectId
-            if (remoteBranch == null) LocalDivergence(0, 0) // if there is no remote branch yet
-            else RevWalk(it).use {
-                val localCommit = it.parseCommit(localBranch)
-                val remoteCommit = it.parseCommit(remoteBranch)
-                it.revFilter = RevFilter.MERGE_BASE
-                it.markStart(localCommit)
-                it.markStart(remoteCommit)
-                val mergeBase = it.next()
-                it.reset()
-                it.revFilter = RevFilter.ALL
-                LocalDivergence(
-                        RevWalkUtils.count(it, localCommit, mergeBase),
-                        RevWalkUtils.count(it, remoteCommit, mergeBase))
+            if (remoteBranch == null) {
+                // TODO: count commits since branching
+//                RevWalk(it).use {
+//                    val localCommit = it.parseCommit(localBranch)
+//                    it.markStart(localCommit)
+//                    var count = 0
+//                    for (commit in it.commits()) {
+//                        if (it.isMergedInto(commit, localCommit)) count++ else break
+//                    }
+//                    LocalDivergence(count, 0)
+//                }
+                LocalDivergence(-1, 0)
+            } else {
+                RevWalk(it).use {
+                    val localCommit = it.parseCommit(localBranch)
+                    val remoteCommit = it.parseCommit(remoteBranch)
+                    it.revFilter = RevFilter.MERGE_BASE
+                    it.markStart(localCommit)
+                    it.markStart(remoteCommit)
+                    val mergeBase = it.next()
+                    it.reset()
+                    it.revFilter = RevFilter.ALL
+                    LocalDivergence(
+                            RevWalkUtils.count(it, localCommit, mergeBase),
+                            RevWalkUtils.count(it, remoteCommit, mergeBase))
+                }
             }
         }
     }

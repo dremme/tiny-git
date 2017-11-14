@@ -6,6 +6,7 @@ import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.gui.FontAwesome.folderOpen
 import hamburg.remme.tinygit.gui.button
+import hamburg.remme.tinygit.gui.fileChooser
 import hamburg.remme.tinygit.gui.intTextField
 import hamburg.remme.tinygit.gui.textField
 import javafx.event.EventHandler
@@ -15,11 +16,9 @@ import javafx.scene.control.Dialog
 import javafx.scene.control.Label
 import javafx.scene.control.PasswordField
 import javafx.scene.layout.GridPane
-import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
-import java.io.File
 
 class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>() {
 
@@ -36,12 +35,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         val ssh = textField(repository.credentials?.ssh ?: "")
         val sshSearch = button(
                 icon = folderOpen(),
-                action = EventHandler {
-                    val chooser = FileChooser()
-                    chooser.title = "Choose a SSH Key"
-                    chooser.initialDirectory = File(System.getProperty("user.home"))
-                    chooser.showOpenDialog(this.owner)?.let { ssh.text = it.absolutePath }
-                })
+                action = EventHandler { fileChooser(this.owner, "Choose a SSH Key")?.let { ssh.text = it.absolutePath } })
                 .also {
                     it.maxWidth = Double.MAX_VALUE
                     GridPane.setFillWidth(it, true)

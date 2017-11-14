@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
+import javafx.application.Platform
 import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
 import javafx.event.EventHandler
@@ -15,6 +16,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
 import javafx.scene.layout.HBox
 import org.eclipse.jgit.api.errors.CheckoutConflictException
+import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
@@ -123,7 +125,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                 }
             }
 
-            override fun done() = State.removeProcess()
+            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
@@ -135,10 +137,13 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             override fun succeeded() = State.fireRefresh()
 
             override fun failed() {
-                exception.printStackTrace()
+                when (exception) {
+                    is RefAlreadyExistsException -> checkout(repository, branch.substringAfter('/'))
+                    else -> exception.printStackTrace()
+                }
             }
 
-            override fun done() = State.removeProcess()
+            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 

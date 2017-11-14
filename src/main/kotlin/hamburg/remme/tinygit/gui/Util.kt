@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.gui.FontAwesome.exclamationTriangle
 import hamburg.remme.tinygit.gui.FontAwesome.questionCircle
 import javafx.beans.binding.Bindings
@@ -31,10 +32,13 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
+import javafx.stage.DirectoryChooser
+import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
 import javafx.util.converter.IntegerStringConverter
+import java.io.File
 import java.time.format.DateTimeFormatter
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -192,6 +196,7 @@ fun confirmAlert(window: Window,
                  header: String,
                  text: String): Boolean {
     val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, questionCircle("#5bc0de"))
+    State.modalVisible.set(true)
     return alert.showAndWait().get() == ButtonType.OK
 }
 
@@ -199,6 +204,7 @@ fun confirmWarningAlert(window: Window,
                         header: String,
                         text: String): Boolean {
     val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, exclamationTriangle("#f0ad4e"))
+    State.modalVisible.set(true)
     return alert.showAndWait().get() == ButtonType.OK
 }
 
@@ -206,6 +212,7 @@ fun errorAlert(window: Window,
                header: String,
                text: String) {
     val alert = alert(window, Alert.AlertType.ERROR, header, text, exclamationTriangle("#d9534f"))
+    State.modalVisible.set(true)
     alert.showAndWait()
 }
 
@@ -230,5 +237,21 @@ fun textInputDialog(window: Window,
     dialog.title = "Input"
     dialog.headerText = "Enter a New Branch Name"
     dialog.graphic = icon
+    State.modalVisible.set(true)
     return dialog.showAndWait().orElse(null)
+}
+
+fun fileChooser(window: Window, title: String): File? {
+    val chooser = FileChooser()
+    chooser.title = title
+    chooser.initialDirectory = File(System.getProperty("user.home"))
+    State.modalVisible.set(true)
+    return chooser.showOpenDialog(window)
+}
+
+fun directoryChooser(window: Window, title: String): File? {
+    val chooser = DirectoryChooser()
+    chooser.title = title
+    State.modalVisible.set(true)
+    return chooser.showDialog(window)
 }

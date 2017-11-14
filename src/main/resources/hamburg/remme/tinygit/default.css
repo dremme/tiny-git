@@ -278,13 +278,17 @@
     -fx-font-size: 2em;
 }
 
-.overlay .icon {
-    -fx-font-size: 32px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 2, 0, 2, 2);
-}
-
 .overlay .box {
     -fx-alignment: center;
+}
+
+.overlay .box > * {
+    -fx-fill: -fx-text-base-color;
+}
+
+.overlay .box > .icon {
+    -fx-font-size: 32px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 2, 0, 2, 2);
 }
 
 .progress-overlay {

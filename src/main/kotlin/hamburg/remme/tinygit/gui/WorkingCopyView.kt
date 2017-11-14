@@ -87,7 +87,7 @@ class WorkingCopyView : Tab() {
                 State.stashEntries.set(LocalGit.stashList(it).size)
             }
         }
-        State.addFocusListener {
+        State.addRefreshListener {
             fileDiff.clear()
             State.getSelectedRepository { diff(it) }
         }
