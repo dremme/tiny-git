@@ -20,13 +20,12 @@ java -jar tinygit-x.x.x.jar
  - Squashing branches (interactive rebase)
  - Rebasing and merging branches
  - Creating/cloning/removing repositories
- - Changing remote URL
+ - Changing local repo/remote URL
  - Track only wanted branches
  - Commit graph in the log
  - Endless scroll the log
- - Apply/remote explicit stashes
+ - Apply/remove explicit stashes
  - Resetting branches
- - Tag commits
- - Push/remove tags
+ - Tag commits & push/remove tags
  - File diff settings (e.g. surrounding lines)
  - Stage/unstage code blocks

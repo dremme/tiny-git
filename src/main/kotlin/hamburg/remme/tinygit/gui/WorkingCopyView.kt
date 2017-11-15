@@ -101,15 +101,14 @@ class WorkingCopyView : Tab() {
             override fun call() = LocalGit.status(repository) // TODO: git status might not be good enough here
 
             override fun succeeded() {
-                // TODO: loosing multi selection
-                val stagedSelected = stagedFiles.selectionModel.selectedIndex >= 0
-                val selected = if (stagedSelected) stagedFiles.selectionModel.selectedItem else unstagedFiles.selectionModel.selectedItem
+                val staged = stagedFiles.selectionModel.selectedItems + stagedFiles.selectionModel.selectedItem
+                val unstaged = unstagedFiles.selectionModel.selectedItems + unstagedFiles.selectionModel.selectedItem
 
                 stagedFiles.items.setAll(value.staged)
                 unstagedFiles.items.setAll(value.unstaged)
 
-                if (stagedSelected) stagedFiles.items.find { it == selected }?.let { stagedFiles.selectionModel.select(it) }
-                else unstagedFiles.items.find { it == selected }?.let { unstagedFiles.selectionModel.select(it) }
+                stagedFiles.selectionModel.selectIndices(-1, *staged.map { stagedFiles.items.indexOf(it) }.toIntArray())
+                unstagedFiles.selectionModel.selectIndices(-1, *unstaged.map { unstagedFiles.items.indexOf(it) }.toIntArray())
             }
         }.also { State.execute(it) }
     }
