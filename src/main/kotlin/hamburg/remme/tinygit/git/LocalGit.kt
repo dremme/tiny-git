@@ -73,6 +73,13 @@ object LocalGit {
     }
 
     /**
+     * TODO
+     */
+    fun currentBranch(repository: LocalRepository): String {
+        return repository.open { it.branch }
+    }
+
+    /**
      * - `git fetch`
      * - `git branch --all`
      * - `git log --all --max-count=[max]`
@@ -116,7 +123,6 @@ object LocalGit {
                 LocalBranch(
                         shortRef,
                         walker.lookupCommit(it.objectId).id.name,
-                        shortRef == this.repository.branch,
                         it.name.contains("remotes"))
             }
         }
@@ -418,7 +424,11 @@ object LocalGit {
      * - `git stash list`
      */
     fun stashList(repository: LocalRepository): List<LocalStashEntry> {
-        return repository.open { Git(it).stashList().call().map { LocalStashEntry(it.id.name, it.fullMessage) } }
+        return repository.open { gitRepo ->
+            Git(gitRepo).stashList().call().mapIndexed { i, it ->
+                LocalStashEntry(it.id.name, "$i:${it.fullMessage}")
+            }
+        }
     }
 
     /**

@@ -26,6 +26,7 @@ class LogView : Tab() {
     private val progressPane: ProgressPane
     private val localCommits = TableView<LocalCommit>()
     private val commitDetails = CommitDetailsView()
+    private lateinit var currentBranch: String
     private var task: Task<*>? = null
 
     init {
@@ -86,6 +87,7 @@ class LogView : Tab() {
     }
 
     private fun logQuick(repository: LocalRepository) {
+        currentBranch = LocalGit.currentBranch(repository)
         updateLog(LocalGit.log(repository))
         updateDivergence(LocalGit.divergence(repository))
         logRemote(repository)
@@ -125,25 +127,25 @@ class LogView : Tab() {
         }
     }
 
-    private class LogMessageTableCell : TableCell<LocalCommit, LocalCommit>() {
+    private inner class LogMessageTableCell : TableCell<LocalCommit, LocalCommit>() {
 
         override fun updateItem(item: LocalCommit?, empty: Boolean) {
             super.updateItem(item, empty)
             text = item?.shortMessage
             graphic = if (empty) null else {
                 if (item!!.branches.isNotEmpty()) {
-                    HBox(4.0, *item.branches.map { BranchBadge(it.shortRef, it.current) }.toTypedArray())
+                    HBox(4.0, *item.branches.map { BranchBadge(it.shortRef) }.toTypedArray())
                 } else null
             }
         }
 
     }
 
-    private class BranchBadge(name: String, current: Boolean) : Label(name, FontAwesome.codeFork()) {
+    private inner class BranchBadge(name: String) : Label(name, FontAwesome.codeFork()) {
 
         init {
             styleClass += "branch-badge"
-            if (current) styleClass += "current"
+            if (name == this@LogView.currentBranch) styleClass += "current"
         }
 
     }
