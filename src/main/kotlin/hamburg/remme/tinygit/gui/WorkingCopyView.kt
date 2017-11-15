@@ -10,6 +10,7 @@ import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
 import javafx.event.EventHandler
+import javafx.scene.control.SelectionMode
 import javafx.scene.control.SplitPane
 import javafx.scene.control.Tab
 import javafx.scene.control.ToolBar
@@ -18,8 +19,8 @@ import javafx.scene.layout.VBox
 
 class WorkingCopyView : Tab() {
 
-    private val stagedFiles = FileStatusView()
-    private val unstagedFiles = FileStatusView()
+    private val stagedFiles = FileStatusView(SelectionMode.MULTIPLE)
+    private val unstagedFiles = FileStatusView(SelectionMode.MULTIPLE)
     private val fileDiff = FileDiffView()
     private var task: Task<*>? = null
 

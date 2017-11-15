@@ -5,12 +5,12 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
 
-class FileStatusView : ListView<LocalFile>() {
+class FileStatusView(selectionMode: SelectionMode = SelectionMode.SINGLE) : ListView<LocalFile>() {
 
     init {
         setCellFactory { LocalFileListCell() }
         styleClass += "file-status-view"
-        selectionModel.selectionMode = SelectionMode.MULTIPLE
+        selectionModel.selectionMode = selectionMode
     }
 
     private class LocalFileListCell : ListCell<LocalFile>() {
