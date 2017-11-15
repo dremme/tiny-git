@@ -12,21 +12,14 @@ import hamburg.remme.tinygit.gui.textField
 import javafx.event.EventHandler
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
-import javafx.scene.control.Dialog
 import javafx.scene.control.Label
 import javafx.scene.control.PasswordField
 import javafx.scene.layout.GridPane
-import javafx.stage.Modality
 import javafx.stage.Window
-import javafx.util.Callback
 
-class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>() {
+class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(window, "Repository Settings") {
 
     init {
-        title = "Repository Settings"
-        initModality(Modality.WINDOW_MODAL)
-        initOwner(window)
-
         val ok = ButtonType("OK", ButtonBar.ButtonData.OK_DONE)
         val cancel = ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
 
@@ -35,7 +28,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         val ssh = textField(repository.credentials?.ssh ?: "")
         val sshSearch = button(
                 icon = folderOpen(),
-                action = EventHandler { fileChooser(this.owner, "Choose a SSH Key")?.let { ssh.text = it.absolutePath } })
+                action = EventHandler { fileChooser(window, "Choose a SSH Key")?.let { ssh.text = it.absolutePath } })
                 .also {
                     it.maxWidth = Double.MAX_VALUE
                     GridPane.setFillWidth(it, true)
@@ -64,21 +57,19 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         content.add(Label(":"), 2, row)
         content.add(port, 3, row)
 
-        resultConverter = Callback {
-            if (it.buttonData.isDefaultButton) {
-                if (ssh.text.isNotBlank() || username.text.isNotBlank()) {
-                    repository.credentials = LocalCredentials(ssh.text, username.text, password.text)
-                } else {
-                    repository.credentials = null
-                }
-                repository.proxyHost = host.text
-                repository.proxyPort = port.text.toInt()
-
-                State.fireRefresh()
+        okAction = {
+            if (ssh.text.isNotBlank() || username.text.isNotBlank()) {
+                repository.credentials = LocalCredentials(ssh.text, username.text, password.text)
+            } else {
+                repository.credentials = null
             }
+            repository.proxyHost = host.text
+            repository.proxyPort = port.text.toInt()
+
+            State.fireRefresh()
         }
-        dialogPane.content = content
-        dialogPane.buttonTypes.addAll(cancel, ok)
+        setContent(content)
+        setButton(cancel, ok)
     }
 
 }

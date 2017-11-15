@@ -11,22 +11,14 @@ import javafx.beans.binding.Bindings
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
 import javafx.scene.control.CheckBox
-import javafx.scene.control.Dialog
 import javafx.scene.control.SplitPane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
-import javafx.stage.Modality
 import javafx.stage.Window
-import javafx.util.Callback
 
-class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>() {
+class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window, "New Commit", true) {
 
     init {
-        title = "New Commit"
-        isResizable = true
-        initModality(Modality.WINDOW_MODAL)
-        initOwner(window)
-
         val ok = ButtonType("Commit", ButtonBar.ButtonData.OK_DONE)
         val cancel = ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
 
@@ -53,20 +45,18 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>()
                 message, amend)
         content.styleClass += "commit-view"
 
-        resultConverter = Callback {
-            if (it.buttonData.isDefaultButton) {
-                if (amend.isSelected) LocalGit.commitAmend(repository, message.text)
-                else LocalGit.commit(repository, message.text)
+        okAction = {
+            if (amend.isSelected) LocalGit.commitAmend(repository, message.text)
+            else LocalGit.commit(repository, message.text)
 
-                message.textProperty().unbindBidirectional(State.commitMessage)
-                State.commitMessage.set("")
+            message.textProperty().unbindBidirectional(State.commitMessage)
+            State.commitMessage.set("")
 
-                State.fireRefresh()
-            }
+            State.fireRefresh()
         }
-        dialogPane.content = content
-        dialogPane.buttonTypes.addAll(cancel, ok)
-        dialogPane.lookupButton(ok).disableProperty().bind(message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
+        setContent(content)
+        setButton(cancel, ok)
+        setButtonBinding(ok, message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
 
         Platform.runLater { message.requestFocus() }
 

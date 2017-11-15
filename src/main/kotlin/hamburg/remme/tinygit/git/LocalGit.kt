@@ -8,6 +8,7 @@ import org.eclipse.jgit.api.MergeResult
 import org.eclipse.jgit.api.TransportCommand
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.lib.AnyObjectId
+import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.ObjectReader
 import org.eclipse.jgit.lib.Repository
@@ -154,7 +155,7 @@ object LocalGit {
     fun divergence(repository: LocalRepository, local: String? = null, remote: String? = null): LocalDivergence {
         return repository.open {
             val localBranch = it.findRef(local ?: it.branch).objectId
-            val remoteBranch = it.findRef(remote ?: "origin/${it.branch}")?.objectId
+            val remoteBranch = it.findRef(remote ?: "${Constants.DEFAULT_REMOTE_NAME}/${it.branch}")?.objectId
             if (remoteBranch == null) {
                 // TODO: count commits since branching
 //                RevWalk(it).use {
