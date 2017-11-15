@@ -29,7 +29,7 @@ class TinyGit : Application() {
                 else State.fireRefresh()
             }
         }
-        stage.scene = Scene(GitView())
+        stage.scene = Scene(GitView(this))
         stage.scene.stylesheets += "default.css".asResource()
         stage.title = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
         stage.icons += Image("icon.png".asResource())

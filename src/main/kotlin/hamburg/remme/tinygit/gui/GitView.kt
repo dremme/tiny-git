@@ -6,6 +6,7 @@ import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.PushRejectedException
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
+import javafx.application.Application
 import javafx.application.Platform
 import javafx.concurrent.Task
 import javafx.event.EventHandler
@@ -21,7 +22,7 @@ import javafx.scene.text.Text
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import java.io.File
 
-class GitView : VBox() {
+class GitView(application: Application) : VBox() {
 
     init {
         styleClass += "git-view"
@@ -55,9 +56,9 @@ class GitView : VBox() {
         val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
                 action = EventHandler { SettingsDialog(State.getSelectedRepository(), scene.window).show() })
         val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
-                action = EventHandler { /*"https://github.com/deso88/TinyGit"*/ })
-        val about = Action("About TinyGit",
-                action = EventHandler { /* TODO */ })
+                action = EventHandler { application.hostServices.showDocument("https://github.com/deso88/TinyGit") })
+        val about = Action("About",
+                action = EventHandler { /*AboutDialog(scene.window).show() TODO */ })
 
         val info = StackPane(HBox(
                 Text("Click "),
