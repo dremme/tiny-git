@@ -20,6 +20,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.text.Text
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
+import org.eclipse.jgit.api.errors.StashApplyFailureException
 import java.io.File
 
 class GitView(application: Application) : VBox() {
@@ -49,8 +50,8 @@ class GitView(application: Application) : VBox() {
                 action = EventHandler { /* TODO */ })
         val stash = Action("Stash", { FontAwesome.cube() }, "Shortcut+S", State.canStash.not(),
                 EventHandler { stash(State.getSelectedRepository()) })
-        val stashApply = Action("Apply Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
-                EventHandler { stashApply(State.getSelectedRepository()) })
+        val stashPop = Action("Pop Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
+                EventHandler { stashPop(State.getSelectedRepository()) })
         val reset = Action("Auto Reset", { FontAwesome.undo() }, disable = State.canReset.not(),
                 action = EventHandler { /* TODO */ })
         val squash = Action("Auto Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
@@ -85,14 +86,14 @@ class GitView(application: Application) : VBox() {
                                 ActionGroup(commit),
                                 ActionGroup(push, pushForce, pull, fetch, tag),
                                 ActionGroup(branch, merge),
-                                ActionGroup(stash, stashApply),
+                                ActionGroup(stash, stashPop),
                                 ActionGroup(reset, squash),
                                 ActionGroup(settings)),
                         ActionCollection("?", ActionGroup(github, about))),
                 toolBar(ActionGroup(addCopy),
                         ActionGroup(commit, push, pull, fetch, tag),
                         ActionGroup(branch, merge),
-                        ActionGroup(stash, stashApply),
+                        ActionGroup(stash, stashPop),
                         ActionGroup(reset, squash)),
                 StackPane(content, info, overlay).also { VBox.setVgrow(it, Priority.ALWAYS) })
     }
@@ -212,14 +213,24 @@ class GitView(application: Application) : VBox() {
         })
     }
 
-    private fun stashApply(repository: LocalRepository) {
+    private fun stashPop(repository: LocalRepository) {
         State.addProcess("Applying stash...")
         State.execute(object : Task<Unit>() {
             override fun call() = LocalGit.stashPop(repository)
 
             override fun succeeded() = State.fireRefresh()
 
-            override fun failed() = exception.printStackTrace()
+            override fun failed() {
+                when (exception) {
+                    is StashApplyFailureException -> {
+                        State.fireRefresh()
+                        errorAlert(scene.window,
+                                "Cannot Pop Stash",
+                                "Applying stashed changes resulted in a conflict.\nTherefore the stash entry has been preserved.")
+                    }
+                    else -> exception.printStackTrace()
+                }
+            }
 
             override fun done() = Platform.runLater { State.removeProcess() }
         })
