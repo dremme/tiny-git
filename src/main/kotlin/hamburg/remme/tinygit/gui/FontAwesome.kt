@@ -18,6 +18,7 @@ object FontAwesome {
     fun desktop(color: String? = null) = icon('\uf108', color)
     fun exclamationTriangle(color: String? = null) = icon('\uf071', color)
     fun folderOpen(color: String? = null) = icon('\uf07c', color)
+    fun gavel(color: String? = null) = icon('\uf0e3', color)
     fun githubAlt(color: String? = null) = icon('\uf113', color)
     fun list(color: String? = null) = icon('\uf03a', color)
     fun minus(color: String? = null) = icon('\uf068', color)

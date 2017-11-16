@@ -22,7 +22,9 @@ fun main(args: Array<String>) {
 class TinyGit : Application() {
 
     override fun start(stage: Stage) {
-        State.setRepositories(Settings.load())
+        Settings.setRepository { State.getRepositories() }
+        Settings.load { State.setRepositories(it.repositories) }
+
         stage.focusedProperty().addListener { _, _, it ->
             if (it) {
                 if (State.modalVisible.value) State.modalVisible.set(false)
@@ -41,7 +43,7 @@ class TinyGit : Application() {
 
     override fun stop() {
         State.stop()
-        Settings.save(State.getRepositories())
+        Settings.save()
     }
 
 }

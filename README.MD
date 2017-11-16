@@ -29,3 +29,5 @@ java -jar tinygit-x.x.x.jar
  - Tag commits & push/remove tags
  - File diff settings (e.g. surrounding lines)
  - Stage/unstage code blocks
+ - Save selected tab
+ - Save window state

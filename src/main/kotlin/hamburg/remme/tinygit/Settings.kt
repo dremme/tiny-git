@@ -8,24 +8,54 @@ import java.nio.file.Files
 object Settings {
 
     private val yaml = Yaml()
-    private val settings = File("${System.getProperty("user.home")}/.tinygit").toPath()
+    private val settingsFile = File("${System.getProperty("user.home")}/.tinygit").toPath()
+    private val suppliers: MutableMap<Category, () -> Any> = mutableMapOf()
+    private var settings: LocalSettings? = null
 
-    @Suppress("UNCHECKED_CAST")
-    fun load(): List<LocalRepository> {
-        if (Files.exists(settings)) {
+    fun load(block: (LocalSettings) -> Unit) {
+        if (Files.exists(settingsFile)) {
             try {
-                return (yaml.load(Files.newInputStream(settings)) as LocalSettings).repositories
+                settings = yaml.loadAs(Files.newInputStream(settingsFile), LocalSettings::class.java)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
-        return listOf()
+        settings?.let(block)
     }
 
-    fun save(repositories: List<LocalRepository>) {
-        Files.write(settings, yaml.dump(LocalSettings(repositories)).toByteArray())
+    fun save() {
+        Files.write(settingsFile, yaml.dump(LocalSettings(
+                getCategory(Category.REPOSITORY),
+                getCategory(Category.TREE),
+                getCategory(Category.TREE_NODE_SELECTED)))
+                .toByteArray())
     }
 
-    class LocalSettings(var repositories: List<LocalRepository> = listOf())
+    fun setRepository(supplier: () -> List<LocalRepository>) {
+        suppliers[Category.REPOSITORY] = supplier
+    }
+
+    fun setTree(supplier: () -> List<TreeNode>) {
+        suppliers[Category.TREE] = supplier
+    }
+
+    fun setTreeNodeSelected(supplier: () -> TreeNode) {
+        suppliers[Category.TREE_NODE_SELECTED] = supplier
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> getCategory(category: Category): T {
+        return suppliers[category]?.invoke() as? T ?: throw RuntimeException("Missing supplier for setting $category")
+    }
+
+    class LocalSettings(var repositories: List<LocalRepository> = listOf(),
+                        var tree: List<TreeNode> = listOf(),
+                        var treeNodeSelected: TreeNode = TreeNode())
+
+    class TreeNode(var repository: String = "",
+                   var name: String = "",
+                   var expanded: Boolean = false)
+
+    enum class Category { REPOSITORY, TREE, TREE_NODE_SELECTED }
 
 }
