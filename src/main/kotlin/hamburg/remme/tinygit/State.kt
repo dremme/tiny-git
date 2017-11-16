@@ -119,6 +119,7 @@ object State {
             .and(stagedFiles.isGreaterZero()).or(unstagedFiles.isGreaterZero())!!
     val canApplyStash = selectedRepository.isNotNull.and(stashEntries.isGreaterZero()).and(runningProcesses.isZero())!!
     val canReset = FALSE // TODO: selectedRepository.isNotNull.and(runningProcesses.isZero())!!
+    val canSquash = FALSE // TODO: selectedRepository.isNotNull.and(runningProcesses.isZero())!!
 
     private fun IntegerProperty.isZero() = this.isEqualTo(0)
     private fun IntegerProperty.isNotZero() = this.isNotEqualTo(0)

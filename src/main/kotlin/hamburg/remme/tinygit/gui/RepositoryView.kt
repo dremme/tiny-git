@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalGit
@@ -33,8 +34,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             it?.let { State.setSelectedRepository(it.value.repository) }
         }
 
-        val repositories = State.getRepositories()
-        repositories.addListener(ListChangeListener {
+        State.getRepositories().addListener(ListChangeListener {
             while (it.next()) {
                 when {
                     it.wasAdded() -> {
@@ -45,8 +45,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                 }
             }
         })
-        repositories.forEach { addRepo(it) }
-        selectionModel.selectFirst()
+        State.getRepositories().forEach { addRepo(it) }
 
         setOnKeyPressed { if (it.code == KeyCode.SPACE) it.consume() }
         setOnMouseClicked {
@@ -64,6 +63,31 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         State.addRefreshListener {
             // TODO: prob needs to refresh all repos or refresh on selection
             State.getSelectedRepository { refreshRepo(it) }
+        }
+
+        Settings.setTree {
+            root.children.flatMap { it.children + it }.map {
+                Settings.TreeNode(it.value.repository.path, it.value.value, it.isExpanded)
+            }
+        }
+        Settings.setTreeNodeSelected {
+            val item = selectionModel.selectedItem
+            Settings.TreeNode(item.value.repository.path, item.value.value)
+        }
+        Settings.load {
+            val tree = it.tree
+            root.children.flatMap { it.children + it }
+                    .filter { item ->
+                        tree.any { it.repository == item.value.repository.path && it.name == item.value.value && it.expanded }
+                    }
+                    .forEach { it.isExpanded = true }
+
+            val selected = it.treeNodeSelected
+            root.children.flatMap { it.children + it }.flatMap { it.children + it }
+                    .find { it.value.repository.path == selected.repository && it.value.value == selected.name }
+                    ?.let { selectionModel.select(it) }
+                    ?: selectionModel.selectFirst()
+            scrollTo(selectionModel.selectedIndex)
         }
     }
 

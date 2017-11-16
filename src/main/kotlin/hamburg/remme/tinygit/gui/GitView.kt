@@ -51,7 +51,9 @@ class GitView(application: Application) : VBox() {
                 EventHandler { stash(State.getSelectedRepository()) })
         val stashApply = Action("Apply Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
                 EventHandler { stashApply(State.getSelectedRepository()) })
-        val reset = Action("Reset", { FontAwesome.undo() }, "Shortcut+R", State.canReset.not(),
+        val reset = Action("Auto Reset", { FontAwesome.undo() }, disable = State.canReset.not(),
+                action = EventHandler { /* TODO */ })
+        val squash = Action("Auto Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
                 action = EventHandler { /* TODO */ })
         val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
                 action = EventHandler { SettingsDialog(State.getSelectedRepository(), scene.window).show() })
@@ -84,14 +86,14 @@ class GitView(application: Application) : VBox() {
                                 ActionGroup(push, pushForce, pull, fetch, tag),
                                 ActionGroup(branch, merge),
                                 ActionGroup(stash, stashApply),
-                                ActionGroup(reset),
+                                ActionGroup(reset, squash),
                                 ActionGroup(settings)),
                         ActionCollection("?", ActionGroup(github, about))),
                 toolBar(ActionGroup(addCopy),
                         ActionGroup(commit, push, pull, fetch, tag),
                         ActionGroup(branch, merge),
                         ActionGroup(stash, stashApply),
-                        ActionGroup(reset)),
+                        ActionGroup(reset, squash)),
                 StackPane(content, info, overlay).also { VBox.setVgrow(it, Priority.ALWAYS) })
     }
 
