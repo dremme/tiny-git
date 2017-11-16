@@ -102,7 +102,7 @@ fun button(label: String = "",
     button.onAction = action
     button.styleClass += styleClass
     icon?.let { button.graphic = it }
-    tooltip?.let { button.tooltip = Tooltip(it) }
+    tooltip?.takeIf { it.isNotBlank() }?.let { button.tooltip = Tooltip(it) }
     disable?.let { button.disableProperty().bind(it) }
     return button
 }
@@ -177,15 +177,17 @@ fun toolBar(vararg group: ActionGroup): ToolBar {
                 count.textProperty().bind(Bindings.convert(it.count))
                 count.visibleProperty().bind(Bindings.lessThan(0, it.count))
                 StackPane.setAlignment(count, Pos.TOP_RIGHT)
-                StackPane(button(it.text, it.icon.invoke(), it.action, null, it.disable), count)
+                StackPane(button(it.text, it.icon.invoke(), it.action, it.shortcut?.keyCombinationText(), it.disable), count)
             } else {
-                button(it.text, it.icon.invoke(), it.action, null, it.disable)
+                button(it.text, it.icon.invoke(), it.action, it.shortcut?.keyCombinationText(), it.disable)
             }
         }.let {
             if (i < group.size - 1) it + Separator() else it
         }
     }.flatten().toTypedArray())
 }
+
+private fun String.keyCombinationText() = KeyCombination.valueOf(this).displayText
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                                                               *
