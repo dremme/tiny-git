@@ -99,9 +99,9 @@ class CommitDetailsView : SplitPane() {
                 <table>
                     <tr><td class="label">Commit:</td><td>${commit.id} [${commit.shortId}]</td></tr>
                     <tr><td class="label">Parents:</td><td>${commit.parents.joinToString()}</td></tr>
-                    <tr><td class="label">Author:</td><td>${commit.author}</td></tr>
+                    <tr><td class="label">Author:</td><td>${commit.author.htmlEncode()}</td></tr>
                     <tr><td class="label">Date:</td><td>${commit.date.format(fullDate)}</td></tr>
-                    <tr><td colspan="2"><br/>${commit.fullMessage.replace("\r?\n".toRegex(), "<br/>")}</td></tr>
+                    <tr><td colspan="2"><br/>${commit.fullMessage.htmlEncodeAll().replace("\r?\n".toRegex(), "<br/>")}</td></tr>
                 </table>
             </body>
             </html>

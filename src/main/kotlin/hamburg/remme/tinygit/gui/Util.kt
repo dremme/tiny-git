@@ -41,6 +41,14 @@ import javafx.util.converter.IntegerStringConverter
 import java.io.File
 import java.time.format.DateTimeFormatter
 
+fun String.htmlEncode() = this.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+
+fun String.htmlEncodeSpaces() = this.replace(" ", "&nbsp;")
+
+fun String.htmlEncodeAll() = this.htmlEncode().htmlEncodeSpaces()
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                                                               *
  * DATES                                                                                                         *
