@@ -7,7 +7,7 @@ No need to toggle the proxy setting of `.gitconfig`.
 
 ### Usage
 
-TinyGrid doesn't need a Git installation on your device.
+TinyGrid runs without a Git installation on your device.
 
 Requires Java 1.8 or newer to be installed.
 
@@ -24,10 +24,12 @@ java -jar tinygit-x.x.x.jar
  - Track only wanted branches
  - Commit graph in the log
  - Endless scroll the log
- - Apply/remove explicit stashes
+ - View/apply/remove explicit stashes
  - Resetting branches
  - Tag commits & push/remove tags
  - File diff settings (e.g. surrounding lines)
  - Stage/unstage code blocks
  - Save selected tab
  - Save window state
+ - Open selected file in explorer/finder
+ - Pull request notifications?

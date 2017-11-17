@@ -85,16 +85,18 @@ class WorkingCopyView : Tab() {
             fileDiff.clear()
             it?.let {
                 diff(it)
-                State.stashEntries.set(LocalGit.stashList(it).size)
+                State.stashEntries.set(LocalGit.stashListSize(it))
             }
         }
         State.addRefreshListener {
             fileDiff.clear()
-            State.getSelectedRepository { diff(it) }
+            State.getSelectedRepository {
+                diff(it)
+                State.stashEntries.set(LocalGit.stashListSize(it))
+            }
         }
     }
 
-    // TODO: task needed here?
     private fun diff(repository: LocalRepository) {
         println("Status for working copy: $repository")
         task?.cancel()

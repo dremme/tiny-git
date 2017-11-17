@@ -360,7 +360,6 @@ object LocalGit {
         push(repository, true)
     }
 
-    // TODO: return boolean if something changed
     private fun push(repository: LocalRepository, force: Boolean) {
         repository.open {
             val result = Git(it).push().applyAuth(repository).setForce(force).call()
@@ -411,6 +410,8 @@ object LocalGit {
 
     /**
      * - `git stash pop`
+     *
+     * Will not pop on stash apply conflicts/errors
      */
     fun stashPop(repository: LocalRepository) {
         repository.open {
@@ -424,11 +425,14 @@ object LocalGit {
      * - `git stash list`
      */
     fun stashList(repository: LocalRepository): List<LocalStashEntry> {
-        return repository.open { gitRepo ->
-            Git(gitRepo).stashList().call().mapIndexed { i, it ->
-                LocalStashEntry(it.id.name, "$i:${it.fullMessage}")
-            }
-        }
+        return repository.open { Git(it).stashList().call().map { LocalStashEntry(it.id.name, it.fullMessage) } }
+    }
+
+    /**
+     * - `git stash list`
+     */
+    fun stashListSize(repository: LocalRepository): Int {
+        return repository.open { Git(it).stashList().call().size }
     }
 
     /**
