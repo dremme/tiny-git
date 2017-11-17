@@ -27,17 +27,17 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
         val files = FileStatusView()
         files.prefWidth = 400.0
         files.prefHeight = 500.0
-        files.selectionModel.selectedItemProperty().addListener { _, _, it ->
-            fileDiff.update(repository, it)
-        }
+        files.selectionModel.selectedItemProperty().addListener { _, _, it -> it?.let { fileDiff.update(repository, it) } }
 
         val message = textArea(placeholder = "Enter commit message")
         message.prefHeight = 100.0
         message.textProperty().bindBidirectional(State.commitMessage)
         Platform.runLater { message.requestFocus() }
 
-        // TODO: get previous message on amend
         val amend = CheckBox("Amend last commit.")
+        amend.selectedProperty().addListener { _, _, it ->
+            if (it && message.text.isNullOrBlank()) message.text = LocalGit.headMessage(repository)
+        }
 
         val content = VBox(
                 SplitPane(files, fileDiff).also { VBox.setVgrow(it, Priority.ALWAYS) },
@@ -58,9 +58,9 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
         setButtonBinding(ok, message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
 
         focusAction = {
-            val selected = files.selectionModel.selectedItems + files.selectionModel.selectedItem
+            val selected = files.selectionModel.selectedItem
             files.items.setAll(LocalGit.status(repository).staged)
-            files.selectionModel.selectIndices(-1, *selected.map { files.items.indexOf(it) }.toIntArray())
+            files.selectionModel.select(files.items.indexOf(selected))
             files.selectionModel.selectedItem ?: files.selectionModel.selectFirst()
         }
     }

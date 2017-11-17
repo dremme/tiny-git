@@ -24,7 +24,7 @@ import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
-    private val currentBranchCache: MutableMap<String, String> = mutableMapOf()
+    private val headCache: MutableMap<String, String> = mutableMapOf()
 
     init {
         setCellFactory { RepositoryEntryListCell() }
@@ -111,7 +111,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     private fun refreshRepo(repository: LocalRepository) {
         root.children.find { it.value.repository == repository }?.let {
-            currentBranchCache[repository.path] = LocalGit.currentBranch(repository)
+            headCache[repository.path] = LocalGit.head(repository)
             val branchList = LocalGit.branchListAll(repository)
             val stashList = LocalGit.stashList(repository)
             // TODO: selection might get lost on removed branches (e.g. after pruning)
@@ -147,7 +147,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun List<LocalStashEntry>.indexOf(message: String) = this.indexOfFirst { it.message == message }
 
     private fun checkout(repository: LocalRepository, branch: String) {
-        if (branch == LocalGit.currentBranch(repository)) return
+        if (branch == LocalGit.head(repository)) return
 
         State.addProcess("Switching branches...")
         State.execute(object : Task<Unit>() {
@@ -246,7 +246,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         }
 
         private fun branchBox(item: RepositoryEntry): HBox {
-            return if (item.value == this@RepositoryView.currentBranchCache[item.repository.path]) {
+            return if (item.value == this@RepositoryView.headCache[item.repository.path]) {
                 HBox(FontAwesome.codeFork(), Label(item.value), FontAwesome.check()).addClass("current")
             } else {
                 HBox(FontAwesome.codeFork(), Label(item.value))
