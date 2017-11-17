@@ -27,15 +27,14 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
         val files = FileStatusView()
         files.prefWidth = 400.0
         files.prefHeight = 500.0
-        files.items.addAll(LocalGit.status(repository).staged)
         files.selectionModel.selectedItemProperty().addListener { _, _, it ->
             fileDiff.update(repository, it)
         }
-        files.selectionModel.selectFirst()
 
         val message = textArea(placeholder = "Enter commit message")
         message.prefHeight = 100.0
         message.textProperty().bindBidirectional(State.commitMessage)
+        Platform.runLater { message.requestFocus() }
 
         // TODO: get previous message on amend
         val amend = CheckBox("Amend last commit.")
@@ -58,9 +57,12 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
         setButton(cancel, ok)
         setButtonBinding(ok, message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
 
-        Platform.runLater { message.requestFocus() }
-
-        // TODO: needs a refresh listener on focus so evetually removed files are registered
+        focusAction = {
+            val selected = files.selectionModel.selectedItems + files.selectionModel.selectedItem
+            files.items.setAll(LocalGit.status(repository).staged)
+            files.selectionModel.selectIndices(-1, *selected.map { files.items.indexOf(it) }.toIntArray())
+            files.selectionModel.selectedItem ?: files.selectionModel.selectFirst()
+        }
     }
 
 }
