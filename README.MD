@@ -20,16 +20,17 @@ java -jar tinygit-x.x.x.jar
  - Squashing branches (interactive rebase)
  - Rebasing and merging branches
  - Creating/cloning/removing repositories
+ - Removing branches
  - Changing local repo/remote URL
- - Track only wanted branches
+ - Tracking only wanted branches
  - Commit graph in the log
  - Endless scroll the log
- - View/apply/remove explicit stashes
+ - Viewing/applying/removing explicit stashes
  - Resetting branches
- - Tag commits & push/remove tags
+ - Tagging commits & push/remove tags
  - File diff settings (e.g. surrounding lines)
- - Stage/unstage code blocks
- - Save selected tab
- - Save window state
- - Open selected file in explorer/finder
+ - Staging/unstaging code blocks
+ - Saving selected tab
+ - Saving window state
+ - Opening selected file in explorer/finder
  - Pull request notifications?

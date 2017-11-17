@@ -14,6 +14,7 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
 
     protected var okAction: () -> Unit = {}
     protected var cancelAction: () -> Unit = {}
+    protected var focusAction: () -> Unit = {}
     private val dialog: FXDialog<Unit> = FXDialog()
 
     init {
@@ -30,6 +31,7 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
                 }
             }
         }
+        dialog.dialogPane.scene.window.focusedProperty().addListener { _, _, it -> if (it) focusAction.invoke() }
     }
 
     fun show() {
