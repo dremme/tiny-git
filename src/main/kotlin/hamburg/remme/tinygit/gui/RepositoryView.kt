@@ -61,6 +61,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             }
         }
         State.addRefreshListener {
+            // TODO: this is being executed on startup
             // TODO: prob needs to refresh all repos or refresh on selection
             State.getSelectedRepository { refreshRepo(it) }
         }
@@ -140,7 +141,9 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         stashItems.addAll(stashList.filter { entry -> stashItems.none { it.value.value == entry.message } }
                 .map { TreeItem(RepositoryEntry(repository, it.message, RepositoryEntryType.STASH_ENTRY)) })
         stashItems.removeAll(stashItems.filter { entry -> stashList.none { it.message == entry.value.value } })
-        stashItems.sortWith(Comparator { left, right -> left.value.value.compareTo(right.value.value) })
+        stashItems.sortWith(Comparator { left, right ->
+            stashList.indexOfFirst { it.message == left.value.value } - stashList.indexOfFirst { it.message == right.value.value }
+        })
     }
 
     private fun checkout(repository: LocalRepository, branch: String) {

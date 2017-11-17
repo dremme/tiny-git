@@ -59,8 +59,7 @@ class LogView : Tab() {
         content = progressPane
 
         State.selectedRepositoryProperty().addListener { _, _, it -> it?.let { logQuick(it) } }
-        State.addRefreshListener { logCurrent() }
-        logCurrent()
+        State.addRefreshListener { State.getSelectedRepository { logQuick(it) } }
 
         Platform.runLater {
             localCommits.resizeColumn(message, 0.6 * localCommits.width)
@@ -80,10 +79,6 @@ class LogView : Tab() {
     private fun updateDivergence(divergence: LocalDivergence) {
         State.ahead.set(divergence.ahead)
         State.behind.set(divergence.behind)
-    }
-
-    private fun logCurrent() {
-        State.getSelectedRepository { logQuick(it) }
     }
 
     private fun logQuick(repository: LocalRepository) {
