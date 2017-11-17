@@ -185,10 +185,7 @@ class FileDiffView : StackPane() {
                 .dropLast(1)
                 .dropWhile { !it.isBlockHeader() }
                 .onEach { if (it.isBlockHeader()) blocks += it.parseBlockHeader() }
-                .map { it.replace("&", "&amp;") }
-                .map { it.replace("<", "&lt;") }
-                .map { it.replace(">", "&gt;") }
-                .map { it.replace(" ", "&nbsp;") }
+                .map { it.htmlEncodeAll() }
                 .map {
                     if (it.isBlockHeader()) {
                         blockNumber++
