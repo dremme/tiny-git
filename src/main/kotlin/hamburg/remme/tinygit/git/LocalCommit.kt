@@ -9,6 +9,7 @@ class LocalCommit(val id: String,
                   val shortMessage: String,
                   val date: LocalDateTime,
                   val author: String,
+        // TODO: verify if branches are needed here
                   val branches: List<LocalBranch>) {
 
     override fun toString() = id

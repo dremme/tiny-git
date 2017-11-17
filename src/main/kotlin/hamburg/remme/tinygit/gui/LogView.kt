@@ -26,7 +26,7 @@ class LogView : Tab() {
     private val progressPane: ProgressPane
     private val localCommits = TableView<LocalCommit>()
     private val commitDetails = CommitDetailsView()
-    private lateinit var currentBranch: String
+    private lateinit var head: String
     private var task: Task<*>? = null
 
     init {
@@ -82,7 +82,7 @@ class LogView : Tab() {
     }
 
     private fun logQuick(repository: LocalRepository) {
-        currentBranch = LocalGit.currentBranch(repository)
+        head = LocalGit.head(repository)
         updateLog(LocalGit.log(repository))
         updateDivergence(LocalGit.divergence(repository))
         logRemote(repository)
@@ -140,7 +140,7 @@ class LogView : Tab() {
 
         init {
             styleClass += "branch-badge"
-            if (name == this@LogView.currentBranch) styleClass += "current"
+            if (name == this@LogView.head) styleClass += "current"
         }
 
     }

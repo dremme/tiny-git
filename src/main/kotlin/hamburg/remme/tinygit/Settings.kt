@@ -48,8 +48,8 @@ object Settings {
         return suppliers[category]?.invoke() as? T ?: throw RuntimeException("Missing supplier for setting $category")
     }
 
-    class LocalSettings(var repositories: List<LocalRepository> = listOf(),
-                        var tree: List<TreeNode> = listOf(),
+    class LocalSettings(var repositories: List<LocalRepository> = emptyList(),
+                        var tree: List<TreeNode> = emptyList(),
                         var treeNodeSelected: TreeNode = TreeNode())
 
     class TreeNode(var repository: String = "",

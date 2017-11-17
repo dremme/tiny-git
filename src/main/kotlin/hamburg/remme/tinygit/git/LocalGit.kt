@@ -75,7 +75,7 @@ object LocalGit {
     /**
      * TODO
      */
-    fun currentBranch(repository: LocalRepository): String {
+    fun head(repository: LocalRepository): String {
         return repository.open { it.branch }
     }
 
@@ -100,6 +100,16 @@ object LocalGit {
                         c.author(),
                         branches.filter { it.commit == c.id.name })
             }
+        }
+    }
+
+    /**
+     * - `git log HEAD --max-count=1`
+     */
+    fun headMessage(repository: LocalRepository): String {
+        return repository.open {
+            val head = it.findRef(it.branch)
+            RevWalk(it).use { it.parseCommit(head.objectId) }.fullMessage
         }
     }
 
