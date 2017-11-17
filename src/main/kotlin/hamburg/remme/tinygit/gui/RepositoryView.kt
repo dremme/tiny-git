@@ -141,12 +141,14 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         stashItems.addAll(stashList.filter { entry -> stashItems.none { it.value.value == entry.message } }
                 .map { TreeItem(RepositoryEntry(repository, it.message, RepositoryEntryType.STASH_ENTRY)) })
         stashItems.removeAll(stashItems.filter { entry -> stashList.none { it.message == entry.value.value } })
-        stashItems.sortWith(Comparator { left, right ->
-            stashList.indexOfFirst { it.message == left.value.value } - stashList.indexOfFirst { it.message == right.value.value }
-        })
+        stashItems.sortWith(Comparator { left, right -> stashList.indexOf(left.value.value) - stashList.indexOf(right.value.value) })
     }
 
+    private fun List<LocalStashEntry>.indexOf(message: String) = this.indexOfFirst { it.message == message }
+
     private fun checkout(repository: LocalRepository, branch: String) {
+        if (branch == LocalGit.currentBranch(repository)) return
+
         State.addProcess("Switching branches...")
         State.execute(object : Task<Unit>() {
             override fun call() = LocalGit.checkout(repository, branch)
