@@ -2,12 +2,13 @@ package hamburg.remme.tinygit
 
 import hamburg.remme.tinygit.git.LocalRepository
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.representer.Representer
 import java.io.File
 import java.nio.file.Files
 
 object Settings {
 
-    private val yaml = Yaml()
+    private val yaml = Yaml(Representer().also { it.propertyUtils.setSkipMissingProperties(true) })
     private val settingsFile = File("${System.getProperty("user.home")}/.tinygit").toPath()
     private val suppliers: MutableMap<Category, () -> Any> = mutableMapOf()
     private var settings: LocalSettings? = null
@@ -27,7 +28,7 @@ object Settings {
         Files.write(settingsFile, yaml.dump(LocalSettings(
                 getCategory(Category.REPOSITORY),
                 getCategory(Category.TREE),
-                getCategory(Category.TREE_NODE_SELECTED)))
+                getCategory(Category.TREE_SELECTION)))
                 .toByteArray())
     }
 
@@ -35,12 +36,12 @@ object Settings {
         suppliers[Category.REPOSITORY] = supplier
     }
 
-    fun setTree(supplier: () -> List<TreeNode>) {
+    fun setTree(supplier: () -> List<TreeItem>) {
         suppliers[Category.TREE] = supplier
     }
 
-    fun setTreeNodeSelected(supplier: () -> TreeNode) {
-        suppliers[Category.TREE_NODE_SELECTED] = supplier
+    fun setTreeSelection(supplier: () -> TreeItem) {
+        suppliers[Category.TREE_SELECTION] = supplier
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -49,13 +50,13 @@ object Settings {
     }
 
     class LocalSettings(var repositories: List<LocalRepository> = emptyList(),
-                        var tree: List<TreeNode> = emptyList(),
-                        var treeNodeSelected: TreeNode = TreeNode())
+                        var tree: List<TreeItem> = emptyList(),
+                        var treeSelection: TreeItem = TreeItem())
 
-    class TreeNode(var repository: String = "",
+    class TreeItem(var repository: String = "",
                    var name: String = "",
                    var expanded: Boolean = false)
 
-    enum class Category { REPOSITORY, TREE, TREE_NODE_SELECTED }
+    enum class Category { REPOSITORY, TREE, TREE_SELECTION }
 
 }
