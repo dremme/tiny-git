@@ -68,12 +68,12 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
         Settings.setTree {
             root.children.flatMap { it.children + it }.map {
-                Settings.TreeNode(it.value.repository.path, it.value.value, it.isExpanded)
+                Settings.TreeItem(it.value.repository.path, it.value.value, it.isExpanded)
             }
         }
-        Settings.setTreeNodeSelected {
+        Settings.setTreeSelection {
             val item = selectionModel.selectedItem
-            Settings.TreeNode(item.value.repository.path, item.value.value)
+            Settings.TreeItem(item.value.repository.path, item.value.value)
         }
         Settings.load {
             val tree = it.tree
@@ -83,7 +83,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                     }
                     .forEach { it.isExpanded = true }
 
-            val selected = it.treeNodeSelected
+            val selected = it.treeSelection
             root.children.flatMap { it.children + it }.flatMap { it.children + it }
                     .find { it.value.repository.path == selected.repository && it.value.value == selected.name }
                     ?.let { selectionModel.select(it) }

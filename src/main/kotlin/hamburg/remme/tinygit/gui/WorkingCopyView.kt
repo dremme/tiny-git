@@ -104,14 +104,16 @@ class WorkingCopyView : Tab() {
             override fun call() = LocalGit.status(repository) // TODO: git status might not be good enough here
 
             override fun succeeded() {
-                val staged = stagedFiles.selectionModel.selectedItems + stagedFiles.selectionModel.selectedItem
-                val unstaged = unstagedFiles.selectionModel.selectedItems + unstagedFiles.selectionModel.selectedItem
+                val staged = (stagedFiles.selectionModel.selectedItems + stagedFiles.selectionModel.selectedItem).filterNotNull()
+                val unstaged = (unstagedFiles.selectionModel.selectedItems + unstagedFiles.selectionModel.selectedItem).filterNotNull()
 
                 stagedFiles.items.setAll(value.staged)
                 unstagedFiles.items.setAll(value.unstaged)
 
-                stagedFiles.selectionModel.selectIndices(-1, *staged.map { stagedFiles.items.indexOf(it) }.toIntArray())
-                unstagedFiles.selectionModel.selectIndices(-1, *unstaged.map { unstagedFiles.items.indexOf(it) }.toIntArray())
+                if (staged.isNotEmpty()) stagedFiles.selectionModel.selectIndices(-1,
+                        *staged.map { stagedFiles.items.indexOf(it) }.toIntArray())
+                if (unstaged.isNotEmpty()) unstagedFiles.selectionModel.selectIndices(-1,
+                        *unstaged.map { unstagedFiles.items.indexOf(it) }.toIntArray())
             }
         }.also { State.execute(it) }
     }

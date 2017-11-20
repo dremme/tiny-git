@@ -15,6 +15,16 @@ Requires Java 1.8 or newer to be installed.
 java -jar tinygit-x.x.x.jar
 ```
 
+### Features
+
+ - Staging/unstaging files
+ - Adding local Git repositories
+ - Separate settings for each repository
+ - Creating/popping stashes
+ - Fetching/pulling/pushing commits
+ - Branching
+ - Commit log and detailed file diffs
+
 ### Missing Features
 
  - Squashing branches (interactive rebase)
@@ -34,3 +44,4 @@ java -jar tinygit-x.x.x.jar
  - Saving window state
  - Opening selected file in explorer/finder
  - Pull request notifications?
+ - Set author and email per repository

@@ -28,8 +28,8 @@ class GitView(application: Application) : VBox() {
     init {
         styleClass += "git-view"
 
-        val addCopy = Action("Add Working Copy", { FontAwesome.database() }, "Shortcut+O",
-                action = EventHandler { addCopy() })
+        val addCopy = Action("Add Repository", { FontAwesome.database() }, "Shortcut+O",
+                action = EventHandler { addRepo() })
         val quit = Action("Quit TinyGit",
                 action = EventHandler { Platform.exit() })
         val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+Plus", State.canCommit.not(),
@@ -66,7 +66,7 @@ class GitView(application: Application) : VBox() {
         val info = StackPane(HBox(
                 Text("Click "),
                 FontAwesome.database(),
-                Text(" to add a working copy."))
+                Text(" to add a repository."))
                 .addClass("box"))
         info.styleClass += "overlay"
         info.visibleProperty().bind(State.showGlobalInfo)
@@ -98,8 +98,8 @@ class GitView(application: Application) : VBox() {
                 StackPane(content, info, overlay).also { VBox.setVgrow(it, Priority.ALWAYS) })
     }
 
-    private fun addCopy() {
-        directoryChooser(scene.window, "Add Working Copy")?.let {
+    private fun addRepo() {
+        directoryChooser(scene.window, "Add Repository")?.let {
             if (File("${it.absolutePath}/.git").exists()) {
                 val repository = LocalRepository(it.absolutePath)
                 if (State.getRepositories().none { it.path == repository.path }) {
@@ -107,7 +107,7 @@ class GitView(application: Application) : VBox() {
                 }
             } else {
                 errorAlert(scene.window,
-                        "Invalid Working Copy",
+                        "Invalid Repository",
                         "${it.absolutePath}\ndoes not contain a valid '.git' directory.")
             }
         }
