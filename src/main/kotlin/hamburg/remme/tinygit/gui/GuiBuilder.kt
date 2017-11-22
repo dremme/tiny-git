@@ -41,13 +41,13 @@ import javafx.util.converter.IntegerStringConverter
 import java.io.File
 import java.time.format.DateTimeFormatter
 
-fun String.htmlEncode() = this.replace("&", "&amp;")
+fun String.htmlEncode() = replace("&", "&amp;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")
 
-fun String.htmlEncodeSpaces() = this.replace(" ", "&nbsp;")
+fun String.htmlEncodeSpaces() = replace(" ", "&nbsp;")
 
-fun String.htmlEncodeAll() = this.htmlEncode().htmlEncodeSpaces()
+fun String.htmlEncodeAll() = htmlEncode().htmlEncodeSpaces()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                                                               *
@@ -73,16 +73,16 @@ fun <T : Node> T.addStyle(style: String): T {
 }
 
 fun <T : Node> T.flipX(): T {
-    this.scaleX = -1.0
+    scaleX = -1.0
     return this
 }
 
 fun <T : Node> T.flipY(): T {
-    this.scaleY = -1.0
+    scaleY = -1.0
     return this
 }
 
-fun <T : Node> T.flipXY() = this.flipX().flipY()
+fun <T : Node> T.flipXY() = flipX().flipY()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                                                               *

@@ -243,7 +243,7 @@ class FileDiffView : StackPane() {
         """
     }
 
-    private fun String.isBlockHeader() = this.startsWith("@@")
+    private fun String.isBlockHeader() = startsWith("@@")
 
     private fun String.parseBlockHeader(): DiffBlock {
         val match = ".*?(\\d+)(,\\d+)?.*?(\\d+)(,\\d+)?.*".toRegex().matchEntire(this)!!.groups
