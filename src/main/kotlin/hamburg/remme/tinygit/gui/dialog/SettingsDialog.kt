@@ -4,7 +4,7 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCredentials
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.gui.FontAwesome.folderOpen
+import hamburg.remme.tinygit.gui.FontAwesome
 import hamburg.remme.tinygit.gui.button
 import hamburg.remme.tinygit.gui.fileChooser
 import hamburg.remme.tinygit.gui.intTextField
@@ -27,7 +27,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
         val url = textField(LocalGit.url(repository), editable = false)
         val ssh = textField(repository.credentials?.ssh ?: "")
         val sshSearch = button(
-                icon = folderOpen(),
+                icon = FontAwesome.folderOpen(),
                 action = EventHandler { fileChooser(window, "Choose a SSH Key")?.let { ssh.text = it.absolutePath } })
                 .also {
                     it.maxWidth = Double.MAX_VALUE

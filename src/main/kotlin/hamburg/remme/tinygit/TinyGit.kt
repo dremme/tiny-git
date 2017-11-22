@@ -22,8 +22,8 @@ fun main(args: Array<String>) {
 class TinyGit : Application() {
 
     override fun start(stage: Stage) {
-        Settings.setRepository { State.getRepositories() }
-        Settings.load { State.setRepositories(repositories) }
+        Settings.setRepository { State.repositories }
+        Settings.load { State.repositories.setAll(repositories) }
 
         stage.focusedProperty().addListener { _, _, it ->
             if (it) {

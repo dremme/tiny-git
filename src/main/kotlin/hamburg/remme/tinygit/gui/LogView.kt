@@ -47,7 +47,7 @@ class LogView : Tab() {
         localCommits.columns.addAll(message, date, author, commit)
         localCommits.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
         localCommits.selectionModel.selectedItemProperty().addListener { _, _, it ->
-            it?.let { commitDetails.update(State.getSelectedRepository(), it) }
+            it?.let { commitDetails.update(State.selectedRepository, it) }
         }
 
         val pane = SplitPane()
@@ -58,7 +58,7 @@ class LogView : Tab() {
         progressPane = ProgressPane(pane)
         content = progressPane
 
-        State.selectedRepositoryProperty().addListener { _, _, it -> it?.let { logQuick(it) } }
+        State.addRepositoryListener { it?.let { logQuick(it) } }
         State.addRefreshListener { logQuick(it) }
 
         Platform.runLater {
@@ -77,8 +77,8 @@ class LogView : Tab() {
     }
 
     private fun updateDivergence(divergence: LocalDivergence) {
-        State.ahead.set(divergence.ahead)
-        State.behind.set(divergence.behind)
+        State.ahead = divergence.ahead
+        State.behind = divergence.behind
     }
 
     private fun logQuick(repository: LocalRepository) {
