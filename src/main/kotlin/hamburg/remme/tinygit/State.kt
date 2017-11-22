@@ -75,9 +75,9 @@ object State {
 
     fun selectedRepositoryProperty() = selectedRepository.readOnlyProperty!!
 
-    fun getSelectedRepository(): LocalRepository = selectedRepository.readOnlyProperty.value!!
+    fun getSelectedRepository() = selectedRepository.readOnlyProperty.get()!!
 
-    fun getSelectedRepository(block: (LocalRepository) -> Unit) = selectedRepository.readOnlyProperty.value?.let(block)
+    fun getSelectedRepository(block: (LocalRepository) -> Unit) = selectedRepository.readOnlyProperty.get()?.let(block)
 
     fun setSelectedRepository(repository: LocalRepository) {
         selectedRepository.set(repository)

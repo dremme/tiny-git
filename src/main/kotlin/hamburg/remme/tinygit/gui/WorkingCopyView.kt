@@ -104,6 +104,7 @@ class WorkingCopyView : Tab() {
             override fun call() = LocalGit.status(repository) // TODO: git status might not be good enough here
 
             override fun succeeded() {
+                // TODO: this is still a little buggy sometimes
                 val staged = (stagedFiles.selectionModel.selectedItems + stagedFiles.selectionModel.selectedItem).filterNotNull()
                 val unstaged = (unstagedFiles.selectionModel.selectedItems + unstagedFiles.selectionModel.selectedItem).filterNotNull()
 

@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.gui.FontAwesome.exclamationTriangle
 import hamburg.remme.tinygit.gui.FontAwesome.questionCircle
 import javafx.beans.binding.Bindings
 import javafx.beans.value.ObservableBooleanValue
+import javafx.beans.value.ObservableIntegerValue
 import javafx.beans.value.ObservableValue
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
@@ -89,6 +90,10 @@ fun <T : Node> T.flipXY() = this.flipX().flipY()
  * UI BUILDER                                                                                                    *
  *                                                                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*
+ * TODO: create a proper, declarative, ui-builder
+ * TODO: fun label(block: Label.() -> Unit) = Label().also { block.invoke(it) }
+ */
 fun label(text: String = "",
           icon: Node? = null,
           color: String? = null,
@@ -180,10 +185,9 @@ fun toolBar(vararg group: ActionGroup): ToolBar {
     return ToolBar(*group.mapIndexed { i, it ->
         it.action.map {
             if (it.count != null) {
-                val count = Label()
-                count.styleClass += "count-badge"
-                count.textProperty().bind(Bindings.convert(it.count))
-                count.visibleProperty().bind(Bindings.lessThan(0, it.count))
+                val count = Label().addClass("count-badge")
+                count.textProperty().bind(toolBarBadge(it.count))
+                count.visibleProperty().bind(Bindings.notEqual(0, it.count))
                 StackPane.setAlignment(count, Pos.TOP_RIGHT)
                 StackPane(button(it.text, it.icon.invoke(), it.action, it.shortcut?.keyCombinationText(), it.disable), count)
             } else {
@@ -194,6 +198,9 @@ fun toolBar(vararg group: ActionGroup): ToolBar {
         }
     }.flatten().toTypedArray())
 }
+
+private fun toolBarBadge(count: ObservableIntegerValue)
+        = Bindings.createStringBinding({ if (count.get() > 0) count.get().toString() else "*" }, arrayOf(count))!!
 
 private fun String.keyCombinationText() = KeyCombination.valueOf(this).displayText
 

@@ -13,7 +13,7 @@ object Settings {
     private val suppliers: MutableMap<Category, () -> Any> = mutableMapOf()
     private var settings: LocalSettings? = null
 
-    fun load(block: (LocalSettings) -> Unit) {
+    fun load(block: LocalSettings.() -> Unit) {
         if (Files.exists(settingsFile)) {
             try {
                 settings = yaml.loadAs(Files.newInputStream(settingsFile), LocalSettings::class.java)
