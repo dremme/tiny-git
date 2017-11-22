@@ -1,6 +1,11 @@
 package hamburg.remme.tinygit.git
 
 import org.eclipse.jgit.errors.TransportException
-import org.eclipse.jgit.transport.RemoteRefUpdate
 
-class PushRejectedException : TransportException(RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD.name)
+class PushRejectedException(message: String) : TransportException(message)
+
+class DeleteRejectedException(message: String) : TransportException(message)
+
+class RemoteChangedException(message: String) : TransportException(message)
+
+class RejectedException(message: String) : TransportException(message)
