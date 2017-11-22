@@ -365,8 +365,14 @@ object LocalGit {
             val result = git().push().applyAuth(repository).setForce(force).call()
             if (result.count() > 0) {
                 result.first().remoteUpdates.forEach {
-                    if (it.status == RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD) {
-                        throw PushRejectedException()
+                    when (it.status) {
+                        RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD -> throw PushRejectedException(it.message)
+                        RemoteRefUpdate.Status.REJECTED_NODELETE -> throw DeleteRejectedException(it.message)
+                        RemoteRefUpdate.Status.REJECTED_REMOTE_CHANGED -> throw RemoteChangedException(it.message)
+                        RemoteRefUpdate.Status.REJECTED_OTHER_REASON -> throw RejectedException(it.message)
+                        else -> {
+                            // do nothing
+                        }
                     }
                 }
             }
