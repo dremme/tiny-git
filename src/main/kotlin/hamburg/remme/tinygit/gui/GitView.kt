@@ -33,31 +33,31 @@ class GitView(application: Application) : VBox() {
         val quit = Action("Quit TinyGit",
                 action = EventHandler { Platform.exit() })
         val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+Plus", State.canCommit.not(),
-                EventHandler { commit(State.getSelectedRepository()) })
+                EventHandler { commit(State.selectedRepository) })
         val push = Action("Push", { FontAwesome.cloudUpload() }, "Shortcut+P", State.canPush.not(),
-                EventHandler { push(State.getSelectedRepository(), false) }, State.ahead)
+                EventHandler { push(State.selectedRepository, false) }, State.aheadProperty())
         val pushForce = Action("Force Push", { FontAwesome.cloudUpload() }, "Shortcut+Shift+P", State.canPush.not(),
-                EventHandler { push(State.getSelectedRepository(), true) }, State.ahead)
+                EventHandler { push(State.selectedRepository, true) })
         val pull = Action("Pull", { FontAwesome.cloudDownload() }, "Shortcut+L", State.canPull.not(),
-                EventHandler { pull(State.getSelectedRepository()) }, State.behind)
+                EventHandler { pull(State.selectedRepository) }, State.behindProperty())
         val fetch = Action("Fetch", { FontAwesome.refresh() }, "Shortcut+F", State.canFetch.not(),
-                EventHandler { fetch(State.getSelectedRepository()) })
+                EventHandler { fetch(State.selectedRepository) })
         val tag = Action("Tag", { FontAwesome.tag() }, "Shortcut+T", State.canTag.not(),
                 action = EventHandler { /* TODO */ })
         val branch = Action("Branch", { FontAwesome.codeFork() }, "Shortcut+B", State.canBranch.not(),
-                EventHandler { createBranch(State.getSelectedRepository()) })
+                EventHandler { createBranch(State.selectedRepository) })
         val merge = Action("Merge", { FontAwesome.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
                 action = EventHandler { /* TODO */ })
         val stash = Action("Stash", { FontAwesome.cube() }, "Shortcut+S", State.canStash.not(),
-                EventHandler { stash(State.getSelectedRepository()) })
+                EventHandler { stash(State.selectedRepository) })
         val stashPop = Action("Pop Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
-                EventHandler { stashPop(State.getSelectedRepository()) })
+                EventHandler { stashPop(State.selectedRepository) })
         val reset = Action("Auto Reset", { FontAwesome.undo() }, disable = State.canReset.not(),
                 action = EventHandler { /* TODO */ })
         val squash = Action("Auto Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
                 action = EventHandler { /* TODO */ })
         val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
-                action = EventHandler { SettingsDialog(State.getSelectedRepository(), scene.window).show() })
+                action = EventHandler { SettingsDialog(State.selectedRepository, scene.window).show() })
         val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
                 action = EventHandler { application.hostServices.showDocument("https://github.com/deso88/TinyGit") })
         val about = Action("About",
@@ -77,7 +77,9 @@ class GitView(application: Application) : VBox() {
         overlay.styleClass += "progress-overlay"
         overlay.visibleProperty().bind(State.showGlobalOverlay)
 
-        val content = SplitPane(RepositoryView(), TabPane(LogView(), WorkingCopyView()))
+        // TODO: can maybe improve this approach
+        val workingCopy = WorkingCopyView()
+        val content = SplitPane(RepositoryView(), TabPane(LogView(), workingCopy))
         Platform.runLater { content.setDividerPosition(0, 0.20) }
 
         children.addAll(
@@ -89,6 +91,7 @@ class GitView(application: Application) : VBox() {
                                 ActionGroup(stash, stashPop),
                                 ActionGroup(reset, squash),
                                 ActionGroup(settings)),
+                        ActionCollection("Actions", *workingCopy.actions),
                         ActionCollection("?", ActionGroup(github, about))),
                 toolBar(ActionGroup(addCopy),
                         ActionGroup(commit, push, pull, fetch, tag),
@@ -102,8 +105,8 @@ class GitView(application: Application) : VBox() {
         directoryChooser(scene.window, "Add Repository")?.let {
             if (File("${it.absolutePath}/.git").exists()) {
                 val repository = LocalRepository(it.absolutePath)
-                if (State.getRepositories().none { it.path == repository.path }) {
-                    State.addRepository(LocalRepository(it.absolutePath))
+                if (State.repositories.none { it.path == repository.path }) {
+                    State.repositories += LocalRepository(it.absolutePath)
                 }
             } else {
                 errorAlert(scene.window,

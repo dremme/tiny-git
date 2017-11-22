@@ -1,9 +1,8 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.gui.FontAwesome.exclamationTriangle
-import hamburg.remme.tinygit.gui.FontAwesome.questionCircle
 import javafx.beans.binding.Bindings
+import javafx.beans.binding.StringBinding
 import javafx.beans.value.ObservableBooleanValue
 import javafx.beans.value.ObservableIntegerValue
 import javafx.beans.value.ObservableValue
@@ -120,6 +119,10 @@ fun button(label: String = "",
     return button
 }
 
+fun button(action: Action): Button {
+    return button(action.text, action.icon.invoke(), action.action, action.shortcut?.keyCombinationText(), action.disable)
+}
+
 fun <S, T> tableColumn(title: String,
                        sortable: Boolean = false,
                        cellValue: Callback<TableColumn.CellDataFeatures<S, T>, ObservableValue<T>>,
@@ -189,9 +192,9 @@ fun toolBar(vararg group: ActionGroup): ToolBar {
                 count.textProperty().bind(toolBarBadge(it.count))
                 count.visibleProperty().bind(Bindings.notEqual(0, it.count))
                 StackPane.setAlignment(count, Pos.TOP_RIGHT)
-                StackPane(button(it.text, it.icon.invoke(), it.action, it.shortcut?.keyCombinationText(), it.disable), count)
+                StackPane(button(it), count)
             } else {
-                button(it.text, it.icon.invoke(), it.action, it.shortcut?.keyCombinationText(), it.disable)
+                button(it)
             }
         }.let {
             if (i < group.size - 1) it + Separator() else it
@@ -199,8 +202,9 @@ fun toolBar(vararg group: ActionGroup): ToolBar {
     }.flatten().toTypedArray())
 }
 
-private fun toolBarBadge(count: ObservableIntegerValue)
-        = Bindings.createStringBinding({ if (count.get() > 0) count.get().toString() else "*" }, arrayOf(count))!!
+private fun toolBarBadge(count: ObservableIntegerValue): StringBinding {
+    return Bindings.createStringBinding({ if (count.get() > 0) count.get().toString() else "*" }, arrayOf(count))!!
+}
 
 private fun String.keyCombinationText() = KeyCombination.valueOf(this).displayText
 
@@ -212,7 +216,7 @@ private fun String.keyCombinationText() = KeyCombination.valueOf(this).displayTe
 fun confirmAlert(window: Window,
                  header: String,
                  text: String): Boolean {
-    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, questionCircle("#5bc0de"))
+    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, FontAwesome.questionCircle("#5bc0de"))
     State.modalVisible.set(true)
     return alert.showAndWait().get() == ButtonType.OK
 }
@@ -220,7 +224,7 @@ fun confirmAlert(window: Window,
 fun confirmWarningAlert(window: Window,
                         header: String,
                         text: String): Boolean {
-    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, exclamationTriangle("#f0ad4e"))
+    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, FontAwesome.exclamationTriangle("#f0ad4e"))
     State.modalVisible.set(true)
     return alert.showAndWait().get() == ButtonType.OK
 }
@@ -228,7 +232,7 @@ fun confirmWarningAlert(window: Window,
 fun errorAlert(window: Window,
                header: String,
                text: String) {
-    val alert = alert(window, Alert.AlertType.ERROR, header, text, exclamationTriangle("#d9534f"))
+    val alert = alert(window, Alert.AlertType.ERROR, header, text, FontAwesome.exclamationTriangle("#d9534f"))
     State.modalVisible.set(true)
     alert.showAndWait()
 }

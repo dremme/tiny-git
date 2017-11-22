@@ -31,7 +31,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         root = TreeItem()
         isShowRoot = false
         selectionModel.selectedItemProperty().addListener { _, _, it ->
-            it?.let { State.setSelectedRepository(it.value.repository) }
+            it?.let { State.selectedRepository = it.value.repository }
         }
 
         setOnKeyPressed { if (it.code == KeyCode.SPACE) it.consume() }
@@ -48,7 +48,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             }
         }
 
-        State.getRepositories().addListener(ListChangeListener {
+        State.repositories.addListener(ListChangeListener {
             while (it.next()) {
                 when {
                     it.wasAdded() -> {
@@ -59,7 +59,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                 }
             }
         })
-        State.getRepositories().forEach { addRepo(it) }
+        State.repositories.forEach { addRepo(it) }
         // TODO: this is being executed on startup
         // TODO: prob needs to refresh all repos or refresh on selection
         State.addRefreshListener { refreshRepo(it) }

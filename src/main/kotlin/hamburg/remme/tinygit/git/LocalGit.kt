@@ -150,13 +150,13 @@ object LocalGit {
             staged += status.changed.toLocalFileList(LocalFile.Status.CHANGED)
             staged += status.removed.toLocalFileList(LocalFile.Status.REMOVED)
 
-            val unstaged = mutableListOf<LocalFile>()
-            unstaged += status.conflicting.toLocalFileList(LocalFile.Status.CONFLICT)
-            unstaged += status.modified.toLocalFileList(LocalFile.Status.MODIFIED)
-            unstaged += status.missing.toLocalFileList(LocalFile.Status.MISSING)
-            unstaged += status.untracked.toLocalFileList(LocalFile.Status.UNTRACKED)
+            val pending = mutableListOf<LocalFile>()
+            pending += status.conflicting.toLocalFileList(LocalFile.Status.CONFLICT)
+            pending += status.modified.toLocalFileList(LocalFile.Status.MODIFIED)
+            pending += status.missing.toLocalFileList(LocalFile.Status.MISSING)
+            pending += status.untracked.toLocalFileList(LocalFile.Status.UNTRACKED)
 
-            LocalStatus(staged, unstaged)
+            LocalStatus(staged, pending)
         }
     }
 
