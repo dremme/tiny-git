@@ -32,18 +32,18 @@ class CommitDetailsView : SplitPane() {
         clearContent()
     }
 
-    fun update(repository: LocalRepository, commit: LocalCommit) {
-        if (repository != this.repository || commit != this.commit) {
-            this.repository = repository
-            this.commit = commit
+    fun update(newRepository: LocalRepository, newCommit: LocalCommit) {
+        if (newRepository != repository || newCommit != commit) {
+            repository = newRepository
+            commit = newCommit
 
-            setContent(commit)
+            setContent(newCommit)
 
             // TODO: add a process indicator
-            println("Status for commit: ${commit.shortId}")
+            println("Status for commit: ${newCommit.shortId}")
             task?.cancel()
             task = object : Task<List<LocalFile>>() {
-                override fun call() = LocalGit.diffTree(repository, commit.id)
+                override fun call() = LocalGit.diffTree(newRepository, newCommit.id)
 
                 override fun succeeded() {
                     files.items.setAll(value)

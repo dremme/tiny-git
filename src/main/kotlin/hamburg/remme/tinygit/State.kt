@@ -125,9 +125,9 @@ object State {
     val canUnstageAll = stagedFiles.greater0()!!
     val canUnstageSelected = stagedFilesSelected.greater0()!!
 
-    private fun IntegerProperty.equals0() = this.isEqualTo(0)
-    private fun IntegerProperty.notEquals0() = this.isNotEqualTo(0)
-    private fun IntegerProperty.greater0() = this.greaterThan(0)
+    private fun IntegerProperty.equals0() = isEqualTo(0)
+    private fun IntegerProperty.notEquals0() = isNotEqualTo(0)
+    private fun IntegerProperty.greater0() = greaterThan(0)
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *

@@ -142,7 +142,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         stashItems.sortWith(Comparator { left, right -> stashList.indexOf(left.value.value) - stashList.indexOf(right.value.value) })
     }
 
-    private fun List<LocalStashEntry>.indexOf(message: String) = this.indexOfFirst { it.message == message }
+    private fun List<LocalStashEntry>.indexOf(message: String) = indexOfFirst { it.message == message }
 
     private fun checkout(repository: LocalRepository, branch: String) {
         if (branch == LocalGit.head(repository)) return
