@@ -272,6 +272,8 @@
 
 .count-badge {
     -fx-padding: 0.05em 0.25em 0.05em 0.25em;
+    -fx-min-width: 18px;
+    -fx-alignment: center;
     -fx-background-color: -fx-focus-color;
     -fx-background-radius: 1em;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);

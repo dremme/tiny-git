@@ -76,14 +76,14 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             Settings.TreeItem(item.value.repository.path, item.value.value)
         }
         Settings.load {
-            val tree = it.tree
+            val tree = tree
             root.children.flatMap { it.children + it }
                     .filter { item ->
                         tree.any { it.repository == item.value.repository.path && it.name == item.value.value && it.expanded }
                     }
                     .forEach { it.isExpanded = true }
 
-            val selected = it.treeSelection
+            val selected = treeSelection
             root.children.flatMap { it.children + it }.flatMap { it.children + it }
                     .find { it.value.repository.path == selected.repository && it.value.value == selected.name }
                     ?.let { selectionModel.select(it) }

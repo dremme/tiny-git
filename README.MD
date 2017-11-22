@@ -37,6 +37,7 @@ java -jar tinygit-x.x.x.jar
  - Endless scroll the log
  - Viewing/applying/removing explicit stashes
  - Resetting branches
+ - Resetting files in working copy view
  - Tagging commits & push/remove tags
  - File diff settings (e.g. surrounding lines)
  - Staging/unstaging code blocks
