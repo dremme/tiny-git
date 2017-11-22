@@ -34,19 +34,6 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             it?.let { State.setSelectedRepository(it.value.repository) }
         }
 
-        State.getRepositories().addListener(ListChangeListener {
-            while (it.next()) {
-                when {
-                    it.wasAdded() -> {
-                        it.addedSubList.forEach { addRepo(it) }
-                        selectionModel.selectLast()
-                    }
-                    it.wasRemoved() -> it.removed.forEach { removeRepo(it) }
-                }
-            }
-        })
-        State.getRepositories().forEach { addRepo(it) }
-
         setOnKeyPressed { if (it.code == KeyCode.SPACE) it.consume() }
         setOnMouseClicked {
             if (it.button == MouseButton.PRIMARY && it.clickCount == 2) {
@@ -60,11 +47,22 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                 }
             }
         }
-        State.addRefreshListener {
-            // TODO: this is being executed on startup
-            // TODO: prob needs to refresh all repos or refresh on selection
-            State.getSelectedRepository { refreshRepo(it) }
-        }
+
+        State.getRepositories().addListener(ListChangeListener {
+            while (it.next()) {
+                when {
+                    it.wasAdded() -> {
+                        it.addedSubList.forEach { addRepo(it) }
+                        selectionModel.selectLast()
+                    }
+                    it.wasRemoved() -> it.removed.forEach { removeRepo(it) }
+                }
+            }
+        })
+        State.getRepositories().forEach { addRepo(it) }
+        // TODO: this is being executed on startup
+        // TODO: prob needs to refresh all repos or refresh on selection
+        State.addRefreshListener { refreshRepo(it) }
 
         Settings.setTree {
             root.children.flatMap { it.children + it }.map {

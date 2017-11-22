@@ -59,7 +59,7 @@ class LogView : Tab() {
         content = progressPane
 
         State.selectedRepositoryProperty().addListener { _, _, it -> it?.let { logQuick(it) } }
-        State.addRefreshListener { State.getSelectedRepository { logQuick(it) } }
+        State.addRefreshListener { logQuick(it) }
 
         Platform.runLater {
             localCommits.resizeColumn(message, 0.6 * localCommits.width)

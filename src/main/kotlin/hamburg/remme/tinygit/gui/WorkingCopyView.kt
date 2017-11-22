@@ -7,6 +7,7 @@ import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStatus
 import hamburg.remme.tinygit.gui.FontAwesome.desktop
 import javafx.beans.binding.Bindings
+import javafx.beans.value.ObservableObjectValue
 import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
 import javafx.event.EventHandler
@@ -21,6 +22,7 @@ class WorkingCopyView : Tab() {
 
     private val stagedFiles = FileStatusView(SelectionMode.MULTIPLE)
     private val unstagedFiles = FileStatusView(SelectionMode.MULTIPLE)
+    private val selectedFile: ObservableObjectValue<LocalFile>
     private val fileDiff = FileDiffView()
     private var task: Task<*>? = null
 
@@ -35,13 +37,10 @@ class WorkingCopyView : Tab() {
                 action = EventHandler { unstage(State.getSelectedRepository(), stagedFiles.selectionModel.selectedItems) })
         unstageAll.disableProperty().bind(Bindings.isEmpty(stagedFiles.items))
         unstageSelected.disableProperty().bind(Bindings.isEmpty(stagedFiles.selectionModel.selectedItems))
-        stagedFiles.selectionModel.selectedItems.addListener(ListChangeListener {
-            if (it.list.isNotEmpty()) {
-                fileDiff.update(State.getSelectedRepository(), stagedFiles.selectionModel.selectedItem)
-                unstagedFiles.selectionModel.clearSelection()
-            }
-        })
         stagedFiles.items.addListener(ListChangeListener { State.stagedFiles.set(it.list.size) })
+        stagedFiles.selectionModel.selectedItemProperty().addListener({ _, _, it ->
+            it?.let { unstagedFiles.selectionModel.clearSelection() }
+        })
 
         val update = button("Update all",
                 action = EventHandler { update(State.getSelectedRepository()) })
@@ -52,13 +51,18 @@ class WorkingCopyView : Tab() {
         update.disableProperty().bind(Bindings.isEmpty(unstagedFiles.items))
         stageAll.disableProperty().bind(Bindings.isEmpty(unstagedFiles.items))
         stageSelected.disableProperty().bind(Bindings.isEmpty(unstagedFiles.selectionModel.selectedItems))
-        unstagedFiles.selectionModel.selectedItems.addListener(ListChangeListener {
-            if (it.list.isNotEmpty()) {
-                fileDiff.update(State.getSelectedRepository(), unstagedFiles.selectionModel.selectedItem)
-                stagedFiles.selectionModel.clearSelection()
-            }
-        })
         unstagedFiles.items.addListener(ListChangeListener { State.unstagedFiles.set(it.list.size) })
+        unstagedFiles.selectionModel.selectedItemProperty().addListener({ _, _, it ->
+            it?.let { stagedFiles.selectionModel.clearSelection() }
+        })
+
+        selectedFile = Bindings.createObjectBinding(
+                { stagedFiles.selectionModel.selectedItem ?: unstagedFiles.selectionModel.selectedItem },
+                arrayOf(stagedFiles.selectionModel.selectedItemProperty(),
+                        unstagedFiles.selectionModel.selectedItemProperty()))
+        selectedFile.addListener { _, _, it ->
+            it?.let { fileDiff.update(State.getSelectedRepository(), it) } ?: fileDiff.clear()
+        }
 
         VBox.setVgrow(stagedFiles, Priority.ALWAYS)
         VBox.setVgrow(unstagedFiles, Priority.ALWAYS)
@@ -82,18 +86,14 @@ class WorkingCopyView : Tab() {
         content = SplitPane(files, fileDiff).addClass("working-copy-view")
 
         State.selectedRepositoryProperty().addListener { _, _, it ->
-            fileDiff.clear()
             it?.let {
                 diff(it)
                 State.stashEntries.set(LocalGit.stashListSize(it))
             }
         }
         State.addRefreshListener {
-            fileDiff.clear()
-            State.getSelectedRepository {
-                diff(it)
-                State.stashEntries.set(LocalGit.stashListSize(it))
-            }
+            diff(it)
+            State.stashEntries.set(LocalGit.stashListSize(it))
         }
     }
 

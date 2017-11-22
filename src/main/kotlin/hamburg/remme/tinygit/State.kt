@@ -77,8 +77,6 @@ object State {
 
     fun getSelectedRepository() = selectedRepository.readOnlyProperty.get()!!
 
-    fun getSelectedRepository(block: (LocalRepository) -> Unit) = selectedRepository.readOnlyProperty.get()?.let(block)
-
     fun setSelectedRepository(repository: LocalRepository) {
         selectedRepository.set(repository)
     }
@@ -130,18 +128,20 @@ object State {
      * LISTENERS                                                                                                     *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val refreshListeners = mutableListOf<() -> Unit>()
+    private val refreshListeners = mutableListOf<(LocalRepository) -> Unit>()
 
-    fun addRefreshListener(block: () -> Unit) {
+    fun addRefreshListener(block: (LocalRepository) -> Unit) {
         refreshListeners += block
     }
 
-    fun removeRefreshListener(block: () -> Unit) {
+    fun removeRefreshListener(block: (LocalRepository) -> Unit) {
         refreshListeners -= block
     }
 
     fun fireRefresh() {
-        refreshListeners.forEach { it.invoke() }
+        selectedRepository.get()?.let { repo ->
+            refreshListeners.forEach { it.invoke(repo) }
+        }
     }
 
 }
