@@ -1,5 +1,7 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.addStyle
 import javafx.scene.Node
 import javafx.scene.layout.StackPane
 import javafx.scene.text.Text

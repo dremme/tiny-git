@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalDivergence
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.application.Platform
 import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
@@ -34,14 +35,14 @@ class CommitLogView : Tab() {
         graphic = FontAwesome.list()
         isClosable = false
 
-        val message = tableColumn<LocalCommit, LocalCommit>("Message",
+        val message = _tableColumn<LocalCommit, LocalCommit>("Message",
                 cellValue = Callback { ReadOnlyObjectWrapper(it.value) },
                 cellFactory = Callback { LogMessageTableCell() })
-        val date = tableColumn<LocalCommit, String>("Date",
+        val date = _tableColumn<LocalCommit, String>("Date",
                 cellValue = Callback { ReadOnlyStringWrapper(it.value.date.format(shortDate)) })
-        val author = tableColumn<LocalCommit, String>("Author",
+        val author = _tableColumn<LocalCommit, String>("Author",
                 cellValue = Callback { ReadOnlyStringWrapper(it.value.author) })
-        val commit = tableColumn<LocalCommit, String>("Commit",
+        val commit = _tableColumn<LocalCommit, String>("Commit",
                 cellValue = Callback { ReadOnlyStringWrapper(it.value.shortId) })
 
         localCommits.columns.addAll(message, date, author, commit)

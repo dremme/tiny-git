@@ -5,8 +5,8 @@ import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.FileDiffView
 import hamburg.remme.tinygit.gui.FileStatusView
-import hamburg.remme.tinygit.gui.addClass
-import hamburg.remme.tinygit.gui.textArea
+import hamburg.remme.tinygit.gui._textArea
+import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.scene.control.ButtonBar
@@ -30,7 +30,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
         files.prefHeight = 500.0
         files.selectionModel.selectedItemProperty().addListener { _, _, it -> it?.let { fileDiff.update(repository, it) } }
 
-        val message = textArea(placeholder = "Enter commit message")
+        val message = _textArea(placeholder = "Enter commit message")
         message.prefHeight = 100.0
         message.textProperty().bindBidirectional(State.commitMessage)
         Platform.runLater { message.requestFocus() }

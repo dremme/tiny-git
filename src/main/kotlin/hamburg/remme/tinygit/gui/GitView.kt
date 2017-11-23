@@ -5,26 +5,32 @@ import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.git.api.PushRejectedException
+import hamburg.remme.tinygit.gui.builder.VBoxBuilder
+import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.flipXY
+import hamburg.remme.tinygit.gui.builder.flipY
+import hamburg.remme.tinygit.gui.builder.hbox
+import hamburg.remme.tinygit.gui.builder.label
+import hamburg.remme.tinygit.gui.builder.menuBar
+import hamburg.remme.tinygit.gui.builder.splitPane
+import hamburg.remme.tinygit.gui.builder.stackPane
+import hamburg.remme.tinygit.gui.builder.toolBar
+import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.dialog.AboutDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
 import javafx.concurrent.Task
 import javafx.event.EventHandler
-import javafx.scene.control.Label
 import javafx.scene.control.ProgressIndicator
-import javafx.scene.control.SplitPane
 import javafx.scene.control.TabPane
-import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
-import javafx.scene.layout.StackPane
-import javafx.scene.layout.VBox
 import javafx.scene.text.Text
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.api.errors.StashApplyFailureException
 import java.io.File
 
-class GitView : VBox() {
+class GitView : VBoxBuilder() {
 
     private val repositoryView = RepositoryView()
     private val commitLog = CommitLogView()
@@ -77,41 +83,59 @@ class GitView : VBox() {
         val about = Action("About",
                 action = EventHandler { AboutDialog(scene.window).show() })
 
-        val info = StackPane(HBox(
-                Text("Click "),
-                FontAwesome.database(),
-                Text(" to add a repository."))
-                .addClass("box"))
-                .addClass("overlay")
-        info.visibleProperty().bind(State.showGlobalInfo)
+        +menuBar {
+            isUseSystemMenuBar = true
 
-        val overlay = StackPane(
-                ProgressIndicator(-1.0),
-                Label().also { it.textProperty().bind(State.processTextProperty()) })
-                .addClass("progress-overlay")
-        overlay.visibleProperty().bind(State.showGlobalOverlay)
+            +ActionCollection("File", ActionGroup(addCopy), ActionGroup(quit))
+            +ActionCollection("View", ActionGroup(showCommits, showWorkingCopy))
+            +ActionCollection("Repository",
+                    ActionGroup(commit),
+                    ActionGroup(push, pushForce, pull, fetch, tag),
+                    ActionGroup(branch, merge),
+                    ActionGroup(stash, stashPop),
+                    ActionGroup(reset, squash),
+                    ActionGroup(settings))
+            +ActionCollection("Actions", *workingCopy.actions)
+            +ActionCollection("?", ActionGroup(github, about))
+        }
 
-        val content = SplitPane(repositoryView, tabs)
-        Platform.runLater { content.setDividerPosition(0, 0.20) }
+        +toolBar {
+            +ActionGroup(addCopy)
+            +ActionGroup(commit, push, pull, fetch, tag)
+            +ActionGroup(branch, merge)
+            +ActionGroup(stash, stashPop)
+            +ActionGroup(reset, squash)
+        }
 
-        children.addAll(
-                menuBar(ActionCollection("File", ActionGroup(addCopy), ActionGroup(quit)),
-                        ActionCollection("View", ActionGroup(showCommits, showWorkingCopy)),
-                        ActionCollection("Repository",
-                                ActionGroup(commit),
-                                ActionGroup(push, pushForce, pull, fetch, tag),
-                                ActionGroup(branch, merge),
-                                ActionGroup(stash, stashPop),
-                                ActionGroup(reset, squash),
-                                ActionGroup(settings)),
-                        ActionCollection("Actions", *workingCopy.actions),
-                        ActionCollection("?", ActionGroup(github, about))),
-                toolBar(ActionGroup(addCopy),
-                        ActionGroup(commit, push, pull, fetch, tag),
-                        ActionGroup(branch, merge),
-                        ActionGroup(stash, stashPop),
-                        ActionGroup(reset, squash)),
-                StackPane(content, info, overlay).also { VBox.setVgrow(it, Priority.ALWAYS) })
+        +stackPane {
+            vgrow(Priority.ALWAYS)
+
+            +splitPane {
+                Platform.runLater { setDividerPosition(0, 0.20) }
+
+                +repositoryView
+                +tabs
+            }
+            +stackPane {
+                addClass("overlay")
+                visibleProperty().bind(State.showGlobalInfo)
+
+                +hbox {
+                    addClass("box")
+
+                    +Text("Click ")
+                    +FontAwesome.database()
+                    +Text(" to add a repository.")
+                }
+            }
+            +stackPane {
+                addClass("progress-overlay")
+                visibleProperty().bind(State.showGlobalOverlay)
+
+                +ProgressIndicator(-1.0)
+                +label { textProperty().bind(State.processTextProperty()) }
+            }
+        }
     }
 
     private fun addRepo() {

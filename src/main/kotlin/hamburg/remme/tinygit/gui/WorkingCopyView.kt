@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStatus
 import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.beans.binding.Bindings
 import javafx.beans.value.ObservableObjectValue
 import javafx.collections.ListChangeListener
@@ -84,16 +85,16 @@ class WorkingCopyView : Tab() {
         val files = SplitPane(
                 VBox(
                         ToolBar(StatusCountView(stagedFiles),
-                                spacer(),
-                                button(unstageAll),
-                                button(unstageSelected)),
+                                _spacer(),
+                                _button(unstageAll),
+                                _button(unstageSelected)),
                         stagedFiles),
                 VBox(
                         ToolBar(StatusCountView(pendingFiles),
-                                spacer(),
-                                button(updateAll),
-                                button(stageAll),
-                                button(stageSelected)),
+                                _spacer(),
+                                _button(updateAll),
+                                _button(stageAll),
+                                _button(stageSelected)),
                         pendingFiles))
                 .addClass("files")
 

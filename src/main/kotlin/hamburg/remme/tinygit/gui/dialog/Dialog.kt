@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.gui.addClass
+import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.Node
 import javafx.scene.control.ButtonBar

@@ -6,6 +6,8 @@ import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStashEntry
 import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.addStyle
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
 import javafx.collections.ListChangeListener
@@ -238,7 +240,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         private fun repositoryBox(item: RepositoryEntry): HBox {
             return HBox(
                     Label(item.value).addStyle("-fx-font-weight:bold"),
-                    button(icon = FontAwesome.cog(),
+                    _button(icon = FontAwesome.cog(),
                             action = EventHandler { SettingsDialog(item.repository, scene.window).show() })
                             .addClass("settings"))
         }
