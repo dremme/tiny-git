@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.ProgressBar

@@ -3,7 +3,7 @@ package hamburg.remme.tinygit.gui.dialog
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asResource
 import hamburg.remme.tinygit.gui.FontAwesome
-import hamburg.remme.tinygit.gui.addClass
+import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.event.EventHandler
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType

@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
 import javafx.scene.control.SplitPane

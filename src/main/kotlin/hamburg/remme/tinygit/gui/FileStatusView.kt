@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.git.LocalFile
+import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode

@@ -1,17 +1,18 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.git.LocalFile
+import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.collections.ListChangeListener
 import javafx.scene.layout.HBox
 
 class StatusCountView(statusView: FileStatusView) : HBox() {
 
-    private val conflicting = label(tooltip = "Conflicting", icon = FontAwesome.exclamationTriangle("#d9534f"), color = "#d9534f")
-    private val added = label(tooltip = "Added", icon = FontAwesome.plus("#5cb85c"), color = "#5cb85c")
-    private val changed = label(tooltip = "Changed", icon = FontAwesome.pencil("#f0ad4e"), color = "#f0ad4e")
-    private val removed = label(tooltip = "Removed", icon = FontAwesome.minus("#d9534f"), color = "#d9534f")
-    private val missing = label(tooltip = "Missing", icon = FontAwesome.minus("#999"), color = "#999")
-    private val untracked = label(tooltip = "Untracked", icon = FontAwesome.question("#5bc0de"), color = "#5bc0de")
+    private val conflicting = _label(tooltip = "Conflicting", icon = FontAwesome.exclamationTriangle("#d9534f"), color = "#d9534f")
+    private val added = _label(tooltip = "Added", icon = FontAwesome.plus("#5cb85c"), color = "#5cb85c")
+    private val changed = _label(tooltip = "Changed", icon = FontAwesome.pencil("#f0ad4e"), color = "#f0ad4e")
+    private val removed = _label(tooltip = "Removed", icon = FontAwesome.minus("#d9534f"), color = "#d9534f")
+    private val missing = _label(tooltip = "Missing", icon = FontAwesome.minus("#999"), color = "#999")
+    private val untracked = _label(tooltip = "Untracked", icon = FontAwesome.question("#5bc0de"), color = "#5bc0de")
 
     init {
         addClass("status-count-view")

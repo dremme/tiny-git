@@ -4,11 +4,11 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.FontAwesome
-import hamburg.remme.tinygit.gui.addClass
-import hamburg.remme.tinygit.gui.button
+import hamburg.remme.tinygit.gui._button
+import hamburg.remme.tinygit.gui._intTextField
+import hamburg.remme.tinygit.gui._textField
+import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.fileChooser
-import hamburg.remme.tinygit.gui.intTextField
-import hamburg.remme.tinygit.gui.textField
 import javafx.event.EventHandler
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
@@ -23,20 +23,20 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
         val ok = ButtonType("OK", ButtonBar.ButtonData.OK_DONE)
         val cancel = ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
 
-        val location = textField(repository.path, editable = false)
-        val url = textField(Git.url(repository), editable = false)
-        val ssh = textField(repository.ssh)
-        val sshSearch = button(
+        val location = _textField(repository.path, editable = false)
+        val url = _textField(Git.url(repository), editable = false)
+        val ssh = _textField(repository.ssh)
+        val sshSearch = _button(
                 icon = FontAwesome.folderOpen(),
                 action = EventHandler { fileChooser(window, "Choose a SSH Key")?.let { ssh.text = it.absolutePath } })
                 .also {
                     it.maxWidth = Double.MAX_VALUE
                     GridPane.setFillWidth(it, true)
                 }
-        val username = textField(repository.username)
+        val username = _textField(repository.username)
         val password = PasswordField().also { it.text = repository.password }
-        val host = textField(repository.proxyHost ?: "")
-        val port = intTextField(repository.proxyPort ?: 80).also { it.prefColumnCount = 4 }
+        val host = _textField(repository.proxyHost ?: "")
+        val port = _intTextField(repository.proxyPort ?: 80).also { it.prefColumnCount = 4 }
 
         var row = 0
         val content = GridPane().addClass("settings-view")
