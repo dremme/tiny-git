@@ -3,8 +3,8 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.git.api.Git
 import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
 import javafx.scene.control.SplitPane
@@ -52,7 +52,7 @@ class CommitDetailsView : SplitPane() {
             println("Status for commit: ${newCommit.shortId}")
             task?.cancel()
             task = object : Task<List<LocalFile>>() {
-                override fun call() = LocalGit.diffTree(newRepository, newCommit.id)
+                override fun call() = Git.diffTree(newRepository, newCommit.id)
 
                 override fun succeeded() {
                     files.items.setAll(value)

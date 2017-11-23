@@ -1,7 +1,13 @@
-package hamburg.remme.tinygit.git
+package hamburg.remme.tinygit.git.api
 
+import hamburg.remme.tinygit.git.LocalBranch
+import hamburg.remme.tinygit.git.LocalCommit
+import hamburg.remme.tinygit.git.LocalDivergence
+import hamburg.remme.tinygit.git.LocalFile
+import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.git.LocalStashEntry
+import hamburg.remme.tinygit.git.LocalStatus
 import org.eclipse.jgit.api.CreateBranchCommand
-import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.ListBranchCommand
 import org.eclipse.jgit.api.MergeResult
@@ -32,8 +38,9 @@ import java.net.SocketAddress
 import java.net.URI
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import org.eclipse.jgit.api.Git as JGit
 
-object LocalGit {
+object Git {
 
     private val updatedRepositories = mutableSetOf<LocalRepository>()
     private var proxyHost = ThreadLocal<String>()
@@ -125,7 +132,7 @@ object LocalGit {
         return repository.open { git().branchListAll() }
     }
 
-    private fun Git.branchListAll(): List<LocalBranch> {
+    private fun JGit.branchListAll(): List<LocalBranch> {
         return RevWalk(repository).use { walker ->
             branchList().setListMode(ListBranchCommand.ListMode.ALL).call().map {
                 val shortRef = Repository.shortenRefName(it.name)
@@ -206,6 +213,7 @@ object LocalGit {
         return diff(repository, file, true)
     }
 
+    // TODO: does not work with renames
     private fun diff(repository: LocalRepository, file: LocalFile, cached: Boolean, lines: Int = -1): String {
         return repository.open {
             ByteArrayOutputStream().use {
@@ -223,6 +231,7 @@ object LocalGit {
     /**
      * - git diff <[id]> <parent-id> <[file]>
      */
+    // TODO: does not work with renames
     fun diff(repository: LocalRepository, file: LocalFile, id: String): String {
         return repository.open {
             val (newTree, oldTree) = newObjectReader().treesOf(ObjectId.fromString(id))
@@ -236,10 +245,11 @@ object LocalGit {
     /**
      * - git diff-tree -r <[id]>
      */
+    // TODO: does not work with renames
     fun diffTree(repository: LocalRepository, id: String): List<LocalFile> {
         return repository.open {
             val (newTree, oldTree) = newObjectReader().treesOf(ObjectId.fromString(id))
-            git().diff().setNewTree(newTree).setOldTree(oldTree).call().map {
+            git().diff().setShowNameAndStatusOnly(true).setNewTree(newTree).setOldTree(oldTree).call().map {
                 when (it.changeType!!) {
                     DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED)
                     DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.ADDED) // TODO: status for copied files
@@ -297,7 +307,7 @@ object LocalGit {
     /**
      * - git add <[files]>
      */
-    private fun Git.add(files: List<LocalFile>) {
+    private fun JGit.add(files: List<LocalFile>) {
         val git = add()
         files.forEach { git.addFilepattern(it.path) }
         git.call()
@@ -306,14 +316,14 @@ object LocalGit {
     /**
      * - git add .
      */
-    private fun Git.addAll() {
+    private fun JGit.addAll() {
         add().addFilepattern(".").call()
     }
 
     /**
      * - git rm <[files]>
      */
-    private fun Git.remove(files: List<LocalFile>) {
+    private fun JGit.remove(files: List<LocalFile>) {
         val git = rm()
         files.forEach { git.addFilepattern(it.path) }
         git.call()
@@ -476,7 +486,7 @@ object LocalGit {
         updated(repository)
     }
 
-    private fun Git.fetch(repository: LocalRepository) {
+    private fun JGit.fetch(repository: LocalRepository) {
         if (!isUpdated(repository)) {
             fetch().applyAuth(repository).call()
             updated(repository)
@@ -484,19 +494,18 @@ object LocalGit {
     }
 
     private fun <C : GitCommand<T>, T> TransportCommand<C, T>.applyAuth(repository: LocalRepository): C {
-        return if (repository.credentials?.isSSH() == true)
-            setTransportConfigCallback(repository.credentials!!.sshTransport)
-        else
-            setCredentialsProvider(repository.credentials?.userCredentials)
+        val credentials = GitCredentials(repository.ssh, repository.username, repository.password)
+        return if (credentials.isSSH()) setTransportConfigCallback(credentials.sshTransport)
+        else setCredentialsProvider(credentials.userCredentials)
     }
 
     private fun <T> LocalRepository.open(block: Repository.() -> T): T {
-        this@LocalGit.proxyHost.set(proxyHost ?: "")
-        this@LocalGit.proxyPort.set(proxyPort ?: 80)
+        Git.proxyHost.set(proxyHost ?: "")
+        Git.proxyPort.set(proxyPort ?: 80)
         return FileRepositoryBuilder().setGitDir(File("$path/.git")).build().use(block)
     }
 
-    private fun Repository.git() = Git(this)
+    private fun Repository.git() = JGit(this)
 
     private fun Repository.revWalk() = RevWalk(this)
 

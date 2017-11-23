@@ -1,4 +1,4 @@
-package hamburg.remme.tinygit.git
+package hamburg.remme.tinygit.git.api
 
 import org.eclipse.jgit.errors.TransportException
 

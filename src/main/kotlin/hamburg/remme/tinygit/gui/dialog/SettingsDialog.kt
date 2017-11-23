@@ -1,9 +1,8 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.git.LocalCredentials
-import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.FontAwesome
 import hamburg.remme.tinygit.gui.addClass
 import hamburg.remme.tinygit.gui.button
@@ -25,8 +24,8 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
         val cancel = ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
 
         val location = textField(repository.path, editable = false)
-        val url = textField(LocalGit.url(repository), editable = false)
-        val ssh = textField(repository.credentials?.ssh ?: "")
+        val url = textField(Git.url(repository), editable = false)
+        val ssh = textField(repository.ssh)
         val sshSearch = button(
                 icon = FontAwesome.folderOpen(),
                 action = EventHandler { fileChooser(window, "Choose a SSH Key")?.let { ssh.text = it.absolutePath } })
@@ -34,8 +33,8 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
                     it.maxWidth = Double.MAX_VALUE
                     GridPane.setFillWidth(it, true)
                 }
-        val username = textField(repository.credentials?.username ?: "")
-        val password = PasswordField().also { it.text = repository.credentials?.password ?: "" }
+        val username = textField(repository.username)
+        val password = PasswordField().also { it.text = repository.password }
         val host = textField(repository.proxyHost ?: "")
         val port = intTextField(repository.proxyPort ?: 80).also { it.prefColumnCount = 4 }
 
@@ -58,11 +57,9 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
         content.add(port, 3, row)
 
         okAction = {
-            if (ssh.text.isNotBlank() || username.text.isNotBlank()) {
-                repository.credentials = LocalCredentials(ssh.text, username.text, password.text)
-            } else {
-                repository.credentials = null
-            }
+            repository.ssh = ssh.text
+            repository.username = username.text
+            repository.password = password.text
             repository.proxyHost = host.text
             repository.proxyPort = port.text.toInt()
 

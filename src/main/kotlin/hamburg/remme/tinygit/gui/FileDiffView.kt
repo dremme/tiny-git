@@ -1,8 +1,8 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.git.api.Git
 import javafx.scene.layout.StackPane
 import javafx.scene.web.WebView
 
@@ -21,18 +21,18 @@ class FileDiffView : StackPane() {
 
     fun update(repository: LocalRepository, file: LocalFile) {
         setContent(when (file.status) {
-            LocalFile.Status.CONFLICT -> LocalGit.diffCached(repository, file) // TODO: incorrect diff
-            LocalFile.Status.ADDED -> LocalGit.diffCached(repository, file)
-            LocalFile.Status.CHANGED -> LocalGit.diffCached(repository, file)
-            LocalFile.Status.REMOVED -> LocalGit.diffCached(repository, file)
-            LocalFile.Status.MODIFIED -> LocalGit.diff(repository, file)
-            LocalFile.Status.MISSING -> LocalGit.diff(repository, file)
-            LocalFile.Status.UNTRACKED -> LocalGit.diff(repository, file)
+            LocalFile.Status.CONFLICT -> Git.diffCached(repository, file) // TODO: incorrect diff
+            LocalFile.Status.ADDED -> Git.diffCached(repository, file)
+            LocalFile.Status.CHANGED -> Git.diffCached(repository, file)
+            LocalFile.Status.REMOVED -> Git.diffCached(repository, file)
+            LocalFile.Status.MODIFIED -> Git.diff(repository, file)
+            LocalFile.Status.MISSING -> Git.diff(repository, file)
+            LocalFile.Status.UNTRACKED -> Git.diff(repository, file)
         }, file.resolve(repository))
     }
 
     fun update(repository: LocalRepository, file: LocalFile, id: String) {
-        setContent(LocalGit.diff(repository, file, id))
+        setContent(Git.diff(repository, file, id))
     }
 
     fun clear() {

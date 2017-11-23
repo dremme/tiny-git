@@ -3,8 +3,8 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalDivergence
-import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.git.api.Git
 import javafx.application.Platform
 import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
@@ -81,22 +81,22 @@ class CommitLogView : Tab() {
     }
 
     private fun logQuick(repository: LocalRepository) {
-        head = LocalGit.head(repository)
-        updateLog(LocalGit.log(repository))
-        updateDivergence(LocalGit.divergence(repository))
+        head = Git.head(repository)
+        updateLog(Git.log(repository))
+        updateDivergence(Git.divergence(repository))
         logRemote(repository)
     }
 
     private fun logRemote(repository: LocalRepository) {
         task?.cancel()
-        if (!LocalGit.isUpdated(repository)) {
+        if (!Git.isUpdated(repository)) {
             println("Fetching: $repository")
             task = object : Task<List<LocalCommit>>() {
-                override fun call() = LocalGit.log(repository, true)
+                override fun call() = Git.log(repository, true)
 
                 override fun succeeded() {
                     updateLog(value)
-                    updateDivergence(LocalGit.divergence(repository))
+                    updateDivergence(Git.divergence(repository))
                 }
 
                 override fun failed() {
