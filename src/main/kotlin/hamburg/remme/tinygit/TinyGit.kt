@@ -21,7 +21,19 @@ fun main(args: Array<String>) {
 
 class TinyGit : Application() {
 
+    companion object {
+
+        private lateinit var tinygit: Application
+
+        fun show(uri: String) {
+            tinygit.hostServices.showDocument(uri)
+        }
+
+    }
+
     override fun start(stage: Stage) {
+        tinygit = this
+
         Settings.setRepository { State.repositories }
         Settings.load { State.repositories.setAll(repositories) }
 
@@ -31,7 +43,7 @@ class TinyGit : Application() {
                 else State.fireRefresh()
             }
         }
-        stage.scene = Scene(GitView(this))
+        stage.scene = Scene(GitView())
         stage.scene.stylesheets += "default.css".asResource()
         stage.title = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
         stage.icons += Image("icon.png".asResource())

@@ -1,12 +1,13 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.git.api.PushRejectedException
+import hamburg.remme.tinygit.gui.dialog.AboutDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
-import javafx.application.Application
 import javafx.application.Platform
 import javafx.concurrent.Task
 import javafx.event.EventHandler
@@ -23,7 +24,7 @@ import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.api.errors.StashApplyFailureException
 import java.io.File
 
-class GitView(application: Application) : VBox() {
+class GitView : VBox() {
 
     private val repositoryView = RepositoryView()
     private val commitLog = CommitLogView()
@@ -72,9 +73,9 @@ class GitView(application: Application) : VBox() {
                 action = EventHandler { SettingsDialog(State.selectedRepository, scene.window).show() })
         // ?
         val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
-                action = EventHandler { application.hostServices.showDocument("https://github.com/deso88/TinyGit") })
+                action = EventHandler { TinyGit.show("https://github.com/deso88/TinyGit") })
         val about = Action("About",
-                action = EventHandler { /*AboutDialog(scene.window).show() TODO */ })
+                action = EventHandler { AboutDialog(scene.window).show() })
 
         val info = StackPane(HBox(
                 Text("Click "),
