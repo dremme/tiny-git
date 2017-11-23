@@ -2,9 +2,9 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStatus
+import hamburg.remme.tinygit.git.api.Git
 import javafx.beans.binding.Bindings
 import javafx.beans.value.ObservableObjectValue
 import javafx.collections.ListChangeListener
@@ -102,12 +102,12 @@ class WorkingCopyView : Tab() {
         State.addRepositoryListener {
             it?.let {
                 diff(it)
-                State.stashEntries.set(LocalGit.stashListSize(it))
+                State.stashEntries.set(Git.stashListSize(it))
             }
         }
         State.addRefreshListener {
             diff(it)
-            State.stashEntries.set(LocalGit.stashListSize(it))
+            State.stashEntries.set(Git.stashListSize(it))
         }
     }
 
@@ -115,7 +115,7 @@ class WorkingCopyView : Tab() {
         println("Status for working copy: $repository")
         task?.cancel()
         task = object : Task<LocalStatus>() {
-            override fun call() = LocalGit.status(repository) // TODO: git status might not be good enough here
+            override fun call() = Git.status(repository) // TODO: git status might not be good enough here
 
             override fun succeeded() {
                 // TODO: this is still a little buggy sometimes
@@ -134,27 +134,27 @@ class WorkingCopyView : Tab() {
     }
 
     private fun stage(repository: LocalRepository) {
-        LocalGit.stageAll(repository, pendingFiles.items.filter { it.status == LocalFile.Status.MISSING })
+        Git.stageAll(repository, pendingFiles.items.filter { it.status == LocalFile.Status.MISSING })
         diff(repository)
     }
 
     private fun stage(repository: LocalRepository, files: List<LocalFile>) {
-        LocalGit.stage(repository, files)
+        Git.stage(repository, files)
         diff(repository)
     }
 
     private fun update(repository: LocalRepository) {
-        LocalGit.updateAll(repository)
+        Git.updateAll(repository)
         diff(repository)
     }
 
     private fun unstage(repository: LocalRepository) {
-        LocalGit.reset(repository)
+        Git.reset(repository)
         diff(repository)
     }
 
     private fun unstage(repository: LocalRepository, files: List<LocalFile>) {
-        LocalGit.reset(repository, files)
+        Git.reset(repository, files)
         diff(repository)
     }
 

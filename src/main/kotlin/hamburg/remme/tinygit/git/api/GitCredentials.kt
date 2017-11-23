@@ -1,4 +1,4 @@
-package hamburg.remme.tinygit.git
+package hamburg.remme.tinygit.git.api
 
 import com.jcraft.jsch.Session
 import org.eclipse.jgit.api.TransportConfigCallback
@@ -8,8 +8,7 @@ import org.eclipse.jgit.transport.SshTransport
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.eclipse.jgit.util.FS
 
-
-class LocalCredentials(var ssh: String = "", var username: String = "", var password: String = "") {
+class GitCredentials(private val ssh: String, private val username: String, private val password: String) {
 
     val userCredentials by lazy { UsernamePasswordCredentialsProvider(username, password) }
 

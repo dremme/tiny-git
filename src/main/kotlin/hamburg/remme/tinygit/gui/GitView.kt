@@ -1,9 +1,9 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.git.PushRejectedException
+import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.git.api.PushRejectedException
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Application
@@ -135,7 +135,7 @@ class GitView(application: Application) : VBox() {
     private fun fetch(repository: LocalRepository) {
         State.addProcess("Fetching...")
         State.execute(object : Task<Unit>() {
-            override fun call() = LocalGit.fetchPrune(repository)
+            override fun call() = Git.fetchPrune(repository)
 
             override fun succeeded() = State.fireRefresh()
 
@@ -148,7 +148,7 @@ class GitView(application: Application) : VBox() {
     private fun pull(repository: LocalRepository) {
         State.addProcess("Pulling commits...")
         State.execute(object : Task<Boolean>() {
-            override fun call() = LocalGit.pull(repository)
+            override fun call() = Git.pull(repository)
 
             override fun succeeded() {
                 if (value) State.fireRefresh()
@@ -174,8 +174,8 @@ class GitView(application: Application) : VBox() {
         State.addProcess("Pushing commits...")
         State.execute(object : Task<Unit>() {
             override fun call() {
-                if (force) LocalGit.pushForce(repository)
-                else LocalGit.push(repository)
+                if (force) Git.pushForce(repository)
+                else Git.push(repository)
             }
 
             override fun succeeded() = State.fireRefresh()
@@ -197,7 +197,7 @@ class GitView(application: Application) : VBox() {
         textInputDialog(scene.window, FontAwesome.codeFork())?.let { name ->
             State.addProcess("Branching...")
             State.execute(object : Task<Unit>() {
-                override fun call() = LocalGit.branchCreate(repository, name)
+                override fun call() = Git.branchCreate(repository, name)
 
                 override fun succeeded() = State.fireRefresh()
 
@@ -218,7 +218,7 @@ class GitView(application: Application) : VBox() {
     private fun stash(repository: LocalRepository) {
         State.addProcess("Stashing files...")
         State.execute(object : Task<Unit>() {
-            override fun call() = LocalGit.stash(repository)
+            override fun call() = Git.stash(repository)
 
             override fun succeeded() = State.fireRefresh()
 
@@ -231,7 +231,7 @@ class GitView(application: Application) : VBox() {
     private fun stashPop(repository: LocalRepository) {
         State.addProcess("Applying stash...")
         State.execute(object : Task<Unit>() {
-            override fun call() = LocalGit.stashPop(repository)
+            override fun call() = Git.stashPop(repository)
 
             override fun succeeded() = State.fireRefresh()
 

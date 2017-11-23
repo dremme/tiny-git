@@ -3,9 +3,9 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalBranch
-import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStashEntry
+import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
 import javafx.collections.ListChangeListener
@@ -109,9 +109,9 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     private fun refreshRepo(repository: LocalRepository) {
         root.children.find { it.value.repository == repository }?.let {
-            headCache[repository.path] = LocalGit.head(repository)
-            val branchList = LocalGit.branchListAll(repository)
-            val stashList = LocalGit.stashList(repository)
+            headCache[repository.path] = Git.head(repository)
+            val branchList = Git.branchListAll(repository)
+            val stashList = Git.stashList(repository)
             // TODO: selection might get lost on removed branches (e.g. after pruning)
             updateBranchItems(it.children[0].children, repository, branchList.filter { it.local }, RepositoryEntryType.LOCAL_BRANCH)
             updateBranchItems(it.children[1].children, repository, branchList.filter { it.remote }, RepositoryEntryType.REMOTE_BRANCH)
@@ -145,11 +145,11 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun List<LocalStashEntry>.indexOf(message: String) = indexOfFirst { it.message == message }
 
     private fun checkout(repository: LocalRepository, branch: String) {
-        if (branch == LocalGit.head(repository)) return
+        if (branch == Git.head(repository)) return
 
         State.addProcess("Switching branches...")
         State.execute(object : Task<Unit>() {
-            override fun call() = LocalGit.checkout(repository, branch)
+            override fun call() = Git.checkout(repository, branch)
 
             override fun succeeded() = State.fireRefresh()
 
@@ -169,7 +169,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun checkoutRemote(repository: LocalRepository, branch: String) {
         State.addProcess("Getting remote branch...")
         State.execute(object : Task<Unit>() {
-            override fun call() = LocalGit.checkoutRemote(repository, branch)
+            override fun call() = Git.checkoutRemote(repository, branch)
 
             override fun succeeded() = State.fireRefresh()
 

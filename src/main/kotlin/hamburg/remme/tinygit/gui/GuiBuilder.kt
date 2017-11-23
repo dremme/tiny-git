@@ -112,7 +112,7 @@ fun button(label: String = "",
     val button = Button(label)
     button.onAction = action
     icon?.let { button.graphic = it }
-    tooltip?.takeIf { it.isNotBlank() }?.let { button.tooltip = Tooltip(it) }
+    tooltip?.let { if (it.isNotBlank()) button.tooltip = Tooltip(it) }
     disable?.let { button.disableProperty().bind(it) }
     return button
 }

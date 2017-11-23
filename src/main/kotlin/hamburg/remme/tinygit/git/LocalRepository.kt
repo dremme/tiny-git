@@ -2,7 +2,9 @@ package hamburg.remme.tinygit.git
 
 class LocalRepository(var path: String = "") {
 
-    var credentials: LocalCredentials? = null
+    var ssh: String = ""
+    var username: String = ""
+    var password: String = ""
     var proxyHost: String? = null
     var proxyPort: Int? = 80
 

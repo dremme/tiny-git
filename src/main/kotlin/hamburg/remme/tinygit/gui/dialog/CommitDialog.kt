@@ -1,8 +1,8 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.FileDiffView
 import hamburg.remme.tinygit.gui.FileStatusView
 import hamburg.remme.tinygit.gui.addClass
@@ -37,7 +37,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
 
         val amend = CheckBox("Amend last commit.")
         amend.selectedProperty().addListener { _, _, it ->
-            if (it && message.text.isNullOrBlank()) message.text = LocalGit.headMessage(repository)
+            if (it && message.text.isNullOrBlank()) message.text = Git.headMessage(repository)
         }
 
         val content = VBox(
@@ -46,8 +46,8 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
                 .addClass("commit-view")
 
         okAction = {
-            if (amend.isSelected) LocalGit.commitAmend(repository, message.text)
-            else LocalGit.commit(repository, message.text)
+            if (amend.isSelected) Git.commitAmend(repository, message.text)
+            else Git.commit(repository, message.text)
 
             message.textProperty().unbindBidirectional(State.commitMessage)
             State.commitMessage.set("")
@@ -60,7 +60,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
 
         focusAction = {
             val selected = files.selectionModel.selectedItem
-            files.items.setAll(LocalGit.status(repository).staged)
+            files.items.setAll(Git.status(repository).staged)
             files.selectionModel.select(files.items.indexOf(selected))
             files.selectionModel.selectedItem ?: files.selectionModel.selectFirst()
         }
