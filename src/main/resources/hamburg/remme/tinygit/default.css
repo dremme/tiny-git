@@ -136,6 +136,13 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 1, 0, 1, 1);
 }
 
+.hyperlink,
+.hyperlink:hover,
+.hyperlink:hover:visited {
+    -fx-padding: 0;
+    -fx-text-fill: derive(-fx-focus-color, 15%);
+}
+
 .git-view > .tool-bar .button {
     -fx-min-width: 48px;
     -fx-content-display: top;
@@ -170,6 +177,16 @@
 
 .settings-view .label {
     -fx-font-weight: bold;
+}
+
+.about-view {
+    -fx-hgap: 0.333em;
+    -fx-vgap: 0.5em;
+}
+
+.about-view .author {
+    -fx-font-weight: bold;
+    -fx-font-size: 1.1em;
 }
 
 .repository-cell {

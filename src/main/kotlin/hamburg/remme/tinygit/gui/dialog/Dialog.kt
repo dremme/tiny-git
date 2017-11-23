@@ -1,10 +1,13 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.gui.addClass
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.Node
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
+import javafx.scene.image.Image
+import javafx.scene.image.ImageView
 import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
@@ -23,12 +26,10 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
         dialog.title = title
         dialog.isResizable = resizable
         dialog.resultConverter = Callback {
-            when (it.buttonData) {
-                ButtonBar.ButtonData.OK_DONE -> okAction.invoke()
-                ButtonBar.ButtonData.CANCEL_CLOSE -> cancelAction.invoke()
-                else -> {
-                    // do nothing
-                }
+            when {
+                it == null -> cancelAction.invoke()
+                it.buttonData == ButtonBar.ButtonData.OK_DONE -> okAction.invoke()
+                it.buttonData == ButtonBar.ButtonData.CANCEL_CLOSE -> cancelAction.invoke()
             }
         }
         dialog.dialogPane.scene.window.focusedProperty().addListener { _, _, it -> if (it) focusAction.invoke() }
@@ -39,9 +40,16 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
         dialog.show()
     }
 
-    fun showAndWait() {
-        State.modalVisible.set(true)
-        dialog.showAndWait()
+    protected fun setHeader(text: String) {
+        dialog.dialogPane.headerText = text
+    }
+
+    protected fun setIcon(icon: Image) {
+        dialog.graphic = ImageView(icon).also {
+            it.isSmooth = true
+            it.fitWidth = 32.0
+            it.fitHeight = 32.0
+        }.addClass("icon")
     }
 
     protected fun setContent(content: Node) {
