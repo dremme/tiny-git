@@ -14,7 +14,7 @@ class StatusCountView(statusView: FileStatusView) : HBox() {
     private val untracked = label(tooltip = "Untracked", icon = FontAwesome.question("#5bc0de"), color = "#5bc0de")
 
     init {
-        styleClass += "status-count-view"
+        addClass("status-count-view")
         children.addAll(conflicting, added, changed, removed, missing, untracked)
         statusView.items.addListener(ListChangeListener { fetchStatus(it.list) })
         fetchStatus(statusView.items)

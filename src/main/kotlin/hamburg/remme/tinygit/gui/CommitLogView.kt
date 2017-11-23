@@ -21,7 +21,7 @@ import javafx.scene.layout.VBox
 import javafx.util.Callback
 import org.eclipse.jgit.api.errors.TransportException
 
-class LogView : Tab() {
+class CommitLogView : Tab() {
 
     private val progressPane: ProgressPane
     private val localCommits = TableView<LocalCommit>()
@@ -50,8 +50,7 @@ class LogView : Tab() {
             it?.let { commitDetails.update(State.selectedRepository, it) }
         }
 
-        val pane = SplitPane()
-        pane.styleClass += "log-view"
+        val pane = SplitPane().addClass("log-view")
         pane.items.addAll(localCommits, commitDetails)
         VBox.setVgrow(pane, Priority.ALWAYS)
 
@@ -139,8 +138,8 @@ class LogView : Tab() {
     private inner class BranchBadge(name: String) : Label(name, FontAwesome.codeFork()) {
 
         init {
-            styleClass += "branch-badge"
-            if (name == this@LogView.head) styleClass += "current"
+            addClass("branch-badge")
+            if (name == this@CommitLogView.head) addClass("current")
         }
 
     }

@@ -239,8 +239,8 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             return HBox(
                     Label(item.value).addStyle("-fx-font-weight:bold"),
                     button(icon = FontAwesome.cog(),
-                            styleClass = "settings",
-                            action = EventHandler { SettingsDialog(item.repository, scene.window).show() }))
+                            action = EventHandler { SettingsDialog(item.repository, scene.window).show() })
+                            .addClass("settings"))
         }
 
         private fun branchBox(item: RepositoryEntry): HBox {

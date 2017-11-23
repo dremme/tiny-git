@@ -68,7 +68,7 @@ fun <T : Node> T.addClass(vararg styleClass: String): T {
 }
 
 fun <T : Node> T.addStyle(style: String): T {
-    this.style += style
+    this.style += style.let { if (!it.endsWith(";")) "$it;" else it }
     return this
 }
 
@@ -99,7 +99,7 @@ fun label(text: String = "",
           tooltip: String? = null): Label {
     val label = Label(text)
     icon?.let { label.graphic = it }
-    color?.let { label.style += "-fx-text-fill:$it;" }
+    color?.let { label.addStyle("-fx-text-fill:$it") }
     tooltip?.let { label.tooltip = Tooltip(it) }
     return label
 }
@@ -108,11 +108,9 @@ fun button(label: String = "",
            icon: Node? = null,
            action: EventHandler<ActionEvent>,
            tooltip: String? = null,
-           disable: ObservableBooleanValue? = null,
-           vararg styleClass: String): Button {
+           disable: ObservableBooleanValue? = null): Button {
     val button = Button(label)
     button.onAction = action
-    button.styleClass += styleClass
     icon?.let { button.graphic = it }
     tooltip?.takeIf { it.isNotBlank() }?.let { button.tooltip = Tooltip(it) }
     disable?.let { button.disableProperty().bind(it) }

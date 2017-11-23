@@ -14,8 +14,11 @@ import javafx.scene.control.SelectionMode
 import javafx.scene.control.SplitPane
 import javafx.scene.control.Tab
 import javafx.scene.control.ToolBar
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
+import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
+import javafx.scene.text.Text
 
 class WorkingCopyView : Tab() {
 
@@ -30,7 +33,12 @@ class WorkingCopyView : Tab() {
     private val stageAll = Action("Stage all", shortcut = "Shortcut+Shift+Plus", disable = State.canStageAll.not(),
             action = EventHandler { stage(State.selectedRepository) })
     private val stageSelected = Action("Stage selected", disable = State.canStageSelected.not(),
-            action = EventHandler { stage(State.selectedRepository, pendingFilesSelection.selectedItems) })
+            action = EventHandler {
+                if (pendingFiles.items.size == pendingFilesSelection.selectedItems.size)
+                    stage(State.selectedRepository)
+                else
+                    stage(State.selectedRepository, pendingFilesSelection.selectedItems)
+            })
 
     private val stagedFiles = FileStatusView(SelectionMode.MULTIPLE)
     private val pendingFiles = FileStatusView(SelectionMode.MULTIPLE)
@@ -68,6 +76,11 @@ class WorkingCopyView : Tab() {
         VBox.setVgrow(stagedFiles, Priority.ALWAYS)
         VBox.setVgrow(pendingFiles, Priority.ALWAYS)
 
+        val info = StackPane(HBox(Text("There is nothing to commit."))
+                .addClass("box"))
+                .addClass("overlay")
+        info.visibleProperty().bind(Bindings.isEmpty(stagedFiles.items).and(Bindings.isEmpty(pendingFiles.items)))
+
         val files = SplitPane(
                 VBox(
                         ToolBar(StatusCountView(stagedFiles),
@@ -82,9 +95,9 @@ class WorkingCopyView : Tab() {
                                 button(stageAll),
                                 button(stageSelected)),
                         pendingFiles))
-        files.styleClass += "files"
+                .addClass("files")
 
-        content = SplitPane(files, fileDiff).addClass("working-copy-view")
+        content = StackPane(SplitPane(files, fileDiff).addClass("working-copy-view"), info)
 
         State.addRepositoryListener {
             it?.let {
@@ -121,17 +134,17 @@ class WorkingCopyView : Tab() {
     }
 
     private fun stage(repository: LocalRepository) {
-        LocalGit.addAll(repository)
+        LocalGit.stageAll(repository, pendingFiles.items.filter { it.status == LocalFile.Status.MISSING })
         diff(repository)
     }
 
     private fun stage(repository: LocalRepository, files: List<LocalFile>) {
-        LocalGit.add(repository, files)
+        LocalGit.stage(repository, files)
         diff(repository)
     }
 
     private fun update(repository: LocalRepository) {
-        LocalGit.addAllUpdate(repository)
+        LocalGit.updateAll(repository)
         diff(repository)
     }
 

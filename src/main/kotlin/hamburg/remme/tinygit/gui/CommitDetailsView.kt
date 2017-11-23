@@ -5,11 +5,15 @@ import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
+import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
 import javafx.scene.control.SplitPane
 import javafx.scene.control.ToolBar
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
+import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
+import javafx.scene.text.Text
 import javafx.scene.web.WebView
 
 class CommitDetailsView : SplitPane() {
@@ -21,14 +25,19 @@ class CommitDetailsView : SplitPane() {
     private var task: Task<*>? = null
 
     init {
-        styleClass += "commit-details-view"
+        addClass("commit-details-view")
 
         val fileDiff = FileDiffView()
         files.selectionModel.selectedItemProperty().addListener { _, _, it ->
             it?.let { fileDiff.update(repository!!, it, commit!!.id) } ?: fileDiff.clear()
         }
 
-        items.addAll(SplitPane(webView, VBox(ToolBar(StatusCountView(files)), files)), fileDiff)
+        val info = StackPane(HBox(Text("This commit has no changes."))
+                .addClass("box"))
+                .addClass("overlay")
+        info.visibleProperty().bind(Bindings.isEmpty(files.items))
+
+        items.addAll(SplitPane(webView, StackPane(VBox(ToolBar(StatusCountView(files)), files), info)), fileDiff)
         clearContent()
     }
 
@@ -63,8 +72,6 @@ class CommitDetailsView : SplitPane() {
                     }
                 </style>
             </head>
-            <body>
-            </body>
             </html>
         """)
     }

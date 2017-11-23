@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.git.LocalCredentials
 import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.gui.FontAwesome
+import hamburg.remme.tinygit.gui.addClass
 import hamburg.remme.tinygit.gui.button
 import hamburg.remme.tinygit.gui.fileChooser
 import hamburg.remme.tinygit.gui.intTextField
@@ -39,8 +40,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
         val port = intTextField(repository.proxyPort ?: 80).also { it.prefColumnCount = 4 }
 
         var row = 0
-        val content = GridPane()
-        content.styleClass += "settings-view"
+        val content = GridPane().addClass("settings-view")
         content.add(Label("Location:"), 0, row)
         content.add(location, 1, row++, 3, 1)
         content.add(Label("Remote:"), 0, row)
