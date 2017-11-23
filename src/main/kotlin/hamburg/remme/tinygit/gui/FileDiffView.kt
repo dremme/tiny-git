@@ -46,27 +46,10 @@ class FileDiffView : StackPane() {
             <head>
                 <style>
                     html, body {
-                        padding: 0;
-                        margin: 0;
-                        width: 100%;
-                        height: 100%;
-                        font: 18px "Roboto", sans-serif;
-                        color: #ccc;
                         background-color: #3c3f41;
-                    }
-                    body {
-                        display: -webkit-flex;
-                        display: flex;
-                        -webkit-justify-content: center;
-                        justify-content: center;
-                        -webkit-align-items: center;
-                        align-items: center;
                     }
                 </style>
             </head>
-            <body>
-                Select a file to view its diff.
-            </body>
             </html>
         """)
     }

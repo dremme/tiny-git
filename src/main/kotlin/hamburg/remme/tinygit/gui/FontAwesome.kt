@@ -32,9 +32,8 @@ object FontAwesome {
     fun undo(color: String? = null) = icon('\uf0e2', color)
 
     private fun icon(glyph: Char, color: String? = null): Node {
-        val icon = Text(glyph.toString())
-        icon.styleClass += "icon"
-        color?.let { icon.style += "-fx-fill:$it;" }
+        val icon = Text(glyph.toString()).addClass("icon")
+        color?.let { icon.addStyle("-fx-fill:$it") }
         return StackPane(icon).also {
             it.minWidth = 14.0
             it.minHeight = 14.0

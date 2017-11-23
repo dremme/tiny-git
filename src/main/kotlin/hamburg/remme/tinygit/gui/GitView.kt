@@ -25,13 +25,25 @@ import java.io.File
 
 class GitView(application: Application) : VBox() {
 
-    init {
-        styleClass += "git-view"
+    private val repositoryView = RepositoryView()
+    private val commitLog = CommitLogView()
+    private val workingCopy = WorkingCopyView()
+    private val tabs = TabPane(commitLog, workingCopy)
 
+    init {
+        addClass("git-view")
+
+        // File
         val addCopy = Action("Add Repository", { FontAwesome.database() }, "Shortcut+O",
                 action = EventHandler { addRepo() })
         val quit = Action("Quit TinyGit",
                 action = EventHandler { Platform.exit() })
+        // View
+        val showCommits = Action("Show Commits", shortcut = "F1",
+                action = EventHandler { tabs.selectionModel.select(commitLog) })
+        val showWorkingCopy = Action("Show Working Copy", shortcut = "F2",
+                action = EventHandler { tabs.selectionModel.select(workingCopy) })
+        // Repository
         val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+Plus", State.canCommit.not(),
                 EventHandler { commit(State.selectedRepository) })
         val push = Action("Push", { FontAwesome.cloudUpload() }, "Shortcut+P", State.canPush.not(),
@@ -58,6 +70,7 @@ class GitView(application: Application) : VBox() {
                 action = EventHandler { /* TODO */ })
         val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
                 action = EventHandler { SettingsDialog(State.selectedRepository, scene.window).show() })
+        // ?
         val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
                 action = EventHandler { application.hostServices.showDocument("https://github.com/deso88/TinyGit") })
         val about = Action("About",
@@ -68,22 +81,21 @@ class GitView(application: Application) : VBox() {
                 FontAwesome.database(),
                 Text(" to add a repository."))
                 .addClass("box"))
-        info.styleClass += "overlay"
+                .addClass("overlay")
         info.visibleProperty().bind(State.showGlobalInfo)
 
         val overlay = StackPane(
                 ProgressIndicator(-1.0),
                 Label().also { it.textProperty().bind(State.processTextProperty()) })
-        overlay.styleClass += "progress-overlay"
+                .addClass("progress-overlay")
         overlay.visibleProperty().bind(State.showGlobalOverlay)
 
-        // TODO: can maybe improve this approach
-        val workingCopy = WorkingCopyView()
-        val content = SplitPane(RepositoryView(), TabPane(LogView(), workingCopy))
+        val content = SplitPane(repositoryView, tabs)
         Platform.runLater { content.setDividerPosition(0, 0.20) }
 
         children.addAll(
                 menuBar(ActionCollection("File", ActionGroup(addCopy), ActionGroup(quit)),
+                        ActionCollection("View", ActionGroup(showCommits, showWorkingCopy)),
                         ActionCollection("Repository",
                                 ActionGroup(commit),
                                 ActionGroup(push, pushForce, pull, fetch, tag),

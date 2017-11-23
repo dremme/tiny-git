@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.git.LocalGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.gui.FileDiffView
 import hamburg.remme.tinygit.gui.FileStatusView
+import hamburg.remme.tinygit.gui.addClass
 import hamburg.remme.tinygit.gui.textArea
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
@@ -42,7 +43,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
         val content = VBox(
                 SplitPane(files, fileDiff).also { VBox.setVgrow(it, Priority.ALWAYS) },
                 message, amend)
-        content.styleClass += "commit-view"
+                .addClass("commit-view")
 
         okAction = {
             if (amend.isSelected) LocalGit.commitAmend(repository, message.text)

@@ -9,7 +9,7 @@ class FileStatusView(selectionMode: SelectionMode = SelectionMode.SINGLE) : List
 
     init {
         setCellFactory { LocalFileListCell() }
-        styleClass += "file-status-view"
+        addClass("file-status-view")
         selectionModel.selectionMode = selectionMode
     }
 

@@ -11,7 +11,7 @@ class ProgressPane(vararg node: Node) : StackPane(*node) {
     private val progress = ProgressBar(-1.0)
 
     init {
-        progress.styleClass += "log-progress"
+        progress.addClass("log-progress")
         progress.maxWidth = Double.MAX_VALUE
         StackPane.setAlignment(progress, Pos.TOP_CENTER)
 

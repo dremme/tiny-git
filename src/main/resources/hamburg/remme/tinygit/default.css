@@ -259,6 +259,10 @@
     -fx-padding: 0;
 }
 
+.commit-details-view .overlay {
+    -fx-font-size: 1.25em;
+}
+
 .branch-badge {
     -fx-padding: 1px 6px 1px 6px;
     -fx-background-color: derive(-fx-accent, 25%), -fx-accent;
