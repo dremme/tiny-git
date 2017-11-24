@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.gui.builder.FontAwesome
 import javafx.scene.Node
 import javafx.scene.control.Alert
 import javafx.scene.control.ButtonType

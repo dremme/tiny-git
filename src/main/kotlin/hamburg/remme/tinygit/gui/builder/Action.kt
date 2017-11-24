@@ -1,4 +1,4 @@
-package hamburg.remme.tinygit.gui
+package hamburg.remme.tinygit.gui.builder
 
 import javafx.beans.value.ObservableBooleanValue
 import javafx.beans.value.ObservableIntegerValue

@@ -2,7 +2,7 @@ package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asResource
-import hamburg.remme.tinygit.gui.FontAwesome
+import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.columnSpan
 import hamburg.remme.tinygit.gui.builder.grid

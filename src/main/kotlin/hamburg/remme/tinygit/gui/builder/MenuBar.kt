@@ -1,7 +1,5 @@
 package hamburg.remme.tinygit.gui.builder
 
-import hamburg.remme.tinygit.gui.ActionCollection
-import hamburg.remme.tinygit.gui.ActionGroup
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuBar
 import javafx.scene.control.MenuItem
