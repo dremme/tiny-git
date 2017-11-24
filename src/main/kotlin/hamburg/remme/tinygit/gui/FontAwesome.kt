@@ -2,8 +2,8 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.addStyle
+import hamburg.remme.tinygit.gui.builder.stackPane
 import javafx.scene.Node
-import javafx.scene.layout.StackPane
 import javafx.scene.text.Text
 
 object FontAwesome {
@@ -38,9 +38,10 @@ object FontAwesome {
     private fun icon(glyph: Char, color: String? = null): Node {
         val icon = Text(glyph.toString()).addClass("icon")
         color?.let { icon.addStyle("-fx-fill:$it") }
-        return StackPane(icon).also {
-            it.minWidth = 14.0
-            it.minHeight = 14.0
+        return stackPane {
+            minWidth = 14.0
+            minHeight = 14.0
+            +icon
         }
     }
 
