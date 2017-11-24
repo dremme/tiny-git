@@ -305,12 +305,13 @@
     -fx-font-size: 2em;
 }
 
-.overlay .box {
-    -fx-alignment: center;
-}
-
+.overlay > *,
 .overlay .box > * {
     -fx-fill: -fx-text-base-color;
+}
+
+.overlay .box {
+    -fx-alignment: center;
 }
 
 .overlay .box > .icon {

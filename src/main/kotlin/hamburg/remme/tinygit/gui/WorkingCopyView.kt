@@ -6,19 +6,19 @@ import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStatus
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.splitPane
+import hamburg.remme.tinygit.gui.builder.stackPane
+import hamburg.remme.tinygit.gui.builder.toolBar
+import hamburg.remme.tinygit.gui.builder.vbox
+import hamburg.remme.tinygit.gui.builder.vgrow
+import hamburg.remme.tinygit.gui.builder.visibleWhen
 import javafx.beans.binding.Bindings
 import javafx.beans.value.ObservableObjectValue
 import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
-import javafx.event.EventHandler
 import javafx.scene.control.SelectionMode
-import javafx.scene.control.SplitPane
 import javafx.scene.control.Tab
-import javafx.scene.control.ToolBar
-import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
-import javafx.scene.layout.StackPane
-import javafx.scene.layout.VBox
 import javafx.scene.text.Text
 
 class WorkingCopyView : Tab() {
@@ -26,23 +26,23 @@ class WorkingCopyView : Tab() {
     val actions: Array<ActionGroup>
         get() = arrayOf(ActionGroup(updateAll, stageAll, stageSelected), ActionGroup(unstageAll, unstageSelected))
     private val unstageAll = Action("Unstage all", shortcut = "Shortcut+Shift+Minus", disable = State.canUnstageAll.not(),
-            action = EventHandler { unstage(State.selectedRepository) })
+            handler = { unstage(State.selectedRepository) })
     private val unstageSelected = Action("Unstage selected", disable = State.canUnstageSelected.not(),
-            action = EventHandler { unstage(State.selectedRepository, stagedFilesSelection.selectedItems) })
+            handler = { unstage(State.selectedRepository, stagedFilesSelection.selectedItems) })
     private val updateAll = Action("Update all", disable = State.canStageAll.not(),
-            action = EventHandler { update(State.selectedRepository) })
+            handler = { update(State.selectedRepository) })
     private val stageAll = Action("Stage all", shortcut = "Shortcut+Shift+Plus", disable = State.canStageAll.not(),
-            action = EventHandler { stage(State.selectedRepository) })
+            handler = { stage(State.selectedRepository) })
     private val stageSelected = Action("Stage selected", disable = State.canStageSelected.not(),
-            action = EventHandler {
+            handler = {
                 if (pendingFiles.items.size == pendingFilesSelection.selectedItems.size)
                     stage(State.selectedRepository)
                 else
                     stage(State.selectedRepository, pendingFilesSelection.selectedItems)
             })
 
-    private val stagedFiles = FileStatusView(SelectionMode.MULTIPLE)
-    private val pendingFiles = FileStatusView(SelectionMode.MULTIPLE)
+    private val stagedFiles = FileStatusView(SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
+    private val pendingFiles = FileStatusView(SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
     private val stagedFilesSelection = stagedFiles.selectionModel
     private val pendingFilesSelection = pendingFiles.selectionModel
     private val selectedFile: ObservableObjectValue<LocalFile>
@@ -74,31 +74,41 @@ class WorkingCopyView : Tab() {
             it?.let { fileDiff.update(State.selectedRepository, it) } ?: fileDiff.clear()
         }
 
-        VBox.setVgrow(stagedFiles, Priority.ALWAYS)
-        VBox.setVgrow(pendingFiles, Priority.ALWAYS)
+        content = stackPane {
+            +splitPane {
+                addClass("working-copy-view")
 
-        val info = StackPane(HBox(Text("There is nothing to commit."))
-                .addClass("box"))
-                .addClass("overlay")
-        info.visibleProperty().bind(Bindings.isEmpty(stagedFiles.items).and(Bindings.isEmpty(pendingFiles.items)))
+                +splitPane {
+                    addClass("files")
 
-        val files = SplitPane(
-                VBox(
-                        ToolBar(StatusCountView(stagedFiles),
-                                _spacer(),
-                                _button(unstageAll),
-                                _button(unstageSelected)),
-                        stagedFiles),
-                VBox(
-                        ToolBar(StatusCountView(pendingFiles),
-                                _spacer(),
-                                _button(updateAll),
-                                _button(stageAll),
-                                _button(stageSelected)),
-                        pendingFiles))
-                .addClass("files")
-
-        content = StackPane(SplitPane(files, fileDiff).addClass("working-copy-view"), info)
+                    +vbox {
+                        +toolBar {
+                            +StatusCountView(stagedFiles)
+                            addSpacer()
+                            +unstageAll
+                            +unstageSelected
+                        }
+                        +stagedFiles
+                    }
+                    +vbox {
+                        +toolBar {
+                            +StatusCountView(pendingFiles)
+                            addSpacer()
+                            +updateAll
+                            +stageAll
+                            +stageSelected
+                        }
+                        +pendingFiles
+                    }
+                }
+                +fileDiff
+            }
+            +stackPane {
+                addClass("overlay")
+                visibleWhen(Bindings.isEmpty(stagedFiles.items).and(Bindings.isEmpty(pendingFiles.items)))
+                +Text("There is nothing to commit.")
+            }
+        }
 
         State.addRepositoryListener {
             it?.let {

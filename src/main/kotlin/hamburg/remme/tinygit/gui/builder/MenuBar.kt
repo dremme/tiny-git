@@ -21,12 +21,12 @@ inline fun menu(block: MenuBuilder.() -> Unit): Menu {
 }
 
 inline fun menuItem(block: MenuItem.() -> Unit): MenuItem {
-    val menu = MenuItem()
-    block.invoke(menu)
-    return menu
+    val item = MenuItem()
+    block.invoke(item)
+    return item
 }
 
-open class MenuBarBuilder : MenuBar() {
+class MenuBarBuilder : MenuBar() {
 
     operator fun Menu.unaryPlus() {
         menus.add(this)
@@ -41,7 +41,7 @@ open class MenuBarBuilder : MenuBar() {
 
 }
 
-open class MenuBuilder : Menu() {
+class MenuBuilder : Menu() {
 
     operator fun MenuItem.unaryPlus() {
         items.add(this)
@@ -53,9 +53,11 @@ open class MenuBuilder : Menu() {
             +menuItem {
                 text = it.text
                 graphic = it.icon.invoke()
-                onAction = it.action
                 it.shortcut?.let { accelerator = KeyCombination.valueOf(it) }
                 it.disable?.let { disableProperty().bind(it) }
+
+                val handler = it.handler
+                setOnAction { handler.invoke() }
             }
         }
     }

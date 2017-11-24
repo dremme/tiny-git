@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.gui.builder.addStyle
+import hamburg.remme.tinygit.gui.builder.disabledWhen
 import javafx.beans.value.ObservableBooleanValue
 import javafx.beans.value.ObservableValue
 import javafx.event.ActionEvent
@@ -19,9 +20,6 @@ import javafx.scene.control.TextFormatter
 import javafx.scene.control.TextInputDialog
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCombination
-import javafx.scene.layout.HBox
-import javafx.scene.layout.Pane
-import javafx.scene.layout.Priority
 import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
 import javafx.stage.Modality
@@ -74,12 +72,8 @@ fun _button(label: String = "",
     button.onAction = action
     icon?.let { button.graphic = it }
     tooltip?.let { if (it.isNotBlank()) button.tooltip = Tooltip(it) }
-    disable?.let { button.disableProperty().bind(it) }
+    disable?.let { button.disabledWhen(it) }
     return button
-}
-
-fun _button(action: Action): Button {
-    return _button(action.text, action.icon.invoke(), action.action, action.shortcut?.keyCombinationText(), action.disable)
 }
 
 fun <S, T> _tableColumn(title: String,
@@ -116,8 +110,6 @@ fun _textArea(value: String = "",
     textArea.isWrapText = true
     return textArea
 }
-
-fun _spacer(): Node = Pane().also { HBox.setHgrow(it, Priority.ALWAYS) }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                                                               *

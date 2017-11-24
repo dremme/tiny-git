@@ -4,8 +4,9 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.StackPane
 
-fun Node.alignment(pos: Pos) {
+fun <T : Node> T.alignment(pos: Pos): T {
     StackPane.setAlignment(this, pos)
+    return this
 }
 
 inline fun stackPane(block: StackPaneBuilder.() -> Unit): StackPane {

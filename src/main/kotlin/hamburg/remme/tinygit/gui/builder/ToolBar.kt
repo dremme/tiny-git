@@ -1,13 +1,15 @@
 package hamburg.remme.tinygit.gui.builder
 
+import hamburg.remme.tinygit.gui.Action
 import hamburg.remme.tinygit.gui.ActionGroup
-import hamburg.remme.tinygit.gui._button
 import javafx.beans.binding.Bindings
 import javafx.beans.value.ObservableIntegerValue
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Separator
 import javafx.scene.control.ToolBar
+import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority
 
 inline fun toolBar(block: ToolBarBuilder.() -> Unit): ToolBar {
     val toolBar = ToolBarBuilder()
@@ -15,23 +17,30 @@ inline fun toolBar(block: ToolBarBuilder.() -> Unit): ToolBar {
     return toolBar
 }
 
-open class ToolBarBuilder : ToolBar() {
+class ToolBarBuilder : ToolBar() {
+
+    fun addSpacer() {
+        +Pane().hgrow(Priority.ALWAYS)
+    }
 
     operator fun Node.unaryPlus() {
         items.add(this)
+    }
+
+    operator fun Action.unaryPlus() {
+        +button(this)
     }
 
     operator fun ActionGroup.unaryPlus() {
         if (items.isNotEmpty()) +Separator()
         action.forEach {
             +stackPane {
-                +_button(it)
+                +button(it)
                 if (it.count != null) +label {
                     addClass("count-badge")
                     alignment(Pos.TOP_RIGHT)
-
+                    visibleWhen(Bindings.notEqual(0, it.count))
                     textProperty().bind(badge(it.count))
-                    visibleProperty().bind(Bindings.notEqual(0, it.count))
                 }
             }
         }

@@ -1,11 +1,11 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.git.LocalFile
+import hamburg.remme.tinygit.gui.builder.HBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.collections.ListChangeListener
-import javafx.scene.layout.HBox
 
-class StatusCountView(statusView: FileStatusView) : HBox() {
+class StatusCountView(statusView: FileStatusView) : HBoxBuilder() {
 
     private val conflicting = _label(tooltip = "Conflicting", icon = FontAwesome.exclamationTriangle("#d9534f"), color = "#d9534f")
     private val added = _label(tooltip = "Added", icon = FontAwesome.plus("#5cb85c"), color = "#5cb85c")
@@ -16,7 +16,6 @@ class StatusCountView(statusView: FileStatusView) : HBox() {
 
     init {
         addClass("status-count-view")
-        children.addAll(conflicting, added, changed, removed, missing, untracked)
         statusView.items.addListener(ListChangeListener { fetchStatus(it.list) })
         fetchStatus(statusView.items)
     }
@@ -30,29 +29,32 @@ class StatusCountView(statusView: FileStatusView) : HBox() {
         val missingCount = counts[LocalFile.Status.MISSING] ?: 0
         val untrackedCount = counts[LocalFile.Status.UNTRACKED] ?: 0
 
-        if (conflictingCount == 0) children -= conflicting
-        else if (!children.contains(conflicting)) children += conflicting
-        conflicting.text = conflictingCount.toString()
+        children.clear()
 
-        if (addedCount == 0) children -= added
-        else if (!children.contains(added)) children += added
-        added.text = addedCount.toString()
-
-        if (changedCount == 0) children -= changed
-        else if (!children.contains(changed)) children += changed
-        changed.text = changedCount.toString()
-
-        if (removedCount == 0) children -= removed
-        else if (!children.contains(removed)) children += removed
-        removed.text = removedCount.toString()
-
-        if (missingCount == 0) children -= missing
-        else if (!children.contains(missing)) children += missing
-        missing.text = missingCount.toString()
-
-        if (untrackedCount == 0) children -= untracked
-        else if (!children.contains(untracked)) children += untracked
-        untracked.text = untrackedCount.toString()
+        if (conflictingCount > 0) {
+            conflicting.text = conflictingCount.toString()
+            +conflicting
+        }
+        if (addedCount > 0) {
+            added.text = addedCount.toString()
+            +added
+        }
+        if (changedCount > 0) {
+            changed.text = changedCount.toString()
+            +changed
+        }
+        if (removedCount > 0) {
+            removed.text = removedCount.toString()
+            +removed
+        }
+        if (missingCount > 0) {
+            missing.text = missingCount.toString()
+            +missing
+        }
+        if (untrackedCount > 0) {
+            untracked.text = untrackedCount.toString()
+            +untracked
+        }
     }
 
 }
