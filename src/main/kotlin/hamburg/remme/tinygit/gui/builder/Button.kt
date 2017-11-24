@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit.gui.builder
 
-import hamburg.remme.tinygit.gui.Action
 import hamburg.remme.tinygit.gui.keyCombinationText
 import javafx.scene.control.Button
 import javafx.scene.control.Hyperlink

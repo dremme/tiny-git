@@ -5,6 +5,10 @@ import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.git.api.PushRejectedException
+import hamburg.remme.tinygit.gui.builder.Action
+import hamburg.remme.tinygit.gui.builder.ActionCollection
+import hamburg.remme.tinygit.gui.builder.ActionGroup
+import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.flipXY

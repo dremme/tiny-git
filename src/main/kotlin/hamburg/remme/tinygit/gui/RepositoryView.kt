@@ -6,6 +6,7 @@ import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStashEntry
 import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.addStyle
 import hamburg.remme.tinygit.gui.builder.button

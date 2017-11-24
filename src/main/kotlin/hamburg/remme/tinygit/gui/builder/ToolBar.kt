@@ -1,7 +1,5 @@
 package hamburg.remme.tinygit.gui.builder
 
-import hamburg.remme.tinygit.gui.Action
-import hamburg.remme.tinygit.gui.ActionGroup
 import javafx.beans.binding.Bindings
 import javafx.beans.value.ObservableIntegerValue
 import javafx.geometry.Pos

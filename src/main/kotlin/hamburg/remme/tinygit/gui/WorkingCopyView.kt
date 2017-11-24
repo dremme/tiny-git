@@ -5,6 +5,9 @@ import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStatus
 import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.gui.builder.Action
+import hamburg.remme.tinygit.gui.builder.ActionGroup
+import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
