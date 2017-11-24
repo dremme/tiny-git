@@ -3,19 +3,22 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
-import javafx.scene.layout.StackPane
-import javafx.scene.web.WebView
+import hamburg.remme.tinygit.gui.builder.StackPaneBuilder
+import hamburg.remme.tinygit.gui.builder.webView
+import javafx.scene.web.WebEngine
 
-class FileDiffView : StackPane() {
+class FileDiffView : StackPaneBuilder() {
 
-    private val webView = WebView()
+    private val fileDiff: WebEngine
 
     init {
-        webView.isContextMenuEnabled = false
-        webView.prefWidth = 400.0
-        webView.prefHeight = 300.0
-
-        children += webView
+        val webView = webView {
+            isContextMenuEnabled = false
+            prefWidth = 400.0
+            prefHeight = 300.0
+        }
+        fileDiff = webView.engine
+        +webView
         clearContent()
     }
 
@@ -41,7 +44,7 @@ class FileDiffView : StackPane() {
 
     private fun clearContent() {
         //language=HTML
-        webView.engine.loadContent("""
+        fileDiff.loadContent("""
             <html>
             <head>
                 <style>
@@ -56,7 +59,7 @@ class FileDiffView : StackPane() {
 
     private fun setContent(diff: String, file: String? = null) {
         //language=HTML
-        webView.engine.loadContent("""
+        fileDiff.loadContent("""
             <html>
             <head>
                 <style>

@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.disabledWhen
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.Node
 import javafx.scene.control.ButtonBar
@@ -61,7 +62,7 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
     }
 
     protected fun setButtonBinding(button: ButtonType, disable: ObservableBooleanValue) {
-        dialog.dialogPane.lookupButton(button).disableProperty().bind(disable)
+        dialog.dialogPane.lookupButton(button).disabledWhen(disable)
     }
 
 }

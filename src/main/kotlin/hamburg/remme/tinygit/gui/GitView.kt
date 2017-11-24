@@ -16,12 +16,12 @@ import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vgrow
+import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.dialog.AboutDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
 import javafx.concurrent.Task
-import javafx.event.EventHandler
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
@@ -42,46 +42,46 @@ class GitView : VBoxBuilder() {
 
         // File
         val addCopy = Action("Add Repository", { FontAwesome.database() }, "Shortcut+O",
-                action = EventHandler { addRepo() })
+                handler = { addRepo() })
         val quit = Action("Quit TinyGit",
-                action = EventHandler { Platform.exit() })
+                handler = { Platform.exit() })
         // View
         val showCommits = Action("Show Commits", shortcut = "F1",
-                action = EventHandler { tabs.selectionModel.select(commitLog) })
+                handler = { tabs.selectionModel.select(commitLog) })
         val showWorkingCopy = Action("Show Working Copy", shortcut = "F2",
-                action = EventHandler { tabs.selectionModel.select(workingCopy) })
+                handler = { tabs.selectionModel.select(workingCopy) })
         // Repository
         val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+Plus", State.canCommit.not(),
-                EventHandler { commit(State.selectedRepository) })
+                { commit(State.selectedRepository) })
         val push = Action("Push", { FontAwesome.cloudUpload() }, "Shortcut+P", State.canPush.not(),
-                EventHandler { push(State.selectedRepository, false) }, State.aheadProperty())
+                { push(State.selectedRepository, false) }, State.aheadProperty())
         val pushForce = Action("Force Push", { FontAwesome.cloudUpload() }, "Shortcut+Shift+P", State.canPush.not(),
-                EventHandler { push(State.selectedRepository, true) })
+                { push(State.selectedRepository, true) })
         val pull = Action("Pull", { FontAwesome.cloudDownload() }, "Shortcut+L", State.canPull.not(),
-                EventHandler { pull(State.selectedRepository) }, State.behindProperty())
+                { pull(State.selectedRepository) }, State.behindProperty())
         val fetch = Action("Fetch", { FontAwesome.refresh() }, "Shortcut+F", State.canFetch.not(),
-                EventHandler { fetch(State.selectedRepository) })
+                { fetch(State.selectedRepository) })
         val tag = Action("Tag", { FontAwesome.tag() }, "Shortcut+T", State.canTag.not(),
-                action = EventHandler { /* TODO */ })
+                handler = { /* TODO */ })
         val branch = Action("Branch", { FontAwesome.codeFork() }, "Shortcut+B", State.canBranch.not(),
-                EventHandler { createBranch(State.selectedRepository) })
+                { createBranch(State.selectedRepository) })
         val merge = Action("Merge", { FontAwesome.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
-                action = EventHandler { /* TODO */ })
+                handler = { /* TODO */ })
         val stash = Action("Stash", { FontAwesome.cube() }, "Shortcut+S", State.canStash.not(),
-                EventHandler { stash(State.selectedRepository) })
+                { stash(State.selectedRepository) })
         val stashPop = Action("Pop Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
-                EventHandler { stashPop(State.selectedRepository) })
+                { stashPop(State.selectedRepository) })
         val reset = Action("Auto Reset", { FontAwesome.undo() }, disable = State.canReset.not(),
-                action = EventHandler { /* TODO */ })
+                handler = { /* TODO */ })
         val squash = Action("Auto Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
-                action = EventHandler { /* TODO */ })
+                handler = { /* TODO */ })
         val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
-                action = EventHandler { SettingsDialog(State.selectedRepository, scene.window).show() })
+                handler = { SettingsDialog(State.selectedRepository, scene.window).show() })
         // ?
         val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
-                action = EventHandler { TinyGit.show("https://github.com/deso88/TinyGit") })
+                handler = { TinyGit.show("https://github.com/deso88/TinyGit") })
         val about = Action("About",
-                action = EventHandler { AboutDialog(scene.window).show() })
+                handler = { AboutDialog(scene.window).show() })
 
         +menuBar {
             isUseSystemMenuBar = true
@@ -98,7 +98,6 @@ class GitView : VBoxBuilder() {
             +ActionCollection("Actions", *workingCopy.actions)
             +ActionCollection("?", ActionGroup(github, about))
         }
-
         +toolBar {
             +ActionGroup(addCopy)
             +ActionGroup(commit, push, pull, fetch, tag)
@@ -106,7 +105,6 @@ class GitView : VBoxBuilder() {
             +ActionGroup(stash, stashPop)
             +ActionGroup(reset, squash)
         }
-
         +stackPane {
             vgrow(Priority.ALWAYS)
 
@@ -118,7 +116,7 @@ class GitView : VBoxBuilder() {
             }
             +stackPane {
                 addClass("overlay")
-                visibleProperty().bind(State.showGlobalInfo)
+                visibleWhen(State.showGlobalInfo)
 
                 +hbox {
                     addClass("box")
@@ -130,7 +128,7 @@ class GitView : VBoxBuilder() {
             }
             +stackPane {
                 addClass("progress-overlay")
-                visibleProperty().bind(State.showGlobalOverlay)
+                visibleWhen(State.showGlobalOverlay)
 
                 +ProgressIndicator(-1.0)
                 +label { textProperty().bind(State.processTextProperty()) }

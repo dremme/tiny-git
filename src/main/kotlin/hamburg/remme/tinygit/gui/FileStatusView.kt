@@ -9,8 +9,8 @@ import javafx.scene.control.SelectionMode
 class FileStatusView(selectionMode: SelectionMode = SelectionMode.SINGLE) : ListView<LocalFile>() {
 
     init {
-        setCellFactory { LocalFileListCell() }
         addClass("file-status-view")
+        setCellFactory { LocalFileListCell() }
         selectionModel.selectionMode = selectionMode
     }
 

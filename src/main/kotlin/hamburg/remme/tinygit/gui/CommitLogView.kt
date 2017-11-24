@@ -6,20 +6,20 @@ import hamburg.remme.tinygit.git.LocalDivergence
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.column
+import hamburg.remme.tinygit.gui.builder.hbox
+import hamburg.remme.tinygit.gui.builder.splitPane
+import hamburg.remme.tinygit.gui.builder.vgrow
 import javafx.application.Platform
 import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.concurrent.Task
 import javafx.concurrent.Worker
 import javafx.scene.control.Label
-import javafx.scene.control.SplitPane
 import javafx.scene.control.Tab
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
-import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
-import javafx.scene.layout.VBox
-import javafx.util.Callback
 import org.eclipse.jgit.api.errors.TransportException
 
 class CommitLogView : Tab() {
@@ -35,15 +35,23 @@ class CommitLogView : Tab() {
         graphic = FontAwesome.list()
         isClosable = false
 
-        val message = _tableColumn<LocalCommit, LocalCommit>("Message",
-                cellValue = Callback { ReadOnlyObjectWrapper(it.value) },
-                cellFactory = Callback { LogMessageTableCell() })
-        val date = _tableColumn<LocalCommit, String>("Date",
-                cellValue = Callback { ReadOnlyStringWrapper(it.value.date.format(shortDate)) })
-        val author = _tableColumn<LocalCommit, String>("Author",
-                cellValue = Callback { ReadOnlyStringWrapper(it.value.author) })
-        val commit = _tableColumn<LocalCommit, String>("Commit",
-                cellValue = Callback { ReadOnlyStringWrapper(it.value.shortId) })
+        val message = column<LocalCommit, LocalCommit> {
+            text = "Message"
+            setCellValueFactory { ReadOnlyObjectWrapper(it.value) }
+            setCellFactory { LogMessageTableCell() }
+        }
+        val date = column<LocalCommit, String> {
+            text = "Date"
+            setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(shortDate)) }
+        }
+        val author = column<LocalCommit, String> {
+            text = "Author"
+            setCellValueFactory { ReadOnlyStringWrapper(it.value.author) }
+        }
+        val commit = column<LocalCommit, String> {
+            text = "Commit"
+            setCellValueFactory { ReadOnlyStringWrapper(it.value.shortId) }
+        }
 
         localCommits.columns.addAll(message, date, author, commit)
         localCommits.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
@@ -51,11 +59,12 @@ class CommitLogView : Tab() {
             it?.let { commitDetails.update(State.selectedRepository, it) }
         }
 
-        val pane = SplitPane().addClass("log-view")
-        pane.items.addAll(localCommits, commitDetails)
-        VBox.setVgrow(pane, Priority.ALWAYS)
-
-        progressPane = ProgressPane(pane)
+        progressPane = ProgressPane(splitPane {
+            addClass("log-view")
+            vgrow(Priority.ALWAYS)
+            +localCommits
+            +commitDetails
+        })
         content = progressPane
 
         State.addRepositoryListener { it?.let { logQuick(it) } }
@@ -129,7 +138,10 @@ class CommitLogView : Tab() {
             text = item?.shortMessage
             graphic = if (empty) null else {
                 if (item!!.branches.isNotEmpty()) {
-                    HBox(4.0, *item.branches.map { BranchBadge(it.shortRef) }.toTypedArray())
+                    hbox {
+                        spacing = 4.0
+                        item.branches.forEach { +BranchBadge(it.shortRef) }
+                    }
                 } else null
             }
         }

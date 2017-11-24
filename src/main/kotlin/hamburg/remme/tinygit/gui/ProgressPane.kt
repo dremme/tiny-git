@@ -1,22 +1,24 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.gui.builder.StackPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.alignment
+import hamburg.remme.tinygit.gui.builder.progressBar
 import javafx.geometry.Pos
 import javafx.scene.Node
-import javafx.scene.control.ProgressBar
-import javafx.scene.layout.StackPane
 
 // TODO: move task handling here aswell?
-class ProgressPane(vararg node: Node) : StackPane(*node) {
+class ProgressPane(vararg node: Node) : StackPaneBuilder() {
 
-    private val progress = ProgressBar(-1.0)
+    private val progress = progressBar {
+        addClass("log-progress")
+        alignment(Pos.TOP_CENTER)
+        maxWidth = Double.MAX_VALUE
+    }
 
     init {
-        progress.addClass("log-progress")
-        progress.maxWidth = Double.MAX_VALUE
-        StackPane.setAlignment(progress, Pos.TOP_CENTER)
-
-        children += progress
+        node.forEach { +it }
+        +progress
     }
 
     fun showProgress() {

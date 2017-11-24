@@ -8,19 +8,21 @@ import hamburg.remme.tinygit.git.LocalStashEntry
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.addStyle
+import hamburg.remme.tinygit.gui.builder.button
+import hamburg.remme.tinygit.gui.builder.hbox
+import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
-import javafx.event.EventHandler
+import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
-import javafx.scene.layout.HBox
 import org.eclipse.jgit.api.errors.CheckoutConflictException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 
@@ -186,7 +188,9 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         })
     }
 
-    class RepositoryEntry(val repository: LocalRepository, val value: String, val type: RepositoryEntryType) {
+    inner class RepositoryEntry(val repository: LocalRepository, val value: String, val type: RepositoryEntryType) {
+
+        fun isHead() = value == headCache[repository.path]
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -224,32 +228,42 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             super.updateItem(item, empty)
             graphic = if (empty) null else {
                 when (item!!.type) {
-                    RepositoryEntryType.REPOSITORY -> repositoryBox(item)
-                    RepositoryEntryType.LOCAL -> HBox(FontAwesome.desktop(), Label(item.value))
-                    RepositoryEntryType.REMOTE -> HBox(FontAwesome.cloud(), Label(item.value))
-                    RepositoryEntryType.LOCAL_BRANCH -> branchBox(item)
-                    RepositoryEntryType.REMOTE_BRANCH -> HBox(FontAwesome.codeFork(), Label(item.value))
-                    RepositoryEntryType.TAGS -> HBox(FontAwesome.tags(), Label(item.value))
-                    RepositoryEntryType.TAG -> HBox(FontAwesome.tag(), Label(item.value))
-                    RepositoryEntryType.STASH -> HBox(FontAwesome.cubes(), Label(item.value))
-                    RepositoryEntryType.STASH_ENTRY -> HBox(FontAwesome.cube(), Label(item.value))
+                    RepositoryEntryType.REPOSITORY -> repoItem(item)
+                    RepositoryEntryType.LOCAL -> item(FontAwesome.desktop(), item.value)
+                    RepositoryEntryType.REMOTE -> item(FontAwesome.cloud(), item.value)
+                    RepositoryEntryType.LOCAL_BRANCH -> branchItem(item)
+                    RepositoryEntryType.REMOTE_BRANCH -> item(FontAwesome.codeFork(), item.value)
+                    RepositoryEntryType.TAGS -> item(FontAwesome.tags(), item.value)
+                    RepositoryEntryType.TAG -> item(FontAwesome.tag(), item.value)
+                    RepositoryEntryType.STASH -> item(FontAwesome.cubes(), item.value)
+                    RepositoryEntryType.STASH_ENTRY -> item(FontAwesome.cube(), item.value)
                 }.addClass("repository-cell")
             }
         }
 
-        private fun repositoryBox(item: RepositoryEntry): HBox {
-            return HBox(
-                    Label(item.value).addStyle("-fx-font-weight:bold"),
-                    _button(icon = FontAwesome.cog(),
-                            action = EventHandler { SettingsDialog(item.repository, scene.window).show() })
-                            .addClass("settings"))
+        private fun item(icon: Node, value: String) = hbox {
+            +icon
+            +Label(value)
         }
 
-        private fun branchBox(item: RepositoryEntry): HBox {
-            return if (item.value == this@RepositoryView.headCache[item.repository.path]) {
-                HBox(FontAwesome.codeFork(), Label(item.value), FontAwesome.check()).addClass("current")
-            } else {
-                HBox(FontAwesome.codeFork(), Label(item.value))
+        private fun repoItem(item: RepositoryEntry) = hbox {
+            +label {
+                addStyle("-fx-font-weight:bold")
+                text = item.value
+            }
+            +button {
+                addClass("settings")
+                graphic = FontAwesome.cog()
+                setOnAction { SettingsDialog(item.repository, scene.window).show() }
+            }
+        }
+
+        private fun branchItem(item: RepositoryEntry) = hbox {
+            +FontAwesome.codeFork()
+            +Label(item.value)
+            if (item.isHead()) {
+                addClass("current")
+                +FontAwesome.check()
             }
         }
 

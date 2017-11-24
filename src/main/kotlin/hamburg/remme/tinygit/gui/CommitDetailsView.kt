@@ -5,22 +5,25 @@ import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.gui.builder.SplitPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.splitPane
+import hamburg.remme.tinygit.gui.builder.stackPane
+import hamburg.remme.tinygit.gui.builder.vbox
+import hamburg.remme.tinygit.gui.builder.vgrow
+import hamburg.remme.tinygit.gui.builder.visibleWhen
+import hamburg.remme.tinygit.gui.builder.webView
 import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
-import javafx.scene.control.SplitPane
 import javafx.scene.control.ToolBar
-import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
-import javafx.scene.layout.StackPane
-import javafx.scene.layout.VBox
 import javafx.scene.text.Text
-import javafx.scene.web.WebView
+import javafx.scene.web.WebEngine
 
-class CommitDetailsView : SplitPane() {
+class CommitDetailsView : SplitPaneBuilder() {
 
-    private val files = FileStatusView().also { VBox.setVgrow(it, Priority.ALWAYS) }
-    private val webView = WebView().also { it.isContextMenuEnabled = false }
+    private val files = FileStatusView().vgrow(Priority.ALWAYS)
+    private val details: WebEngine
     private var repository: LocalRepository? = null
     private var commit: LocalCommit? = null
     private var task: Task<*>? = null
@@ -33,12 +36,24 @@ class CommitDetailsView : SplitPane() {
             it?.let { fileDiff.update(repository!!, it, commit!!.id) } ?: fileDiff.clear()
         }
 
-        val info = StackPane(HBox(Text("This commit has no changes."))
-                .addClass("box"))
-                .addClass("overlay")
-        info.visibleProperty().bind(Bindings.isEmpty(files.items))
+        val webView = webView { isContextMenuEnabled = false }
+        details = webView.engine
 
-        items.addAll(SplitPane(webView, StackPane(VBox(ToolBar(StatusCountView(files)), files), info)), fileDiff)
+        +splitPane {
+            +webView
+            +stackPane {
+                +vbox {
+                    +ToolBar(StatusCountView(files))
+                    +files
+                }
+                +stackPane {
+                    addClass("overlay")
+                    visibleWhen(Bindings.isEmpty(files.items))
+                    +Text("This commit has no changes.")
+                }
+            }
+        }
+        +fileDiff
         clearContent()
     }
 
@@ -64,7 +79,7 @@ class CommitDetailsView : SplitPane() {
 
     private fun clearContent() {
         //language=HTML
-        webView.engine.loadContent("""
+        details.loadContent("""
             <html>
             <head>
                 <style>
@@ -79,7 +94,7 @@ class CommitDetailsView : SplitPane() {
 
     private fun setContent(commit: LocalCommit) {
         //language=HTML
-        webView.engine.loadContent("""
+        details.loadContent("""
             <html>
             <head>
                 <style>
