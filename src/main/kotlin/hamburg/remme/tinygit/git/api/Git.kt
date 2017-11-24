@@ -498,8 +498,8 @@ object Git {
     }
 
     private fun <T> LocalRepository.open(block: Repository.() -> T): T {
-        Git.proxyHost.set(proxyHost ?: "")
-        Git.proxyPort.set(proxyPort ?: 80)
+        Git.proxyHost.set(proxyHost)
+        Git.proxyPort.set(proxyPort)
         return FileRepositoryBuilder().setGitDir(File("$path/.git")).build().use(block)
     }
 

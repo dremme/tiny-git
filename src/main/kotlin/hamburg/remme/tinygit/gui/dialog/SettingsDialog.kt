@@ -51,10 +51,10 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
             columnSpan(3)
             text = repository.password
         }
-        val host = textField { text = repository.proxyHost ?: "" }
+        val host = textField { text = repository.proxyHost }
         val port = textField {
             prefColumnCount = 4
-            intFormatter(repository.proxyPort ?: 80)
+            intFormatter(repository.proxyPort)
         }
 
         okAction = {

@@ -5,8 +5,8 @@ class LocalRepository(var path: String = "") {
     var ssh: String = ""
     var username: String = ""
     var password: String = ""
-    var proxyHost: String? = null // TODO: should not be nullable
-    var proxyPort: Int? = 80 // TODO: should not be nullable
+    var proxyHost: String = ""
+    var proxyPort: Int = 80
 
     override fun toString() = path
 
