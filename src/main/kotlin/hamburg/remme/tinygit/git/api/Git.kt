@@ -213,30 +213,28 @@ object Git {
         return diff(repository, file, true)
     }
 
+    /**
+     * - git diff --unified=<[lines]> --[cached] <[file]>
+     */
     // TODO: does not work with renames
     private fun diff(repository: LocalRepository, file: LocalFile, cached: Boolean, lines: Int = -1): String {
         return repository.open {
             ByteArrayOutputStream().use {
-                git().diff()
-                        .setCached(cached)
-                        .setPathFilter(PathFilter.create(file.path))
-                        .setContextLines(lines)
-                        .setOutputStream(it)
-                        .call()
+                git().diff().setCached(cached).setPathFilter(PathFilter.create(file.path)).setContextLines(lines).setOutputStream(it).call()
                 it.toString("UTF-8")
             }
         }
     }
 
     /**
-     * - git diff <[id]> <parent-id> <[file]>
+     * - git diff --unified=<[lines]> <[id]> <parent-id> <[file]>
      */
     // TODO: does not work with renames
-    fun diff(repository: LocalRepository, file: LocalFile, id: String): String {
+    fun diff(repository: LocalRepository, file: LocalFile, id: String, lines: Int = -1): String {
         return repository.open {
             val (newTree, oldTree) = newObjectReader().treesOf(ObjectId.fromString(id))
             ByteArrayOutputStream().use {
-                git().diff().setPathFilter(PathFilter.create(file.path)).setNewTree(newTree).setOldTree(oldTree).setOutputStream(it).call()
+                git().diff().setPathFilter(PathFilter.create(file.path)).setNewTree(newTree).setOldTree(oldTree).setContextLines(lines).setOutputStream(it).call()
                 it.toString("UTF-8")
             }
         }

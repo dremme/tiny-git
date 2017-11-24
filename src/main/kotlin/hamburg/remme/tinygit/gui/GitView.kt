@@ -85,7 +85,6 @@ class GitView : VBoxBuilder() {
 
         +menuBar {
             isUseSystemMenuBar = true
-
             +ActionCollection("File", ActionGroup(addCopy), ActionGroup(quit))
             +ActionCollection("View", ActionGroup(showCommits, showWorkingCopy))
             +ActionCollection("Repository",
@@ -107,20 +106,16 @@ class GitView : VBoxBuilder() {
         }
         +stackPane {
             vgrow(Priority.ALWAYS)
-
             +splitPane {
                 Platform.runLater { setDividerPosition(0, 0.20) }
-
                 +repositoryView
                 +tabs
             }
             +stackPane {
                 addClass("overlay")
                 visibleWhen(State.showGlobalInfo)
-
                 +hbox {
                     addClass("box")
-
                     +Text("Click ")
                     +FontAwesome.database()
                     +Text(" to add a repository.")
@@ -129,7 +124,6 @@ class GitView : VBoxBuilder() {
             +stackPane {
                 addClass("progress-overlay")
                 visibleWhen(State.showGlobalOverlay)
-
                 +ProgressIndicator(-1.0)
                 +label { textProperty().bind(State.processTextProperty()) }
             }
@@ -137,7 +131,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun addRepo() {
-        directoryChooser(scene.window, "Add Repository")?.let {
+        directoryChooser(scene.window, "Add Repository") {
             if (File("${it.absolutePath}/.git").exists()) {
                 val repository = LocalRepository(it.absolutePath)
                 if (State.repositories.none { it.path == repository.path }) {
@@ -217,7 +211,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun createBranch(repository: LocalRepository) {
-        textInputDialog(scene.window, FontAwesome.codeFork())?.let { name ->
+        textInputDialog(scene.window, FontAwesome.codeFork()) { name ->
             State.addProcess("Branching...")
             State.execute(object : Task<Unit>() {
                 override fun call() = Git.branchCreate(repository, name)

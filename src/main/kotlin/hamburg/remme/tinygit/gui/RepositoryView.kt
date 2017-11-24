@@ -190,7 +190,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     inner class RepositoryEntry(val repository: LocalRepository, val value: String, val type: RepositoryEntryType) {
 
-        fun isHead() = value == headCache[repository.path]
+        val isHead: Boolean get() = value == headCache[repository.path]
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -261,7 +261,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         private fun branchItem(item: RepositoryEntry) = hbox {
             +FontAwesome.codeFork()
             +Label(item.value)
-            if (item.isHead()) {
+            if (item.isHead) {
                 addClass("current")
                 +FontAwesome.check()
             }

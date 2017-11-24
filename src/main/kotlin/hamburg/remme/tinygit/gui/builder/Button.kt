@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.gui.builder
 import hamburg.remme.tinygit.gui.Action
 import hamburg.remme.tinygit.gui.keyCombinationText
 import javafx.scene.control.Button
+import javafx.scene.control.Hyperlink
 import javafx.scene.control.Tooltip
 
 fun button(action: Action) = button {
@@ -17,4 +18,10 @@ inline fun button(block: Button.() -> Unit): Button {
     val button = Button()
     block.invoke(button)
     return button
+}
+
+inline fun link(block: Hyperlink.() -> Unit): Hyperlink {
+    val link = Hyperlink()
+    block.invoke(link)
+    return link
 }

@@ -3,12 +3,12 @@ package hamburg.remme.tinygit.gui.dialog
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.disabledWhen
+import hamburg.remme.tinygit.gui.builder.image
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.Node
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
 import javafx.scene.image.Image
-import javafx.scene.image.ImageView
 import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
@@ -46,11 +46,13 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
     }
 
     protected fun setIcon(icon: Image) {
-        dialog.graphic = ImageView(icon).also {
-            it.isSmooth = true
-            it.fitWidth = 32.0
-            it.fitHeight = 32.0
-        }.addClass("icon")
+        dialog.graphic = image {
+            addClass("icon")
+            image = icon
+            isSmooth = true
+            fitWidth = 32.0
+            fitHeight = 32.0
+        }
     }
 
     protected fun setContent(content: Node) {

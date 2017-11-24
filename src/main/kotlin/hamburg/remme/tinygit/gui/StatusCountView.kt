@@ -3,16 +3,43 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.gui.builder.HBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.addStyle
+import hamburg.remme.tinygit.gui.builder.label
 import javafx.collections.ListChangeListener
+import javafx.scene.control.Tooltip
 
 class StatusCountView(statusView: FileStatusView) : HBoxBuilder() {
 
-    private val conflicting = _label(tooltip = "Conflicting", icon = FontAwesome.exclamationTriangle("#d9534f"), color = "#d9534f")
-    private val added = _label(tooltip = "Added", icon = FontAwesome.plus("#5cb85c"), color = "#5cb85c")
-    private val changed = _label(tooltip = "Changed", icon = FontAwesome.pencil("#f0ad4e"), color = "#f0ad4e")
-    private val removed = _label(tooltip = "Removed", icon = FontAwesome.minus("#d9534f"), color = "#d9534f")
-    private val missing = _label(tooltip = "Missing", icon = FontAwesome.minus("#999"), color = "#999")
-    private val untracked = _label(tooltip = "Untracked", icon = FontAwesome.question("#5bc0de"), color = "#5bc0de")
+    private val conflicting = label {
+        addStyle("-fx-text-color:#d9534f")
+        graphic = FontAwesome.exclamationTriangle("#d9534f")
+        tooltip = Tooltip("Conflicting")
+    }
+    private val added = label {
+        addStyle("-fx-text-color:#5cb85c")
+        graphic = FontAwesome.plus("#5cb85c")
+        tooltip = Tooltip("Added")
+    }
+    private val changed = label {
+        addStyle("-fx-text-color:#f0ad4e")
+        graphic = FontAwesome.pencil("#f0ad4e")
+        tooltip = Tooltip("Changed")
+    }
+    private val removed = label {
+        addStyle("-fx-text-color:#d9534f")
+        graphic = FontAwesome.minus("#d9534f")
+        tooltip = Tooltip("Removed")
+    }
+    private val missing = label {
+        addStyle("-fx-text-color:#999")
+        graphic = FontAwesome.minus("#999")
+        tooltip = Tooltip("Missing")
+    }
+    private val untracked = label {
+        addStyle("-fx-text-color:#5bc0de")
+        graphic = FontAwesome.question("#5bc0de")
+        tooltip = Tooltip("Untracked")
+    }
 
     init {
         addClass("status-count-view")

@@ -4,34 +4,35 @@ import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asResource
 import hamburg.remme.tinygit.gui.FontAwesome
 import hamburg.remme.tinygit.gui.builder.addClass
-import javafx.event.EventHandler
+import hamburg.remme.tinygit.gui.builder.columnSpan
+import hamburg.remme.tinygit.gui.builder.grid
+import hamburg.remme.tinygit.gui.builder.label
+import hamburg.remme.tinygit.gui.builder.link
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
-import javafx.scene.control.Hyperlink
 import javafx.scene.control.Label
 import javafx.scene.image.Image
-import javafx.scene.layout.GridPane
 import javafx.stage.Window
 
 class AboutDialog(window: Window) : Dialog(window, "About") {
 
     init {
-        val ok = ButtonType("Done", ButtonBar.ButtonData.OK_DONE)
-
-        var row = 0
-        val content = GridPane().addClass("about-view")
-        content.add(Label("Dennis Remme").addClass("author"), 0, row++, 2, 1)
-        content.add(FontAwesome.envelope(), 0, row)
-        content.add(Label("dennis@remme.hamburg"), 1, row++)
-        content.add(FontAwesome.globe(), 0, row)
-        content.add(Hyperlink("remme.hamburg").also {
-            it.onAction = EventHandler { TinyGit.show("https://remme.hamburg") }
-        }, 1, row)
-
         setHeader("TinyGit ${javaClass.`package`.implementationVersion ?: ""}")
         setIcon(Image("icon.png".asResource()))
-        setContent(content)
-        setButton(ok)
+        setButton(ButtonType("Done", ButtonBar.ButtonData.OK_DONE))
+        setContent(grid {
+            addClass("about-view")
+            addRow(label {
+                addClass("author")
+                columnSpan(2)
+                text = "Dennis Remme"
+            })
+            addRow(FontAwesome.envelope(), Label("dennis@remme.hamburg"))
+            addRow(FontAwesome.globe(), link {
+                text = "remme.hamburg"
+                setOnAction { TinyGit.show("https://remme.hamburg") }
+            })
+        })
     }
 
 }

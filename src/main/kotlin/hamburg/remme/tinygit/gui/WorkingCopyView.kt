@@ -35,10 +35,8 @@ class WorkingCopyView : Tab() {
             handler = { stage(State.selectedRepository) })
     private val stageSelected = Action("Stage selected", disable = State.canStageSelected.not(),
             handler = {
-                if (pendingFiles.items.size == pendingFilesSelection.selectedItems.size)
-                    stage(State.selectedRepository)
-                else
-                    stage(State.selectedRepository, pendingFilesSelection.selectedItems)
+                if (isAllSelected) stage(State.selectedRepository)
+                else stage(State.selectedRepository, pendingFilesSelection.selectedItems)
             })
 
     private val stagedFiles = FileStatusView(SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
@@ -47,6 +45,7 @@ class WorkingCopyView : Tab() {
     private val pendingFilesSelection = pendingFiles.selectionModel
     private val selectedFile: ObservableObjectValue<LocalFile>
     private val fileDiff = FileDiffView()
+    private val isAllSelected: Boolean get() = pendingFiles.items.size == pendingFilesSelection.selectedItems.size
     private var task: Task<*>? = null
 
     init {
@@ -56,23 +55,17 @@ class WorkingCopyView : Tab() {
 
         stagedFiles.items.addListener(ListChangeListener { State.stagedFiles.set(it.list.size) })
         stagedFilesSelection.selectedItems.addListener(ListChangeListener { State.stagedFilesSelected.set(it.list.size) })
-        stagedFilesSelection.selectedItemProperty().addListener({ _, _, it ->
-            it?.let { pendingFilesSelection.clearSelection() }
-        })
+        stagedFilesSelection.selectedItemProperty().addListener({ _, _, it -> it?.let { pendingFilesSelection.clearSelection() } })
 
         pendingFiles.items.addListener(ListChangeListener { State.pendingFiles.set(it.list.size) })
         pendingFilesSelection.selectedItems.addListener(ListChangeListener { State.pendingFilesSelected.set(it.list.size) })
-        pendingFilesSelection.selectedItemProperty().addListener({ _, _, it ->
-            it?.let { stagedFilesSelection.clearSelection() }
-        })
+        pendingFilesSelection.selectedItemProperty().addListener({ _, _, it -> it?.let { stagedFilesSelection.clearSelection() } })
 
         selectedFile = Bindings.createObjectBinding(
                 { stagedFilesSelection.selectedItem ?: pendingFilesSelection.selectedItem },
                 arrayOf(stagedFilesSelection.selectedItemProperty(),
                         pendingFilesSelection.selectedItemProperty()))
-        selectedFile.addListener { _, _, it ->
-            it?.let { fileDiff.update(State.selectedRepository, it) } ?: fileDiff.clear()
-        }
+        selectedFile.addListener { _, _, it -> it?.let { fileDiff.update(State.selectedRepository, it) } ?: fileDiff.clear() }
 
         content = stackPane {
             +splitPane {
