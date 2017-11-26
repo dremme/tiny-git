@@ -63,7 +63,7 @@ private fun alert(window: Window,
     return alert
 }
 
-fun textInputDialog(window: Window, icon: Node, block: (String) -> Unit) {
+inline fun textInputDialog(window: Window, icon: Node, block: (String) -> Unit) {
     val dialog = TextInputDialog()
     dialog.initModality(Modality.WINDOW_MODAL)
     dialog.initOwner(window)
@@ -74,7 +74,7 @@ fun textInputDialog(window: Window, icon: Node, block: (String) -> Unit) {
     dialog.showAndWait().orElse(null)?.let(block)
 }
 
-fun fileChooser(window: Window, title: String, block: (File) -> Unit) {
+inline fun fileChooser(window: Window, title: String, block: (File) -> Unit) {
     val chooser = FileChooser()
     chooser.title = title
     chooser.initialDirectory = File(System.getProperty("user.home"))
@@ -82,7 +82,7 @@ fun fileChooser(window: Window, title: String, block: (File) -> Unit) {
     chooser.showOpenDialog(window)?.let(block)
 }
 
-fun directoryChooser(window: Window, title: String, block: (File) -> Unit) {
+inline fun directoryChooser(window: Window, title: String, block: (File) -> Unit) {
     val chooser = DirectoryChooser()
     chooser.title = title
     State.modalVisible.set(true)

@@ -111,9 +111,10 @@ class GitView : VBoxBuilder() {
         +stackPane {
             vgrow(Priority.ALWAYS)
             +splitPane {
-                Platform.runLater { setDividerPosition(0, 0.20) }
+                addClass("content")
                 +repositoryView
                 +tabs
+                Platform.runLater { setDividerPosition(0, 0.20) }
             }
             +stackPane {
                 addClass("overlay")
