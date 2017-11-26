@@ -165,7 +165,7 @@
     -fx-font-size: 20px;
 }
 
-.git-view > * > .split-pane {
+.git-view > * > .content {
     -fx-background-insets: 0, 0;
     -fx-padding: 0;
 }
@@ -251,6 +251,8 @@
 }
 
 .working-copy-view {
+    -fx-background-insets: 0, 0;
+    -fx-padding: 0;
     -fx-orientation: horizontal;
 }
 

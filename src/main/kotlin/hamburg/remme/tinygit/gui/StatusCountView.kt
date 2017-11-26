@@ -12,32 +12,32 @@ import javafx.scene.control.Tooltip
 class StatusCountView(statusView: FileStatusView) : HBoxBuilder() {
 
     private val conflicting = label {
-        addStyle("-fx-text-color:#d9534f")
+        addStyle("-fx-text-fill:#d9534f")
         graphic = FontAwesome.exclamationTriangle("#d9534f")
         tooltip = Tooltip("Conflicting")
     }
     private val added = label {
-        addStyle("-fx-text-color:#5cb85c")
+        addStyle("-fx-text-fill:#5cb85c")
         graphic = FontAwesome.plus("#5cb85c")
         tooltip = Tooltip("Added")
     }
     private val changed = label {
-        addStyle("-fx-text-color:#f0ad4e")
+        addStyle("-fx-text-fill:#f0ad4e")
         graphic = FontAwesome.pencil("#f0ad4e")
         tooltip = Tooltip("Changed")
     }
     private val removed = label {
-        addStyle("-fx-text-color:#d9534f")
+        addStyle("-fx-text-fill:#d9534f")
         graphic = FontAwesome.minus("#d9534f")
         tooltip = Tooltip("Removed")
     }
     private val missing = label {
-        addStyle("-fx-text-color:#999")
+        addStyle("-fx-text-fill:#999")
         graphic = FontAwesome.minus("#999")
         tooltip = Tooltip("Missing")
     }
     private val untracked = label {
-        addStyle("-fx-text-color:#5bc0de")
+        addStyle("-fx-text-fill:#5bc0de")
         graphic = FontAwesome.question("#5bc0de")
         tooltip = Tooltip("Untracked")
     }

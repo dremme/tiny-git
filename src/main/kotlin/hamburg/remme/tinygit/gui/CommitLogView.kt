@@ -38,19 +38,23 @@ class CommitLogView : Tab() {
 
         val message = column<LocalCommit, LocalCommit> {
             text = "Message"
+            isSortable = false
             setCellValueFactory { ReadOnlyObjectWrapper(it.value) }
             setCellFactory { LogMessageTableCell() }
         }
         val date = column<LocalCommit, String> {
             text = "Date"
+            isSortable = false
             setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(shortDate)) }
         }
         val author = column<LocalCommit, String> {
             text = "Author"
+            isSortable = false
             setCellValueFactory { ReadOnlyStringWrapper(it.value.author) }
         }
         val commit = column<LocalCommit, String> {
             text = "Commit"
+            isSortable = false
             setCellValueFactory { ReadOnlyStringWrapper(it.value.shortId) }
         }
 

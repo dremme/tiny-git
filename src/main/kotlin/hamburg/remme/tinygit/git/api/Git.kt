@@ -497,7 +497,7 @@ object Git {
         else setCredentialsProvider(credentials.userCredentials)
     }
 
-    private fun <T> LocalRepository.open(block: Repository.() -> T): T {
+    private inline fun <T> LocalRepository.open(block: Repository.() -> T): T {
         Git.proxyHost.set(proxyHost)
         Git.proxyPort.set(proxyPort)
         return FileRepositoryBuilder().setGitDir(File("$path/.git")).build().use(block)
