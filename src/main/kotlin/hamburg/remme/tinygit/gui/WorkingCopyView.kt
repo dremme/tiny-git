@@ -64,6 +64,7 @@ class WorkingCopyView : Tab() {
         pendingFilesSelection.selectedItems.addListener(ListChangeListener { State.pendingFilesSelected.set(it.list.size) })
         pendingFilesSelection.selectedItemProperty().addListener({ _, _, it -> it?.let { stagedFilesSelection.clearSelection() } })
 
+        // TODO: selection is little buggy sometimes / not refreshing correctly
         selectedFile = Bindings.createObjectBinding(
                 { stagedFilesSelection.selectedItem ?: pendingFilesSelection.selectedItem },
                 arrayOf(stagedFilesSelection.selectedItemProperty(),

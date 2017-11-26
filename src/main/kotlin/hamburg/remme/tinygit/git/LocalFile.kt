@@ -18,11 +18,17 @@ class LocalFile(val path: String, val status: Status) {
         other as LocalFile
 
         if (path != other.path) return false
+        if (status != other.status) return false
 
         return true
     }
 
-    override fun hashCode() = path.hashCode()
+    override fun hashCode(): Int {
+        var result = path.hashCode()
+        result = 31 * result + status.hashCode()
+        return result
+    }
+
 
     enum class Status { CONFLICT, ADDED, CHANGED, MODIFIED, REMOVED, MISSING, UNTRACKED }
 
