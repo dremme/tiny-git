@@ -12,16 +12,14 @@ import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.passwordField
 import hamburg.remme.tinygit.gui.builder.textField
 import hamburg.remme.tinygit.gui.fileChooser
-import javafx.scene.control.ButtonBar
-import javafx.scene.control.ButtonType
 import javafx.scene.control.Label
 import javafx.stage.Window
 
 class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(window, "Repository Settings") {
 
     init {
-        val ok = ButtonType("OK", ButtonBar.ButtonData.OK_DONE)
-        val cancel = ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
+        +DialogButton(DialogButton.OK)
+        +DialogButton(DialogButton.CANCEL)
 
         val location = textField {
             columnSpan(3)
@@ -66,8 +64,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
 
             State.fireRefresh()
         }
-        setButton(cancel, ok)
-        setContent(grid {
+        content = grid {
             addClass("settings-view")
             addRow(Label("Location:"), location)
             addRow(Label("Remote:"), url)
@@ -75,7 +72,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
             addRow(Label("User:"), username)
             addRow(Label("Password:"), password)
             addRow(Label("Proxy:"), host, Label(":"), port)
-        })
+        }
     }
 
 }

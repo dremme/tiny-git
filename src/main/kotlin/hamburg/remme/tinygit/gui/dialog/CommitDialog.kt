@@ -21,11 +21,7 @@ import javafx.stage.Window
 class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window, "New Commit", true) {
 
     init {
-        val ok = ButtonType("Commit", ButtonBar.ButtonData.OK_DONE)
-        val cancel = ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
-
         val fileDiff = FileDiffView()
-
         val files = FileStatusView().apply {
             prefWidth = 400.0
             prefHeight = 500.0
@@ -33,10 +29,10 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
         }
 
         val message = textArea {
-            Platform.runLater { requestFocus() }
             promptText = "Enter commit message"
             prefHeight = 100.0
             textProperty().bindBidirectional(State.commitMessage)
+            Platform.runLater { requestFocus() }
         }
 
         val amend = checkBox {
@@ -45,6 +41,10 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
                 if (it && message.text.isNullOrBlank()) message.text = Git.headMessage(repository)
             }
         }
+
+        +DialogButton(ButtonType("Commit", ButtonBar.ButtonData.OK_DONE),
+                message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
+        +DialogButton(DialogButton.CANCEL)
 
         focusAction = {
             val selected = files.selectionModel.selectedItem
@@ -59,9 +59,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
             State.commitMessage.set("")
             State.fireRefresh()
         }
-        setButton(cancel, ok)
-        setButtonBinding(ok, message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
-        setContent(vbox {
+        content = vbox {
             addClass("commit-view")
 
             +splitPane {
@@ -71,7 +69,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
             }
             +message
             +amend
-        })
+        }
     }
 
 }

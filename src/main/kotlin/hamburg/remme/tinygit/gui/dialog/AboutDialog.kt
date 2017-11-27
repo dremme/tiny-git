@@ -8,8 +8,6 @@ import hamburg.remme.tinygit.gui.builder.columnSpan
 import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.link
-import javafx.scene.control.ButtonBar
-import javafx.scene.control.ButtonType
 import javafx.scene.control.Label
 import javafx.scene.image.Image
 import javafx.stage.Window
@@ -17,10 +15,11 @@ import javafx.stage.Window
 class AboutDialog(window: Window) : Dialog(window, "About") {
 
     init {
-        setHeader("TinyGit ${javaClass.`package`.implementationVersion ?: ""}")
-        setIcon(Image("icon.png".asResource()))
-        setButton(ButtonType("Done", ButtonBar.ButtonData.OK_DONE))
-        setContent(grid {
+        +DialogButton(DialogButton.DONE)
+
+        header = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
+        graphic = Image("icon.png".asResource())
+        content = grid {
             addClass("about-view")
             addRow(label {
                 addClass("author")
@@ -32,7 +31,7 @@ class AboutDialog(window: Window) : Dialog(window, "About") {
                 text = "remme.hamburg"
                 setOnAction { TinyGit.show("https://remme.hamburg") }
             })
-        })
+        }
     }
 
 }
