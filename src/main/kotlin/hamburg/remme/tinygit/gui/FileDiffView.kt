@@ -10,6 +10,14 @@ import javafx.scene.web.WebEngine
 class FileDiffView : StackPaneBuilder() {
 
     private val fileDiff: WebEngine
+    //language=HTML
+    private val emptyDiff = """
+        <tr>
+            <td class="line-number header">&nbsp;</td>
+            <td class="line-number header">&nbsp;</td>
+            <td class="code header">&nbsp;@@ No changes detected or binary file @@</td>
+        </tr>
+    """
 
     init {
         val webView = webView {
@@ -26,6 +34,7 @@ class FileDiffView : StackPaneBuilder() {
         setContent(when (file.status) {
             LocalFile.Status.CONFLICT -> Git.diffCached(repository, file) // TODO: incorrect diff
             LocalFile.Status.ADDED -> Git.diffCached(repository, file)
+            LocalFile.Status.RENAMED -> Git.diffCached(repository, file) // TODO: incorrect diff
             LocalFile.Status.CHANGED -> Git.diffCached(repository, file)
             LocalFile.Status.REMOVED -> Git.diffCached(repository, file)
             LocalFile.Status.MODIFIED -> Git.diff(repository, file)
@@ -156,11 +165,7 @@ class FileDiffView : StackPaneBuilder() {
             }
             //language=HTML
             return """
-                <tr>
-                    <td class="line-number header">&nbsp;</td>
-                    <td class="line-number header">&nbsp;</td>
-                    <td class="code header">&nbsp;@@ No changes detected or binary file @@</td>
-                </tr>
+                $emptyDiff
                 $image
             """
         }
@@ -181,6 +186,7 @@ class FileDiffView : StackPaneBuilder() {
                     formatLine(it, numbers, blocks[blockNumber])
                 }
                 .joinToString("")
+                .takeIf { it.isNotBlank() } ?: emptyDiff
     }
 
     private fun formatLine(line: String, numbers: Array<Int>, block: DiffBlock): String {

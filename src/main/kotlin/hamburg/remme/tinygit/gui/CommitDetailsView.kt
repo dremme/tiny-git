@@ -22,7 +22,7 @@ import javafx.scene.web.WebEngine
 
 class CommitDetailsView : SplitPaneBuilder() {
 
-    private val files = FileStatusView().vgrow(Priority.ALWAYS)
+    private val files: FileStatusView
     private val details: WebEngine
     private var repository: LocalRepository? = null
     private var commit: LocalCommit? = null
@@ -32,6 +32,8 @@ class CommitDetailsView : SplitPaneBuilder() {
         addClass("commit-details-view")
 
         val fileDiff = FileDiffView()
+        files = FileStatusView()
+        files.vgrow(Priority.ALWAYS)
         files.selectionModel.selectedItemProperty().addListener { _, _, it ->
             it?.let { fileDiff.update(repository!!, it, commit!!.id) } ?: fileDiff.clear()
         }

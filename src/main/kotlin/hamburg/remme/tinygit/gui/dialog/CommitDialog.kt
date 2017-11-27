@@ -22,11 +22,10 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
 
     init {
         val fileDiff = FileDiffView()
-        val files = FileStatusView().apply {
-            prefWidth = 400.0
-            prefHeight = 500.0
-            selectionModel.selectedItemProperty().addListener { _, _, it -> it?.let { fileDiff.update(repository, it) } }
-        }
+        val files = FileStatusView()
+        files.prefWidth = 400.0
+        files.prefHeight = 500.0
+        files.selectionModel.selectedItemProperty().addListener { _, _, it -> it?.let { fileDiff.update(repository, it) } }
 
         val message = textArea {
             promptText = "Enter commit message"

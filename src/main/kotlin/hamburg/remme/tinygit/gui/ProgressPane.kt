@@ -14,6 +14,7 @@ class ProgressPane(vararg node: Node) : StackPaneBuilder() {
         addClass("log-progress")
         alignment(Pos.TOP_CENTER)
         maxWidth = Double.MAX_VALUE
+        isVisible = false
     }
 
     init {
