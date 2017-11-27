@@ -44,8 +44,8 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             if (it.button == MouseButton.PRIMARY && it.clickCount == 2) {
                 val entry = selectionModel.selectedItem.value
                 when (entry.type) {
-                    RepositoryEntryType.LOCAL_BRANCH -> checkout(entry.repository, entry.value)
-                    RepositoryEntryType.REMOTE_BRANCH -> checkoutRemote(entry.repository, entry.value)
+                    EntryType.LOCAL_BRANCH -> checkout(entry.repository, entry.value)
+                    EntryType.REMOTE_BRANCH -> checkoutRemote(entry.repository, entry.value)
                     else -> {
                         // do nothing
                     }
@@ -99,12 +99,12 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         val repoTree = TreeItem(RepositoryEntry(
                 repository,
                 repository.path.split("[\\\\/]".toRegex()).last(),
-                RepositoryEntryType.REPOSITORY))
+                EntryType.REPOSITORY))
 
-        val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", RepositoryEntryType.LOCAL))
-        val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", RepositoryEntryType.REMOTE))
-        val tags = TreeItem(RepositoryEntry(repository, "Tags", RepositoryEntryType.TAGS))
-        val stash = TreeItem(RepositoryEntry(repository, "Stash", RepositoryEntryType.STASH))
+        val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", EntryType.LOCAL))
+        val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", EntryType.REMOTE))
+        val tags = TreeItem(RepositoryEntry(repository, "Tags", EntryType.TAGS))
+        val stash = TreeItem(RepositoryEntry(repository, "Stash", EntryType.STASH))
 
         repoTree.children.addAll(localBranches, remoteBranches, tags, stash)
         root.children += repoTree
@@ -118,8 +118,8 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             val branchList = Git.branchListAll(repository)
             val stashList = Git.stashList(repository)
             // TODO: selection might get lost on removed branches (e.g. after pruning)
-            updateBranchItems(it.children[0].children, repository, branchList.filter { it.local }, RepositoryEntryType.LOCAL_BRANCH)
-            updateBranchItems(it.children[1].children, repository, branchList.filter { it.remote }, RepositoryEntryType.REMOTE_BRANCH)
+            updateBranchItems(it.children[0].children, repository, branchList.filter { it.local }, EntryType.LOCAL_BRANCH)
+            updateBranchItems(it.children[1].children, repository, branchList.filter { it.remote }, EntryType.REMOTE_BRANCH)
             updateStashItems(it.children[3].children, repository, stashList)
         }
     }
@@ -131,7 +131,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun updateBranchItems(branchItems: ObservableList<TreeItem<RepositoryEntry>>,
                                   repository: LocalRepository,
                                   branchList: List<LocalBranch>,
-                                  branchType: RepositoryEntryType) {
+                                  branchType: EntryType) {
         branchItems.addAll(branchList.filter { branch -> branchItems.none { it.value.value == branch.shortRef } }
                 .map { TreeItem(RepositoryEntry(repository, it.shortRef, branchType)) })
         branchItems.removeAll(branchItems.filter { branch -> branchList.none { it.shortRef == branch.value.value } })
@@ -142,7 +142,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                                  repository: LocalRepository,
                                  stashList: List<LocalStashEntry>) {
         stashItems.addAll(stashList.filter { entry -> stashItems.none { it.value.value == entry.message } }
-                .map { TreeItem(RepositoryEntry(repository, it.message, RepositoryEntryType.STASH_ENTRY)) })
+                .map { TreeItem(RepositoryEntry(repository, it.message, EntryType.STASH_ENTRY)) })
         stashItems.removeAll(stashItems.filter { entry -> stashList.none { it.message == entry.value.value } })
         stashItems.sortWith(Comparator { left, right -> stashList.indexOf(left.value.value) - stashList.indexOf(right.value.value) })
     }
@@ -189,7 +189,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         })
     }
 
-    inner class RepositoryEntry(val repository: LocalRepository, val value: String, val type: RepositoryEntryType) {
+    inner class RepositoryEntry(val repository: LocalRepository, val value: String, val type: EntryType) {
 
         val isHead: Boolean get() = value == headCache[repository.path]
 
@@ -213,7 +213,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     }
 
-    enum class RepositoryEntryType {
+    enum class EntryType {
 
         REPOSITORY,
         LOCAL, LOCAL_BRANCH,
@@ -229,15 +229,15 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             super.updateItem(item, empty)
             graphic = if (empty) null else {
                 when (item!!.type) {
-                    RepositoryEntryType.REPOSITORY -> repoItem(item)
-                    RepositoryEntryType.LOCAL -> item(FontAwesome.desktop(), item.value)
-                    RepositoryEntryType.REMOTE -> item(FontAwesome.cloud(), item.value)
-                    RepositoryEntryType.LOCAL_BRANCH -> branchItem(item)
-                    RepositoryEntryType.REMOTE_BRANCH -> item(FontAwesome.codeFork(), item.value)
-                    RepositoryEntryType.TAGS -> item(FontAwesome.tags(), item.value)
-                    RepositoryEntryType.TAG -> item(FontAwesome.tag(), item.value)
-                    RepositoryEntryType.STASH -> item(FontAwesome.cubes(), item.value)
-                    RepositoryEntryType.STASH_ENTRY -> item(FontAwesome.cube(), item.value)
+                    EntryType.REPOSITORY -> repoItem(item)
+                    EntryType.LOCAL -> item(FontAwesome.desktop(), item.value)
+                    EntryType.REMOTE -> item(FontAwesome.cloud(), item.value)
+                    EntryType.LOCAL_BRANCH -> branchItem(item)
+                    EntryType.REMOTE_BRANCH -> item(FontAwesome.codeFork(), item.value)
+                    EntryType.TAGS -> item(FontAwesome.tags(), item.value)
+                    EntryType.TAG -> item(FontAwesome.tag(), item.value)
+                    EntryType.STASH -> item(FontAwesome.cubes(), item.value)
+                    EntryType.STASH_ENTRY -> item(FontAwesome.cube(), item.value)
                 }.addClass("repository-cell")
             }
         }
