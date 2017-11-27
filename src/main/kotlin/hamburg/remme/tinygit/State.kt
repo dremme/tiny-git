@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit
 
+import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import javafx.beans.binding.Bindings
 import javafx.beans.property.IntegerProperty
@@ -85,8 +86,8 @@ object State {
      * WORKING COPY                                                                                                  *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    val stagedFiles = SimpleIntegerProperty()
-    val pendingFiles = SimpleIntegerProperty()
+    val stagedFiles = FXCollections.observableArrayList<LocalFile>()!!
+    val pendingFiles = FXCollections.observableArrayList<LocalFile>()!!
     val stagedFilesSelected = SimpleIntegerProperty()
     val pendingFilesSelected = SimpleIntegerProperty()
     val stashEntries = SimpleIntegerProperty()
@@ -107,7 +108,7 @@ object State {
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     val canSettings = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())!!
-    val canCommit = selectedRepositoryProperty.isNotNull.and(stagedFiles.greater0()).and(runningProcesses.equals0())!!
+    val canCommit = selectedRepositoryProperty.isNotNull.and(Bindings.isNotEmpty(stagedFiles)).and(runningProcesses.equals0())!!
     val canPush = selectedRepositoryProperty.isNotNull.and(aheadProperty.notEquals0()).and(runningProcesses.equals0())!!
     val canPull = selectedRepositoryProperty.isNotNull.and(behindProperty.greater0()).and(runningProcesses.equals0())!!
     val canFetch = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())!!
@@ -115,14 +116,15 @@ object State {
     val canBranch = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())!!
     val canMerge = FALSE // TODO: selectedRepositoryProperty.isNotNull.and(runningProcesses.isZero())!!
     val canStash = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())
-            .and(stagedFiles.greater0()).or(pendingFiles.greater0())!!
+            .and(Bindings.isNotEmpty(stagedFiles)).or(Bindings.isNotEmpty(pendingFiles))!!
     val canApplyStash = selectedRepositoryProperty.isNotNull.and(stashEntries.greater0()).and(runningProcesses.equals0())!!
     val canReset = FALSE // TODO: selectedRepositoryProperty.isNotNull.and(runningProcesses.isZero())!!
     val canSquash = FALSE // TODO: selectedRepositoryProperty.isNotNull.and(runningProcesses.isZero())!!
 
-    val canStageAll = pendingFiles.greater0()!!
+    val canStageAll = Bindings.isNotEmpty(pendingFiles)!!
+    val canUpdateAll = Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.UNTRACKED })!!
     val canStageSelected = pendingFilesSelected.greater0()!!
-    val canUnstageAll = stagedFiles.greater0()!!
+    val canUnstageAll = Bindings.isNotEmpty(stagedFiles)!!
     val canUnstageSelected = stagedFilesSelected.greater0()!!
 
     private fun IntegerProperty.equals0() = isEqualTo(0)

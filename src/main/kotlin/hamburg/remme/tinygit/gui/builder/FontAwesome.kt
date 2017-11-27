@@ -15,6 +15,7 @@ object FontAwesome {
     fun cubes(color: String? = null) = icon('\uf1b3', color)
     fun database(color: String? = null) = icon('\uf1c0', color)
     fun desktop(color: String? = null) = icon('\uf108', color)
+    fun edit(color: String? = null) = icon('\uf044', color)
     fun envelope(color: String? = null) = icon('\uf0e0', color)
     fun exclamationTriangle(color: String? = null) = icon('\uf071', color)
     fun folderOpen(color: String? = null) = icon('\uf07c', color)

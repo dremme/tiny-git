@@ -10,8 +10,11 @@ import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.column
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.splitPane
+import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.vgrow
+import hamburg.remme.tinygit.gui.builder.visibleWhen
 import javafx.application.Platform
+import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.concurrent.Task
@@ -21,6 +24,8 @@ import javafx.scene.control.Tab
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
 import javafx.scene.layout.Priority
+import javafx.scene.text.Text
+import org.eclipse.jgit.api.errors.NoHeadException
 import org.eclipse.jgit.api.errors.TransportException
 
 class CommitLogView : Tab() {
@@ -64,12 +69,18 @@ class CommitLogView : Tab() {
             it?.let { commitDetails.update(State.selectedRepository, it) }
         }
 
-        progressPane = ProgressPane(splitPane {
-            addClass("log-view")
-            vgrow(Priority.ALWAYS)
-            +localCommits
-            +commitDetails
-        })
+        progressPane = ProgressPane(
+                splitPane {
+                    addClass("log-view")
+                    vgrow(Priority.ALWAYS)
+                    +localCommits
+                    +commitDetails
+                },
+                stackPane {
+                    addClass("overlay")
+                    visibleWhen(Bindings.isEmpty(localCommits.items))
+                    +Text("There are no commits.")
+                })
         content = progressPane
 
         State.addRepositoryListener { it?.let { logQuick(it) } }
@@ -83,11 +94,20 @@ class CommitLogView : Tab() {
         }
     }
 
+    private fun clearLog() {
+        localCommits.items.clear()
+    }
+
     private fun updateLog(commits: List<LocalCommit>) {
         val selected = localCommits.selectionModel.selectedItem
         localCommits.items.setAll(commits)
         localCommits.items.find { it == selected }?.let { localCommits.selectionModel.select(it) }
         localCommits.selectionModel.selectedItem ?: localCommits.selectionModel.selectFirst()
+    }
+
+    private fun clearDivergence() {
+        State.ahead = 0
+        State.behind = 0
     }
 
     private fun updateDivergence(divergence: LocalDivergence) {
@@ -97,9 +117,14 @@ class CommitLogView : Tab() {
 
     private fun logQuick(repository: LocalRepository) {
         head = Git.head(repository)
-        updateLog(Git.log(repository))
-        updateDivergence(Git.divergence(repository))
-        logRemote(repository)
+        try {
+            updateLog(Git.log(repository))
+            updateDivergence(Git.divergence(repository))
+            logRemote(repository)
+        } catch (ex: NoHeadException) {
+            clearLog()
+            clearDivergence()
+        }
     }
 
     private fun logRemote(repository: LocalRepository) {

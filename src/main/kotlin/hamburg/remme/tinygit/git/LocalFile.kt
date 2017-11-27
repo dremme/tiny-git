@@ -30,6 +30,6 @@ class LocalFile(val path: String, val status: Status) {
     }
 
 
-    enum class Status { CONFLICT, ADDED, CHANGED, MODIFIED, REMOVED, MISSING, UNTRACKED }
+    enum class Status { CONFLICT, ADDED, RENAMED, CHANGED, MODIFIED, REMOVED, MISSING, UNTRACKED }
 
 }

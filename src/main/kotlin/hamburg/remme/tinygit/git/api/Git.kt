@@ -13,8 +13,11 @@ import org.eclipse.jgit.api.ListBranchCommand
 import org.eclipse.jgit.api.MergeResult
 import org.eclipse.jgit.api.TransportCommand
 import org.eclipse.jgit.diff.DiffEntry
+import org.eclipse.jgit.diff.DiffFormatter
+import org.eclipse.jgit.dircache.DirCacheIterator
 import org.eclipse.jgit.lib.AnyObjectId
-import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME
+import org.eclipse.jgit.lib.Constants.HEAD
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryBuilder
@@ -27,8 +30,10 @@ import org.eclipse.jgit.transport.RemoteRefUpdate
 import org.eclipse.jgit.treewalk.AbstractTreeIterator
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.treewalk.EmptyTreeIterator
+import org.eclipse.jgit.treewalk.FileTreeIterator
 import org.eclipse.jgit.treewalk.filter.PathFilter
 import org.eclipse.jgit.util.FS
+import org.eclipse.jgit.util.io.NullOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -148,27 +153,41 @@ object Git {
      * - git status
      */
     fun status(repository: LocalRepository): LocalStatus {
-        return repository.openGit {
-            val status = it.status().call()
-
-            val staged = mutableListOf<LocalFile>()
-            staged += status.conflicting.toLocalFileList(LocalFile.Status.CONFLICT)
-            staged += status.added.toLocalFileList(LocalFile.Status.ADDED)
-            staged += status.changed.toLocalFileList(LocalFile.Status.CHANGED)
-            staged += status.removed.toLocalFileList(LocalFile.Status.REMOVED)
-
-            val pending = mutableListOf<LocalFile>()
-            pending += status.conflicting.toLocalFileList(LocalFile.Status.CONFLICT)
-            pending += status.modified.toLocalFileList(LocalFile.Status.MODIFIED)
-            pending += status.missing.toLocalFileList(LocalFile.Status.MISSING)
-            pending += status.untracked.toLocalFileList(LocalFile.Status.UNTRACKED)
-
-            LocalStatus(staged, pending)
+        return repository.open {
+            val formatter = DiffFormatter(NullOutputStream.INSTANCE)
+            formatter.setRepository(it)
+            formatter.isDetectRenames = true
+            LocalStatus(formatter.stagedFiles(it), formatter.pendingFiles(it))
         }
     }
 
-    private fun Set<String>.toLocalFileList(status: LocalFile.Status): List<LocalFile> {
-        return map { LocalFile(it, status) }.sortedBy { it.path }
+    private fun DiffFormatter.pendingFiles(repository: Repository): List<LocalFile> {
+        val oldTree = DirCacheIterator(repository.readDirCache())
+        val newTree = FileTreeIterator(repository)
+        return scan(oldTree, newTree).map {
+            when (it.changeType!!) {
+                DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.UNTRACKED)
+                DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.RENAMED) // TODO: cannot happen?
+                DiffEntry.ChangeType.RENAME -> LocalFile(it.newPath, LocalFile.Status.RENAMED) // TODO: cannot happen?
+                DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.MODIFIED)
+                DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.MISSING)
+            }
+        }
+    }
+
+    private fun DiffFormatter.stagedFiles(repository: Repository): List<LocalFile> {
+        val head = repository.resolve(HEAD + "^{tree}")
+        val oldTree = if (head != null) repository.newObjectReader().use { CanonicalTreeParser(null, it, head) } else EmptyTreeIterator()
+        val newTree = DirCacheIterator(repository.readDirCache())
+        return scan(oldTree, newTree).map {
+            when (it.changeType!!) {
+                DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED)
+                DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.RENAMED)
+                DiffEntry.ChangeType.RENAME -> LocalFile(it.newPath, LocalFile.Status.RENAMED)
+                DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.CHANGED)
+                DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED)
+            }
+        }
     }
 
     /**
@@ -177,7 +196,7 @@ object Git {
     fun divergence(repository: LocalRepository, local: String? = null, remote: String? = null): LocalDivergence {
         return repository.open {
             val localBranch = it.findRef(local ?: it.branch).objectId
-            val remoteBranch = it.findRef(remote ?: "${Constants.DEFAULT_REMOTE_NAME}/${it.branch}")?.objectId
+            val remoteBranch = it.findRef(remote ?: "$DEFAULT_REMOTE_NAME/${it.branch}")?.objectId
             if (remoteBranch == null) {
                 // TODO: count commits since branching?
                 LocalDivergence(-1, 0)
@@ -217,24 +236,56 @@ object Git {
      * - git diff --unified=<[lines]> --[cached] <[file]>
      */
     // TODO: does not work with renames
-    private fun diff(repository: LocalRepository, file: LocalFile, cached: Boolean, lines: Int = -1): String {
-        return repository.openGit { git ->
+    private fun diff(repository: LocalRepository, file: LocalFile, cached: Boolean, lines: Int = 3): String {
+        return repository.open { gitRepo ->
             ByteArrayOutputStream().use {
-                git.diff().setCached(cached).setPathFilter(PathFilter.create(file.path)).setContextLines(lines).setOutputStream(it).call()
+                val formatter = DiffFormatter(it)
+                formatter.setRepository(gitRepo)
+                formatter.setContext(lines)
+                formatter.isDetectRenames = true
+                formatter.pathFilter = PathFilter.create(file.path)
+
+                if (cached) formatter.stagedDiff(gitRepo) else formatter.pendingDiff(gitRepo)
+
                 it.toString("UTF-8")
             }
         }
+    }
+
+    // TODO: does not work with renames
+    private fun DiffFormatter.pendingDiff(repository: Repository) {
+        val oldTree = DirCacheIterator(repository.readDirCache())
+        val newTree = FileTreeIterator(repository)
+        format(scan(oldTree, newTree))
+        flush()
+    }
+
+    // TODO: does not work with renames
+    private fun DiffFormatter.stagedDiff(repository: Repository) {
+        val head = repository.resolve(HEAD + "^{tree}")
+        val oldTree = if (head != null) repository.newObjectReader().use { CanonicalTreeParser(null, it, head) } else EmptyTreeIterator()
+        val newTree = DirCacheIterator(repository.readDirCache())
+        format(scan(oldTree, newTree))
+        flush()
     }
 
     /**
      * - git diff --unified=<[lines]> <[id]> <parent-id> <[file]>
      */
     // TODO: does not work with renames
-    fun diff(repository: LocalRepository, file: LocalFile, id: String, lines: Int = -1): String {
-        return repository.openGit { git ->
-            val (newTree, oldTree) = git.treesOf(ObjectId.fromString(id))
+    fun diff(repository: LocalRepository, file: LocalFile, id: String, lines: Int = 3): String {
+        return repository.open { gitRepo ->
             ByteArrayOutputStream().use {
-                git.diff().setPathFilter(PathFilter.create(file.path)).setNewTree(newTree).setOldTree(oldTree).setContextLines(lines).setOutputStream(it).call()
+                val formatter = DiffFormatter(it)
+                formatter.setRepository(gitRepo)
+                formatter.setContext(lines)
+                formatter.isDetectRenames = true
+                formatter.pathFilter = PathFilter.create(file.path)
+
+                val (newTree, oldTree) = gitRepo.treesOf(ObjectId.fromString(id))
+                formatter.format(formatter.scan(oldTree, newTree))
+                formatter.flush()
+
                 it.toString("UTF-8")
             }
         }
@@ -243,16 +294,19 @@ object Git {
     /**
      * - git diff-tree -r <[id]>
      */
-    // TODO: does not work with renames
     fun diffTree(repository: LocalRepository, id: String): List<LocalFile> {
-        return repository.openGit {
+        return repository.open {
+            val formatter = DiffFormatter(NullOutputStream.INSTANCE)
+            formatter.setRepository(it)
+            formatter.isDetectRenames = true
+
             val (newTree, oldTree) = it.treesOf(ObjectId.fromString(id))
-            it.diff().setShowNameAndStatusOnly(true).setNewTree(newTree).setOldTree(oldTree).call().map {
+            formatter.scan(oldTree, newTree).map {
                 when (it.changeType!!) {
                     DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED)
-                    DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.ADDED) // TODO: status for copied files
-                    DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.MODIFIED)
-                    DiffEntry.ChangeType.RENAME -> LocalFile(it.newPath, LocalFile.Status.MODIFIED) // TODO: status for renamed files
+                    DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.RENAMED)
+                    DiffEntry.ChangeType.RENAME -> LocalFile(it.newPath, LocalFile.Status.RENAMED)
+                    DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.CHANGED)
                     DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED)
                 }
             }.sortedBy { it.status }
@@ -285,7 +339,7 @@ object Git {
      * - git add --update .
      */
     fun updateAll(repository: LocalRepository) {
-        repository.openGit { it.add().addFilepattern(".").call() }
+        repository.openGit { it.add().setUpdate(true).addFilepattern(".").call() }
     }
 
     /**
@@ -499,18 +553,18 @@ object Git {
 
     private fun Repository.revWalk() = RevWalk(this)
 
-    private fun JGit.revWalk() = RevWalk(repository)
-
-    private fun JGit.objectReader() = repository.newObjectReader()
-
     // TODO: test performance if objectreader is created here instead
-    private fun JGit.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {
+    private fun Repository.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {
         return revWalk().use { walk ->
             val commit = walk.parseCommit(commitId).takeIf { it.parents.size < 2 }
             val parent = commit?.let { walk.parseCommit(it.parents[0]) }
             walk.iteratorOf(commit) to walk.iteratorOf(parent)
         }
     }
+
+    private fun JGit.revWalk() = RevWalk(repository)
+
+    private fun JGit.treesOf(commitId: AnyObjectId) = repository.treesOf(commitId)
 
     // TODO: test performance if objectreader is created here instead
     private fun RevWalk.iteratorOf(commit: RevCommit?): AbstractTreeIterator {

@@ -32,7 +32,7 @@ class WorkingCopyView : Tab() {
             handler = { unstage(State.selectedRepository) })
     private val unstageSelected = Action("Unstage selected", disable = State.canUnstageSelected.not(),
             handler = { unstage(State.selectedRepository, stagedFilesSelection.selectedItems) })
-    private val updateAll = Action("Update all", disable = State.canStageAll.not(),
+    private val updateAll = Action("Update all", disable = State.canUpdateAll.not(),
             handler = { update(State.selectedRepository) })
     private val stageAll = Action("Stage all", shortcut = "Shortcut+Shift+Plus", disable = State.canStageAll.not(),
             handler = { stage(State.selectedRepository) })
@@ -42,8 +42,8 @@ class WorkingCopyView : Tab() {
                 else stage(State.selectedRepository, pendingFilesSelection.selectedItems)
             })
 
-    private val stagedFiles = FileStatusView(SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
-    private val pendingFiles = FileStatusView(SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
+    private val stagedFiles = FileStatusView(State.stagedFiles, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
+    private val pendingFiles = FileStatusView(State.pendingFiles, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
     private val stagedFilesSelection = stagedFiles.selectionModel
     private val pendingFilesSelection = pendingFiles.selectionModel
     private val selectedFile: ObservableObjectValue<LocalFile>
@@ -56,11 +56,9 @@ class WorkingCopyView : Tab() {
         graphic = FontAwesome.desktop()
         isClosable = false
 
-        stagedFiles.items.addListener(ListChangeListener { State.stagedFiles.set(it.list.size) })
         stagedFilesSelection.selectedItems.addListener(ListChangeListener { State.stagedFilesSelected.set(it.list.size) })
         stagedFilesSelection.selectedItemProperty().addListener({ _, _, it -> it?.let { pendingFilesSelection.clearSelection() } })
 
-        pendingFiles.items.addListener(ListChangeListener { State.pendingFiles.set(it.list.size) })
         pendingFilesSelection.selectedItems.addListener(ListChangeListener { State.pendingFilesSelected.set(it.list.size) })
         pendingFilesSelection.selectedItemProperty().addListener({ _, _, it -> it?.let { stagedFilesSelection.clearSelection() } })
 

@@ -21,6 +21,11 @@ class StatusCountView(statusView: FileStatusView) : HBoxBuilder() {
         graphic = FontAwesome.plus("#5cb85c")
         tooltip = Tooltip("Added")
     }
+    private val renamed = label {
+        addStyle("-fx-text-fill:#5bc0de")
+        graphic = FontAwesome.edit("#5bc0de")
+        tooltip = Tooltip("Renamed")
+    }
     private val changed = label {
         addStyle("-fx-text-fill:#f0ad4e")
         graphic = FontAwesome.pencil("#f0ad4e")
@@ -52,6 +57,7 @@ class StatusCountView(statusView: FileStatusView) : HBoxBuilder() {
         val counts = files.groupingBy { it.status }.eachCount()
         val conflictingCount = counts[LocalFile.Status.CONFLICT] ?: 0
         val addedCount = counts[LocalFile.Status.ADDED] ?: 0
+        val renamedCount = counts[LocalFile.Status.RENAMED] ?: 0
         val changedCount = (counts[LocalFile.Status.MODIFIED] ?: 0) + (counts[LocalFile.Status.CHANGED] ?: 0)
         val removedCount = counts[LocalFile.Status.REMOVED] ?: 0
         val missingCount = counts[LocalFile.Status.MISSING] ?: 0
@@ -66,6 +72,10 @@ class StatusCountView(statusView: FileStatusView) : HBoxBuilder() {
         if (addedCount > 0) {
             added.text = addedCount.toString()
             +added
+        }
+        if (renamedCount > 0) {
+            renamed.text = renamedCount.toString()
+            +renamed
         }
         if (changedCount > 0) {
             changed.text = changedCount.toString()
