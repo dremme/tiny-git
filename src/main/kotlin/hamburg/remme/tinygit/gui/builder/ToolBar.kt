@@ -8,6 +8,7 @@ import javafx.scene.control.Separator
 import javafx.scene.control.ToolBar
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
+import java.util.concurrent.Callable
 
 inline fun toolBar(block: ToolBarBuilder.() -> Unit): ToolBar {
     val toolBar = ToolBarBuilder()
@@ -45,6 +46,6 @@ class ToolBarBuilder : ToolBar() {
     }
 
     private fun badge(count: ObservableIntegerValue)
-            = Bindings.createStringBinding({ if (count.get() > 0) count.get().toString() else "*" }, arrayOf(count))!!
+            = Bindings.createStringBinding(Callable { if (count.get() > 0) count.get().toString() else "*" }, count)!!
 
 }

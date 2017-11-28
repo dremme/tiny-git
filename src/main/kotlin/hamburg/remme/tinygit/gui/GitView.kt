@@ -145,7 +145,7 @@ class GitView : VBoxBuilder() {
             } else {
                 errorAlert(scene.window,
                         "Invalid Repository",
-                        "${it.absolutePath}\ndoes not contain a valid '.git' directory.")
+                        "'${it.absolutePath}' does not contain a valid '.git' directory.")
             }
         }
     }

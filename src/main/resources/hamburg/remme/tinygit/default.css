@@ -12,6 +12,17 @@
     -fx-body-color-to-right: derive(-fx-color, 15%);
     -fx-mark-color: derive(white, -10%);
     -fx-mark-highlight-color: white;
+
+    -fx-color-status-conflict: #d25252;
+    -fx-color-status-added: #7dbf5c;
+    -fx-color-status-copied: #ffc66d;
+    -fx-color-status-renamed: #568bbf;
+    -fx-color-status-modified: #ffc66d;
+    -fx-color-status-changed: #ffc66d;
+    -fx-color-status-removed: #d25252;
+    -fx-color-status-missing: #808080;
+    -fx-color-status-untracked: #ab86bf;
+
     -fx-font: normal 13px "Roboto", sans-serif;
 }
 
@@ -341,4 +352,88 @@
 .status-count-view {
     -fx-alignment: center-left;
     -fx-spacing: 6px;
+}
+
+.label.status-conflict,
+.label.status-added,
+.label.status-copied,
+.label.status-renamed,
+.label.status-modified,
+.label.status-changed,
+.label.status-removed,
+.label.status-missing,
+.label.status-untracked {
+    -fx-font-weight: bold;
+}
+
+.label.status-conflict {
+    -fx-text-fill: -fx-color-status-conflict;
+}
+
+.status-conflict .icon {
+    -fx-fill: -fx-color-status-conflict;
+}
+
+.label.status-added {
+    -fx-text-fill: -fx-color-status-added;
+}
+
+.status-added .icon {
+    -fx-fill: -fx-color-status-added;
+}
+
+.label.status-copied {
+    -fx-text-fill: -fx-color-status-copied;
+}
+
+.status-copied .icon {
+    -fx-fill: -fx-color-status-copied;
+}
+
+.label.status-renamed {
+    -fx-text-fill: -fx-color-status-renamed;
+}
+
+.status-renamed .icon {
+    -fx-fill: -fx-color-status-renamed;
+}
+
+.label.status-modified {
+    -fx-text-fill: -fx-color-status-modified;
+}
+
+.status-modified .icon {
+    -fx-fill: -fx-color-status-modified;
+}
+
+.label.status-changed {
+    -fx-text-fill: -fx-color-status-changed;
+}
+
+.status-changed .icon {
+    -fx-fill: -fx-color-status-changed;
+}
+
+.label.status-removed {
+    -fx-text-fill: -fx-color-status-removed;
+}
+
+.status-removed .icon {
+    -fx-fill: -fx-color-status-removed;
+}
+
+.label.status-missing {
+    -fx-text-fill: -fx-color-status-missing;
+}
+
+.status-missing .icon {
+    -fx-fill: -fx-color-status-missing;
+}
+
+.label.status-untracked {
+    -fx-text-fill: -fx-color-status-untracked;
+}
+
+.status-untracked .icon {
+    -fx-fill: -fx-color-status-untracked;
 }

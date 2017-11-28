@@ -6,10 +6,13 @@ import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStashEntry
 import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.gui.builder.Action
+import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.addStyle
 import hamburg.remme.tinygit.gui.builder.button
+import hamburg.remme.tinygit.gui.builder.context
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
@@ -24,12 +27,14 @@ import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
+import javafx.stage.Window
 import org.eclipse.jgit.api.errors.CheckoutConflictException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     private val headCache: MutableMap<String, String> = mutableMapOf()
+    private val window: Window get() = scene.window
 
     init {
         setCellFactory { RepositoryEntryListCell() }
@@ -37,6 +42,18 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         isShowRoot = false
         selectionModel.selectedItemProperty().addListener { _, _, it ->
             it?.let { State.selectedRepository = it.value.repository }
+        }
+
+        contextMenu = context {
+            isAutoHide = true
+            // TODO: should be menu bar actions as well
+            +ActionGroup(Action("Remove Repository",
+                    handler = {
+                        if (confirmWarningAlert(window,
+                                "Remove Repository",
+                                "Will remove the repository '${State.selectedRepository}' from TinyGit, but keep it on the disk."))
+                            State.repositories -= State.selectedRepository
+                    }))
         }
 
         setOnKeyPressed { if (it.code == KeyCode.SPACE) it.consume() }
@@ -160,7 +177,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
             override fun failed() {
                 when (exception) {
-                    is CheckoutConflictException -> errorAlert(scene.window,
+                    is CheckoutConflictException -> errorAlert(window,
                             "Cannot Switch Branches",
                             "There are local changes that would be overwritten by checkout.\nCommit or stash them.")
                     else -> exception.printStackTrace()
@@ -255,7 +272,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             +button {
                 addClass("settings")
                 graphic = FontAwesome.cog()
-                setOnAction { SettingsDialog(item.repository, scene.window).show() }
+                setOnAction { SettingsDialog(item.repository, window).show() }
             }
         }
 

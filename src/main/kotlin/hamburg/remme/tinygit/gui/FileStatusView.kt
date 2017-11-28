@@ -10,6 +10,20 @@ import javafx.scene.control.SelectionMode
 
 class FileStatusView : ListView<LocalFile> {
 
+    companion object {
+
+        fun conflictIcon() = FontAwesome.exclamation()
+        fun addedIcon() = FontAwesome.plus()
+        fun copiedIcon() = FontAwesome.plus()
+        fun renamedIcon() = FontAwesome.share()
+        fun modifiedIcon() = FontAwesome.pencil()
+        fun changedIcon() = FontAwesome.pencil()
+        fun removedIcon() = FontAwesome.minus()
+        fun missingIcon() = FontAwesome.minus()
+        fun untrackedIcon() = FontAwesome.question()
+
+    }
+
     constructor() : super() {
         selectionModel.selectionMode = SelectionMode.SINGLE
     }
@@ -29,14 +43,15 @@ class FileStatusView : ListView<LocalFile> {
             super.updateItem(item, empty)
             text = item?.path
             graphic = when (item?.status) {
-                LocalFile.Status.CONFLICT -> FontAwesome.exclamationTriangle("#d9534f")
-                LocalFile.Status.ADDED -> FontAwesome.plus("#5cb85c")
-                LocalFile.Status.RENAMED -> FontAwesome.edit("#5bc0de")
-                LocalFile.Status.MODIFIED -> FontAwesome.pencil("#f0ad4e")
-                LocalFile.Status.CHANGED -> FontAwesome.pencil("#f0ad4e")
-                LocalFile.Status.REMOVED -> FontAwesome.minus("#d9534f")
-                LocalFile.Status.MISSING -> FontAwesome.minus("#999")
-                LocalFile.Status.UNTRACKED -> FontAwesome.question("#5bc0de")
+                LocalFile.Status.CONFLICT -> conflictIcon().addClass("status-conflict")
+                LocalFile.Status.ADDED -> addedIcon().addClass("status-added")
+                LocalFile.Status.COPIED -> copiedIcon().addClass("status-copied")
+                LocalFile.Status.RENAMED -> renamedIcon().addClass("status-renamed")
+                LocalFile.Status.MODIFIED -> modifiedIcon().addClass("status-modified")
+                LocalFile.Status.CHANGED -> changedIcon().addClass("status-changed")
+                LocalFile.Status.REMOVED -> removedIcon().addClass("status-removed")
+                LocalFile.Status.MISSING -> missingIcon().addClass("status-missing")
+                LocalFile.Status.UNTRACKED -> untrackedIcon().addClass("status-untracked")
                 else -> null
             }
         }

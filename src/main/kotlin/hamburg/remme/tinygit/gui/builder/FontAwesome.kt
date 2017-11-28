@@ -15,8 +15,8 @@ object FontAwesome {
     fun cubes(color: String? = null) = icon('\uf1b3', color)
     fun database(color: String? = null) = icon('\uf1c0', color)
     fun desktop(color: String? = null) = icon('\uf108', color)
-    fun edit(color: String? = null) = icon('\uf044', color)
     fun envelope(color: String? = null) = icon('\uf0e0', color)
+    fun exclamation(color: String? = null) = icon('\uf12a', color)
     fun exclamationTriangle(color: String? = null) = icon('\uf071', color)
     fun folderOpen(color: String? = null) = icon('\uf07c', color)
     fun gavel(color: String? = null) = icon('\uf0e3', color)
@@ -29,11 +29,12 @@ object FontAwesome {
     fun question(color: String? = null) = icon('\uf128', color)
     fun questionCircle(color: String? = null) = icon('\uf059', color)
     fun refresh(color: String? = null) = icon('\uf021', color)
+    fun share(color: String? = null) = icon('\uf064', color)
     fun tag(color: String? = null) = icon('\uf02b', color)
     fun tags(color: String? = null) = icon('\uf02c', color)
     fun undo(color: String? = null) = icon('\uf0e2', color)
 
-    private fun icon(glyph: Char, color: String? = null): Node {
+    private fun icon(glyph: Char, color: String?): Node {
         val icon = Text(glyph.toString()).addClass("icon")
         color?.let { icon.addStyle("-fx-fill:$it") }
         return stackPane {

@@ -23,6 +23,7 @@ import javafx.scene.control.SelectionMode
 import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
+import java.util.concurrent.Callable
 
 class WorkingCopyView : Tab() {
 
@@ -64,9 +65,8 @@ class WorkingCopyView : Tab() {
 
         // TODO: selection is little buggy sometimes / not refreshing correctly
         selectedFile = Bindings.createObjectBinding(
-                { stagedFilesSelection.selectedItem ?: pendingFilesSelection.selectedItem },
-                arrayOf(stagedFilesSelection.selectedItemProperty(),
-                        pendingFilesSelection.selectedItemProperty()))
+                Callable { stagedFilesSelection.selectedItem ?: pendingFilesSelection.selectedItem },
+                stagedFilesSelection.selectedItemProperty(), pendingFilesSelection.selectedItemProperty())
         selectedFile.addListener { _, _, it -> it?.let { fileDiff.update(State.selectedRepository, it) } ?: fileDiff.clear() }
 
         content = stackPane {

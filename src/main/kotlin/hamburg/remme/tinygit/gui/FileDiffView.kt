@@ -34,6 +34,7 @@ class FileDiffView : StackPaneBuilder() {
         setContent(when (file.status) {
             LocalFile.Status.CONFLICT -> Git.diffCached(repository, file) // TODO: incorrect diff
             LocalFile.Status.ADDED -> Git.diffCached(repository, file)
+            LocalFile.Status.COPIED -> Git.diffCached(repository, file) // TODO: incorrect diff
             LocalFile.Status.RENAMED -> Git.diffCached(repository, file) // TODO: incorrect diff
             LocalFile.Status.CHANGED -> Git.diffCached(repository, file)
             LocalFile.Status.REMOVED -> Git.diffCached(repository, file)

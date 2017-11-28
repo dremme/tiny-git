@@ -172,7 +172,7 @@ object Git {
                 DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.MODIFIED)
                 DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.MISSING)
             }
-        }
+        }.sortedBy { it.status }
     }
 
     private fun DiffFormatter.stagedFiles(repository: Repository): List<LocalFile> {
@@ -187,7 +187,7 @@ object Git {
                 DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.CHANGED)
                 DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED)
             }
-        }
+        }.sortedBy { it.status }
     }
 
     /**
@@ -304,7 +304,7 @@ object Git {
             formatter.scan(oldTree, newTree).map {
                 when (it.changeType!!) {
                     DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED)
-                    DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.RENAMED)
+                    DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.COPIED)
                     DiffEntry.ChangeType.RENAME -> LocalFile(it.newPath, LocalFile.Status.RENAMED)
                     DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.CHANGED)
                     DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED)
