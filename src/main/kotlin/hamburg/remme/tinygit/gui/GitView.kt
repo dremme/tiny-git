@@ -30,12 +30,14 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
+import javafx.stage.Window
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.api.errors.StashApplyFailureException
 import java.io.File
 
 class GitView : VBoxBuilder() {
 
+    private val window: Window get() = scene.window
     private val repositoryView = RepositoryView()
     private val commitLog = CommitLogView()
     private val workingCopy = WorkingCopyView()
@@ -80,12 +82,12 @@ class GitView : VBoxBuilder() {
         val squash = Action("Auto Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
                 handler = { /* TODO */ })
         val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
-                handler = { SettingsDialog(State.selectedRepository, scene.window).show() })
+                handler = { SettingsDialog(State.selectedRepository, window).show() })
         // ?
         val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
                 handler = { TinyGit.show("https://github.com/deso88/TinyGit") })
         val about = Action("About",
-                handler = { AboutDialog(scene.window).show() })
+                handler = { AboutDialog(window).show() })
 
         +menuBar {
             isUseSystemMenuBar = true
@@ -136,14 +138,14 @@ class GitView : VBoxBuilder() {
     }
 
     private fun addRepo() {
-        directoryChooser(scene.window, "Add Repository") {
+        directoryChooser(window, "Add Repository") {
             if (File("${it.absolutePath}/.git").exists()) {
                 val repository = LocalRepository(it.absolutePath)
                 if (State.repositories.none { it.path == repository.path }) {
                     State.repositories += LocalRepository(it.absolutePath)
                 }
             } else {
-                errorAlert(scene.window,
+                errorAlert(window,
                         "Invalid Repository",
                         "'${it.absolutePath}' does not contain a valid '.git' directory.")
             }
@@ -151,7 +153,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun commit(repository: LocalRepository) {
-        CommitDialog(repository, scene.window).show()
+        CommitDialog(repository, window).show()
     }
 
     private fun fetch(repository: LocalRepository) {
@@ -179,7 +181,7 @@ class GitView : VBoxBuilder() {
             override fun failed() {
                 exception.printStackTrace()
                 // TODO: make more specific to exception
-                errorAlert(scene.window,
+                errorAlert(window,
                         "Cannot Pull From Remote Branch",
                         "${exception.message}\n\nPlease commit or stash them before pulling.")
             }
@@ -189,7 +191,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun push(repository: LocalRepository, force: Boolean) {
-        if (force && !confirmWarningAlert(scene.window,
+        if (force && !confirmWarningAlert(window,
                 "Force Push",
                 "This will rewrite the remote branch's history.\nChanges by others will be lost.")) return
 
@@ -204,7 +206,7 @@ class GitView : VBoxBuilder() {
 
             override fun failed() {
                 when (exception) {
-                    is PushRejectedException -> errorAlert(scene.window,
+                    is PushRejectedException -> errorAlert(window,
                             "Cannot Push to Remote Branch",
                             "Updates were rejected because the tip of the current branch is behind.\nPull before pushing again or force push.")
                     else -> exception.printStackTrace()
@@ -216,7 +218,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun createBranch(repository: LocalRepository) {
-        textInputDialog(scene.window, FontAwesome.codeFork()) { name ->
+        textInputDialog(window, FontAwesome.codeFork()) { name ->
             State.addProcess("Branching...")
             State.execute(object : Task<Unit>() {
                 override fun call() = Git.branchCreate(repository, name)
@@ -225,7 +227,7 @@ class GitView : VBoxBuilder() {
 
                 override fun failed() {
                     when (exception) {
-                        is RefAlreadyExistsException -> errorAlert(scene.window,
+                        is RefAlreadyExistsException -> errorAlert(window,
                                 "Cannot Create Branch",
                                 "Branch '$name' does already exist in the working copy.")
                         else -> exception.printStackTrace()
@@ -261,7 +263,7 @@ class GitView : VBoxBuilder() {
                 when (exception) {
                     is StashApplyFailureException -> {
                         State.fireRefresh()
-                        errorAlert(scene.window,
+                        errorAlert(window,
                                 "Cannot Pop Stash",
                                 "Applying stashed changes resulted in a conflict.\nTherefore the stash entry has been preserved.")
                     }
