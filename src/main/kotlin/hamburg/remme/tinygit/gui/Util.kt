@@ -85,6 +85,7 @@ inline fun fileChooser(window: Window, title: String, block: (File) -> Unit) {
 inline fun directoryChooser(window: Window, title: String, block: (File) -> Unit) {
     val chooser = DirectoryChooser()
     chooser.title = title
+    chooser.initialDirectory = File(System.getProperty("user.home"))
     State.modalVisible.set(true)
     chooser.showDialog(window)?.let(block)
 }

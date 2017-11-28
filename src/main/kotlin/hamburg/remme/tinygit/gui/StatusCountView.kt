@@ -1,10 +1,8 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.HBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
-import hamburg.remme.tinygit.gui.builder.addStyle
 import hamburg.remme.tinygit.gui.builder.label
 import javafx.collections.ListChangeListener
 import javafx.scene.control.Tooltip
@@ -12,38 +10,43 @@ import javafx.scene.control.Tooltip
 class StatusCountView(statusView: FileStatusView) : HBoxBuilder() {
 
     private val conflicting = label {
-        addStyle("-fx-text-fill:#d9534f")
-        graphic = FontAwesome.exclamationTriangle("#d9534f")
+        addClass("status-conflict")
+        graphic = FileStatusView.conflictIcon()
         tooltip = Tooltip("Conflicting")
     }
     private val added = label {
-        addStyle("-fx-text-fill:#5cb85c")
-        graphic = FontAwesome.plus("#5cb85c")
+        addClass("status-added")
+        graphic = FileStatusView.addedIcon()
         tooltip = Tooltip("Added")
     }
+    private val copied = label {
+        addClass("status-copied")
+        graphic = FileStatusView.copiedIcon()
+        tooltip = Tooltip("Copied")
+    }
     private val renamed = label {
-        addStyle("-fx-text-fill:#5bc0de")
-        graphic = FontAwesome.edit("#5bc0de")
+        addClass("status-renamed")
+        graphic = FileStatusView.renamedIcon()
         tooltip = Tooltip("Renamed")
     }
     private val changed = label {
-        addStyle("-fx-text-fill:#f0ad4e")
-        graphic = FontAwesome.pencil("#f0ad4e")
+        addClass("status-changed")
+        graphic = FileStatusView.changedIcon()
         tooltip = Tooltip("Changed")
     }
     private val removed = label {
-        addStyle("-fx-text-fill:#d9534f")
-        graphic = FontAwesome.minus("#d9534f")
+        addClass("status-removed")
+        graphic = FileStatusView.removedIcon()
         tooltip = Tooltip("Removed")
     }
     private val missing = label {
-        addStyle("-fx-text-fill:#999")
-        graphic = FontAwesome.minus("#999")
+        addClass("status-missing")
+        graphic = FileStatusView.missingIcon()
         tooltip = Tooltip("Missing")
     }
     private val untracked = label {
-        addStyle("-fx-text-fill:#5bc0de")
-        graphic = FontAwesome.question("#5bc0de")
+        addClass("status-untracked")
+        graphic = FileStatusView.untrackedIcon()
         tooltip = Tooltip("Untracked")
     }
 
@@ -57,6 +60,7 @@ class StatusCountView(statusView: FileStatusView) : HBoxBuilder() {
         val counts = files.groupingBy { it.status }.eachCount()
         val conflictingCount = counts[LocalFile.Status.CONFLICT] ?: 0
         val addedCount = counts[LocalFile.Status.ADDED] ?: 0
+        val copiedCount = counts[LocalFile.Status.COPIED] ?: 0
         val renamedCount = counts[LocalFile.Status.RENAMED] ?: 0
         val changedCount = (counts[LocalFile.Status.MODIFIED] ?: 0) + (counts[LocalFile.Status.CHANGED] ?: 0)
         val removedCount = counts[LocalFile.Status.REMOVED] ?: 0
@@ -72,6 +76,10 @@ class StatusCountView(statusView: FileStatusView) : HBoxBuilder() {
         if (addedCount > 0) {
             added.text = addedCount.toString()
             +added
+        }
+        if (copiedCount > 0) {
+            copied.text = copiedCount.toString()
+            +copied
         }
         if (renamedCount > 0) {
             renamed.text = renamedCount.toString()
