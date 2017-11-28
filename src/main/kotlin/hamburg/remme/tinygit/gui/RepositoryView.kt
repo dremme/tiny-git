@@ -17,6 +17,7 @@ import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
+import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
@@ -30,11 +31,12 @@ import javafx.scene.input.MouseButton
 import javafx.stage.Window
 import org.eclipse.jgit.api.errors.CheckoutConflictException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
+import java.util.concurrent.Callable
 
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
-    private val headCache: MutableMap<String, String> = mutableMapOf()
     private val window: Window get() = scene.window
+    private val headCache: MutableMap<String, String> = mutableMapOf()
 
     init {
         setCellFactory { RepositoryEntryListCell() }
@@ -44,16 +46,19 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             it?.let { State.selectedRepository = it.value.repository }
         }
 
+        // TODO: should be menu bar actions as well
+        val canModifyBranch = Bindings.createBooleanBinding(
+                Callable { selectionModel.selectedItem?.value?.type == EntryType.LOCAL_BRANCH },
+                selectionModel.selectedItemProperty())
+        val removeRepository = Action("Remove Repository", handler = { removeRepository(selectionModel.selectedItem.value) })
+        val renameBranch = Action("Rename Branch", disable = canModifyBranch.not(),
+                handler = { renameBranch(selectionModel.selectedItem.value) })
+        val removeBranch = Action("Remove Branch", disable = canModifyBranch.not(),
+                handler = { removeBranch(selectionModel.selectedItem.value) })
         contextMenu = context {
             isAutoHide = true
-            // TODO: should be menu bar actions as well
-            +ActionGroup(Action("Remove Repository",
-                    handler = {
-                        if (confirmWarningAlert(window,
-                                "Remove Repository",
-                                "Will remove the repository '${State.selectedRepository}' from TinyGit, but keep it on the disk."))
-                            State.repositories -= State.selectedRepository
-                    }))
+            +ActionGroup(removeRepository)
+            +ActionGroup(renameBranch, removeBranch)
         }
 
         setOnKeyPressed { if (it.code == KeyCode.SPACE) it.consume() }
@@ -165,6 +170,36 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     }
 
     private fun List<LocalStashEntry>.indexOf(message: String) = indexOfFirst { it.message == message }
+
+    private fun removeRepository(entry: RepositoryEntry) {
+        if (confirmWarningAlert(window,
+                "Remove Repository",
+                "Will remove the repository '${entry.repository}' from TinyGit, but keep it on the disk."))
+            State.repositories -= entry.repository
+    }
+
+    private fun renameBranch(entry: RepositoryEntry) {
+        if (entry.type != EntryType.LOCAL_BRANCH) {
+            // TODO: proper item disabling
+            contextMenu.hide()
+            throw IllegalArgumentException("Can only be performed on branch entries.")
+        }
+        textInputDialog(window, FontAwesome.codeFork()) {
+            Git.branchRename(entry.repository, entry.value, it)
+        }
+        // TODO: loses selected of renamed branch
+        State.fireRefresh()
+    }
+
+    private fun removeBranch(entry: RepositoryEntry) {
+        if (entry.type != EntryType.LOCAL_BRANCH) {
+            // TODO: proper item disabling
+            contextMenu.hide()
+            throw IllegalArgumentException("Can only be performed on branch entries.")
+        }
+        Git.branchDelete(entry.repository, entry.value)
+        State.fireRefresh()
+    }
 
     private fun checkout(repository: LocalRepository, branch: String) {
         if (branch == Git.head(repository)) return

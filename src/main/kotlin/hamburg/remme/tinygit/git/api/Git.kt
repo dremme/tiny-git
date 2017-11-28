@@ -50,8 +50,8 @@ object Git {
 
     private val updatedRepositories = mutableSetOf<LocalRepository>()
     private val repositoryCache = mutableMapOf<String, Repository>()
-    private var proxyHost = ThreadLocal<String>()
-    private var proxyPort = ThreadLocal<Int>()
+    private var proxyHost = ThreadLocal<String>() // TODO: really needed? cannot interact with more than one repo atm
+    private var proxyPort = ThreadLocal<Int>() // TODO: really needed? cannot interact with more than one repo atm
 
     init {
         ProxySelector.setDefault(object : ProxySelector() {
@@ -455,6 +455,13 @@ object Git {
     }
 
     /**
+     * - git branch --move [oldName] [newName]
+     */
+    fun branchRename(repository: LocalRepository, oldName: String, newName: String) {
+        repository.openGit { it.branchRename().setOldName(oldName).setNewName(newName).call() }
+    }
+
+    /**
      * - git branch --delete [name]
      */
     fun branchDelete(repository: LocalRepository, name: String) {
@@ -553,6 +560,8 @@ object Git {
 
     private fun Repository.revWalk() = RevWalk(this)
 
+    private fun JGit.revWalk() = RevWalk(repository)
+
     // TODO: test performance if objectreader is created here instead
     private fun Repository.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {
         return revWalk().use { walk ->
@@ -561,10 +570,6 @@ object Git {
             walk.iteratorOf(commit) to walk.iteratorOf(parent)
         }
     }
-
-    private fun JGit.revWalk() = RevWalk(repository)
-
-    private fun JGit.treesOf(commitId: AnyObjectId) = repository.treesOf(commitId)
 
     // TODO: test performance if objectreader is created here instead
     private fun RevWalk.iteratorOf(commit: RevCommit?): AbstractTreeIterator {

@@ -153,17 +153,12 @@ class FileDiffView : StackPaneBuilder() {
 
     private fun format(diff: String, file: String? = null): String {
         if (diff.isBlank() || diff.matches(".*Binary files differ\\r?\\n?$".toRegex(RegexOption.DOT_MATCHES_ALL))) {
-            val image: String
-            if (file?.toLowerCase()?.matches(".*\\.(png|jpe?g|gif)$".toRegex()) == true) {
-                //language=HTML
-                image = """
-                    <tr>
-                        <td colspan="3"><div class="image-box"><img src="file://$file"></div></td>
-                    </tr>
-                """
-            } else {
-                image = ""
-            }
+            //language=HTML
+            val image = if (file?.toLowerCase()?.matches(".*\\.(png|jpe?g|gif)$".toRegex()) == true) """
+                <tr>
+                    <td colspan="3"><div class="image-box"><img src="file://$file"></div></td>
+                </tr>
+            """ else ""
             //language=HTML
             return """
                 $emptyDiff

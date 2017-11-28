@@ -11,7 +11,7 @@
     <description>A very small, fast and portable Git client.</description>
 
     <properties>
-        <kotlin.version>1.1.61</kotlin.version>
+        <kotlin.version>1.2.0</kotlin.version>
         <org.eclipse.jgit.version>4.9.0.201710071750-r</org.eclipse.jgit.version>
         <snakeyaml.version>1.18</snakeyaml.version>
     </properties>
