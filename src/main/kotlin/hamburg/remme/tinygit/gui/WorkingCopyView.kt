@@ -118,7 +118,6 @@ class WorkingCopyView : Tab() {
     }
 
     private fun diff(repository: LocalRepository) {
-        println("Status for working copy: $repository")
         task?.cancel()
         task = object : Task<LocalStatus>() {
             override fun call() = Git.status(repository) // TODO: git status might not be good enough here
@@ -140,7 +139,7 @@ class WorkingCopyView : Tab() {
     }
 
     private fun stage(repository: LocalRepository) {
-        Git.stageAll(repository, pendingFiles.items.filter { it.status == LocalFile.Status.MISSING })
+        Git.stageAll(repository, pendingFiles.items.filter { it.status == LocalFile.Status.REMOVED && !it.cached })
         diff(repository)
     }
 

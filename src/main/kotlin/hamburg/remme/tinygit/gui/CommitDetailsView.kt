@@ -67,7 +67,6 @@ class CommitDetailsView : SplitPaneBuilder() {
             setContent(newCommit)
 
             // TODO: add a process indicator
-            println("Status for commit: ${newCommit.shortId}")
             task?.cancel()
             task = object : Task<List<LocalFile>>() {
                 override fun call() = Git.diffTree(newRepository, newCommit.id)

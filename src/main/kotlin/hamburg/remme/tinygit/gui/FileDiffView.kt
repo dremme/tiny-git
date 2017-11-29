@@ -31,17 +31,7 @@ class FileDiffView : StackPaneBuilder() {
     }
 
     fun update(repository: LocalRepository, file: LocalFile) {
-        setContent(when (file.status) {
-            LocalFile.Status.CONFLICT -> Git.diffCached(repository, file) // TODO: incorrect diff
-            LocalFile.Status.ADDED -> Git.diffCached(repository, file)
-            LocalFile.Status.COPIED -> Git.diffCached(repository, file) // TODO: incorrect diff
-            LocalFile.Status.RENAMED -> Git.diffCached(repository, file) // TODO: incorrect diff
-            LocalFile.Status.CHANGED -> Git.diffCached(repository, file)
-            LocalFile.Status.REMOVED -> Git.diffCached(repository, file)
-            LocalFile.Status.MODIFIED -> Git.diff(repository, file)
-            LocalFile.Status.MISSING -> Git.diff(repository, file)
-            LocalFile.Status.UNTRACKED -> Git.diff(repository, file)
-        }, file.resolve(repository))
+        setContent(Git.diff(repository, file), file.resolve(repository))
     }
 
     fun update(repository: LocalRepository, file: LocalFile, id: String) {

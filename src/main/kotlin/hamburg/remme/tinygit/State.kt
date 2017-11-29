@@ -122,7 +122,7 @@ object State {
     val canSquash = FALSE // TODO: selectedRepositoryProperty.isNotNull.and(runningProcesses.isZero())!!
 
     val canStageAll = Bindings.isNotEmpty(pendingFiles)!!
-    val canUpdateAll = Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.UNTRACKED })!!
+    val canUpdateAll = Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.ADDED && !it.cached })!!
     val canStageSelected = pendingFilesSelected.greater0()!!
     val canUnstageAll = Bindings.isNotEmpty(stagedFiles)!!
     val canUnstageSelected = stagedFilesSelected.greater0()!!
