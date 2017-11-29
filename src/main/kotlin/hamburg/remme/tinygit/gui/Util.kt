@@ -17,6 +17,10 @@ import java.time.format.DateTimeFormatter
 val shortDate = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val fullDate = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
 
+fun printError(message: String) {
+    System.err.println(message)
+}
+
 fun String.htmlEncode() = replace("&", "&amp;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")

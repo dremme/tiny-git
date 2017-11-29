@@ -17,7 +17,6 @@ class FileStatusView : ListView<LocalFile> {
         fun copiedIcon() = FontAwesome.plus()
         fun renamedIcon() = FontAwesome.share()
         fun modifiedIcon() = FontAwesome.pencil()
-        fun changedIcon() = FontAwesome.pencil()
         fun removedIcon() = FontAwesome.minus()
         fun missingIcon() = FontAwesome.minus()
         fun untrackedIcon() = FontAwesome.question()
@@ -42,16 +41,15 @@ class FileStatusView : ListView<LocalFile> {
         override fun updateItem(item: LocalFile?, empty: Boolean) {
             super.updateItem(item, empty)
             text = item?.path
-            graphic = when (item?.status) {
-                LocalFile.Status.CONFLICT -> conflictIcon().addClass("status-conflict")
-                LocalFile.Status.ADDED -> addedIcon().addClass("status-added")
-                LocalFile.Status.COPIED -> copiedIcon().addClass("status-copied")
-                LocalFile.Status.RENAMED -> renamedIcon().addClass("status-renamed")
-                LocalFile.Status.MODIFIED -> modifiedIcon().addClass("status-modified")
-                LocalFile.Status.CHANGED -> changedIcon().addClass("status-changed")
-                LocalFile.Status.REMOVED -> removedIcon().addClass("status-removed")
-                LocalFile.Status.MISSING -> missingIcon().addClass("status-missing")
-                LocalFile.Status.UNTRACKED -> untrackedIcon().addClass("status-untracked")
+            graphic = when {
+                item?.status == LocalFile.Status.CONFLICT -> conflictIcon().addClass("status-conflict")
+                item?.status == LocalFile.Status.ADDED && !item.cached -> untrackedIcon().addClass("status-untracked")
+                item?.status == LocalFile.Status.ADDED -> addedIcon().addClass("status-added")
+                item?.status == LocalFile.Status.COPIED -> copiedIcon().addClass("status-copied")
+                item?.status == LocalFile.Status.RENAMED -> renamedIcon().addClass("status-renamed")
+                item?.status == LocalFile.Status.MODIFIED -> modifiedIcon().addClass("status-modified")
+                item?.status == LocalFile.Status.REMOVED && !item.cached -> missingIcon().addClass("status-missing")
+                item?.status == LocalFile.Status.REMOVED -> removedIcon().addClass("status-removed")
                 else -> null
             }
         }

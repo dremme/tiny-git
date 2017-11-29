@@ -18,7 +18,6 @@
     -fx-color-status-copied: #ffc66d;
     -fx-color-status-renamed: #56aebf;
     -fx-color-status-modified: #ffc66d;
-    -fx-color-status-changed: #ffc66d;
     -fx-color-status-removed: #d25252;
     -fx-color-status-missing: #808080;
     -fx-color-status-untracked: #ab86bf;
@@ -404,14 +403,6 @@
 
 .status-modified .icon {
     -fx-fill: -fx-color-status-modified;
-}
-
-.label.status-changed {
-    -fx-text-fill: -fx-color-status-changed;
-}
-
-.status-changed .icon {
-    -fx-fill: -fx-color-status-changed;
 }
 
 .label.status-removed {

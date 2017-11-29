@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.git
 
-class LocalFile(val path: String, val status: Status) {
+class LocalFile(val path: String, val status: Status, val cached: Boolean = true) {
 
     fun resolve(repository: LocalRepository): String {
         var repositoryPath = repository.path
@@ -19,6 +19,7 @@ class LocalFile(val path: String, val status: Status) {
 
         if (path != other.path) return false
         if (status != other.status) return false
+        if (cached != other.cached) return false
 
         return true
     }
@@ -26,9 +27,10 @@ class LocalFile(val path: String, val status: Status) {
     override fun hashCode(): Int {
         var result = path.hashCode()
         result = 31 * result + status.hashCode()
+        result = 31 * result + cached.hashCode()
         return result
     }
 
-    enum class Status { CONFLICT, ADDED, COPIED, RENAMED, CHANGED, MODIFIED, REMOVED, MISSING, UNTRACKED }
+    enum class Status { CONFLICT, ADDED, COPIED, RENAMED, MODIFIED, REMOVED }
 
 }

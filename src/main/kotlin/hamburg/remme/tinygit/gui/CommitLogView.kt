@@ -130,7 +130,6 @@ class CommitLogView : Tab() {
     private fun logRemote(repository: LocalRepository) {
         task?.cancel()
         if (!Git.isUpdated(repository)) {
-            println("Fetching: $repository")
             task = object : Task<List<LocalCommit>>() {
                 override fun call() = Git.log(repository, true)
 
