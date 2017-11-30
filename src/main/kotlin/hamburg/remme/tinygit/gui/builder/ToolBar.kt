@@ -35,17 +35,20 @@ class ToolBarBuilder : ToolBar() {
         action.forEach {
             +stackPane {
                 +button(it)
-                if (it.count != null) +label {
-                    addClass("count-badge")
-                    alignment(Pos.TOP_RIGHT)
-                    visibleWhen(Bindings.notEqual(0, it.count))
-                    textProperty().bind(badge(it.count))
+                it.count?.let {
+                    +label {
+                        addClass("count-badge")
+                        alignment(Pos.TOP_RIGHT)
+                        visibleWhen(Bindings.notEqual(0, it))
+                        isMouseTransparent = true
+                        textProperty().bind(badge(it))
+                    }
                 }
             }
         }
     }
 
     private fun badge(count: ObservableIntegerValue)
-            = Bindings.createStringBinding(Callable { if (count.get() > 0) count.get().toString() else "*" }, count)!!
+            = Bindings.createStringBinding(Callable { if (count.get() > 0) count.get().toString() else "\u25cf" }, count)!!
 
 }

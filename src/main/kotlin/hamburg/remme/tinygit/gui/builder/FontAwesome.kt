@@ -32,6 +32,7 @@ object FontAwesome {
     fun share(color: String? = null) = icon('\uf064', color)
     fun tag(color: String? = null) = icon('\uf02b', color)
     fun tags(color: String? = null) = icon('\uf02c', color)
+    fun trash(color: String? = null) = icon('\uf1f8', color)
     fun undo(color: String? = null) = icon('\uf0e2', color)
 
     private fun icon(glyph: Char, color: String?): Node {

@@ -75,6 +75,7 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
             val OK = ButtonType("OK", ButtonBar.ButtonData.OK_DONE)
             val DONE = ButtonType("Done", ButtonBar.ButtonData.OK_DONE)
             val CANCEL = ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
+            val CLOSE = ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE)
         }
 
     }
