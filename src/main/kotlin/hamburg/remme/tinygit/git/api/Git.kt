@@ -334,25 +334,16 @@ object Git {
         repository.openGit("update") { it.add().setUpdate(true).addFilepattern(".").call() }
     }
 
-    /**
-     * - git add <[files]>
-     */
     private fun JGit.add(files: List<LocalFile>) {
         val addCommand = add()
         files.forEach { addCommand.addFilepattern(it.path) }
         addCommand.call()
     }
 
-    /**
-     * - git add .
-     */
     private fun JGit.addAll() {
         add().addFilepattern(".").call()
     }
 
-    /**
-     * - git rm <[files]>
-     */
     private fun JGit.remove(files: List<LocalFile>) {
         val rmCommand = rm()
         files.forEach { rmCommand.addFilepattern(it.path) }
@@ -466,7 +457,20 @@ object Git {
      * - git branch --delete [name]
      */
     fun branchDelete(repository: LocalRepository, name: String) {
-        repository.openGit("delete $name") { it.branchDelete().setBranchNames(name).call() }
+        branchDelete(repository, name, false)
+    }
+
+    /**
+     * - git branch --delete --force [name]
+     */
+    fun branchDeleteForce(repository: LocalRepository, name: String) {
+        branchDelete(repository, name, true)
+    }
+
+    private fun branchDelete(repository: LocalRepository, name: String, force: Boolean) {
+        repository.openGit("delete force=$force $name") {
+            it.branchDelete().setForce(force).setBranchNames(name).call()
+        }
     }
 
     /**
@@ -560,8 +564,8 @@ object Git {
         val key = RepositoryCache.FileKey.lenient(File(path), FS.DETECTED)
         val value = RepositoryBuilder().setFS(FS.DETECTED).setGitDir(key.file).setMustExist(true).build().let(block)
         val time = (System.currentTimeMillis() - startTime) / 1000.0
-        if (time < 1) println("$this: $description finished in $time seconds.")
-        if (time >= 1) printError("$this: $description finished in $time seconds.")
+        if (time < 1) println(String.format("[%-18s] %-15s in %6.3fs", this.shortPath, description, time))
+        if (time >= 1) printError(String.format("[%-18s] %-15s in %6.3fs", this.shortPath, description, time))
         return value
     }
 

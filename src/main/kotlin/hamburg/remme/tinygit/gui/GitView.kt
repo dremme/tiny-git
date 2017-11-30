@@ -195,7 +195,7 @@ class GitView : VBoxBuilder() {
             return
         }
 
-        if (force && !confirmWarningAlert(window, "Force Push",
+        if (force && !confirmWarningAlert(window, "Force Push", "Push",
                 "This will rewrite the remote branch's history.\nChanges by others will be lost.")) return
 
         State.addProcess("Pushing commits...")
@@ -276,7 +276,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun autoReset(repository: LocalRepository) {
-        if (!confirmWarningAlert(window, "Auto Reset Branch",
+        if (!confirmWarningAlert(window, "Auto Reset Branch", "Reset",
                 "This will automatically reset the current branch to its remote branch.\nUnpushed commits will be lost.")) return
 
         State.addProcess("Resetting branch...")

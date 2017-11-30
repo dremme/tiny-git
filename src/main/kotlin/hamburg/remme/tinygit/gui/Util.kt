@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.gui.builder.FontAwesome
 import javafx.scene.Node
 import javafx.scene.control.Alert
+import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
 import javafx.scene.control.TextInputDialog
 import javafx.scene.input.KeyCombination
@@ -36,20 +37,24 @@ fun String.keyCombinationText() = KeyCombination.valueOf(this).displayText!!
  * DIALOGS                                                                                                       *
  *                                                                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-fun confirmAlert(window: Window, header: String, text: String): Boolean {
-    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, FontAwesome.questionCircle("#5bc0de"))
+fun ButtonType.isOk() = buttonData == ButtonBar.ButtonData.OK_DONE
+
+fun ButtonType.isCancel() = buttonData == ButtonBar.ButtonData.CANCEL_CLOSE
+
+fun confirmAlert(window: Window, header: String, ok: String, text: String): Boolean {
+    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, ok, text, FontAwesome.questionCircle("#5bc0de"))
     State.modalVisible.set(true)
-    return alert.showAndWait().get() == ButtonType.OK
+    return alert.showAndWait().get().isOk()
 }
 
-fun confirmWarningAlert(window: Window, header: String, text: String): Boolean {
-    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, text, FontAwesome.exclamationTriangle("#f0ad4e"))
+fun confirmWarningAlert(window: Window, header: String, ok: String, text: String): Boolean {
+    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, ok, text, FontAwesome.exclamationTriangle("#f0ad4e"))
     State.modalVisible.set(true)
-    return alert.showAndWait().get() == ButtonType.OK
+    return alert.showAndWait().get().isOk()
 }
 
 fun errorAlert(window: Window, header: String, text: String) {
-    val alert = alert(window, Alert.AlertType.ERROR, header, text, FontAwesome.exclamationTriangle("#d9534f"))
+    val alert = alert(window, Alert.AlertType.ERROR, header, "OK", text, FontAwesome.exclamationTriangle("#d9534f"))
     State.modalVisible.set(true)
     alert.showAndWait()
 }
@@ -57,9 +62,12 @@ fun errorAlert(window: Window, header: String, text: String) {
 private fun alert(window: Window,
                   type: Alert.AlertType,
                   header: String,
+                  ok: String,
                   text: String,
                   icon: Node): Alert {
-    val alert = Alert(type, text)
+    val alert = Alert(type, text,
+            ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
+            ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE))
     alert.initModality(Modality.WINDOW_MODAL)
     alert.initOwner(window)
     alert.headerText = header

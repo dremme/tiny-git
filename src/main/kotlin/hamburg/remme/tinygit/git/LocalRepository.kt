@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.git
 
 class LocalRepository(var path: String = "") {
 
+    val shortPath: String get() = path.split("[\\\\/]".toRegex()).last()
     var ssh: String = ""
     var username: String = ""
     var password: String = ""
