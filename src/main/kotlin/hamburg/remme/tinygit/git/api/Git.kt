@@ -50,7 +50,6 @@ import org.eclipse.jgit.api.Git as JGit
 object Git {
 
     private val updatedRepositories = mutableSetOf<LocalRepository>()
-    private val repositoryCache = mutableMapOf<String, Repository>()
     private var proxyHost = ThreadLocal<String>() // TODO: really needed? cannot interact with more than one repo atm
     private var proxyPort = ThreadLocal<Int>() // TODO: really needed? cannot interact with more than one repo atm
 
@@ -70,8 +69,6 @@ object Git {
     }
 
     fun isUpdated(repository: LocalRepository) = updatedRepositories.contains(repository)
-
-    fun isOpen(key: String) = repositoryCache.contains(key)
 
     /**
      * - git remote show origin
@@ -511,9 +508,18 @@ object Git {
 
     /**
      * - git fetch --prune
+     * - git gc --aggressive
      */
     fun fetchPrune(repository: LocalRepository) {
-        repository.openGit("fetch") { it.fetch().applyAuth(repository).setRemoveDeletedRefs(true).call() }
+        repository.openGit("fetch") {
+            it.fetch().applyAuth(repository).setRemoveDeletedRefs(true).call()
+            // TODO: clarify when to do
+            try {
+                it.gc().setAggressive(true).call()
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
+        }
         updatedRepositories += repository
     }
 
@@ -534,14 +540,8 @@ object Git {
         Git.proxyHost.set(proxyHost)
         Git.proxyPort.set(proxyPort)
         val startTime = System.currentTimeMillis()
-        val value = if (isOpen(path)) {
-            repositoryCache[path]!!
-        } else {
-            val key = RepositoryCache.FileKey.lenient(File(path), FS.DETECTED)
-            val repository = RepositoryBuilder().setFS(FS.DETECTED).setGitDir(key.file).setMustExist(true).build()
-            repositoryCache[path] = repository
-            repository
-        }.let(block)
+        val key = RepositoryCache.FileKey.lenient(File(path), FS.DETECTED)
+        val value = RepositoryBuilder().setFS(FS.DETECTED).setGitDir(key.file).setMustExist(true).build().let(block)
         val time = (System.currentTimeMillis() - startTime) / 1000.0
         if (time < 1) println("$this: $description finished in $time seconds.")
         if (time >= 1) printError("$this: $description finished in $time seconds.")
