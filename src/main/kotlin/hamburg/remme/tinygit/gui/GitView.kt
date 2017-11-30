@@ -78,7 +78,7 @@ class GitView : VBoxBuilder() {
         val stashPop = Action("Pop Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
                 { stashPop(State.selectedRepository) })
         val reset = Action("Auto Reset", { FontAwesome.undo() }, disable = State.canReset.not(),
-                handler = { /* TODO */ })
+                handler = { autoReset(State.selectedRepository) })
         val squash = Action("Auto Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
                 handler = { /* TODO */ })
         val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
@@ -145,8 +145,7 @@ class GitView : VBoxBuilder() {
                     State.repositories += LocalRepository(it.absolutePath)
                 }
             } else {
-                errorAlert(window,
-                        "Invalid Repository",
+                errorAlert(window, "Invalid Repository",
                         "'${it.absolutePath}' does not contain a valid '.git' directory.")
             }
         }
@@ -181,8 +180,7 @@ class GitView : VBoxBuilder() {
             override fun failed() {
                 exception.printStackTrace()
                 // TODO: make more specific to exception
-                errorAlert(window,
-                        "Cannot Pull From Remote Branch",
+                errorAlert(window, "Cannot Pull From Remote Branch",
                         "${exception.message}\n\nPlease commit or stash them before pulling.")
             }
 
@@ -191,8 +189,13 @@ class GitView : VBoxBuilder() {
     }
 
     private fun push(repository: LocalRepository, force: Boolean) {
-        if (force && !confirmWarningAlert(window,
-                "Force Push",
+        if (!Git.hasRemote(repository)) {
+            errorAlert(window, "Push", "No remote configured.")
+            SettingsDialog(repository, window).show()
+            return
+        }
+
+        if (force && !confirmWarningAlert(window, "Force Push",
                 "This will rewrite the remote branch's history.\nChanges by others will be lost.")) return
 
         State.addProcess("Pushing commits...")
@@ -206,8 +209,7 @@ class GitView : VBoxBuilder() {
 
             override fun failed() {
                 when (exception) {
-                    is PushRejectedException -> errorAlert(window,
-                            "Cannot Push to Remote Branch",
+                    is PushRejectedException -> errorAlert(window, "Cannot Push to Remote Branch",
                             "Updates were rejected because the tip of the current branch is behind.\nPull before pushing again or force push.")
                     else -> exception.printStackTrace()
                 }
@@ -218,7 +220,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun createBranch(repository: LocalRepository) {
-        textInputDialog(window, FontAwesome.codeFork()) { name ->
+        textInputDialog(window, "Enter a New Branch Name", FontAwesome.codeFork()) { name ->
             State.addProcess("Branching...")
             State.execute(object : Task<Unit>() {
                 override fun call() = Git.branchCreate(repository, name)
@@ -227,8 +229,7 @@ class GitView : VBoxBuilder() {
 
                 override fun failed() {
                     when (exception) {
-                        is RefAlreadyExistsException -> errorAlert(window,
-                                "Cannot Create Branch",
+                        is RefAlreadyExistsException -> errorAlert(window, "Cannot Create Branch",
                                 "Branch '$name' does already exist in the working copy.")
                         else -> exception.printStackTrace()
                     }
@@ -263,13 +264,28 @@ class GitView : VBoxBuilder() {
                 when (exception) {
                     is StashApplyFailureException -> {
                         State.fireRefresh()
-                        errorAlert(window,
-                                "Cannot Pop Stash",
+                        errorAlert(window, "Cannot Pop Stash",
                                 "Applying stashed changes resulted in a conflict.\nTherefore the stash entry has been preserved.")
                     }
                     else -> exception.printStackTrace()
                 }
             }
+
+            override fun done() = Platform.runLater { State.removeProcess() }
+        })
+    }
+
+    private fun autoReset(repository: LocalRepository) {
+        if (!confirmWarningAlert(window, "Auto Reset Branch",
+                "This will automatically reset the current branch to its remote branch.\nUnpushed commits will be lost.")) return
+
+        State.addProcess("Resetting branch...")
+        State.execute(object : Task<Unit>() {
+            override fun call() = Git.resetHard(repository)
+
+            override fun succeeded() = State.fireRefresh()
+
+            override fun failed() = exception.printStackTrace()
 
             override fun done() = Platform.runLater { State.removeProcess() }
         })

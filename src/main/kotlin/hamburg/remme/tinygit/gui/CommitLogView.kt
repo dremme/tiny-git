@@ -25,11 +25,13 @@ import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
+import javafx.stage.Window
 import org.eclipse.jgit.api.errors.NoHeadException
 import org.eclipse.jgit.api.errors.TransportException
 
 class CommitLogView : Tab() {
 
+    private val window: Window get() = content.scene.window
     private val progressPane: ProgressPane
     private val localCommits = TableView<LocalCommit>()
     private val commitDetails = CommitDetailsView()
@@ -129,34 +131,34 @@ class CommitLogView : Tab() {
 
     private fun logRemote(repository: LocalRepository) {
         task?.cancel()
-        if (!Git.isUpdated(repository)) {
-            task = object : Task<List<LocalCommit>>() {
-                override fun call() = Git.log(repository, true)
 
-                override fun succeeded() {
-                    updateLog(value)
-                    updateDivergence(Git.divergence(repository))
-                }
+        if (!Git.hasRemote(repository) || Git.isUpdated(repository)) return
 
-                override fun failed() {
-                    when (exception) {
-                        is TransportException -> errorAlert(content.scene.window,
-                                "Cannot Fetch Remote",
-                                "Please check the repository settings.\nCredentials or proxy settings may have changed.")
-                        else -> exception.printStackTrace()
-                    }
-                }
+        task = object : Task<List<LocalCommit>>() {
+            override fun call() = Git.log(repository, true)
 
-                override fun done() {
-                    Platform.runLater {
-                        if (state != Worker.State.CANCELLED) progressPane.hideProgress()
-                        else if (task?.state != Worker.State.READY) progressPane.hideProgress()
-                    }
-                }
-            }.also {
-                progressPane.showProgress()
-                State.execute(it)
+            override fun succeeded() {
+                updateLog(value)
+                updateDivergence(Git.divergence(repository))
             }
+
+            override fun failed() {
+                when (exception) {
+                    is TransportException -> errorAlert(window, "Cannot Fetch Remote",
+                            "Please check the repository settings.\nCredentials or proxy settings may have changed.")
+                    else -> exception.printStackTrace()
+                }
+            }
+
+            override fun done() {
+                Platform.runLater {
+                    if (state != Worker.State.CANCELLED) progressPane.hideProgress()
+                    else if (task?.state != Worker.State.READY) progressPane.hideProgress()
+                }
+            }
+        }.also {
+            progressPane.showProgress()
+            State.execute(it)
         }
     }
 

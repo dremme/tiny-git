@@ -12,6 +12,7 @@ import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.ListBranchCommand
 import org.eclipse.jgit.api.MergeResult
+import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.api.TransportCommand
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffFormatter
@@ -69,6 +70,13 @@ object Git {
     }
 
     fun isUpdated(repository: LocalRepository) = updatedRepositories.contains(repository)
+
+    /**
+     * - git remote
+     */
+    fun hasRemote(repository: LocalRepository): Boolean {
+        return repository.openGit("remote") { it.remoteList().call().isNotEmpty() }
+    }
 
     /**
      * - git remote show origin
@@ -370,6 +378,15 @@ object Git {
     }
 
     /**
+     * - git reset --hard origin/<current_branch>
+     */
+    fun resetHard(repository: LocalRepository) {
+        repository.openGit("reset hard") {
+            it.reset().setMode(ResetCommand.ResetType.HARD).setRef("$DEFAULT_REMOTE_NAME/${it.repository.branch}").call()
+        }
+    }
+
+    /**
      * - git commit --message="[message]"
      */
     fun commit(repository: LocalRepository, message: String) {
@@ -532,7 +549,7 @@ object Git {
 
     private fun <C : GitCommand<T>, T> TransportCommand<C, T>.applyAuth(repository: LocalRepository): C {
         val credentials = GitCredentials(repository.ssh, repository.username, repository.password)
-        return if (credentials.isSSH()) setTransportConfigCallback(credentials.sshTransport)
+        return if (credentials.isSSH) setTransportConfigCallback(credentials.sshTransport)
         else setCredentialsProvider(credentials.userCredentials)
     }
 
