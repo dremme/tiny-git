@@ -67,12 +67,12 @@ private fun alert(window: Window,
     return alert
 }
 
-inline fun textInputDialog(window: Window, icon: Node, block: (String) -> Unit) {
+inline fun textInputDialog(window: Window, header: String, icon: Node, block: (String) -> Unit) {
     val dialog = TextInputDialog()
     dialog.initModality(Modality.WINDOW_MODAL)
     dialog.initOwner(window)
     dialog.title = "Input"
-    dialog.headerText = "Enter a New Branch Name"
+    dialog.headerText = header
     dialog.graphic = icon
     State.modalVisible.set(true)
     dialog.showAndWait().orElse(null)?.let(block)

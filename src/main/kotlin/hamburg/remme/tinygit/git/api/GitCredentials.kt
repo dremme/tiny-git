@@ -8,21 +8,19 @@ import org.eclipse.jgit.transport.SshTransport
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.eclipse.jgit.util.FS
 
-class GitCredentials(private val ssh: String, private val username: String, private val password: String) {
+class GitCredentials(private val sshPath: String, private val username: String, private val password: String) {
 
+    val isSSH = sshPath.isNotBlank()
     val userCredentials by lazy { UsernamePasswordCredentialsProvider(username, password) }
-
     val sshTransport by lazy {
         TransportConfigCallback {
             (it as SshTransport).sshSessionFactory = object : JschConfigSessionFactory() {
                 override fun createDefaultJSch(fs: FS)
-                        = super.createDefaultJSch(fs).also { it.addIdentity(ssh, password.takeIf { it.isNotBlank() }) }
+                        = super.createDefaultJSch(fs).also { it.addIdentity(sshPath, password.takeIf { it.isNotBlank() }) }
 
                 override fun configure(host: Host, session: Session) = Unit
             }
         }
     }
-
-    fun isSSH() = ssh.isNotBlank()
 
 }

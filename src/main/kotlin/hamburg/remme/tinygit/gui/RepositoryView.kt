@@ -172,8 +172,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun List<LocalStashEntry>.indexOf(message: String) = indexOfFirst { it.message == message }
 
     private fun removeRepository(entry: RepositoryEntry) {
-        if (confirmWarningAlert(window,
-                "Remove Repository",
+        if (confirmWarningAlert(window, "Remove Repository",
                 "Will remove the repository '${entry.repository}' from TinyGit, but keep it on the disk."))
             State.repositories -= entry.repository
     }
@@ -184,7 +183,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             contextMenu.hide()
             throw IllegalArgumentException("Can only be performed on branch entries.")
         }
-        textInputDialog(window, FontAwesome.codeFork()) {
+        textInputDialog(window, "Enter a New Branch Name", FontAwesome.codeFork()) {
             Git.branchRename(entry.repository, entry.value, it)
         }
         // TODO: loses selected of renamed branch
@@ -212,8 +211,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
             override fun failed() {
                 when (exception) {
-                    is CheckoutConflictException -> errorAlert(window,
-                            "Cannot Switch Branches",
+                    is CheckoutConflictException -> errorAlert(window, "Cannot Switch Branches",
                             "There are local changes that would be overwritten by checkout.\nCommit or stash them.")
                     else -> exception.printStackTrace()
                 }
