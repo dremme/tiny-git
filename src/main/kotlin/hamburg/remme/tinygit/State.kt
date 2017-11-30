@@ -107,6 +107,7 @@ object State {
      * ACTIONS                                                                                                       *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    val canRemove = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())!!
     val canSettings = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())!!
     val canCommit = selectedRepositoryProperty.isNotNull.and(Bindings.isNotEmpty(stagedFiles)).and(runningProcesses.equals0())!!
     val canPush = selectedRepositoryProperty.isNotNull.and(aheadProperty.notEquals0()).and(runningProcesses.equals0())!!

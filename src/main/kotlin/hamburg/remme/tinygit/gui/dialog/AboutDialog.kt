@@ -15,7 +15,7 @@ import javafx.stage.Window
 class AboutDialog(window: Window) : Dialog(window, "About") {
 
     init {
-        +DialogButton(DialogButton.DONE)
+        +DialogButton(DialogButton.CLOSE)
 
         header = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
         graphic = Image("icon.png".asResource())

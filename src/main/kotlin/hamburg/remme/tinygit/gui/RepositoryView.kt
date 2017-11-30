@@ -37,7 +37,8 @@ import java.util.concurrent.Callable
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     private val window: Window get() = scene.window
-    private val headCache: MutableMap<String, String> = mutableMapOf()
+    private val selectedEntry: RepositoryEntry? get() = selectionModel.selectedItem?.value
+    private val cache: MutableMap<LocalRepository, String> = mutableMapOf()
 
     init {
         setCellFactory { RepositoryEntryListCell() }
@@ -48,24 +49,39 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         }
 
         // TODO: should be menu bar actions as well
-        val canModifyBranch = Bindings.createBooleanBinding(
-                Callable { selectionModel.selectedItem?.value?.type == EntryType.LOCAL_BRANCH },
+        val canRenameBranch = Bindings.createBooleanBinding(
+                Callable { selectedEntry.isLocal() },
                 selectionModel.selectedItemProperty())
-        val removeRepository = Action("Remove Repository", handler = { removeRepository(selectionModel.selectedItem.value) })
-        val renameBranch = Action("Rename Branch", disable = canModifyBranch.not(),
-                handler = { renameBranch(selectionModel.selectedItem.value) })
-        val deleteBranch = Action("Delete Branch", disable = canModifyBranch.not(),
-                handler = { deleteBranch(selectionModel.selectedItem.value) })
+        val canDeleteBranch = Bindings.createBooleanBinding(
+                Callable { selectedEntry.isLocal() && !selectedEntry.isHead() },
+                selectionModel.selectedItemProperty())
+        val removeRepository = Action("Remove Repository", { FontAwesome.trash() }, disable = State.canRemove.not(),
+                handler = { removeRepository(selectedEntry!!) })
+        val renameBranch = Action("Rename Branch", { FontAwesome.pencil() }, disable = canRenameBranch.not(),
+                handler = { renameBranch(selectedEntry!!) })
+        val deleteBranch = Action("Delete Branch", { FontAwesome.trash() }, disable = canDeleteBranch.not(),
+                handler = { deleteBranch(selectedEntry!!) })
+        val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
+                handler = { SettingsDialog(State.selectedRepository, window).show() })
         contextMenu = context {
             isAutoHide = true
             +ActionGroup(removeRepository)
             +ActionGroup(renameBranch, deleteBranch)
+            +ActionGroup(settings)
         }
 
-        setOnKeyPressed { if (it.code == KeyCode.SPACE) it.consume() }
+        setOnKeyPressed {
+            when {
+                it.code == KeyCode.SPACE -> it.consume()
+                it.code == KeyCode.DELETE -> selectedEntry?.let {
+                    if (it.isRoot()) removeRepository(it)
+                    else if (it.isLocal() && !it.isHead()) deleteBranch(it)
+                }
+            }
+        }
         setOnMouseClicked {
             if (it.button == MouseButton.PRIMARY && it.clickCount == 2) {
-                val entry = selectionModel.selectedItem.value
+                val entry = selectedEntry!!
                 when (entry.type) {
                     EntryType.LOCAL_BRANCH -> checkout(entry.repository, entry.value)
                     EntryType.REMOTE_BRANCH -> checkoutRemote(entry.repository, entry.value)
@@ -80,17 +96,16 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             while (it.next()) {
                 when {
                     it.wasAdded() -> {
-                        it.addedSubList.forEach { addRepo(it) }
+                        it.addedSubList.forEach { treeAdd(it) }
                         selectionModel.selectLast()
                     }
-                    it.wasRemoved() -> it.removed.forEach { removeRepo(it) }
+                    it.wasRemoved() -> it.removed.forEach { treeRemove(it) }
                 }
             }
         })
-        State.repositories.forEach { addRepo(it) }
+        State.repositories.forEach { treeAdd(it) }
         // TODO: this is being executed on startup
-        // TODO: prob needs to refresh all repos or refresh on selection
-        State.addRefreshListener { refreshRepo(it) }
+        State.addRefreshListener { State.repositories.forEach { treeUpdate(it) } }
 
         Settings.setTree {
             root.children.flatMap { it.children + it }.map {
@@ -118,7 +133,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         }
     }
 
-    private fun addRepo(repository: LocalRepository) {
+    private fun treeAdd(repository: LocalRepository) {
         val repoTree = TreeItem(RepositoryEntry(
                 repository,
                 repository.shortPath,
@@ -132,12 +147,12 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         repoTree.children.addAll(localBranches, remoteBranches, tags, stash)
         root.children += repoTree
 
-        refreshRepo(repository)
+        treeUpdate(repository)
     }
 
-    private fun refreshRepo(repository: LocalRepository) {
+    private fun treeUpdate(repository: LocalRepository) {
         root.children.find { it.value.repository == repository }?.let {
-            headCache[repository.path] = Git.head(repository)
+            cache[repository] = Git.head(repository)
             val branchList = Git.branchListAll(repository)
             val stashList = Git.stashList(repository)
             // TODO: selection might get lost on removed branches (e.g. after pruning)
@@ -147,7 +162,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         }
     }
 
-    private fun removeRepo(repository: LocalRepository) {
+    private fun treeRemove(repository: LocalRepository) {
         root.children.find { it.value.repository == repository }?.let { root.children -= it }
     }
 
@@ -179,18 +194,17 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     }
 
     private fun renameBranch(entry: RepositoryEntry) {
-        if (entry.type != EntryType.LOCAL_BRANCH) throw IllegalArgumentException("Can only be performed on branch entries.")
-
-        textInputDialog(window, "Enter a New Branch Name", FontAwesome.codeFork()) {
+        val selected = selectionModel.selectedItem.value
+        textInputDialog(window, "Enter a New Branch Name", FontAwesome.pencil()) {
             Git.branchRename(entry.repository, entry.value, it)
         }
-        // TODO: loses selected of renamed branch
         State.fireRefresh()
+        root.children.flatMap { it.children + it }.flatMap { it.children + it }
+                .find { it.value.repository == selected.repository && it.value.value == selected.value }
+                ?.let { selectionModel.select(it) }
     }
 
     private fun deleteBranch(entry: RepositoryEntry) {
-        if (entry.type != EntryType.LOCAL_BRANCH) throw IllegalArgumentException("Can only be performed on branch entries.")
-
         try {
             Git.branchDelete(entry.repository, entry.value)
         } catch (ex: NotMergedException) {
@@ -240,9 +254,13 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         })
     }
 
-    inner class RepositoryEntry(val repository: LocalRepository, val value: String, val type: EntryType) {
+    private fun RepositoryEntry?.isRoot() = this?.let { it.type == EntryType.REPOSITORY } == true
 
-        val isHead: Boolean get() = value == headCache[repository.path]
+    private fun RepositoryEntry?.isLocal() = this?.let { it.type == EntryType.LOCAL_BRANCH } == true
+
+    private fun RepositoryEntry?.isHead() = this?.let { it.value == cache[it.repository] } == true
+
+    inner class RepositoryEntry(val repository: LocalRepository, val value: String, val type: EntryType) {
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -250,15 +268,17 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
             other as RepositoryEntry
 
-            if (value != other.value) return false
             if (repository != other.repository) return false
+            if (value != other.value) return false
+            if (type != other.type) return false
 
             return true
         }
 
         override fun hashCode(): Int {
-            var result = value.hashCode()
-            result = 31 * result + repository.hashCode()
+            var result = repository.hashCode()
+            result = 31 * result + value.hashCode()
+            result = 31 * result + type.hashCode()
             return result
         }
 
@@ -299,6 +319,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         }
 
         private fun repoItem(item: RepositoryEntry) = hbox {
+            +FontAwesome.database()
             +label {
                 addStyle("-fx-font-weight:bold")
                 text = item.value
@@ -313,7 +334,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         private fun branchItem(item: RepositoryEntry) = hbox {
             +FontAwesome.codeFork()
             +Label(item.value)
-            if (item.isHead) {
+            if (item.isHead()) {
                 addClass("current")
                 +FontAwesome.check()
             }

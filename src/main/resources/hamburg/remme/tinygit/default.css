@@ -200,6 +200,7 @@
 }
 
 .repository-cell {
+    -fx-padding: 0 0 0 6px;
     -fx-spacing: 6px;
     -fx-alignment: center-left;
 }
@@ -309,6 +310,7 @@
     -fx-alignment: center;
     -fx-background-color: -fx-focus-color;
     -fx-background-radius: 1em;
+    -fx-font-weight: bold;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
 }
 
