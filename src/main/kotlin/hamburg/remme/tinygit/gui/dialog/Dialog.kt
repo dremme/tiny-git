@@ -4,6 +4,8 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.disabledWhen
 import hamburg.remme.tinygit.gui.builder.imageView
+import hamburg.remme.tinygit.gui.isCancel
+import hamburg.remme.tinygit.gui.isOk
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.Node
 import javafx.scene.control.ButtonBar
@@ -50,8 +52,8 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
         dialog.resultConverter = Callback {
             when {
                 it == null -> cancelAction.invoke()
-                it.buttonData == ButtonBar.ButtonData.OK_DONE -> okAction.invoke()
-                it.buttonData == ButtonBar.ButtonData.CANCEL_CLOSE -> cancelAction.invoke()
+                it.isOk() -> okAction.invoke()
+                it.isCancel() -> cancelAction.invoke()
             }
         }
         dialog.dialogPane.scene.window.focusedProperty().addListener { _, _, it -> if (it) focusAction.invoke() }

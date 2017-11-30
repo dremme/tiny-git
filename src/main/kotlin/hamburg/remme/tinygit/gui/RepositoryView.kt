@@ -30,6 +30,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
 import javafx.stage.Window
 import org.eclipse.jgit.api.errors.CheckoutConflictException
+import org.eclipse.jgit.api.errors.NotMergedException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import java.util.concurrent.Callable
 
@@ -53,12 +54,12 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         val removeRepository = Action("Remove Repository", handler = { removeRepository(selectionModel.selectedItem.value) })
         val renameBranch = Action("Rename Branch", disable = canModifyBranch.not(),
                 handler = { renameBranch(selectionModel.selectedItem.value) })
-        val removeBranch = Action("Remove Branch", disable = canModifyBranch.not(),
-                handler = { removeBranch(selectionModel.selectedItem.value) })
+        val deleteBranch = Action("Delete Branch", disable = canModifyBranch.not(),
+                handler = { deleteBranch(selectionModel.selectedItem.value) })
         contextMenu = context {
             isAutoHide = true
             +ActionGroup(removeRepository)
-            +ActionGroup(renameBranch, removeBranch)
+            +ActionGroup(renameBranch, deleteBranch)
         }
 
         setOnKeyPressed { if (it.code == KeyCode.SPACE) it.consume() }
@@ -120,7 +121,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun addRepo(repository: LocalRepository) {
         val repoTree = TreeItem(RepositoryEntry(
                 repository,
-                repository.path.split("[\\\\/]".toRegex()).last(),
+                repository.shortPath,
                 EntryType.REPOSITORY))
 
         val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", EntryType.LOCAL))
@@ -172,17 +173,14 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun List<LocalStashEntry>.indexOf(message: String) = indexOfFirst { it.message == message }
 
     private fun removeRepository(entry: RepositoryEntry) {
-        if (confirmWarningAlert(window, "Remove Repository",
+        if (confirmWarningAlert(window, "Remove Repository", "Remove",
                 "Will remove the repository '${entry.repository}' from TinyGit, but keep it on the disk."))
             State.repositories -= entry.repository
     }
 
     private fun renameBranch(entry: RepositoryEntry) {
-        if (entry.type != EntryType.LOCAL_BRANCH) {
-            // TODO: proper item disabling
-            contextMenu.hide()
-            throw IllegalArgumentException("Can only be performed on branch entries.")
-        }
+        if (entry.type != EntryType.LOCAL_BRANCH) throw IllegalArgumentException("Can only be performed on branch entries.")
+
         textInputDialog(window, "Enter a New Branch Name", FontAwesome.codeFork()) {
             Git.branchRename(entry.repository, entry.value, it)
         }
@@ -190,13 +188,16 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         State.fireRefresh()
     }
 
-    private fun removeBranch(entry: RepositoryEntry) {
-        if (entry.type != EntryType.LOCAL_BRANCH) {
-            // TODO: proper item disabling
-            contextMenu.hide()
-            throw IllegalArgumentException("Can only be performed on branch entries.")
+    private fun deleteBranch(entry: RepositoryEntry) {
+        if (entry.type != EntryType.LOCAL_BRANCH) throw IllegalArgumentException("Can only be performed on branch entries.")
+
+        try {
+            Git.branchDelete(entry.repository, entry.value)
+        } catch (ex: NotMergedException) {
+            if (confirmWarningAlert(window, "Delete Branch", "Delete",
+                    "Branch '${entry.value}' was not deleted as it has not been merged yet.\n\nForce deletion?"))
+                Git.branchDeleteForce(entry.repository, entry.value)
         }
-        Git.branchDelete(entry.repository, entry.value)
         State.fireRefresh()
     }
 
