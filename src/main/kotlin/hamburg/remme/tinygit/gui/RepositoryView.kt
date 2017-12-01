@@ -16,7 +16,6 @@ import hamburg.remme.tinygit.gui.builder.context
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
-import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
@@ -220,8 +219,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun checkout(repository: LocalRepository, branch: String) {
         if (branch == Git.head(repository)) return
 
-        State.addProcess("Switching branches...")
-        State.execute(object : Task<Unit>() {
+        State.startProcess("Switching branches...", object : Task<Unit>() {
             override fun call() = Git.checkout(repository, branch)
 
             override fun succeeded() = State.fireRefresh()
@@ -233,14 +231,11 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                     else -> exception.printStackTrace()
                 }
             }
-
-            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
     private fun checkoutRemote(repository: LocalRepository, branch: String) {
-        State.addProcess("Getting remote branch...")
-        State.execute(object : Task<Unit>() {
+        State.startProcess("Getting remote branch...", object : Task<Unit>() {
             override fun call() = Git.checkoutRemote(repository, branch)
 
             override fun succeeded() = State.fireRefresh()
@@ -251,8 +246,6 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                     else -> exception.printStackTrace()
                 }
             }
-
-            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
