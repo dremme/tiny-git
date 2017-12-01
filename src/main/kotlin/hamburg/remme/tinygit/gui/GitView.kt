@@ -154,21 +154,17 @@ class GitView : VBoxBuilder() {
     }
 
     private fun fetch(repository: LocalRepository) {
-        State.addProcess("Fetching...")
-        State.execute(object : Task<Unit>() {
+        State.startProcess("Fetching...", object : Task<Unit>() {
             override fun call() = Git.fetchPrune(repository)
 
             override fun succeeded() = State.fireRefresh()
 
             override fun failed() = exception.printStackTrace()
-
-            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
     private fun pull(repository: LocalRepository) {
-        State.addProcess("Pulling commits...")
-        State.execute(object : Task<Boolean>() {
+        State.startProcess("Pulling commits...", object : Task<Boolean>() {
             override fun call() = Git.pull(repository)
 
             override fun succeeded() {
@@ -181,8 +177,6 @@ class GitView : VBoxBuilder() {
                 errorAlert(window, "Cannot Pull From Remote Branch",
                         "${exception.message}\n\nPlease commit or stash them before pulling.")
             }
-
-            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
@@ -196,8 +190,7 @@ class GitView : VBoxBuilder() {
         if (force && !confirmWarningAlert(window, "Force Push", "Push",
                 "This will rewrite the remote branch's history.\nChanges by others will be lost.")) return
 
-        State.addProcess("Pushing commits...")
-        State.execute(object : Task<Unit>() {
+        State.startProcess("Pushing commits...", object : Task<Unit>() {
             override fun call() {
                 if (force) Git.pushForce(repository)
                 else Git.push(repository)
@@ -212,15 +205,12 @@ class GitView : VBoxBuilder() {
                     else -> exception.printStackTrace()
                 }
             }
-
-            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
     private fun createBranch(repository: LocalRepository) {
         textInputDialog(window, "Enter a New Branch Name", FontAwesome.codeFork()) { name ->
-            State.addProcess("Branching...")
-            State.execute(object : Task<Unit>() {
+            State.startProcess("Branching...", object : Task<Unit>() {
                 override fun call() = Git.branchCreate(repository, name)
 
                 override fun succeeded() = State.fireRefresh()
@@ -232,28 +222,22 @@ class GitView : VBoxBuilder() {
                         else -> exception.printStackTrace()
                     }
                 }
-
-                override fun done() = Platform.runLater { State.removeProcess() }
             })
         }
     }
 
     private fun stash(repository: LocalRepository) {
-        State.addProcess("Stashing files...")
-        State.execute(object : Task<Unit>() {
+        State.startProcess("Stashing files...", object : Task<Unit>() {
             override fun call() = Git.stash(repository)
 
             override fun succeeded() = State.fireRefresh()
 
             override fun failed() = exception.printStackTrace()
-
-            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
     private fun stashPop(repository: LocalRepository) {
-        State.addProcess("Applying stash...")
-        State.execute(object : Task<Unit>() {
+        State.startProcess("Applying stash...", object : Task<Unit>() {
             override fun call() = Git.stashPop(repository)
 
             override fun succeeded() = State.fireRefresh()
@@ -268,8 +252,6 @@ class GitView : VBoxBuilder() {
                     else -> exception.printStackTrace()
                 }
             }
-
-            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 
@@ -277,15 +259,12 @@ class GitView : VBoxBuilder() {
         if (!confirmWarningAlert(window, "Auto Reset Branch", "Reset",
                 "This will automatically reset the current branch to its remote branch.\nUnpushed commits will be lost.")) return
 
-        State.addProcess("Resetting branch...")
-        State.execute(object : Task<Unit>() {
+        State.startProcess("Resetting branch...", object : Task<Unit>() {
             override fun call() = Git.resetHard(repository)
 
             override fun succeeded() = State.fireRefresh()
 
             override fun failed() = exception.printStackTrace()
-
-            override fun done() = Platform.runLater { State.removeProcess() }
         })
     }
 

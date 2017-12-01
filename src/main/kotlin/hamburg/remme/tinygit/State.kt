@@ -13,6 +13,8 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.concurrent.Task
+import javafx.concurrent.WorkerStateEvent
+import javafx.event.EventHandler
 import java.util.concurrent.Executors
 
 object State {
@@ -26,33 +28,26 @@ object State {
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private val cachedThreadPool = Executors.newCachedThreadPool()
+    private val processStopped = EventHandler<WorkerStateEvent> { runningProcesses.value -= 1 }
+    private val runningProcesses = SimpleIntegerProperty(0)
+    private val processTextProperty = ReadOnlyStringWrapper()
 
-    fun execute(task: Task<*>) {
+    fun processTextProperty() = processTextProperty.readOnlyProperty!!
+
+    fun execute(task: Task<*>) = cachedThreadPool.execute(task)
+
+    fun startProcess(message: String, task: Task<*>) {
+        processTextProperty.set(message)
+        runningProcesses.value += 1
+        task.onCancelled = processStopped
+        task.onFailed = processStopped
+        task.onSucceeded = processStopped
         cachedThreadPool.execute(task)
     }
 
     fun stop() {
         cachedThreadPool.shutdownNow()
     }
-
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     *                                                                                                               *
-     * RUNNING PROCESSES                                                                                             *
-     *                                                                                                               *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val runningProcesses = SimpleIntegerProperty(0)
-    private val processTextProperty = ReadOnlyStringWrapper()
-
-    fun addProcess(message: String) {
-        processTextProperty.set(message)
-        runningProcesses.value += 1
-    }
-
-    fun removeProcess() {
-        runningProcesses.value -= 1
-    }
-
-    fun processTextProperty() = processTextProperty.readOnlyProperty!!
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
