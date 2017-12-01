@@ -42,19 +42,36 @@ fun ButtonType.isOk() = buttonData == ButtonBar.ButtonData.OK_DONE
 fun ButtonType.isCancel() = buttonData == ButtonBar.ButtonData.CANCEL_CLOSE
 
 fun confirmAlert(window: Window, header: String, ok: String, text: String): Boolean {
-    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, ok, text, FontAwesome.questionCircle("#5bc0de"))
+    val alert = alert(window,
+            Alert.AlertType.CONFIRMATION,
+            header,
+            text,
+            FontAwesome.questionCircle("#5bc0de"),
+            ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
+            ButtonType.CANCEL)
     State.modalVisible.set(true)
     return alert.showAndWait().get().isOk()
 }
 
 fun confirmWarningAlert(window: Window, header: String, ok: String, text: String): Boolean {
-    val alert = alert(window, Alert.AlertType.CONFIRMATION, header, ok, text, FontAwesome.exclamationTriangle("#f0ad4e"))
+    val alert = alert(window,
+            Alert.AlertType.CONFIRMATION,
+            header,
+            text,
+            FontAwesome.exclamationTriangle("#f0ad4e"),
+            ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
+            ButtonType.CANCEL)
     State.modalVisible.set(true)
     return alert.showAndWait().get().isOk()
 }
 
 fun errorAlert(window: Window, header: String, text: String) {
-    val alert = alert(window, Alert.AlertType.ERROR, header, "OK", text, FontAwesome.exclamationTriangle("#d9534f"))
+    val alert = alert(window,
+            Alert.AlertType.ERROR,
+            header,
+            text,
+            FontAwesome.exclamationTriangle("#d9534f"),
+            ButtonType.OK)
     State.modalVisible.set(true)
     alert.showAndWait()
 }
@@ -62,12 +79,10 @@ fun errorAlert(window: Window, header: String, text: String) {
 private fun alert(window: Window,
                   type: Alert.AlertType,
                   header: String,
-                  ok: String,
                   text: String,
-                  icon: Node): Alert {
-    val alert = Alert(type, text,
-            ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
-            ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE))
+                  icon: Node,
+                  vararg button: ButtonType): Alert {
+    val alert = Alert(type, text, *button)
     alert.initModality(Modality.WINDOW_MODAL)
     alert.initOwner(window)
     alert.headerText = header

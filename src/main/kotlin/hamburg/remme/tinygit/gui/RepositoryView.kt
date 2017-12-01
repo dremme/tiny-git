@@ -36,6 +36,11 @@ import java.util.concurrent.Callable
 
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
+    val actions: Array<ActionGroup>
+        get() = arrayOf(ActionGroup(settings))
+    private val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
+            handler = { SettingsDialog(State.selectedRepository, window).show() })
+
     private val window: Window get() = scene.window
     private val selectedEntry: RepositoryEntry? get() = selectionModel.selectedItem?.value
     private val cache: MutableMap<LocalRepository, String> = mutableMapOf()
@@ -44,9 +49,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         setCellFactory { RepositoryEntryListCell() }
         root = TreeItem()
         isShowRoot = false
-        selectionModel.selectedItemProperty().addListener { _, _, it ->
-            it?.let { State.selectedRepository = it.value.repository }
-        }
+        selectionModel.selectedItemProperty().addListener { _, _, it -> it?.let { State.selectedRepository = it.value.repository } }
 
         // TODO: should be menu bar actions as well
         val canRenameBranch = Bindings.createBooleanBinding(
@@ -61,8 +64,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                 handler = { renameBranch(selectedEntry!!) })
         val deleteBranch = Action("Delete Branch", { FontAwesome.trash() }, disable = canDeleteBranch.not(),
                 handler = { deleteBranch(selectedEntry!!) })
-        val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
-                handler = { SettingsDialog(State.selectedRepository, window).show() })
+
         contextMenu = context {
             isAutoHide = true
             +ActionGroup(removeRepository)
