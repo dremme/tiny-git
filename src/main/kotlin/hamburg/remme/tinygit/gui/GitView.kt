@@ -47,14 +47,16 @@ class GitView : VBoxBuilder() {
         addClass("git-view")
 
         // File
-        val addCopy = Action("Add Repository", { FontAwesome.database() }, "Shortcut+O",
+        val newCopy = Action("New Repository", { FontAwesome.folder() }, "Shortcut+N",
+                handler = { newRepo() })
+        val addCopy = Action("Add Repository", { FontAwesome.folderOpen() }, "Shortcut+O",
                 handler = { addRepo() })
         val quit = Action("Quit TinyGit",
                 handler = { Platform.exit() })
         // View
-        val showCommits = Action("Show Commits", shortcut = "F1",
+        val showCommits = Action("Show Commits", { FontAwesome.list() }, "F1",
                 handler = { tabs.selectionModel.select(commitLog) })
-        val showWorkingCopy = Action("Show Working Copy", shortcut = "F2",
+        val showWorkingCopy = Action("Show Working Copy", { FontAwesome.desktop() }, "F2",
                 handler = { tabs.selectionModel.select(workingCopy) })
         // Repository
         val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+Plus", State.canCommit.not(),
@@ -89,7 +91,7 @@ class GitView : VBoxBuilder() {
 
         +menuBar {
             isUseSystemMenuBar = true
-            +ActionCollection("File", ActionGroup(addCopy), ActionGroup(quit))
+            +ActionCollection("File", ActionGroup(newCopy, addCopy), ActionGroup(quit))
             +ActionCollection("View", ActionGroup(showCommits, showWorkingCopy))
             +ActionCollection("Repository",
                     ActionGroup(commit),
@@ -135,13 +137,18 @@ class GitView : VBoxBuilder() {
         }
     }
 
+    private fun newRepo() {
+        directoryChooser(window, "New Repository") {
+            val repository = Git.init(it)
+            if (!State.repositories.contains(repository)) State.repositories += repository
+        }
+    }
+
     private fun addRepo() {
         directoryChooser(window, "Add Repository") {
             if (File("${it.absolutePath}/.git").exists()) {
                 val repository = LocalRepository(it.absolutePath)
-                if (State.repositories.none { it.path == repository.path }) {
-                    State.repositories += LocalRepository(it.absolutePath)
-                }
+                if (!State.repositories.contains(repository)) State.repositories += repository
             } else {
                 errorAlert(window, "Invalid Repository",
                         "'${it.absolutePath}' does not contain a valid '.git' directory.")
