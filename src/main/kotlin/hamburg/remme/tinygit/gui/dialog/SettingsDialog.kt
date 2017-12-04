@@ -11,6 +11,8 @@ import hamburg.remme.tinygit.gui.builder.fillWidth
 import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.passwordField
 import hamburg.remme.tinygit.gui.builder.textField
+import hamburg.remme.tinygit.gui.decrypt
+import hamburg.remme.tinygit.gui.encrypt
 import hamburg.remme.tinygit.gui.fileChooser
 import javafx.scene.control.Label
 import javafx.stage.Window
@@ -47,7 +49,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
         }
         val password = passwordField {
             columnSpan(3)
-            text = repository.password
+            text = repository.password.decrypt()
         }
         val host = textField { text = repository.proxyHost }
         val port = textField {
@@ -58,7 +60,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
         okAction = {
             repository.ssh = ssh.text
             repository.username = username.text
-            repository.password = password.text
+            repository.password = password.text.encrypt()
             repository.proxyHost = host.text
             repository.proxyPort = port.text.toInt()
 

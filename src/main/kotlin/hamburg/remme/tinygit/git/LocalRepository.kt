@@ -5,7 +5,7 @@ class LocalRepository(var path: String = "") {
     val shortPath: String get() = path.split("[\\\\/]".toRegex()).last()
     var ssh: String = ""
     var username: String = ""
-    var password: String = ""
+    var password: ByteArray = ByteArray(0)
     var proxyHost: String = ""
     var proxyPort: Int = 80
 

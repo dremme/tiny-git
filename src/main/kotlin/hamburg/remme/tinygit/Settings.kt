@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit
 
 import hamburg.remme.tinygit.git.LocalRepository
+import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.representer.Representer
 import java.io.File
@@ -8,7 +9,8 @@ import java.nio.file.Files
 
 object Settings {
 
-    private val yaml = Yaml(Representer().also { it.propertyUtils.setSkipMissingProperties(true) })
+    private val yaml = Yaml(Representer().also { it.propertyUtils.setSkipMissingProperties(true) },
+            DumperOptions().also { it.defaultFlowStyle = DumperOptions.FlowStyle.BLOCK })
     private val settingsFile = File("${System.getProperty("user.home")}/.tinygit").toPath()
     private val suppliers: MutableMap<Category, () -> Any> = mutableMapOf()
     private var settings: LocalSettings? = null
