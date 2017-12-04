@@ -31,6 +31,7 @@ import javafx.stage.Window
 import org.eclipse.jgit.api.errors.CheckoutConflictException
 import org.eclipse.jgit.api.errors.NotMergedException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
+import java.io.File
 import java.util.concurrent.Callable
 
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
@@ -133,20 +134,19 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     }
 
     private fun treeAdd(repository: LocalRepository) {
-        val repoTree = TreeItem(RepositoryEntry(
-                repository,
-                repository.shortPath,
-                EntryType.REPOSITORY))
+        // TODO: maybe be more graceful here; remember missing repos and show a missing-entry for them
+        if (File(repository.path).exists()) {
+            val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", EntryType.LOCAL))
+            val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", EntryType.REMOTE))
+            val tags = TreeItem(RepositoryEntry(repository, "Tags", EntryType.TAGS))
+            val stash = TreeItem(RepositoryEntry(repository, "Stash", EntryType.STASH))
 
-        val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", EntryType.LOCAL))
-        val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", EntryType.REMOTE))
-        val tags = TreeItem(RepositoryEntry(repository, "Tags", EntryType.TAGS))
-        val stash = TreeItem(RepositoryEntry(repository, "Stash", EntryType.STASH))
+            val repoTree = TreeItem(RepositoryEntry(repository, repository.shortPath, EntryType.REPOSITORY))
+            repoTree.children.addAll(localBranches, remoteBranches, tags, stash)
+            root.children += repoTree
 
-        repoTree.children.addAll(localBranches, remoteBranches, tags, stash)
-        root.children += repoTree
-
-        treeUpdate(repository)
+            treeUpdate(repository)
+        }
     }
 
     private fun treeUpdate(repository: LocalRepository) {
