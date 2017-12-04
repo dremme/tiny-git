@@ -430,9 +430,7 @@ object Git {
                         RemoteRefUpdate.Status.REJECTED_NODELETE -> throw DeleteRejectedException(it.message)
                         RemoteRefUpdate.Status.REJECTED_REMOTE_CHANGED -> throw RemoteChangedException(it.message)
                         RemoteRefUpdate.Status.REJECTED_OTHER_REASON -> throw RejectedException(it.message)
-                        else -> {
-                            // do nothing
-                        }
+                        else -> Unit
                     }
                 }
             }

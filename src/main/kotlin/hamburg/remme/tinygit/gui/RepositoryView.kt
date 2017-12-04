@@ -86,9 +86,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                 when (entry.type) {
                     EntryType.LOCAL_BRANCH -> checkout(entry.repository, entry.value)
                     EntryType.REMOTE_BRANCH -> checkoutRemote(entry.repository, entry.value)
-                    else -> {
-                        // do nothing
-                    }
+                    else -> Unit
                 }
             }
         }
