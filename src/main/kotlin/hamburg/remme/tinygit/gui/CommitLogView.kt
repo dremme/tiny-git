@@ -122,11 +122,11 @@ class CommitLogView : Tab() {
         try {
             updateLog(Git.log(repository))
             updateDivergence(Git.divergence(repository))
-            logRemote(repository)
         } catch (ex: NoHeadException) {
             clearLog()
             clearDivergence()
         }
+        logRemote(repository)
     }
 
     private fun logRemote(repository: LocalRepository) {

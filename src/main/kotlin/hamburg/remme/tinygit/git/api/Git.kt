@@ -29,6 +29,7 @@ import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.revwalk.RevWalkUtils
 import org.eclipse.jgit.revwalk.filter.RevFilter
 import org.eclipse.jgit.transport.RemoteRefUpdate
+import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.treewalk.AbstractTreeIterator
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.treewalk.EmptyTreeIterator
@@ -75,19 +76,40 @@ object Git {
      * - git remote
      */
     fun hasRemote(repository: LocalRepository): Boolean {
-        return repository.openGit("remote") { it.remoteList().call().isNotEmpty() }
+        return repository.openGit("has remote") { it.remoteList().call().isNotEmpty() }
     }
 
     /**
      * - git remote show origin
      */
-    fun url(repository: LocalRepository): String {
-        return repository.openGit("url") {
+    fun getRemote(repository: LocalRepository): String {
+        return repository.openGit("get remote") {
             it.remoteList().call()
                     .takeIf { it.isNotEmpty() }?.first()
                     ?.urIs
                     ?.takeIf { it.isNotEmpty() }?.first()
                     ?.toString() ?: ""
+        }
+    }
+
+    /**
+     * - git remote set-url origin <[url]>
+     */
+    fun setRemote(repository: LocalRepository, url: String) {
+        repository.openGit("set remote $url") {
+            if (it.remoteList().call().isNotEmpty()) {
+                val cmd = it.remoteSetUrl()
+                cmd.setName(DEFAULT_REMOTE_NAME)
+                cmd.setUri(URIish(url))
+                cmd.call()
+                cmd.setPush(true)
+                cmd.call()
+            } else {
+                val cmd = it.remoteAdd()
+                cmd.setName(DEFAULT_REMOTE_NAME)
+                cmd.setUri(URIish(url))
+                cmd.call()
+            }
         }
     }
 
@@ -201,13 +223,14 @@ object Git {
      */
     fun divergence(repository: LocalRepository, local: String? = null, remote: String? = null): LocalDivergence {
         return repository.open("divergence") {
-            val localBranch = it.findRef(local ?: it.branch).objectId
+            val localBranch = it.findRef(local ?: it.branch)?.objectId
             val remoteBranch = it.findRef(remote ?: "$DEFAULT_REMOTE_NAME/${it.branch}")?.objectId
-            if (remoteBranch == null) {
-                // TODO: count commits since branching?
-                LocalDivergence(-1, 0)
-            } else {
-                it.revWalk().use {
+            when {
+                localBranch == null -> // TODO: what to do, when there is no branch checked out?
+                    LocalDivergence(0, 0)
+                remoteBranch == null -> // TODO: count commits since branching?
+                    LocalDivergence(-1, 0)
+                else -> it.revWalk().use {
                     val localCommit = it.parseCommit(localBranch)
                     val remoteCommit = it.parseCommit(remoteBranch)
                     it.revFilter = RevFilter.MERGE_BASE
@@ -540,6 +563,22 @@ object Git {
             }
         }
         updatedRepositories += repository
+    }
+
+    /**
+     * - git init
+     */
+    fun init(path: File): LocalRepository {
+        JGit.init().setDirectory(path).call()
+        return LocalRepository(path.absolutePath)
+    }
+
+    /**
+     * - git clone <[url]>
+     */
+    fun clone(url: String, path: File): LocalRepository {
+        JGit.cloneRepository().setDirectory(path).setURI(url).call()
+        return LocalRepository(path.absolutePath)
     }
 
     private fun JGit.fetch(repository: LocalRepository) {

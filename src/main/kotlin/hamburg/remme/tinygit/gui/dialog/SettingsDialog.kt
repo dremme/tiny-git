@@ -14,6 +14,7 @@ import hamburg.remme.tinygit.gui.builder.textField
 import hamburg.remme.tinygit.gui.decrypt
 import hamburg.remme.tinygit.gui.encrypt
 import hamburg.remme.tinygit.gui.fileChooser
+import hamburg.remme.tinygit.gui.textInputDialog
 import javafx.scene.control.Label
 import javafx.stage.Window
 
@@ -29,9 +30,20 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
             text = repository.path
         }
         val url = textField {
-            columnSpan(3)
             isEditable = false
-            text = Git.url(repository)
+            text = Git.getRemote(repository)
+        }
+        val urlSet = button {
+            columnSpan(2)
+            fillWidth()
+            graphic = FontAwesome.link()
+            maxWidth = Double.MAX_VALUE
+            setOnAction {
+                textInputDialog(window, "Enter Remote URL", FontAwesome.link()) {
+                    Git.setRemote(repository, it)
+                    url.text = Git.getRemote(repository)
+                }
+            }
         }
         val ssh = textField {
             text = repository.ssh
@@ -39,7 +51,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
         val sshSearch = button {
             columnSpan(2)
             fillWidth()
-            graphic = FontAwesome.folderOpen()
+            graphic = FontAwesome.search()
             maxWidth = Double.MAX_VALUE
             setOnAction { fileChooser(window, "Choose a SSH Key") { ssh.text = it.absolutePath } }
         }
@@ -69,7 +81,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
         content = grid {
             addClass("settings-view")
             addRow(Label("Location:"), location)
-            addRow(Label("Remote:"), url)
+            addRow(Label("Remote:"), url, urlSet)
             addRow(Label("SSH Key:"), ssh, sshSearch)
             addRow(Label("User:"), username)
             addRow(Label("Password:"), password)
