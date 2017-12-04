@@ -74,6 +74,8 @@ class CommitDetailsView : SplitPaneBuilder() {
                 override fun succeeded() {
                     files.items.setAll(value)
                 }
+
+                override fun failed() = exception.printStackTrace()
             }.also { State.execute(it) }
         }
     }

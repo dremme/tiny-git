@@ -615,8 +615,8 @@ object Git {
     // TODO: test performance if objectreader is created here instead
     private fun Repository.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {
         return revWalk().use { walk ->
-            val commit = walk.parseCommit(commitId).takeIf { it.parents.size < 2 }
-            val parent = commit?.let { walk.parseCommit(it.parents[0]) }
+            val commit = walk.parseCommit(commitId).takeIf { it.parentCount < 2 }
+            val parent = commit?.takeIf { it.parents.isNotEmpty() }?.let { walk.parseCommit(it.parents[0]) }
             walk.iteratorOf(commit) to walk.iteratorOf(parent)
         }
     }
