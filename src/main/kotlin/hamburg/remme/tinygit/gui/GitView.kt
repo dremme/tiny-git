@@ -124,7 +124,7 @@ class GitView : VBoxBuilder() {
                 +hbox {
                     addClass("box")
                     +Text("Click ")
-                    +FontAwesome.database()
+                    +FontAwesome.folderOpen()
                     +Text(" to add a repository.")
                 }
             }

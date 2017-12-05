@@ -9,6 +9,7 @@ import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.context
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.toolBar
@@ -21,8 +22,11 @@ import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.Tab
+import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
+import javafx.stage.Window
+import java.io.File
 import java.util.concurrent.Callable
 
 class WorkingCopyView : Tab() {
@@ -43,6 +47,7 @@ class WorkingCopyView : Tab() {
                 else stage(State.selectedRepository, pendingFilesSelection.selectedItems)
             })
 
+    private val window: Window get() = content.scene.window
     private val stagedFiles = FileStatusView(State.stagedFiles, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
     private val pendingFiles = FileStatusView(State.pendingFiles, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
     private val stagedFilesSelection = stagedFiles.selectionModel
@@ -56,6 +61,20 @@ class WorkingCopyView : Tab() {
         text = "Working Copy"
         graphic = FontAwesome.desktop()
         isClosable = false
+
+        // TODO: should be menu bar actions as well
+        val deleteFile = Action("Delete", { FontAwesome.trash() },
+                handler = { deleteFile(State.selectedRepository, pendingFilesSelection.selectedItems) })
+        val discardChanges = Action("Discard Changes", { FontAwesome.undo() },
+                handler = { discardChanges(State.selectedRepository, pendingFilesSelection.selectedItems) })
+
+        pendingFiles.contextMenu = context {
+            isAutoHide = true
+            +ActionGroup(deleteFile, discardChanges)
+        }
+        pendingFiles.setOnKeyPressed {
+            if (it.code == KeyCode.DELETE) deleteFile(State.selectedRepository, pendingFilesSelection.selectedItems)
+        }
 
         stagedFilesSelection.selectedItems.addListener(ListChangeListener { State.stagedFilesSelected.set(it.list.size) })
         stagedFilesSelection.selectedItemProperty().addListener({ _, _, it -> it?.let { pendingFilesSelection.clearSelection() } })
@@ -161,6 +180,22 @@ class WorkingCopyView : Tab() {
     private fun unstage(repository: LocalRepository, files: List<LocalFile>) {
         Git.reset(repository, files)
         diff(repository)
+    }
+
+    private fun deleteFile(repository: LocalRepository, files: List<LocalFile>) {
+        if (confirmWarningAlert(window, "Delete Files", "Delete",
+                "This will remove the selected files from the disk.")) {
+            files.forEach { File(it.resolve(repository)).delete() }
+            diff(repository)
+        }
+    }
+
+    private fun discardChanges(repository: LocalRepository, files: List<LocalFile>) {
+        if (confirmWarningAlert(window, "Discard Changes", "Discard",
+                "This will discard all changes from the selected files.")) {
+            Git.checkout(repository, files)
+            diff(repository)
+        }
     }
 
 }

@@ -35,8 +35,8 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
                 addClass("icon")
                 image = value
                 isSmooth = true
-                fitWidth = 32.0
-                fitHeight = 32.0
+                fitWidth = 35.0
+                fitHeight = 35.0
             }
         }
     protected var okAction: () -> Unit = {}
