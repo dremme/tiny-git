@@ -502,6 +502,17 @@ object Git {
     }
 
     /**
+     * - git checkout <[files]>
+     */
+    fun checkout(repository: LocalRepository, files: List<LocalFile>) {
+        repository.openGit("checkout $files") {
+            val checkoutCommand = it.checkout()
+            files.forEach { checkoutCommand.addPath(it.path) }
+            checkoutCommand.call()
+        }
+    }
+
+    /**
      * - git checkout -b [local] [remote]
      */
     fun checkoutRemote(repository: LocalRepository, remote: String, local: String? = null) {
