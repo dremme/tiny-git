@@ -219,12 +219,12 @@ object Git {
     }
 
     /**
-     * TODO
+     * - git status
      */
-    fun divergence(repository: LocalRepository, local: String? = null, remote: String? = null): LocalDivergence {
+    fun divergence(repository: LocalRepository): LocalDivergence {
         return repository.open("divergence") {
-            val localBranch = it.findRef(local ?: it.branch)?.objectId
-            val remoteBranch = it.findRef(remote ?: "$DEFAULT_REMOTE_NAME/${it.branch}")?.objectId
+            val localBranch = it.findRef(it.branch)?.objectId
+            val remoteBranch = it.findRef("$DEFAULT_REMOTE_NAME/${it.branch}")?.objectId
             when {
                 localBranch == null -> // TODO: what to do, when there is no branch checked out?
                     LocalDivergence(0, 0)
@@ -285,11 +285,11 @@ object Git {
     }
 
     /**
-     * - git diff --unified=<[lines]> <[id]> <parent-id> <[file]>
+     * - git diff --unified=<[lines]> <[commit]> <parent> <[file]>
      */
     // TODO: does not work with renames
-    fun diff(repository: LocalRepository, file: LocalFile, id: String, lines: Int = 3): String {
-        return repository.open("diff $file of $id") { gitRepo ->
+    fun diff(repository: LocalRepository, file: LocalFile, commit: LocalCommit, lines: Int = 3): String {
+        return repository.open("diff $file of $commit") { gitRepo ->
             ByteArrayOutputStream().use {
                 val formatter = DiffFormatter(it)
                 formatter.setRepository(gitRepo)
@@ -297,7 +297,7 @@ object Git {
                 formatter.isDetectRenames = true
                 formatter.pathFilter = PathFilter.create(file.path)
 
-                val (newTree, oldTree) = gitRepo.treesOf(ObjectId.fromString(id))
+                val (newTree, oldTree) = gitRepo.treesOf(ObjectId.fromString(commit.id))
                 formatter.format(formatter.scan(oldTree, newTree))
                 formatter.flush()
 
@@ -307,15 +307,15 @@ object Git {
     }
 
     /**
-     * - git diff-tree -r <[id]>
+     * - git diff-tree -r <[commit]>
      */
-    fun diffTree(repository: LocalRepository, id: String): List<LocalFile> {
-        return repository.open("diff tree $id") {
+    fun diffTree(repository: LocalRepository, commit: LocalCommit): List<LocalFile> {
+        return repository.open("diff tree $commit") {
             val formatter = DiffFormatter(NullOutputStream.INSTANCE)
             formatter.setRepository(it)
             formatter.isDetectRenames = true
 
-            val (newTree, oldTree) = it.treesOf(ObjectId.fromString(id))
+            val (newTree, oldTree) = it.treesOf(ObjectId.fromString(commit.id))
             formatter.scan(oldTree, newTree).map {
                 when (it.changeType!!) {
                     DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED)

@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
@@ -35,8 +36,8 @@ class FileDiffView : StackPaneBuilder() {
         setContent(Git.diff(repository, file), repository.resolve(file))
     }
 
-    fun update(repository: LocalRepository, file: LocalFile, id: String) {
-        setContent(Git.diff(repository, file, id))
+    fun update(repository: LocalRepository, file: LocalFile, commit: LocalCommit) {
+        setContent(Git.diff(repository, file, commit))
     }
 
     fun clear() {
