@@ -14,16 +14,19 @@ import org.eclipse.jgit.api.ListBranchCommand
 import org.eclipse.jgit.api.MergeResult
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.api.TransportCommand
+import org.eclipse.jgit.diff.DiffConfig
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffFormatter
 import org.eclipse.jgit.dircache.DirCacheIterator
 import org.eclipse.jgit.lib.AnyObjectId
+import org.eclipse.jgit.lib.Config
 import org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME
 import org.eclipse.jgit.lib.Constants.HEAD
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.lib.RepositoryCache
+import org.eclipse.jgit.revwalk.FollowFilter
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.revwalk.RevWalkUtils
@@ -35,6 +38,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.treewalk.EmptyTreeIterator
 import org.eclipse.jgit.treewalk.FileTreeIterator
 import org.eclipse.jgit.treewalk.filter.PathFilter
+import org.eclipse.jgit.treewalk.filter.TreeFilter
 import org.eclipse.jgit.util.FS
 import org.eclipse.jgit.util.io.NullOutputStream
 import java.io.ByteArrayOutputStream
@@ -250,57 +254,32 @@ object Git {
     /**
      * Creates a source code difference using `git diff` depending on the [file]'s status.
      */
-    // TODO: does not work with renames
     fun diff(repository: LocalRepository, file: LocalFile, lines: Int = 3): String {
-        return repository.open("diff cached=${file.cached} $file") { gitRepo ->
+        return repository.openGit("diff cached=${file.cached} $file") {
+            val diffCommand = it.diff()
+                    .setCached(file.cached)
+                    .setContextLines(lines)
+                    .setPathFilter(file.toPathFilter())
             ByteArrayOutputStream().use {
-                val formatter = DiffFormatter(it)
-                formatter.setRepository(gitRepo)
-                formatter.setContext(lines)
-                formatter.isDetectRenames = true
-                formatter.pathFilter = PathFilter.create(file.path)
-
-                if (file.cached) formatter.stagedDiff(gitRepo) else formatter.pendingDiff(gitRepo)
-
+                diffCommand.setOutputStream(it).call()
                 it.toString("UTF-8")
             }
         }
     }
 
-    // TODO: does not work with renames
-    private fun DiffFormatter.pendingDiff(repository: Repository) {
-        val oldTree = DirCacheIterator(repository.readDirCache())
-        val newTree = FileTreeIterator(repository)
-        format(scan(oldTree, newTree))
-        flush()
-    }
-
-    // TODO: does not work with renames
-    private fun DiffFormatter.stagedDiff(repository: Repository) {
-        val head = repository.resolve(HEAD + "^{tree}")
-        val oldTree = if (head != null) repository.newObjectReader().use { CanonicalTreeParser(null, it, head) } else EmptyTreeIterator()
-        val newTree = DirCacheIterator(repository.readDirCache())
-        format(scan(oldTree, newTree))
-        flush()
-    }
-
     /**
      * - git diff --unified=<[lines]> <[commit]> <parent> <[file]>
      */
-    // TODO: does not work with renames
     fun diff(repository: LocalRepository, file: LocalFile, commit: LocalCommit, lines: Int = 3): String {
-        return repository.open("diff $file of $commit") { gitRepo ->
+        return repository.openGit("diff $file of $commit") {
+            val (newTree, oldTree) = it.repository.treesOf(ObjectId.fromString(commit.id))
+            val diffCommand = it.diff()
+                    .setOldTree(oldTree)
+                    .setNewTree(newTree)
+                    .setContextLines(lines)
+                    .setPathFilter(file.toPathFilter())
             ByteArrayOutputStream().use {
-                val formatter = DiffFormatter(it)
-                formatter.setRepository(gitRepo)
-                formatter.setContext(lines)
-                formatter.isDetectRenames = true
-                formatter.pathFilter = PathFilter.create(file.path)
-
-                val (newTree, oldTree) = gitRepo.treesOf(ObjectId.fromString(commit.id))
-                formatter.format(formatter.scan(oldTree, newTree))
-                formatter.flush()
-
+                diffCommand.setOutputStream(it).call()
                 it.toString("UTF-8")
             }
         }
@@ -635,6 +614,16 @@ object Git {
     // TODO: test performance if objectreader is created here instead
     private fun RevWalk.iteratorOf(commit: RevCommit?): AbstractTreeIterator {
         return commit?.let { CanonicalTreeParser(null, objectReader, it.tree) } ?: EmptyTreeIterator()
+    }
+
+    private fun LocalFile.toPathFilter(): TreeFilter {
+        return if (status == LocalFile.Status.RENAMED || status == LocalFile.Status.COPIED) {
+            val config = Config()
+            config.setBoolean("diff", null, "renames", true)
+            FollowFilter.create(this.path, config.get(DiffConfig.KEY))
+        } else {
+            PathFilter.create(this.path)
+        }
     }
 
 }
