@@ -1,6 +1,8 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.asPath
+import hamburg.remme.tinygit.delete
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStatus
@@ -9,6 +11,7 @@ import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.context
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
@@ -26,7 +29,6 @@ import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Window
-import java.io.File
 import java.util.concurrent.Callable
 
 class WorkingCopyView : Tab() {
@@ -185,7 +187,7 @@ class WorkingCopyView : Tab() {
     private fun deleteFile(repository: LocalRepository, files: List<LocalFile>) {
         if (confirmWarningAlert(window, "Delete Files", "Delete",
                 "This will remove the selected files from the disk.")) {
-            files.forEach { File(it.resolve(repository)).delete() }
+            files.forEach { repository.resolve(it).asPath().delete() }
             diff(repository)
         }
     }

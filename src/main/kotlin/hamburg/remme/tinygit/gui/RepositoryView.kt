@@ -2,6 +2,8 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.asPath
+import hamburg.remme.tinygit.exists
 import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStashEntry
@@ -12,9 +14,12 @@ import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.addStyle
 import hamburg.remme.tinygit.gui.builder.button
+import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.context
+import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
+import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
@@ -31,7 +36,6 @@ import javafx.stage.Window
 import org.eclipse.jgit.api.errors.CheckoutConflictException
 import org.eclipse.jgit.api.errors.NotMergedException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
-import java.io.File
 import java.util.concurrent.Callable
 
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
@@ -135,7 +139,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     private fun treeAdd(repository: LocalRepository) {
         // TODO: maybe be more graceful here; remember missing repos and show a missing-entry for them
-        if (File(repository.path).exists()) {
+        if (repository.path.asPath().exists()) {
             val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", EntryType.LOCAL))
             val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", EntryType.REMOTE))
             val tags = TreeItem(RepositoryEntry(repository, "Tags", EntryType.TAGS))

@@ -13,23 +13,27 @@ fun <T : Node> T.columnSpan(value: Int): T {
     return this
 }
 
-fun <T : Node> T.rowSpan(value: Int): T {
-    GridPane.setRowSpan(this, value)
-    return this
-}
-
-inline fun grid(block: GridPaneBuilder.() -> Unit): GridPane {
-    val grid = GridPaneBuilder()
+inline fun grid(width: Int, block: GridPaneBuilder.() -> Unit): GridPane {
+    val grid = GridPaneBuilder(width)
     block.invoke(grid)
     return grid
 }
 
-class GridPaneBuilder : GridPane() {
+class GridPaneBuilder(private val width: Int) : GridPane() {
 
-    private var row = 0
+    private var rowIndex = 0
 
-    fun addRow(vararg node: Node) {
-        addRow(row++, *node)
+    operator fun List<Node>.unaryPlus() {
+        var columnIndex = 0
+        forEach {
+            add(it, columnIndex, rowIndex)
+            columnIndex += getColumnSpan(it) ?: 1
+            if (columnIndex >= width) {
+                columnIndex = 0
+                rowIndex++
+            }
+        }
+        if (columnIndex > 0) rowIndex++
     }
 
 }

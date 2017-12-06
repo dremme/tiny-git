@@ -4,8 +4,8 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.disabledWhen
 import hamburg.remme.tinygit.gui.builder.imageView
-import hamburg.remme.tinygit.gui.isCancel
-import hamburg.remme.tinygit.gui.isOk
+import hamburg.remme.tinygit.gui.builder.isCancel
+import hamburg.remme.tinygit.gui.builder.isOk
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.Node
 import javafx.scene.control.ButtonBar

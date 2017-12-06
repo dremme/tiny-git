@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.FULL_DATE
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalFile
@@ -13,6 +14,8 @@ import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.builder.webView
+import hamburg.remme.tinygit.htmlEncode
+import hamburg.remme.tinygit.htmlEncodeAll
 import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
 import javafx.scene.control.ToolBar
@@ -126,7 +129,7 @@ class CommitDetailsView : SplitPaneBuilder() {
                     <tr><td class="label">Commit:</td><td>${commit.id} [${commit.shortId}]</td></tr>
                     <tr><td class="label">Parents:</td><td>${commit.parents.joinToString()}</td></tr>
                     <tr><td class="label">Author:</td><td>${commit.author.htmlEncode()}</td></tr>
-                    <tr><td class="label">Date:</td><td>${commit.date.format(fullDate)}</td></tr>
+                    <tr><td class="label">Date:</td><td>${commit.date.format(FULL_DATE)}</td></tr>
                     <tr><td colspan="2"><br/>${commit.fullMessage.htmlEncodeAll().replace("\r?\n".toRegex(), "<br/>")}</td></tr>
                 </table>
             </body>

@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.git.api
 
 import com.jcraft.jsch.Session
-import hamburg.remme.tinygit.gui.decrypt
+import hamburg.remme.tinygit.decrypt
 import org.eclipse.jgit.api.TransportConfigCallback
 import org.eclipse.jgit.transport.JschConfigSessionFactory
 import org.eclipse.jgit.transport.OpenSshConfig.Host

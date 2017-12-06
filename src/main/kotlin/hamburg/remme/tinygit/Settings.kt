@@ -4,21 +4,19 @@ import hamburg.remme.tinygit.git.LocalRepository
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.representer.Representer
-import java.io.File
-import java.nio.file.Files
 
 object Settings {
 
     private val yaml = Yaml(Representer().also { it.propertyUtils.setSkipMissingProperties(true) },
             DumperOptions().also { it.defaultFlowStyle = DumperOptions.FlowStyle.BLOCK })
-    private val settingsFile = File("${System.getProperty("user.home")}/.tinygit").toPath()
+    private val settingsFile = "${System.getProperty("user.home")}/.tinygit".asPath()
     private val suppliers: MutableMap<Category, () -> Any> = mutableMapOf()
     private var settings: LocalSettings? = null
 
     fun load(block: LocalSettings.() -> Unit) {
-        if (Files.exists(settingsFile)) {
+        if (settingsFile.exists()) {
             try {
-                settings = yaml.loadAs(Files.newInputStream(settingsFile), LocalSettings::class.java)
+                settings = yaml.loadAs(settingsFile.read(), LocalSettings::class.java)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -27,11 +25,10 @@ object Settings {
     }
 
     fun save() {
-        Files.write(settingsFile, yaml.dump(LocalSettings(
+        settingsFile.write(yaml.dump(LocalSettings(
                 getCategory(Category.REPOSITORY),
                 getCategory(Category.TREE),
-                getCategory(Category.TREE_SELECTION)))
-                .toByteArray())
+                getCategory(Category.TREE_SELECTION))))
     }
 
     fun setRepository(supplier: () -> List<LocalRepository>) {

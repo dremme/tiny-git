@@ -74,6 +74,11 @@
     -fx-prompt-text-fill: derive(-fx-text-inner-color, -50%)
 }
 
+.text-input:readonly {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0, 0;
+}
+
 .menu-bar {
     -fx-background-color: -fx-outer-border, -fx-background;
     -fx-background-insets: 0, 0 0 1 0;

@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.SHORT_DATE
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalDivergence
@@ -8,6 +9,7 @@ import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.column
+import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
@@ -52,7 +54,7 @@ class CommitLogView : Tab() {
         val date = column<LocalCommit, String> {
             text = "Date"
             isSortable = false
-            setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(shortDate)) }
+            setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(SHORT_DATE)) }
         }
         val author = column<LocalCommit, String> {
             text = "Author"
