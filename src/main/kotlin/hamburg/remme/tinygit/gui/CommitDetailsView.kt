@@ -38,7 +38,7 @@ class CommitDetailsView : SplitPaneBuilder() {
         files = FileStatusView()
         files.vgrow(Priority.ALWAYS)
         files.selectionModel.selectedItemProperty().addListener { _, _, it ->
-            it?.let { fileDiff.update(repository!!, it, commit!!.id) } ?: fileDiff.clear()
+            it?.let { fileDiff.update(repository!!, it, commit!!) } ?: fileDiff.clear()
         }
 
         val webView = webView { isContextMenuEnabled = false }
@@ -72,7 +72,7 @@ class CommitDetailsView : SplitPaneBuilder() {
             // TODO: add a process indicator
             task?.cancel()
             task = object : Task<List<LocalFile>>() {
-                override fun call() = Git.diffTree(newRepository, newCommit.id)
+                override fun call() = Git.diffTree(newRepository, newCommit)
 
                 override fun succeeded() {
                     files.items.setAll(value)
