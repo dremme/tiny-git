@@ -1,20 +1,20 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.decrypt
+import hamburg.remme.tinygit.encrypt
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.columnSpan
+import hamburg.remme.tinygit.gui.builder.fileChooser
 import hamburg.remme.tinygit.gui.builder.fillWidth
 import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.passwordField
 import hamburg.remme.tinygit.gui.builder.textField
-import hamburg.remme.tinygit.gui.decrypt
-import hamburg.remme.tinygit.gui.encrypt
-import hamburg.remme.tinygit.gui.fileChooser
-import hamburg.remme.tinygit.gui.textInputDialog
+import hamburg.remme.tinygit.gui.builder.textInputDialog
 import javafx.scene.control.Label
 import javafx.stage.Window
 
@@ -78,14 +78,14 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
 
             State.fireRefresh()
         }
-        content = grid {
+        content = grid(4) {
             addClass("settings-view")
-            addRow(Label("Location:"), location)
-            addRow(Label("Remote:"), url, urlSet)
-            addRow(Label("SSH Key:"), ssh, sshSearch)
-            addRow(Label("User:"), username)
-            addRow(Label("Password:"), password)
-            addRow(Label("Proxy:"), host, Label(":"), port)
+            +listOf(Label("Location:"), location,
+                    Label("Remote:"), url, urlSet,
+                    Label("SSH Key:"), ssh, sshSearch,
+                    Label("User:"), username,
+                    Label("Password:"), password,
+                    Label("Proxy:"), host, Label(":"), port)
         }
     }
 

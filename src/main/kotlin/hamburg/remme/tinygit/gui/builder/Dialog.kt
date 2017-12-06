@@ -1,64 +1,17 @@
-package hamburg.remme.tinygit.gui
+package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.gui.builder.FontAwesome
 import javafx.scene.Node
 import javafx.scene.control.Alert
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
 import javafx.scene.control.TextInputDialog
-import javafx.scene.input.KeyCombination
 import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Window
 import java.io.File
-import java.nio.charset.StandardCharsets
-import java.time.format.DateTimeFormatter
-import javax.crypto.Cipher
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
 
-val shortDate = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
-val fullDate = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
-private val key = SecretKeySpec("FUMN1QLIf8sVkUdv".toByteArray(), "AES")
-private val iv = IvParameterSpec("Ay81aeLRJM5xtx9h".toByteArray())
-
-fun printError(message: String) {
-    System.err.println(message)
-}
-
-fun String.htmlEncode() = replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-
-fun String.htmlEncodeSpaces() = replace(" ", "&nbsp;")
-
-fun String.htmlEncodeAll() = htmlEncode().htmlEncodeSpaces()
-
-fun String.keyCombinationText() = KeyCombination.valueOf(this).displayText!!
-
-fun String.encrypt(): ByteArray {
-    val cipher = cipher(Cipher.ENCRYPT_MODE)
-    return cipher.doFinal(toByteArray())
-}
-
-fun ByteArray.decrypt(): String {
-    val cipher = cipher(Cipher.DECRYPT_MODE)
-    return cipher.doFinal(this).toString(StandardCharsets.UTF_8)
-}
-
-private fun cipher(mode: Int): Cipher {
-    val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-    cipher.init(mode, key, iv)
-    return cipher
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *                                                                                                               *
- * DIALOGS                                                                                                       *
- *                                                                                                               *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 fun ButtonType.isOk() = buttonData == ButtonBar.ButtonData.OK_DONE
 
 fun ButtonType.isCancel() = buttonData == ButtonBar.ButtonData.CANCEL_CLOSE

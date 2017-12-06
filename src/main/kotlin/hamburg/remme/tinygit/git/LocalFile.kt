@@ -2,13 +2,6 @@ package hamburg.remme.tinygit.git
 
 class LocalFile(val path: String, val status: Status, val cached: Boolean = true) {
 
-    fun resolve(repository: LocalRepository): String {
-        var repositoryPath = repository.path
-        if (repositoryPath.contains('\\')) repositoryPath = repositoryPath.replace('\\', '/')
-        if (repositoryPath.matches("^[a-zA-Z]:.*".toRegex())) repositoryPath = "/$repositoryPath"
-        return "$repositoryPath/$path"
-    }
-
     override fun toString() = path
 
     override fun equals(other: Any?): Boolean {

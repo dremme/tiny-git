@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.builder.StackPaneBuilder
 import hamburg.remme.tinygit.gui.builder.webView
+import hamburg.remme.tinygit.htmlEncodeAll
 import javafx.scene.web.WebEngine
 
 class FileDiffView : StackPaneBuilder() {
@@ -31,7 +32,7 @@ class FileDiffView : StackPaneBuilder() {
     }
 
     fun update(repository: LocalRepository, file: LocalFile) {
-        setContent(Git.diff(repository, file), file.resolve(repository))
+        setContent(Git.diff(repository, file), repository.resolve(file))
     }
 
     fun update(repository: LocalRepository, file: LocalFile, id: String) {

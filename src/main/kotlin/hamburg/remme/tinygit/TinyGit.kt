@@ -8,8 +8,6 @@ import javafx.scene.text.Font
 import javafx.stage.Stage
 import java.util.Locale
 
-fun String.asResource() = TinyGit::class.java.getResource(this).toExternalForm()!!
-
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
     Font.loadFont("font/Roboto-Regular.ttf".asResource(), 13.0)

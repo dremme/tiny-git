@@ -19,18 +19,22 @@ class AboutDialog(window: Window) : Dialog(window, "About") {
 
         header = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
         graphic = Image("icon.png".asResource())
-        content = grid {
+        content = grid(2) {
             addClass("about-view")
-            addRow(label {
+
+            val author = label {
                 addClass("author")
                 columnSpan(2)
                 text = "Dennis Remme"
-            })
-            addRow(FontAwesome.envelope(), Label("dennis@remme.hamburg"))
-            addRow(FontAwesome.globe(), link {
+            }
+            val link = link {
                 text = "remme.hamburg"
                 setOnAction { TinyGit.show("https://remme.hamburg") }
-            })
+            }
+
+            +listOf(author,
+                    FontAwesome.envelope(), Label("dennis@remme.hamburg"),
+                    FontAwesome.globe(), link)
         }
     }
 

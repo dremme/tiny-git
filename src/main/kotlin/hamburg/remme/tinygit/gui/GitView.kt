@@ -2,6 +2,8 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.asPath
+import hamburg.remme.tinygit.exists
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.git.api.PushRejectedException
@@ -11,6 +13,9 @@ import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
+import hamburg.remme.tinygit.gui.builder.directoryChooser
+import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.flipXY
 import hamburg.remme.tinygit.gui.builder.flipY
 import hamburg.remme.tinygit.gui.builder.hbox
@@ -18,6 +23,7 @@ import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.menuBar
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
+import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
@@ -33,7 +39,6 @@ import javafx.scene.text.Text
 import javafx.stage.Window
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.api.errors.StashApplyFailureException
-import java.io.File
 
 class GitView : VBoxBuilder() {
 
@@ -146,7 +151,7 @@ class GitView : VBoxBuilder() {
 
     private fun addRepo() {
         directoryChooser(window, "Add Repository") {
-            if (File("${it.absolutePath}/.git").exists()) {
+            if ("${it.absolutePath}/.git".asPath().exists()) {
                 val repository = LocalRepository(it.absolutePath)
                 if (!State.repositories.contains(repository)) State.repositories += repository
             } else {

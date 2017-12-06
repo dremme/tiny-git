@@ -7,7 +7,7 @@ import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStashEntry
 import hamburg.remme.tinygit.git.LocalStatus
-import hamburg.remme.tinygit.gui.printError
+import hamburg.remme.tinygit.printError
 import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.ListBranchCommand
