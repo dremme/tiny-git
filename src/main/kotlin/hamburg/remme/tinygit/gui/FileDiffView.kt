@@ -12,8 +12,7 @@ import javafx.scene.web.WebEngine
 class FileDiffView : StackPaneBuilder() {
 
     private val fileDiff: WebEngine
-    //language=HTML
-    private val emptyDiff = """
+    private val emptyDiff = /*language=HTML*/ """
         <tr>
             <td class="line-number header">&nbsp;</td>
             <td class="line-number header">&nbsp;</td>
@@ -151,55 +150,49 @@ class FileDiffView : StackPaneBuilder() {
                     <td colspan="3"><div class="image-box"><img src="file://$file"></div></td>
                 </tr>
             """ else ""
-            //language=HTML
-            return """
-                $emptyDiff
-                $image
-            """
+            return "$emptyDiff$image"
         }
-        val blocks = mutableListOf<DiffBlock>()
+        val lineNumbers = LineNumbers()
+        val lines = diff.split("\\r?\\n".toRegex())
+        val blocks = lines.filter { it.isBlockHeader() }.map { it.parseBlockHeader() }
         var blockNumber = -1
-        val numbers = arrayOf(0, 0)
-        return diff.split("\\r?\\n".toRegex())
-                .dropLast(1)
-                .dropWhile { !it.isBlockHeader() }
-                .onEach { if (it.isBlockHeader()) blocks += it.parseBlockHeader() }
-                .map { it.htmlEncodeAll() }
+        // TODO: still buggy for conflicts
+        return lines
                 .map {
                     if (it.isBlockHeader()) {
                         blockNumber++
-                        numbers[0] = blocks[blockNumber].number1
-                        numbers[1] = blocks[blockNumber].number2
+                        lineNumbers.left = blocks[blockNumber].number1
+                        lineNumbers.right = blocks[blockNumber].number2
                     }
-                    formatLine(it, numbers, blocks[blockNumber])
+                    if (blockNumber >= 0) formatLine(it, lineNumbers, blocks[blockNumber]) else ""
                 }
                 .joinToString("")
                 .takeIf { it.isNotBlank() } ?: emptyDiff
     }
 
-    private fun formatLine(line: String, numbers: Array<Int>, block: DiffBlock): String {
-        if (line.isBlockHeader()) {
-            //language=HTML
-            return """
+    private fun formatLine(line: String, numbers: LineNumbers, block: DiffBlock): String {
+        val codeClass: String
+        val oldLineNumber: String
+        val newLineNumber: String
+        when {
+        // TODO: don't show empty line diffs
+            line.isBlockHeader() -> return /*language=HTML*/ """
                 <tr>
                     <td class="line-number header">&nbsp;</td>
                     <td class="line-number header">&nbsp;</td>
                     <td class="code header">&nbsp;@@ -${block.number1},${block.length1} +${block.number2},${block.length2} @@</td>
                 </tr>
             """
-        }
-        val codeClass: String
-        val oldLineNumber: String
-        val newLineNumber: String
-        when {
+            line.startsWith("+++") -> return ""
+            line.startsWith("---") -> return ""
             line.startsWith('+') -> {
-                newLineNumber = numbers[1]++.toString()
+                newLineNumber = "${numbers.right++}"
                 oldLineNumber = "&nbsp;"
                 codeClass = "added"
             }
             line.startsWith('-') -> {
                 newLineNumber = "&nbsp;"
-                oldLineNumber = numbers[0]++.toString()
+                oldLineNumber = "${numbers.left++}"
                 codeClass = "removed"
             }
             line.startsWith('\\') -> {
@@ -207,23 +200,23 @@ class FileDiffView : StackPaneBuilder() {
                 oldLineNumber = "&nbsp;"
                 codeClass = "eof"
             }
-            else -> {
-                oldLineNumber = numbers[0]++.toString()
-                newLineNumber = numbers[1]++.toString()
+            line.startsWith(' ') -> {
+                oldLineNumber = "${numbers.left++}"
+                newLineNumber = "${numbers.right++}"
                 codeClass = "&nbsp;"
             }
+            else -> return ""
         }
-        //language=HTML
-        return """
+        return /*language=HTML*/ """
             <tr>
                 <td class="line-number $codeClass">$oldLineNumber</td>
                 <td class="line-number $codeClass">$newLineNumber</td>
-                <td class="code $codeClass">$line</td>
+                <td class="code $codeClass">${line.htmlEncodeAll()}</td>
             </tr>
         """
     }
 
-    private fun String.isBlockHeader() = startsWith("@@")
+    private fun String.isBlockHeader() = startsWith('@')
 
     private fun String.parseBlockHeader(): DiffBlock {
         val match = ".*?(\\d+)(,\\d+)?.*?(\\d+)(,\\d+)?.*".toRegex().matchEntire(this)!!.groups
@@ -233,6 +226,8 @@ class FileDiffView : StackPaneBuilder() {
                 match[3]?.value?.toInt() ?: 1,
                 match[4]?.value?.substring(1)?.toInt() ?: 1)
     }
+
+    private class LineNumbers(var left: Int = 0, var right: Int = 0)
 
     private class DiffBlock(val number1: Int, val length1: Int, val number2: Int, val length2: Int)
 

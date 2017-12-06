@@ -199,12 +199,12 @@ object Git {
         return scan(oldTree, newTree).map {
             when (it.changeType!!) {
                 DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED, false)
-                DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.COPIED, false) // TODO: cannot happen?
-                DiffEntry.ChangeType.RENAME -> LocalFile(it.newPath, LocalFile.Status.RENAMED, false) // TODO: cannot happen?
+                DiffEntry.ChangeType.COPY -> throw IllegalStateException("Type not allowed: ${DiffEntry.ChangeType.COPY}")
+                DiffEntry.ChangeType.RENAME -> throw IllegalStateException("Type not allowed: ${DiffEntry.ChangeType.RENAME}")
                 DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.MODIFIED, false)
                 DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED, false)
             }
-        }.sortedBy { it.status }
+        }.detectConflicts().sortedBy { it.status }
     }
 
     private fun DiffFormatter.stagedFiles(repository: Repository): List<LocalFile> {
@@ -219,7 +219,12 @@ object Git {
                 DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.MODIFIED)
                 DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED)
             }
-        }.sortedBy { it.status }
+        }.detectConflicts().sortedBy { it.status }
+    }
+
+    private fun List<LocalFile>.detectConflicts(): List<LocalFile> {
+        val conflicts = filter { file -> count { it.path == file.path } > 1 }.toSet()
+        return filter { !conflicts.contains(it) } + conflicts.map { LocalFile(it.path, LocalFile.Status.CONFLICT, it.cached) }
     }
 
     /**
@@ -591,8 +596,8 @@ object Git {
         val key = RepositoryCache.FileKey.lenient(File(path), FS.DETECTED)
         val value = RepositoryBuilder().setFS(FS.DETECTED).setGitDir(key.file).setMustExist(true).build().let(block)
         val time = (System.currentTimeMillis() - startTime) / 1000.0
-        if (time < 1) println(String.format("[%-18s] %-15s in %6.3fs", this.shortPath, description, time))
-        if (time >= 1) printError(String.format("[%-18s] %-15s in %6.3fs", this.shortPath, description, time))
+        if (time < 1) println(String.format("[%-18s] %-15s in %6.3fs", shortPath, description, time))
+        if (time >= 1) printError(String.format("[%-18s] %-15s in %6.3fs", shortPath, description, time))
         return value
     }
 
@@ -620,9 +625,9 @@ object Git {
         return if (status == LocalFile.Status.RENAMED || status == LocalFile.Status.COPIED) {
             val config = Config()
             config.setBoolean("diff", null, "renames", true)
-            FollowFilter.create(this.path, config.get(DiffConfig.KEY))
+            FollowFilter.create(path, config.get(DiffConfig.KEY))
         } else {
-            PathFilter.create(this.path)
+            PathFilter.create(path)
         }
     }
 
