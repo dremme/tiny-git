@@ -1,13 +1,10 @@
 package hamburg.remme.tinygit
 
-import java.io.BufferedReader
-import java.io.StringReader
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.format.DateTimeFormatter
-import java.util.stream.Stream
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -32,8 +29,6 @@ fun Path.delete() = Files.delete(this)
 fun Path.read() = Files.readAllBytes(this).toString(StandardCharsets.UTF_8)
 
 fun Path.write(text: String) = Files.write(this, text.toByteArray())!!
-
-inline fun <T> String.lines(block: (Stream<String>) -> T) = BufferedReader(StringReader(this)).lines()!!
 
 fun String.normalize() = replace('\\', '/')
 
