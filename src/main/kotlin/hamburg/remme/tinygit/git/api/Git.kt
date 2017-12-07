@@ -258,7 +258,7 @@ object Git {
     /**
      * Creates a source code difference using `git diff` depending on the [file]'s status.
      */
-    fun diff(repository: LocalRepository, file: LocalFile, lines: Int = 3): String {
+    fun diff(repository: LocalRepository, file: LocalFile, lines: Int): String {
         return if (file.status == LocalFile.Status.CONFLICT && file.cached) ""
         else repository.openGit("diff cached=${file.cached} $file") {
             val diffCommand = it.diff()
@@ -280,7 +280,7 @@ object Git {
     /**
      * - git diff --unified=<[lines]> <[commit]> <parent> <[file]>
      */
-    fun diff(repository: LocalRepository, file: LocalFile, commit: LocalCommit, lines: Int = 3): String {
+    fun diff(repository: LocalRepository, file: LocalFile, commit: LocalCommit, lines: Int): String {
         return repository.openGit("diff $file of $commit") {
             val (newTree, oldTree) = it.repository.treesOf(ObjectId.fromString(commit.id))
             val diffCommand = it.diff()
