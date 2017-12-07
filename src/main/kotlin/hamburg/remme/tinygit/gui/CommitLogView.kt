@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.SHORT_DATE
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalDivergence
 import hamburg.remme.tinygit.git.LocalRepository
@@ -37,6 +38,7 @@ class CommitLogView : Tab() {
     private val progressPane: ProgressPane
     private val localCommits = TableView<LocalCommit>()
     private val commitDetails = CommitDetailsView()
+    private val cache: MutableMap<String, List<LocalBranch>> = mutableMapOf()
     private lateinit var head: String
     private var task: Task<*>? = null
 
@@ -102,6 +104,11 @@ class CommitLogView : Tab() {
         localCommits.items.clear()
     }
 
+    private fun invalidateCache(repository: LocalRepository) {
+        cache.clear()
+        cache.putAll(Git.branchListAll(repository).groupBy { it.commitId })
+    }
+
     private fun updateLog(commits: List<LocalCommit>) {
         val selected = localCommits.selectionModel.selectedItem
         localCommits.items.setAll(commits)
@@ -122,6 +129,7 @@ class CommitLogView : Tab() {
     private fun logQuick(repository: LocalRepository) {
         head = Git.head(repository)
         try {
+            invalidateCache(repository)
             updateLog(Git.log(repository))
             updateDivergence(Git.divergence(repository))
         } catch (ex: NoHeadException) {
@@ -140,6 +148,7 @@ class CommitLogView : Tab() {
             override fun call() = Git.log(repository, true)
 
             override fun succeeded() {
+                invalidateCache(repository)
                 updateLog(value)
                 updateDivergence(Git.divergence(repository))
             }
@@ -170,12 +179,12 @@ class CommitLogView : Tab() {
             super.updateItem(item, empty)
             text = item?.shortMessage
             graphic = if (empty) null else {
-                if (item!!.branches.isNotEmpty()) {
+                cache[item!!.id]?.let {
                     hbox {
                         spacing = 4.0
-                        item.branches.forEach { +BranchBadge(it.shortRef) }
+                        it.forEach { +BranchBadge(it.shortRef) }
                     }
-                } else null
+                }
             }
         }
 

@@ -8,10 +8,8 @@ class LocalCommit(val id: String,
                   val fullMessage: String,
                   val shortMessage: String,
                   val date: LocalDateTime,
-                  val authorName: String,
-                  val authorMail: String,
-        // TODO: verify if branches are needed here
-                  val branches: List<LocalBranch>) {
+                  authorName: String,
+                  authorMail: String) {
 
     val author = "$authorName <$authorMail>"
 
