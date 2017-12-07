@@ -131,9 +131,8 @@ object Git {
     fun log(repository: LocalRepository, fetch: Boolean = false, max: Int = 50): List<LocalCommit> {
         return repository.openGit("log fetch=$fetch") {
             if (fetch) it.fetch(repository)
-            val branches = it.branchListAll()
             val logCommand = it.log()
-            branches.forEach { logCommand.add(ObjectId.fromString(it.commit)) }
+            it.branchListIds().forEach { logCommand.add(it) }
             logCommand.setMaxCount(max).call().map { c ->
                 LocalCommit(
                         c.id.name, c.abbreviate(10).name(),
@@ -141,8 +140,7 @@ object Git {
                         c.fullMessage, c.shortMessage,
                         c.commitTime(),
                         c.authorIdent.name,
-                        c.authorIdent.emailAddress,
-                        branches.filter { it.commit == c.id.name })
+                        c.authorIdent.emailAddress)
             }
         }
     }
@@ -169,15 +167,16 @@ object Git {
     }
 
     private fun JGit.branchListAll(): List<LocalBranch> {
-        return revWalk().use { walk ->
-            branchList().setListMode(ListBranchCommand.ListMode.ALL).call().map {
-                val shortRef = Repository.shortenRefName(it.name)
-                LocalBranch(
-                        shortRef,
-                        walk.lookupCommit(it.objectId).id.name,
-                        it.name.contains("remotes"))
-            }
+        return branchList().setListMode(ListBranchCommand.ListMode.ALL).call().map {
+            LocalBranch(
+                    Repository.shortenRefName(it.name),
+                    it.objectId.name,
+                    it.name.contains("remotes"))
         }
+    }
+
+    private fun JGit.branchListIds(): List<AnyObjectId> {
+        return branchList().setListMode(ListBranchCommand.ListMode.ALL).call().map { it.objectId }
     }
 
     /**
