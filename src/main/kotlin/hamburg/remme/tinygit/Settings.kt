@@ -14,7 +14,7 @@ object Settings {
     private var settings: LocalSettings? = null
 
     fun load(block: (LocalSettings) -> Unit) {
-        if (settingsFile.exists()) {
+        if (settingsFile.exists() && settings == null) {
             try {
                 settings = yaml.loadAs(settingsFile.read(), LocalSettings::class.java)
             } catch (e: Exception) {
@@ -28,7 +28,8 @@ object Settings {
         settingsFile.write(yaml.dump(LocalSettings(
                 getCategory(Category.REPOSITORY),
                 getCategory(Category.TREE),
-                getCategory(Category.TREE_SELECTION))))
+                getCategory(Category.TREE_SELECTION),
+                getCategory(Category.WINDOW))))
     }
 
     fun setRepository(supplier: () -> List<LocalRepository>) {
@@ -43,6 +44,10 @@ object Settings {
         suppliers[Category.TREE_SELECTION] = supplier
     }
 
+    fun setWindow(supplier: () -> WindowSettings) {
+        suppliers[Category.WINDOW] = supplier
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun <T> getCategory(category: Category): T {
         return suppliers[category]?.invoke() as? T ?: throw RuntimeException("Missing supplier for setting $category")
@@ -50,12 +55,20 @@ object Settings {
 
     class LocalSettings(var repositories: List<LocalRepository> = emptyList(),
                         var tree: List<TreeItem> = emptyList(),
-                        var treeSelection: TreeItem = TreeItem())
+                        var treeSelection: TreeItem = TreeItem(),
+                        var window: WindowSettings = WindowSettings())
 
     class TreeItem(var repository: String = "",
                    var name: String = "",
                    var expanded: Boolean = false)
 
-    enum class Category { REPOSITORY, TREE, TREE_SELECTION }
+    class WindowSettings(var x: Double = 0.0,
+                         var y: Double = 0.0,
+                         var width: Double = 0.0,
+                         var height: Double = 0.0,
+                         var maximized: Boolean = false,
+                         var fullscreen: Boolean = false)
+
+    enum class Category { REPOSITORY, TREE, TREE_SELECTION, WINDOW }
 
 }
