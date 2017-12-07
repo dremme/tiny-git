@@ -20,8 +20,7 @@ import org.eclipse.jgit.diff.DiffFormatter
 import org.eclipse.jgit.dircache.DirCacheIterator
 import org.eclipse.jgit.lib.AnyObjectId
 import org.eclipse.jgit.lib.Config
-import org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME
-import org.eclipse.jgit.lib.Constants.HEAD
+import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryBuilder
@@ -55,6 +54,8 @@ import org.eclipse.jgit.api.Git as JGit
 
 object Git {
 
+    private val REMOTE = Constants.DEFAULT_REMOTE_NAME
+    private val HEAD = Constants.HEAD
     private val updatedRepositories = mutableSetOf<LocalRepository>()
     private var proxyHost = ThreadLocal<String>() // TODO: really needed? cannot interact with more than one repo atm
     private var proxyPort = ThreadLocal<Int>() // TODO: really needed? cannot interact with more than one repo atm
@@ -64,10 +65,8 @@ object Git {
             private val delegate = ProxySelector.getDefault()
 
             override fun select(uri: URI): List<Proxy> {
-                return if (proxyHost.get().isNotBlank())
-                    listOf(Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(proxyHost.get(), proxyPort.get())))
-                else
-                    delegate.select(uri)
+                return if (proxyHost.get().isNotBlank()) listOf(Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(proxyHost.get(), proxyPort.get())))
+                else delegate.select(uri)
             }
 
             override fun connectFailed(uri: URI, sa: SocketAddress, ioe: IOException) = Unit
@@ -103,14 +102,14 @@ object Git {
         repository.openGit("set remote $url") {
             if (it.remoteList().call().isNotEmpty()) {
                 val cmd = it.remoteSetUrl()
-                cmd.setName(DEFAULT_REMOTE_NAME)
+                cmd.setName(REMOTE)
                 cmd.setUri(URIish(url))
                 cmd.call()
                 cmd.setPush(true)
                 cmd.call()
             } else {
                 val cmd = it.remoteAdd()
-                cmd.setName(DEFAULT_REMOTE_NAME)
+                cmd.setName(REMOTE)
                 cmd.setUri(URIish(url))
                 cmd.call()
             }
@@ -233,7 +232,7 @@ object Git {
     fun divergence(repository: LocalRepository): LocalDivergence {
         return repository.open("divergence") {
             val localBranch = it.findRef(it.branch)?.objectId
-            val remoteBranch = it.findRef("$DEFAULT_REMOTE_NAME/${it.branch}")?.objectId
+            val remoteBranch = it.findRef("$REMOTE/${it.branch}")?.objectId
             when {
             // TODO: what to do, when there is no branch checked out?
                 localBranch == null -> LocalDivergence(0, 0)
@@ -386,7 +385,7 @@ object Git {
      */
     fun resetHard(repository: LocalRepository) {
         repository.openGit("reset hard") {
-            it.reset().setMode(ResetCommand.ResetType.HARD).setRef("$DEFAULT_REMOTE_NAME/${it.repository.branch}").call()
+            it.reset().setMode(ResetCommand.ResetType.HARD).setRef("$REMOTE/${it.repository.branch}").call()
         }
     }
 
