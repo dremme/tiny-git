@@ -64,7 +64,7 @@ class GitView : VBoxBuilder() {
         val showWorkingCopy = Action("Show Working Copy", { FontAwesome.desktop() }, "F2",
                 handler = { tabs.selectionModel.select(workingCopy) })
         // Repository
-        val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+Plus", State.canCommit.not(),
+        val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+K", State.canCommit.not(),
                 { commit(State.selectedRepository) })
         val push = Action("Push", { FontAwesome.cloudUpload() }, "Shortcut+P", State.canPush.not(),
                 { push(State.selectedRepository, false) }, State.aheadProperty())

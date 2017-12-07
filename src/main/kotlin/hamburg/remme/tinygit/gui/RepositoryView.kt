@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.asPath
@@ -42,8 +43,8 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     val actions: Array<ActionGroup>
         get() = arrayOf(ActionGroup(settings))
-    private val settings = Action("Settings", { FontAwesome.cog() }, disable = State.canSettings.not(),
-            handler = { SettingsDialog(State.selectedRepository, window).show() })
+    private val settings = Action("Settings", { FontAwesome.cog() }, if (PlatformUtil.isMac()) "Shortcut+Comma" else null,
+            disable = State.canSettings.not(), handler = { SettingsDialog(State.selectedRepository, window).show() })
 
     private val window: Window get() = scene.window
     private val selectedEntry: RepositoryEntry? get() = selectionModel.selectedItem?.value
