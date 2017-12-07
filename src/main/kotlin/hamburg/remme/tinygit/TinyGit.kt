@@ -33,7 +33,7 @@ class TinyGit : Application() {
         tinygit = this
 
         Settings.setRepository { State.repositories }
-        Settings.load { State.repositories.setAll(repositories) }
+        Settings.load { State.repositories.setAll(it.repositories) }
 
         stage.focusedProperty().addListener { _, _, it ->
             if (it) {

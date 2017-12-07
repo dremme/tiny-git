@@ -12,7 +12,7 @@ class FileStatusView : ListView<LocalFile> {
 
     companion object {
 
-        fun conflictIcon() = FontAwesome.exclamation()
+        fun conflictIcon() = FontAwesome.exclamationTriangle()
         fun addedIcon() = FontAwesome.plus()
         fun copiedIcon() = FontAwesome.plus()
         fun renamedIcon() = FontAwesome.share()

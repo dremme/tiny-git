@@ -32,7 +32,7 @@ class FileDiffView : StackPaneBuilder() {
     }
 
     fun update(repository: LocalRepository, file: LocalFile) {
-        setContent(Git.diff(repository, file), repository.resolve(file))
+        setContent(Git.diff(repository, file))
     }
 
     fun update(repository: LocalRepository, file: LocalFile, commit: LocalCommit) {
@@ -58,7 +58,7 @@ class FileDiffView : StackPaneBuilder() {
         """)
     }
 
-    private fun setContent(diff: String, file: String? = null) {
+    private fun setContent(diff: String) {
         //language=HTML
         fileDiff.loadContent("""
             <html>
@@ -81,13 +81,6 @@ class FileDiffView : StackPaneBuilder() {
                         min-width: 100%;
                         font-size: 13px;
                     }
-                    .image-box {
-                        padding: 20px;
-                    }
-                    .image-box img {
-                        width: 100%;
-                        box-shadow: 0 2px 10px 2px rgba(0, 0, 0, 0.5);
-                    }
                     .line-number {
                         padding: 3px 6px;
                         text-align: right;
@@ -104,6 +97,9 @@ class FileDiffView : StackPaneBuilder() {
                     .line-number.removed {
                         background-color: #804e4e;
                     }
+                    .line-number.conflict {
+                        background-color: #80804e;
+                    }
                     .code {
                         width: 100%;
                         white-space: nowrap;
@@ -117,6 +113,9 @@ class FileDiffView : StackPaneBuilder() {
                     }
                     .code.removed {
                         background-color: #593636;
+                    }
+                    .code.conflict {
+                        background-color: #575735;
                     }
                     .code.eof {
                         color: rgba(255,255,255,0.6);
@@ -135,48 +134,59 @@ class FileDiffView : StackPaneBuilder() {
             </head>
             <body>
                 <table cellpadding="0" cellspacing="0">
-                    ${format(diff, file)}
+                    ${format(diff)}
                 </table>
             </body>
             </html>
         """)
     }
 
-    private fun format(diff: String, file: String? = null): String {
-        if (diff.isBlank() || diff.matches(".*Binary files differ\\r?\\n?$".toRegex(RegexOption.DOT_MATCHES_ALL))) {
-            //language=HTML
-            val image = if (file?.toLowerCase()?.matches(".*\\.(png|jpe?g|gif)$".toRegex()) == true) """
-                <tr>
-                    <td colspan="3"><div class="image-box"><img src="file://$file"></div></td>
-                </tr>
-            """ else ""
-            return "$emptyDiff$image"
-        }
-        val lineNumbers = LineNumbers()
-        val lines = diff.split("\\r?\\n".toRegex())
-        val blocks = lines.filter { it.isBlockHeader() }.map { it.parseBlockHeader() }
-        var blockNumber = -1
-        // TODO: still buggy for conflicts
-        return lines
+    private fun format(diff: String): String {
+        if (diff.isBlank() || diff.matches(".*Binary files differ\\r?\\n?$".toRegex(RegexOption.DOT_MATCHES_ALL))) return emptyDiff
+
+        val blocks = diff.lines()
+                .filter { it.startsWith('@') }
                 .map {
-                    if (it.isBlockHeader()) {
-                        blockNumber++
-                        lineNumbers.left = blocks[blockNumber].number1
-                        lineNumbers.right = blocks[blockNumber].number2
+                    val match = ".*?(\\d+)(,\\d+)?.*?(\\d+)(,\\d+)?.*".toRegex().matchEntire(it)!!.groups
+                    DiffBlock(
+                            match[1]?.value?.toInt() ?: 1,
+                            match[2]?.value?.substring(1)?.toInt() ?: 1,
+                            match[3]?.value?.toInt() ?: 1,
+                            match[4]?.value?.substring(1)?.toInt() ?: 1)
+                }
+        var blockIndex = -1
+
+        val lineNumbers = LineNumbers()
+        var conflict = false
+        // TODO: still buggy for conflicts
+        return diff.lines()
+                .dropLast(1)
+                .map {
+                    if (it.startsWith('@')) {
+                        blockIndex++
+                        lineNumbers.left = blocks[blockIndex].number1
+                        lineNumbers.right = blocks[blockIndex].number2
                     }
-                    if (blockNumber >= 0) formatLine(it, lineNumbers, blocks[blockNumber]) else ""
+                    if (blockIndex >= 0) {
+                        if (it.startsWith("+<<<<<<<")) conflict = true
+                        val line = formatLine(it, lineNumbers, blocks[blockIndex], conflict)
+                        if (it.startsWith("+>>>>>>>")) conflict = false
+                        return@map line
+                    }
+                    return@map ""
                 }
                 .joinToString("")
-                .takeIf { it.isNotBlank() } ?: emptyDiff
+                .takeIf { it.isNotBlank() }
+                ?: emptyDiff
     }
 
-    private fun formatLine(line: String, numbers: LineNumbers, block: DiffBlock): String {
+    private fun formatLine(line: String, numbers: LineNumbers, block: DiffBlock, conflict: Boolean): String {
         val codeClass: String
         val oldLineNumber: String
         val newLineNumber: String
         when {
         // TODO: don't show empty line diffs
-            line.isBlockHeader() -> return /*language=HTML*/ """
+            line.startsWith('@') -> return /*language=HTML*/ """
                 <tr>
                     <td class="line-number header">&nbsp;</td>
                     <td class="line-number header">&nbsp;</td>
@@ -188,22 +198,22 @@ class FileDiffView : StackPaneBuilder() {
             line.startsWith('+') -> {
                 newLineNumber = "${numbers.right++}"
                 oldLineNumber = "&nbsp;"
-                codeClass = "added"
+                codeClass = if (conflict) "conflict" else "added"
             }
             line.startsWith('-') -> {
                 newLineNumber = "&nbsp;"
                 oldLineNumber = "${numbers.left++}"
-                codeClass = "removed"
+                codeClass = if (conflict) "conflict" else "removed"
             }
             line.startsWith('\\') -> {
                 newLineNumber = "&nbsp;"
                 oldLineNumber = "&nbsp;"
-                codeClass = "eof"
+                codeClass = if (conflict) "conflict" else "eof"
             }
             line.startsWith(' ') -> {
                 oldLineNumber = "${numbers.left++}"
                 newLineNumber = "${numbers.right++}"
-                codeClass = "&nbsp;"
+                codeClass = if (conflict) "conflict" else "&nbsp;"
             }
             else -> return ""
         }
@@ -211,21 +221,12 @@ class FileDiffView : StackPaneBuilder() {
             <tr>
                 <td class="line-number $codeClass">$oldLineNumber</td>
                 <td class="line-number $codeClass">$newLineNumber</td>
-                <td class="code $codeClass">${line.htmlEncodeAll()}</td>
+                <td class="code $codeClass">${line.trimHash().htmlEncodeAll()}</td>
             </tr>
         """
     }
 
-    private fun String.isBlockHeader() = startsWith('@')
-
-    private fun String.parseBlockHeader(): DiffBlock {
-        val match = ".*?(\\d+)(,\\d+)?.*?(\\d+)(,\\d+)?.*".toRegex().matchEntire(this)!!.groups
-        return DiffBlock(
-                match[1]?.value?.toInt() ?: 1,
-                match[2]?.value?.substring(1)?.toInt() ?: 1,
-                match[3]?.value?.toInt() ?: 1,
-                match[4]?.value?.substring(1)?.toInt() ?: 1)
-    }
+    private fun String.trimHash() = if (startsWith('#')) substring(1) else this
 
     private class LineNumbers(var left: Int = 0, var right: Int = 0)
 
