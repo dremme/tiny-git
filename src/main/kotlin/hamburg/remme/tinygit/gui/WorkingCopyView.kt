@@ -37,13 +37,13 @@ class WorkingCopyView : Tab() {
 
     val actions: Array<ActionGroup>
         get() = arrayOf(ActionGroup(updateAll, stageAll, stageSelected), ActionGroup(unstageAll, unstageSelected))
-    private val unstageAll = Action("Unstage all", shortcut = "Shortcut+Shift+K", disable = State.canUnstageAll.not(),
+    private val unstageAll = Action("Unstage all", shortcut = "Shortcut+Shift+L", disable = State.canUnstageAll.not(),
             handler = { unstage(State.selectedRepository) })
     private val unstageSelected = Action("Unstage selected", disable = State.canUnstageSelected.not(),
             handler = { unstage(State.selectedRepository, stagedFilesSelection.selectedItems) })
     private val updateAll = Action("Update all", disable = State.canUpdateAll.not(),
             handler = { update(State.selectedRepository) })
-    private val stageAll = Action("Stage all", shortcut = "Shortcut+Shift+L", disable = State.canStageAll.not(),
+    private val stageAll = Action("Stage all", shortcut = "Shortcut+Shift+K", disable = State.canStageAll.not(),
             handler = { stage(State.selectedRepository) })
     private val stageSelected = Action("Stage selected", disable = State.canStageSelected.not(),
             handler = {
@@ -90,7 +90,7 @@ class WorkingCopyView : Tab() {
         selectedFile = Bindings.createObjectBinding(
                 Callable { stagedFilesSelection.selectedItem ?: pendingFilesSelection.selectedItem },
                 stagedFilesSelection.selectedItemProperty(), pendingFilesSelection.selectedItemProperty())
-        selectedFile.addListener { _, _, it -> it?.let { fileDiff.update(State.selectedRepository, it) } ?: fileDiff.clear() }
+        selectedFile.addListener { _, _, it -> it?.let { fileDiff.update(State.selectedRepository, it) } ?: fileDiff.clearContent() }
 
         content = stackPane {
             +splitPane {

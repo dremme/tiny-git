@@ -4,13 +4,21 @@ import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
-import hamburg.remme.tinygit.gui.builder.StackPaneBuilder
+import hamburg.remme.tinygit.gui.builder.VBoxBuilder
+import hamburg.remme.tinygit.gui.builder.comboBox
+import hamburg.remme.tinygit.gui.builder.toolBar
+import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.webView
 import hamburg.remme.tinygit.htmlEncodeAll
+import javafx.scene.control.ComboBox
+import javafx.scene.control.ListCell
+import javafx.scene.layout.Priority
 import javafx.scene.web.WebEngine
+import javafx.util.Callback
 
-class FileDiffView : StackPaneBuilder() {
+class FileDiffView : VBoxBuilder() {
 
+    private val contextLines: ComboBox<Int>
     private val fileDiff: WebEngine
     private val emptyDiff = /*language=HTML*/ """
         <tr>
@@ -19,9 +27,28 @@ class FileDiffView : StackPaneBuilder() {
             <td class="code header">&nbsp;@@ No changes detected or binary file @@</td>
         </tr>
     """
+    private var repository: LocalRepository? = null
+    private var commit: LocalCommit? = null
+    private var file: LocalFile? = null
 
     init {
+        contextLines = comboBox {
+            items.setAll(0, 1, 3, 6, 12, 25, 50, 100)
+            buttonCell = ContextLinesListCell()
+            cellFactory = Callback { ContextLinesListCell() }
+            value = 3
+            valueProperty().addListener { _, _, it ->
+                if (commit == null) setContent(Git.diff(repository!!, file!!, it))
+                else setContent(Git.diff(repository!!, file!!, commit!!, it))
+            }
+        }
+        +toolBar {
+            addSpacer()
+            +contextLines
+        }
+
         val webView = webView {
+            vgrow(Priority.ALWAYS)
             isContextMenuEnabled = false
             prefWidth = 400.0
             prefHeight = 300.0
@@ -31,19 +58,31 @@ class FileDiffView : StackPaneBuilder() {
         clearContent()
     }
 
-    fun update(repository: LocalRepository, file: LocalFile) {
-        setContent(Git.diff(repository, file))
+    fun update(newRepository: LocalRepository, newFile: LocalFile) {
+        if (newRepository != repository || newFile != file) {
+            repository = newRepository
+            file = newFile
+            commit = null
+
+            setContent(Git.diff(newRepository, newFile, contextLines.value))
+        }
     }
 
-    fun update(repository: LocalRepository, file: LocalFile, commit: LocalCommit) {
-        setContent(Git.diff(repository, file, commit))
+    fun update(newRepository: LocalRepository, newFile: LocalFile, newCommit: LocalCommit) {
+        if (newRepository != repository || newFile != file || newCommit != commit) {
+            repository = newRepository
+            file = newFile
+            commit = newCommit
+
+            setContent(Git.diff(newRepository, newFile, newCommit, contextLines.value))
+        }
     }
 
-    fun clear() {
-        clearContent()
-    }
+    fun clearContent() {
+        repository = null
+        file = null
+        commit = null
 
-    private fun clearContent() {
         //language=HTML
         fileDiff.loadContent("""
             <html>
@@ -231,5 +270,12 @@ class FileDiffView : StackPaneBuilder() {
     private class LineNumbers(var left: Int = 0, var right: Int = 0)
 
     private class DiffBlock(val number1: Int, val length1: Int, val number2: Int, val length2: Int)
+
+    private class ContextLinesListCell : ListCell<Int>() {
+        override fun updateItem(item: Int?, empty: Boolean) {
+            super.updateItem(item, empty)
+            text = "$item lines"
+        }
+    }
 
 }

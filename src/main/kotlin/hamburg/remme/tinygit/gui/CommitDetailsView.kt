@@ -38,7 +38,7 @@ class CommitDetailsView : SplitPaneBuilder() {
         files = FileStatusView()
         files.vgrow(Priority.ALWAYS)
         files.selectionModel.selectedItemProperty().addListener { _, _, it ->
-            it?.let { fileDiff.update(repository!!, it, commit!!) } ?: fileDiff.clear()
+            it?.let { fileDiff.update(repository!!, it, commit!!) } ?: fileDiff.clearContent()
         }
 
         val webView = webView { isContextMenuEnabled = false }
@@ -84,6 +84,9 @@ class CommitDetailsView : SplitPaneBuilder() {
     }
 
     private fun clearContent() {
+        repository = null
+        commit = null
+
         //language=HTML
         details.loadContent("""
             <html>
