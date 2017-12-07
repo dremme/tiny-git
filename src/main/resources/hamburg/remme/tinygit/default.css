@@ -13,7 +13,7 @@
     -fx-mark-color: derive(white, -10%);
     -fx-mark-highlight-color: white;
 
-    -fx-color-status-conflict: #d25252;
+    -fx-color-status-conflict: #ffc66d;
     -fx-color-status-added: #7dbf5c;
     -fx-color-status-copied: #ffc66d;
     -fx-color-status-renamed: #56aebf;

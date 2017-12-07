@@ -208,7 +208,7 @@ object Git {
     }
 
     private fun DiffFormatter.stagedFiles(repository: Repository): List<LocalFile> {
-        val head = repository.resolve(HEAD + "^{tree}")
+        val head = repository.resolve("$HEAD^{tree}")
         val oldTree = if (head != null) repository.newObjectReader().use { CanonicalTreeParser(null, it, head) } else EmptyTreeIterator()
         val newTree = DirCacheIterator(repository.readDirCache())
         return scan(oldTree, newTree).map {
@@ -235,10 +235,10 @@ object Git {
             val localBranch = it.findRef(it.branch)?.objectId
             val remoteBranch = it.findRef("$DEFAULT_REMOTE_NAME/${it.branch}")?.objectId
             when {
-                localBranch == null -> // TODO: what to do, when there is no branch checked out?
-                    LocalDivergence(0, 0)
-                remoteBranch == null -> // TODO: count commits since branching?
-                    LocalDivergence(-1, 0)
+            // TODO: what to do, when there is no branch checked out?
+                localBranch == null -> LocalDivergence(0, 0)
+            // TODO: count commits since branching?
+                remoteBranch == null -> LocalDivergence(-1, 0)
                 else -> it.revWalk().use {
                     val localCommit = it.parseCommit(localBranch)
                     val remoteCommit = it.parseCommit(remoteBranch)
@@ -260,11 +260,17 @@ object Git {
      * Creates a source code difference using `git diff` depending on the [file]'s status.
      */
     fun diff(repository: LocalRepository, file: LocalFile, lines: Int = 3): String {
-        return repository.openGit("diff cached=${file.cached} $file") {
+        return if (file.status == LocalFile.Status.CONFLICT && file.cached) ""
+        else repository.openGit("diff cached=${file.cached} $file") {
             val diffCommand = it.diff()
                     .setCached(file.cached)
                     .setContextLines(lines)
                     .setPathFilter(file.toPathFilter())
+            if (file.status == LocalFile.Status.CONFLICT) {
+                val head = it.repository.resolve("$HEAD^{tree}")
+                diffCommand.setOldTree(it.repository.newObjectReader().use { CanonicalTreeParser(null, it, head) })
+                diffCommand.setNewTree(FileTreeIterator(it.repository))
+            }
             ByteArrayOutputStream().use {
                 diffCommand.setOutputStream(it).call()
                 it.toString("UTF-8")

@@ -13,6 +13,7 @@ import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.context
+import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.toolBar
@@ -29,6 +30,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Window
+import org.eclipse.jgit.api.errors.JGitInternalException
 import java.util.concurrent.Callable
 
 class WorkingCopyView : Tab() {
@@ -195,8 +197,12 @@ class WorkingCopyView : Tab() {
     private fun discardChanges(repository: LocalRepository, files: List<LocalFile>) {
         if (confirmWarningAlert(window, "Discard Changes", "Discard",
                 "This will discard all changes from the selected files.")) {
-            Git.checkout(repository, files)
-            diff(repository)
+            try {
+                Git.checkout(repository, files)
+                diff(repository)
+            } catch (ex: JGitInternalException) {
+                errorAlert(window, "Cannot Discard Changes", "${ex.message}")
+            }
         }
     }
 

@@ -120,17 +120,13 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             val item = selectionModel.selectedItem
             Settings.TreeItem(item.value.repository.path, item.value.value)
         }
-        Settings.load {
-            val tree = tree
+        Settings.load { settings ->
             root.children.flatMap { it.children + it }
-                    .filter { item ->
-                        tree.any { it.repository == item.value.repository.path && it.name == item.value.value && it.expanded }
-                    }
+                    .filter { item -> settings.tree.any { it.repository == item.value.repository.path && it.name == item.value.value && it.expanded } }
                     .forEach { it.isExpanded = true }
 
-            val selected = treeSelection
             root.children.flatMap { it.children + it }.flatMap { it.children + it }
-                    .find { it.value.repository.path == selected.repository && it.value.value == selected.name }
+                    .find { it.value.repository.path == settings.treeSelection.repository && it.value.value == settings.treeSelection.name }
                     ?.let { selectionModel.select(it) }
                     ?: selectionModel.selectFirst()
             scrollTo(selectionModel.selectedIndex)
