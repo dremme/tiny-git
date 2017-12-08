@@ -124,16 +124,28 @@ object Git {
     }
 
     /**
+     * - git branch --all
+     * - git log --all --skip=[skip] --max-count=[max]
+     */
+    fun log(repository: LocalRepository, skip: Int, max: Int): List<LocalCommit> {
+        return log(repository, skip, max, false)
+    }
+
+    /**
      * - git fetch
      * - git branch --all
-     * - git log --all --max-count=[max]
+     * - git log --all --skip=[skip] --max-count=[max]
      */
-    fun log(repository: LocalRepository, fetch: Boolean = false, max: Int = 50): List<LocalCommit> {
+    fun logFetch(repository: LocalRepository, skip: Int, max: Int): List<LocalCommit> {
+        return log(repository, skip, max, true)
+    }
+
+    private fun log(repository: LocalRepository, skip: Int, max: Int, fetch: Boolean): List<LocalCommit> {
         return repository.openGit("log fetch=$fetch") {
             if (fetch) it.fetch(repository)
             val logCommand = it.log()
             it.branchListIds().forEach { logCommand.add(it) }
-            logCommand.setMaxCount(max).call().map { c ->
+            logCommand.setSkip(skip).setMaxCount(max).call().map { c ->
                 LocalCommit(
                         c.id.name, c.abbreviate(10).name(),
                         c.parents.map { it.abbreviate(10).name() },

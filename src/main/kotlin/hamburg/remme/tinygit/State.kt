@@ -72,8 +72,8 @@ object State {
 
     fun behindProperty() = behindProperty.readOnlyProperty!!
 
-    fun addRepositoryListener(block: (LocalRepository?) -> Unit) {
-        selectedRepositoryProperty.addListener { _, _, it -> block.invoke(it) }
+    fun addRepositoryListener(block: (LocalRepository) -> Unit) {
+        selectedRepositoryProperty.addListener { _, _, it -> it?.let { block.invoke(it) } }
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -139,9 +139,7 @@ object State {
     }
 
     fun fireRefresh() {
-        selectedRepositoryProperty.get()?.let { repo ->
-            refreshListeners.forEach { it.invoke(repo) }
-        }
+        selectedRepositoryProperty.get()?.let { repo -> refreshListeners.forEach { it.invoke(repo) } }
     }
 
 }

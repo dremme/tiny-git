@@ -42,6 +42,10 @@ class CommitLogView : Tab() {
     private lateinit var head: String
     private var task: Task<*>? = null
 
+    private val logSize = 50
+    private val skipSize = 50
+    private var skip = 0
+
     init {
         text = "Commits"
         graphic = FontAwesome.list()
@@ -74,6 +78,8 @@ class CommitLogView : Tab() {
         localCommits.selectionModel.selectedItemProperty().addListener { _, _, it ->
             it?.let { commitDetails.update(State.selectedRepository, it) }
         }
+        // TODO: you have to scroll further than the end to make this fire
+        localCommits.setOnScroll { if (it.deltaY < 0) logMore(State.selectedRepository) }
 
         progressPane = ProgressPane(
                 splitPane {
@@ -89,7 +95,11 @@ class CommitLogView : Tab() {
                 })
         content = progressPane
 
-        State.addRepositoryListener { it?.let { logQuick(it) } }
+        State.addRepositoryListener {
+            skip = 0
+            logQuick(it)
+            localCommits.scrollTo(0)
+        }
         State.addRefreshListener { logQuick(it) }
 
         Platform.runLater {
@@ -116,6 +126,11 @@ class CommitLogView : Tab() {
         localCommits.selectionModel.selectedItem ?: localCommits.selectionModel.selectFirst()
     }
 
+    private fun addLog(commits: List<LocalCommit>) {
+        localCommits.items.addAll(commits)
+        localCommits.scrollTo(skip - 1)
+    }
+
     private fun clearDivergence() {
         State.ahead = 0
         State.behind = 0
@@ -130,7 +145,7 @@ class CommitLogView : Tab() {
         head = Git.head(repository)
         try {
             invalidateCache(repository)
-            updateLog(Git.log(repository))
+            updateLog(Git.log(repository, 0, logSize + skipSize))
             updateDivergence(Git.divergence(repository))
         } catch (ex: NoHeadException) {
             clearLog()
@@ -139,13 +154,22 @@ class CommitLogView : Tab() {
         logRemote(repository)
     }
 
+    private fun logMore(repository: LocalRepository) {
+        if (localCommits.items.size < skipSize) return
+        val commits = Git.log(repository, skip + skipSize, logSize)
+        if (commits.isNotEmpty()) {
+            skip += skipSize
+            addLog(commits)
+        }
+    }
+
     private fun logRemote(repository: LocalRepository) {
         task?.cancel()
 
         if (!Git.hasRemote(repository) || Git.isUpdated(repository)) return
 
         task = object : Task<List<LocalCommit>>() {
-            override fun call() = Git.log(repository, true)
+            override fun call() = Git.logFetch(repository, 0, logSize + skipSize)
 
             override fun succeeded() {
                 invalidateCache(repository)
