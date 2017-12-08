@@ -78,12 +78,13 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         }
 
         setOnKeyPressed {
-            when {
-                it.code == KeyCode.SPACE -> it.consume()
-                it.code == KeyCode.DELETE -> selectedEntry?.let {
+            when (it.code) {
+                KeyCode.SPACE -> it.consume()
+                KeyCode.DELETE -> selectedEntry?.let {
                     if (it.isRoot()) removeRepository(it)
                     else if (it.isLocal() && !it.isHead()) deleteBranch(it)
                 }
+                else -> Unit
             }
         }
         setOnMouseClicked {

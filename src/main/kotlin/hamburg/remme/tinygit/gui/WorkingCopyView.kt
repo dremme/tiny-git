@@ -66,21 +66,40 @@ class WorkingCopyView : Tab() {
         graphic = FontAwesome.desktop()
         isClosable = false
 
-        // TODO: should be menu bar actions as well
-        // TODO: menu for un/staging single file
-        val deleteFile = Action("Delete", { FontAwesome.trash() },
+        val unstageFile = Action("Unstage", disable = State.canUnstageSelected.not(),
+                handler = { unstage(State.selectedRepository, stagedFilesSelection.selectedItems) })
+
+        stagedFiles.contextMenu = context {
+            isAutoHide = true
+            +ActionGroup(unstageFile)
+        }
+        stagedFiles.setOnKeyPressed {
+            if (it.code == KeyCode.L) unstage(State.selectedRepository, stagedFilesSelection.selectedItems)
+        }
+
+        // TODO: menubar actions?
+        val canDelete = State.canStageSelected // TODO: own binding?
+        val canDiscard = Bindings.createBooleanBinding(
+                Callable { !pendingFilesSelection.selectedItems.all { it.status == LocalFile.Status.ADDED } },
+                pendingFilesSelection.selectedItemProperty())
+        val stageFile = Action("Stage", disable = State.canStageSelected.not(),
+                handler = { stage(State.selectedRepository, pendingFilesSelection.selectedItems) })
+        val deleteFile = Action("Delete", { FontAwesome.trash() }, disable = canDelete.not(),
                 handler = { deleteFile(State.selectedRepository, pendingFilesSelection.selectedItems) })
-        val discardChanges = Action("Discard Changes", { FontAwesome.undo() },
+        val discardChanges = Action("Discard Changes", { FontAwesome.undo() }, disable = canDiscard.not(),
                 handler = { discardChanges(State.selectedRepository, pendingFilesSelection.selectedItems) })
 
         pendingFiles.contextMenu = context {
             isAutoHide = true
+            +ActionGroup(stageFile)
             +ActionGroup(deleteFile, discardChanges)
         }
         pendingFiles.setOnKeyPressed {
-            // TODO: K key for staging selected file
-            // TODO: L key for unstaging selected file
-            if (it.code == KeyCode.DELETE) deleteFile(State.selectedRepository, pendingFilesSelection.selectedItems)
+            when (it.code) {
+                KeyCode.K -> stage(State.selectedRepository, pendingFilesSelection.selectedItems)
+                KeyCode.DELETE -> deleteFile(State.selectedRepository, pendingFilesSelection.selectedItems)
+                else -> Unit
+            }
         }
 
         stagedFilesSelection.selectedItems.addListener(ListChangeListener { State.stagedFilesSelected.set(it.list.size) })
