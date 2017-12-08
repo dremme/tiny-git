@@ -143,9 +143,9 @@ object Git {
     private fun log(repository: LocalRepository, skip: Int, max: Int, fetch: Boolean): List<LocalCommit> {
         return repository.openGit("log fetch=$fetch") {
             if (fetch) it.fetch(repository)
-            val logCommand = it.log()
+            val logCommand = it.log().setSkip(skip).setMaxCount(max)
             it.branchListIds().forEach { logCommand.add(it) }
-            logCommand.setSkip(skip).setMaxCount(max).call().map { c ->
+            logCommand.call().map { c ->
                 LocalCommit(
                         c.id.name, c.abbreviate(10).name(),
                         c.parents.map { it.abbreviate(10).name() },
@@ -620,8 +620,6 @@ object Git {
     private inline fun <T> LocalRepository.openGit(description: String, block: (JGit) -> T) = open(description) { JGit(it).let(block) }
 
     private fun Repository.revWalk() = RevWalk(this)
-
-    private fun JGit.revWalk() = RevWalk(repository)
 
     // TODO: test performance if objectreader is created here instead
     private fun Repository.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {

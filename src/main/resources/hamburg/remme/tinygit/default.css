@@ -128,7 +128,7 @@
 }
 
 .icon {
-    -fx-font: normal 14px "Font Awesome 5 Free", sans-serif;
+    -fx-font: normal 16px "Font Awesome 5 Free", sans-serif;
     -fx-fill: -fx-text-base-color;
 }
 
@@ -141,7 +141,7 @@
 }
 
 .dialog-pane:header .header-panel .graphic-container .icon {
-    -fx-font-size: 2.5em;
+    -fx-font-size: 32px;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 2, 0, 2, 2);
 }
 
@@ -190,10 +190,6 @@
 
 .git-view > .tool-bar .button:pressed {
     -fx-background-color: rgba(0, 0, 0, 0.15);
-}
-
-.git-view > .tool-bar .icon {
-    -fx-font-size: 1.5em;
 }
 
 .git-view > * > .content {
@@ -350,7 +346,7 @@
 }
 
 .overlay .box .icon {
-    -fx-font-size: 2.25em;
+    -fx-font-size: 24px;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 2, 0, 2, 2);
 }
 
