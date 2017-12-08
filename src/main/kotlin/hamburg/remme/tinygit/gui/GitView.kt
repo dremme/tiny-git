@@ -21,6 +21,7 @@ import hamburg.remme.tinygit.gui.builder.flipY
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.menuBar
+import hamburg.remme.tinygit.gui.builder.progressSpinner
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.textInputDialog
@@ -32,7 +33,6 @@ import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
 import javafx.concurrent.Task
-import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
@@ -136,7 +136,7 @@ class GitView : VBoxBuilder() {
             +stackPane {
                 addClass("progress-overlay")
                 visibleWhen(State.showGlobalOverlay)
-                +ProgressIndicator(-1.0)
+                +progressSpinner {}
                 +label { textProperty().bind(State.processTextProperty()) }
             }
         }

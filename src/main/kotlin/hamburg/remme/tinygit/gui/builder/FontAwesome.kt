@@ -32,6 +32,7 @@ object FontAwesome {
     fun refresh() = icon('\uf021')
     fun search() = icon('\uf002')
     fun share() = icon('\uf064')
+    fun spinner() = icon('\uf110')
     fun tag() = icon('\uf02b')
     fun tags() = icon('\uf02c')
     fun trash() = icon('\uf1f8')

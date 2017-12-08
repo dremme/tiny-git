@@ -358,17 +358,13 @@
     -fx-background-color: rgba(0, 0, 0, 0.5);
 }
 
-.progress-overlay .progress-indicator {
-    -fx-max-width: 400px;
-    -fx-max-height: 400px;
-}
-
 .progress-overlay .label {
     -fx-font-size: 2em;
 }
 
-.progress-overlay .progress-indicator:indeterminate .segment {
-    -fx-background-color: -fx-focus-color;
+.progress-overlay .icon {
+    -fx-font-size: 400px;
+    -fx-fill: -fx-focus-color;
 }
 
 .status-count-view {
