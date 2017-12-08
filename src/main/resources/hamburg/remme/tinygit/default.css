@@ -128,8 +128,12 @@
 }
 
 .icon {
-    -fx-font: normal 14px "FontAwesome", sans-serif;
+    -fx-font: normal 14px "Font Awesome 5 Free", sans-serif;
     -fx-fill: -fx-text-base-color;
+}
+
+.icon.brand {
+    -fx-font-family: "Font Awesome 5 Brands", sans-serif;
 }
 
 .dialog-pane:header .header-panel {
@@ -139,6 +143,18 @@
 .dialog-pane:header .header-panel .graphic-container .icon {
     -fx-font-size: 2.5em;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 2, 0, 2, 2);
+}
+
+.dialog-pane:header .header-panel .graphic-container .info .icon {
+    -fx-fill: #5bc0de;
+}
+
+.dialog-pane:header .header-panel .graphic-container .warning .icon {
+    -fx-fill: #f0ad4e;
+}
+
+.dialog-pane:header .header-panel .graphic-container .error .icon {
+    -fx-fill: #d9534f;
 }
 
 .check-box > .box {
