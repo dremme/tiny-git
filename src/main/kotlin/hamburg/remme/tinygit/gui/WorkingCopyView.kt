@@ -67,6 +67,7 @@ class WorkingCopyView : Tab() {
         isClosable = false
 
         // TODO: should be menu bar actions as well
+        // TODO: menu for un/staging single file
         val deleteFile = Action("Delete", { FontAwesome.trash() },
                 handler = { deleteFile(State.selectedRepository, pendingFilesSelection.selectedItems) })
         val discardChanges = Action("Discard Changes", { FontAwesome.undo() },
@@ -77,6 +78,8 @@ class WorkingCopyView : Tab() {
             +ActionGroup(deleteFile, discardChanges)
         }
         pendingFiles.setOnKeyPressed {
+            // TODO: K key for staging selected file
+            // TODO: L key for unstaging selected file
             if (it.code == KeyCode.DELETE) deleteFile(State.selectedRepository, pendingFilesSelection.selectedItems)
         }
 
@@ -129,10 +132,8 @@ class WorkingCopyView : Tab() {
         }
 
         State.addRepositoryListener {
-            it?.let {
-                diff(it)
-                State.stashEntries.set(Git.stashListSize(it))
-            }
+            diff(it)
+            State.stashEntries.set(Git.stashListSize(it))
         }
         State.addRefreshListener {
             diff(it)
