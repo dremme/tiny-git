@@ -151,66 +151,78 @@ class WorkingCopyView : Tab() {
         }
 
         State.addRepositoryListener {
-            diff(it)
+            status(it)
             State.stashEntries.set(Git.stashListSize(it))
         }
         State.addRefreshListener {
-            diff(it)
+            status(it)
             State.stashEntries.set(Git.stashListSize(it))
         }
     }
 
-    private fun diff(repository: LocalRepository) {
+    private fun updateStatus(status: LocalStatus) {
+        stagedFiles.items.setAll(status.staged)
+        pendingFiles.items.setAll(status.pending)
+    }
+
+    private fun status(repository: LocalRepository, block: (() -> Unit)? = null) {
         task?.cancel()
         task = object : Task<LocalStatus>() {
-            override fun call() = Git.status(repository) // TODO: git status might not be good enough here
+            override fun call() = Git.status(repository)
 
             override fun succeeded() {
-                // TODO: this is still a little buggy sometimes
-                val staged = (stagedFiles.selectionModel.selectedItems + stagedFiles.selectionModel.selectedItem).filterNotNull()
-                val pending = (pendingFiles.selectionModel.selectedItems + pendingFiles.selectionModel.selectedItem).filterNotNull()
-
-                stagedFiles.items.setAll(value.staged)
-                pendingFiles.items.setAll(value.pending)
-
-                if (staged.isNotEmpty()) stagedFiles.selectionModel.selectIndices(-1,
-                        *staged.map { stagedFiles.items.indexOf(it) }.toIntArray())
-                if (pending.isNotEmpty()) pendingFiles.selectionModel.selectIndices(-1,
-                        *pending.map { pendingFiles.items.indexOf(it) }.toIntArray())
+                if (block != null) {
+                    updateStatus(value)
+                    block.invoke()
+                } else {
+                    val staged = (stagedFilesSelection.selectedItems + stagedFilesSelection.selectedItem).filterNotNull()
+                    val pending = (pendingFilesSelection.selectedItems + pendingFilesSelection.selectedItem).filterNotNull()
+                    updateStatus(value)
+                    staged.map { stagedFiles.items.indexOf(it) }.forEach { stagedFilesSelection.select(it) }
+                    pending.map { pendingFiles.items.indexOf(it) }.forEach { pendingFilesSelection.select(it) }
+                }
             }
         }.also { State.execute(it) }
     }
 
     private fun stage(repository: LocalRepository) {
         Git.stageAll(repository, pendingFiles.items.filter { it.status == LocalFile.Status.REMOVED && !it.cached })
-        diff(repository)
+        status(repository)
     }
 
     private fun stage(repository: LocalRepository, files: List<LocalFile>) {
+        val selectedPending = if (files.size == 1) pendingFilesSelection.selectedIndex else -1
         Git.stage(repository, files)
-        diff(repository)
+        status(repository) {
+            pendingFilesSelection.select(selectedPending)
+            pendingFilesSelection.selectedItem ?: pendingFilesSelection.selectLast()
+        }
     }
 
     private fun update(repository: LocalRepository) {
         Git.updateAll(repository)
-        diff(repository)
+        status(repository)
     }
 
     private fun unstage(repository: LocalRepository) {
         Git.reset(repository)
-        diff(repository)
+        status(repository)
     }
 
     private fun unstage(repository: LocalRepository, files: List<LocalFile>) {
+        val selectedStaged = if (files.size == 1) stagedFilesSelection.selectedIndex else -1
         Git.reset(repository, files)
-        diff(repository)
+        status(repository) {
+            stagedFilesSelection.select(selectedStaged)
+            stagedFilesSelection.selectedItem ?: stagedFilesSelection.selectLast()
+        }
     }
 
     private fun deleteFile(repository: LocalRepository, files: List<LocalFile>) {
         if (confirmWarningAlert(window, "Delete Files", "Delete",
                 "This will remove the selected files from the disk.")) {
             files.forEach { repository.resolve(it).asPath().delete() }
-            diff(repository)
+            status(repository)
         }
     }
 
@@ -219,7 +231,7 @@ class WorkingCopyView : Tab() {
                 "This will discard all changes from the selected files.")) {
             try {
                 Git.checkout(repository, files)
-                diff(repository)
+                status(repository)
             } catch (ex: JGitInternalException) {
                 errorAlert(window, "Cannot Discard Changes", "${ex.message}")
             }

@@ -110,13 +110,13 @@ class CommitLogView : Tab() {
         }
     }
 
-    private fun clearLog() {
-        localCommits.items.clear()
-    }
-
     private fun invalidateCache(repository: LocalRepository) {
         cache.clear()
         cache.putAll(Git.branchListAll(repository).groupBy { it.commitId })
+    }
+
+    private fun clearLog() {
+        localCommits.items.clear()
     }
 
     private fun updateLog(commits: List<LocalCommit>) {
@@ -145,7 +145,7 @@ class CommitLogView : Tab() {
         head = Git.head(repository)
         try {
             invalidateCache(repository)
-            updateLog(Git.log(repository, 0, logSize + skipSize))
+            updateLog(Git.log(repository, 0, logSize + skip))
             updateDivergence(Git.divergence(repository))
         } catch (ex: NoHeadException) {
             clearLog()
@@ -169,7 +169,7 @@ class CommitLogView : Tab() {
         if (!Git.hasRemote(repository) || Git.isUpdated(repository)) return
 
         task = object : Task<List<LocalCommit>>() {
-            override fun call() = Git.logFetch(repository, 0, logSize + skipSize)
+            override fun call() = Git.logFetch(repository, 0, logSize + skip)
 
             override fun succeeded() {
                 invalidateCache(repository)

@@ -141,7 +141,7 @@ object Git {
     }
 
     private fun log(repository: LocalRepository, skip: Int, max: Int, fetch: Boolean): List<LocalCommit> {
-        return repository.openGit("log fetch=$fetch") {
+        return repository.openGit("log $skip->${max + skip}") {
             if (fetch) it.fetch(repository)
             val logCommand = it.log().setSkip(skip).setMaxCount(max)
             it.branchListIds().forEach { logCommand.add(it) }
