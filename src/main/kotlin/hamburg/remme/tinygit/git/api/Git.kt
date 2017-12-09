@@ -258,10 +258,16 @@ object Git {
             val localBranch = it.findRef(it.branch)?.objectId
             val remoteBranch = it.findRef("$REMOTE/${it.branch}")?.objectId
             when {
-            // TODO: what to do, when there is no branch checked out?
                 localBranch == null -> LocalDivergence(0, 0)
-            // TODO: count commits since branching?
-                remoteBranch == null -> LocalDivergence(-1, 0)
+                remoteBranch == null -> {
+                    val ids = it.git().branchListIds()
+                    it.revWalk().use { walk ->
+                        ids.filter { it != localBranch }.map { walk.parseCommit(it) }.forEach { walk.markUninteresting(it) }
+                        val localCommit = walk.parseCommit(localBranch)
+                        walk.markStart(localCommit)
+                        LocalDivergence(walk.count(), 0)
+                    }
+                }
                 else -> it.revWalk().use {
                     val localCommit = it.parseCommit(localBranch)
                     val remoteCommit = it.parseCommit(remoteBranch)
@@ -634,9 +640,9 @@ object Git {
 
     private inline fun <T> LocalRepository.openGit(description: String, block: (JGit) -> T) = open(description) { JGit(it).let(block) }
 
-    private fun Repository.revWalk() = RevWalk(this)
+    private fun Repository.git() = JGit(this)
 
-    private fun JGit.revWalk() = RevWalk(repository)
+    private fun Repository.revWalk() = RevWalk(this)
 
     // TODO: test performance if objectreader is created here instead
     private fun Repository.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {
