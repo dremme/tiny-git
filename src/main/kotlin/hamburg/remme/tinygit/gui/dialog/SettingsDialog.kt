@@ -40,7 +40,9 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
             maxWidth = Double.MAX_VALUE
             setOnAction {
                 textInputDialog(window, "Enter Remote URL", FontAwesome.link()) {
-                    Git.setRemote(repository, it)
+                    // TODO: make removal more clear
+                    if (it.isNotBlank()) Git.setRemote(repository, it)
+                    else Git.removeRemote(repository)
                     url.text = Git.getRemote(repository)
                 }
             }

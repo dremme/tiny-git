@@ -96,6 +96,8 @@ object Git {
     }
 
     /**
+     * One of the following:
+     * - git remote add origin <[url]>
      * - git remote set-url origin <[url]>
      */
     fun setRemote(repository: LocalRepository, url: String) {
@@ -113,6 +115,17 @@ object Git {
                 cmd.setUri(URIish(url))
                 cmd.call()
             }
+        }
+    }
+
+    /**
+     * - git remote rm origin
+     */
+    fun removeRemote(repository: LocalRepository) {
+        repository.openGit("remove remote") {
+            val cmd = it.remoteRemove()
+            cmd.setName(REMOTE)
+            cmd.call()
         }
     }
 
@@ -145,14 +158,14 @@ object Git {
             if (fetch) it.fetch(repository)
             val logCommand = it.log().setSkip(skip).setMaxCount(max)
             it.branchListIds().forEach { logCommand.add(it) }
-            logCommand.call().map { c ->
+            logCommand.call().map {
                 LocalCommit(
-                        c.id.name, c.abbreviate(10).name(),
-                        c.parents.map { it.abbreviate(10).name() },
-                        c.fullMessage, c.shortMessage,
-                        c.commitTime(),
-                        c.authorIdent.name,
-                        c.authorIdent.emailAddress)
+                        it.id.name, it.abbreviate(10).name(),
+                        it.parents.map { it.abbreviate(10).name() },
+                        it.fullMessage, it.shortMessage,
+                        it.commitTime(),
+                        it.authorIdent.name,
+                        it.authorIdent.emailAddress)
             }
         }
     }
@@ -498,11 +511,12 @@ object Git {
      * - git checkout [branch]
      */
     fun checkout(repository: LocalRepository, branch: String) {
+        if (branch == HEAD) return // cannot checkout HEAD directly
         repository.openGit("checkout $branch") { it.checkout().setName(branch).call() }
     }
 
     /**
-     * - git checkout <[files]>
+     * - git checkout HEAD <[files]>
      */
     fun checkout(repository: LocalRepository, files: List<LocalFile>) {
         repository.openGit("checkout $files") {
@@ -513,13 +527,14 @@ object Git {
     }
 
     /**
-     * - git checkout -b [local] [remote]
+     * - git checkout -b <local> --track <[remote]>
      */
-    fun checkoutRemote(repository: LocalRepository, remote: String, local: String? = null) {
+    fun checkoutRemote(repository: LocalRepository, remote: String) {
+        if (remote.substringAfter('/') == HEAD) return // cannot checkout HEAD directly
         repository.openGit("checkout $remote") {
             it.checkout()
                     .setCreateBranch(true)
-                    .setName(local ?: remote.substringAfter('/'))
+                    .setName(remote.substringAfter('/'))
                     .setStartPoint(remote)
                     .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                     .call()
@@ -620,6 +635,8 @@ object Git {
     private inline fun <T> LocalRepository.openGit(description: String, block: (JGit) -> T) = open(description) { JGit(it).let(block) }
 
     private fun Repository.revWalk() = RevWalk(this)
+
+    private fun JGit.revWalk() = RevWalk(repository)
 
     // TODO: test performance if objectreader is created here instead
     private fun Repository.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {

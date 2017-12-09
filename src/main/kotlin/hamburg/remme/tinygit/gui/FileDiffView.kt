@@ -97,6 +97,7 @@ class FileDiffView : VBoxBuilder() {
         """)
     }
 
+    // TODO: slow and can make the ui stuck on huge files, e.g. package-lock.json
     private fun setContent(diff: String) {
         //language=HTML
         fileDiff.loadContent("""
