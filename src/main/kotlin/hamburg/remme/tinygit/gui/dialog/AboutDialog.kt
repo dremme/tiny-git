@@ -18,7 +18,7 @@ class AboutDialog(window: Window) : Dialog(window, "About") {
         +DialogButton(DialogButton.CLOSE)
 
         header = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
-        graphic = Image("icon.png".asResource())
+        graphic = Image("icon.s.png".asResource())
         content = grid(2) {
             addClass("about-view")
 

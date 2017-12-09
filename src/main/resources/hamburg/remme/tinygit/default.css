@@ -321,6 +321,10 @@
     -fx-accent: -fx-focus-color;
 }
 
+.branch-badge .icon {
+    -fx-font-size: 12px;
+}
+
 .count-badge {
     -fx-padding: 0.05em 0.25em 0.05em 0.25em;
     -fx-min-width: 18px;
