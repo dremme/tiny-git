@@ -74,7 +74,10 @@ class WorkingCopyView : Tab() {
             +ActionGroup(unstageFile)
         }
         stagedFiles.setOnKeyPressed {
-            if (it.code == KeyCode.L) unstage(State.selectedRepository, stagedFilesSelection.selectedItems)
+            if (!it.isShortcutDown) when (it.code) {
+                KeyCode.L -> unstage(State.selectedRepository, stagedFilesSelection.selectedItems)
+                else -> Unit
+            }
         }
 
         // TODO: menubar actions?
@@ -95,7 +98,7 @@ class WorkingCopyView : Tab() {
             +ActionGroup(deleteFile, discardChanges)
         }
         pendingFiles.setOnKeyPressed {
-            when (it.code) {
+            if (!it.isShortcutDown) when (it.code) {
                 KeyCode.K -> stage(State.selectedRepository, pendingFilesSelection.selectedItems)
                 KeyCode.DELETE -> deleteFile(State.selectedRepository, pendingFilesSelection.selectedItems)
                 else -> Unit

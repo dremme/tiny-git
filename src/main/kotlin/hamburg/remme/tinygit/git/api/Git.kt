@@ -260,11 +260,14 @@ object Git {
             when {
                 localBranch == null -> LocalDivergence(0, 0)
                 remoteBranch == null -> {
-                    val ids = it.git().branchListIds()
+                    val master = it.findRef("master")?.objectId
+                    val develop = it.findRef("develop")?.objectId
+                    val trunk = it.findRef("trunk")?.objectId
                     it.revWalk().use { walk ->
-                        ids.filter { it != localBranch }.map { walk.parseCommit(it) }.forEach { walk.markUninteresting(it) }
-                        val localCommit = walk.parseCommit(localBranch)
-                        walk.markStart(localCommit)
+                        master?.let { walk.markUninteresting(walk.parseCommit(it)) }
+                        develop?.let { walk.markUninteresting(walk.parseCommit(it)) }
+                        trunk?.let { walk.markUninteresting(walk.parseCommit(it)) }
+                        walk.markStart(walk.parseCommit(localBranch))
                         LocalDivergence(walk.count(), 0)
                     }
                 }
@@ -639,8 +642,6 @@ object Git {
     }
 
     private inline fun <T> LocalRepository.openGit(description: String, block: (JGit) -> T) = open(description) { JGit(it).let(block) }
-
-    private fun Repository.git() = JGit(this)
 
     private fun Repository.revWalk() = RevWalk(this)
 
