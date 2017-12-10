@@ -56,7 +56,7 @@ class GitView : VBoxBuilder() {
                 handler = { newRepo() })
         val addCopy = Action("Add Repository", { FontAwesome.folderOpen() }, "Shortcut+O",
                 handler = { addRepo() })
-        val quit = Action("Quit TinyGit",
+        val quit = Action("Quit TinyGit", { FontAwesome.signOut() },
                 handler = { Platform.exit() })
         // View
         val showCommits = Action("Show Commits", { FontAwesome.list() }, "F1",
@@ -91,7 +91,7 @@ class GitView : VBoxBuilder() {
         // ?
         val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
                 handler = { TinyGit.show("https://github.com/deso88/TinyGit") })
-        val about = Action("About",
+        val about = Action("About", { FontAwesome.questionCircle() },
                 handler = { AboutDialog(window).show() })
 
         +menuBar {

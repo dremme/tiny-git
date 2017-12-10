@@ -24,6 +24,7 @@ import javafx.beans.binding.Bindings
 import javafx.beans.value.ObservableObjectValue
 import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
+import javafx.scene.control.MultipleSelectionModel
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.Tab
 import javafx.scene.input.KeyCode
@@ -37,17 +38,17 @@ class WorkingCopyView : Tab() {
 
     val actions: Array<ActionGroup>
         get() = arrayOf(ActionGroup(updateAll, stageAll, stageSelected), ActionGroup(unstageAll, unstageSelected))
-    private val unstageAll = Action("Unstage all", shortcut = "Shortcut+Shift+L", disable = State.canUnstageAll.not(),
-            handler = { unstage(State.selectedRepository) })
-    private val unstageSelected = Action("Unstage selected", disable = State.canUnstageSelected.not(),
+    private val unstageAll = Action("Unstage all", { FontAwesome.arrowCircleDown() }, "Shortcut+Shift+L", State.canUnstageAll.not(),
+            { unstage(State.selectedRepository) })
+    private val unstageSelected = Action("Unstage selected", { FontAwesome.arrowCircleDown() }, disable = State.canUnstageSelected.not(),
             handler = { unstage(State.selectedRepository, stagedFilesSelection.selectedItems) })
-    private val updateAll = Action("Update all", disable = State.canUpdateAll.not(),
+    private val updateAll = Action("Update all", { FontAwesome.arrowCircleUp() }, disable = State.canUpdateAll.not(),
             handler = { update(State.selectedRepository) })
-    private val stageAll = Action("Stage all", shortcut = "Shortcut+Shift+K", disable = State.canStageAll.not(),
-            handler = { stage(State.selectedRepository) })
-    private val stageSelected = Action("Stage selected", disable = State.canStageSelected.not(),
+    private val stageAll = Action("Stage all", { FontAwesome.arrowCircleUp() }, "Shortcut+Shift+K", State.canStageAll.not(),
+            { stage(State.selectedRepository) })
+    private val stageSelected = Action("Stage selected", { FontAwesome.arrowCircleUp() }, disable = State.canStageSelected.not(),
             handler = {
-                if (isAllSelected) stage(State.selectedRepository)
+                if (pendingFiles.items.size == pendingFilesSelection.selectedItems.size) stage(State.selectedRepository)
                 else stage(State.selectedRepository, pendingFilesSelection.selectedItems)
             })
 
@@ -58,7 +59,6 @@ class WorkingCopyView : Tab() {
     private val pendingFilesSelection = pendingFiles.selectionModel
     private val selectedFile: ObservableObjectValue<LocalFile>
     private val fileDiff = FileDiffView()
-    private val isAllSelected: Boolean get() = pendingFiles.items.size == pendingFilesSelection.selectedItems.size
     private var task: Task<*>? = null
 
     init {
@@ -66,7 +66,7 @@ class WorkingCopyView : Tab() {
         graphic = FontAwesome.desktop()
         isClosable = false
 
-        val unstageFile = Action("Unstage", disable = State.canUnstageSelected.not(),
+        val unstageFile = Action("Unstage", { FontAwesome.arrowCircleDown() }, disable = State.canUnstageSelected.not(),
                 handler = { unstage(State.selectedRepository, stagedFilesSelection.selectedItems) })
 
         stagedFiles.contextMenu = context {
@@ -85,7 +85,7 @@ class WorkingCopyView : Tab() {
         val canDiscard = Bindings.createBooleanBinding(
                 Callable { !pendingFilesSelection.selectedItems.all { it.status == LocalFile.Status.ADDED } },
                 pendingFilesSelection.selectedItemProperty())
-        val stageFile = Action("Stage", disable = State.canStageSelected.not(),
+        val stageFile = Action("Stage", { FontAwesome.arrowCircleUp() }, disable = State.canStageSelected.not(),
                 handler = { stage(State.selectedRepository, pendingFilesSelection.selectedItems) })
         val deleteFile = Action("Delete", { FontAwesome.trash() }, disable = canDelete.not(),
                 handler = { deleteFile(State.selectedRepository, pendingFilesSelection.selectedItems) })
@@ -194,12 +194,9 @@ class WorkingCopyView : Tab() {
     }
 
     private fun stage(repository: LocalRepository, files: List<LocalFile>) {
-        val selectedPending = if (files.size == 1) pendingFilesSelection.selectedIndex else -1
+        val selected = getIndex(pendingFilesSelection)
         Git.stage(repository, files)
-        status(repository) {
-            pendingFilesSelection.select(selectedPending)
-            pendingFilesSelection.selectedItem ?: pendingFilesSelection.selectLast()
-        }
+        status(repository) { setIndex(pendingFilesSelection, selected) }
     }
 
     private fun update(repository: LocalRepository) {
@@ -213,19 +210,17 @@ class WorkingCopyView : Tab() {
     }
 
     private fun unstage(repository: LocalRepository, files: List<LocalFile>) {
-        val selectedStaged = if (files.size == 1) stagedFilesSelection.selectedIndex else -1
+        val selected = getIndex(stagedFilesSelection)
         Git.reset(repository, files)
-        status(repository) {
-            stagedFilesSelection.select(selectedStaged)
-            stagedFilesSelection.selectedItem ?: stagedFilesSelection.selectLast()
-        }
+        status(repository) { setIndex(stagedFilesSelection, selected) }
     }
 
     private fun deleteFile(repository: LocalRepository, files: List<LocalFile>) {
         if (confirmWarningAlert(window, "Delete Files", "Delete",
                 "This will remove the selected files from the disk.")) {
+            val selected = getIndex(pendingFilesSelection)
             files.forEach { repository.resolve(it).asPath().delete() }
-            status(repository)
+            status(repository) { setIndex(pendingFilesSelection, selected) }
         }
     }
 
@@ -239,6 +234,15 @@ class WorkingCopyView : Tab() {
                 errorAlert(window, "Cannot Discard Changes", "${ex.message}")
             }
         }
+    }
+
+    private fun getIndex(selectionModel: MultipleSelectionModel<LocalFile>): Int {
+        return if (selectionModel.selectedItems.size == 1) selectionModel.selectedIndex else -1
+    }
+
+    private fun setIndex(selectionModel: MultipleSelectionModel<LocalFile>, index: Int) {
+        selectionModel.select(index)
+        selectionModel.selectedItem ?: selectionModel.selectLast()
     }
 
 }
