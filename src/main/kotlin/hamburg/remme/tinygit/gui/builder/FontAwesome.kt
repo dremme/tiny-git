@@ -5,6 +5,8 @@ import javafx.scene.text.Text
 
 object FontAwesome {
 
+    fun arrowCircleDown() = icon('\uf0ab')
+    fun arrowCircleUp() = icon('\uf0aa')
     fun check() = icon('\uf00c')
     fun cloud() = icon('\uf0c2')
     fun cloudDownload() = icon('\uf381')
@@ -32,6 +34,7 @@ object FontAwesome {
     fun refresh() = icon('\uf021')
     fun search() = icon('\uf002')
     fun share() = icon('\uf064')
+    fun signOut() = icon('\uf2f5')
     fun spinner() = icon('\uf110')
     fun tag() = icon('\uf02b')
     fun tags() = icon('\uf02c')
