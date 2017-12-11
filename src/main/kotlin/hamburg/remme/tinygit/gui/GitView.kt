@@ -37,6 +37,7 @@ import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Window
+import org.eclipse.jgit.api.errors.JGitInternalException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.api.errors.StashApplyFailureException
 
@@ -243,6 +244,8 @@ class GitView : VBoxBuilder() {
                     when (exception) {
                         is RefAlreadyExistsException -> errorAlert(window, "Cannot Create Branch",
                                 "Branch '$name' does already exist in the working copy.")
+                        is JGitInternalException -> errorAlert(window, "Cannot Create Branch",
+                                "Invalid name '$name'.")
                         else -> exception.printStackTrace()
                     }
                 }
