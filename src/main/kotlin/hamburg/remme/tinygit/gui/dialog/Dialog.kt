@@ -72,10 +72,10 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
     protected class DialogButton(val type: ButtonType, val disabled: ObservableBooleanValue? = null) {
 
         companion object {
-            val OK = ButtonType("OK", ButtonBar.ButtonData.OK_DONE)
-            val DONE = ButtonType("Done", ButtonBar.ButtonData.OK_DONE)
-            val CANCEL = ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
-            val CLOSE = ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE)
+            val OK = ButtonType.OK!!
+            val CANCEL = ButtonType.CANCEL!!
+            val CLOSE = ButtonType.CLOSE!!
+            fun ok(text: String) = ButtonType(text, ButtonBar.ButtonData.OK_DONE)
         }
 
     }

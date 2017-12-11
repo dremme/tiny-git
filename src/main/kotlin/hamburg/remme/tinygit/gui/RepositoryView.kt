@@ -195,14 +195,13 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     }
 
     private fun renameBranch(entry: RepositoryEntry) {
-        val selected = selectionModel.selectedItem.value
-        textInputDialog(window, "Enter a New Branch Name", FontAwesome.pencil()) {
-            Git.branchRename(entry.repository, entry.value, it)
+        textInputDialog(window, "Enter a New Branch Name", "Rename", FontAwesome.pencil(), entry.value) { name ->
+            Git.branchRename(entry.repository, entry.value, name)
+            State.fireRefresh()
+            root.children.flatMap { it.children + it }.flatMap { it.children + it }
+                    .find { it.value.repository == entry.repository && it.value.value == name }
+                    ?.let { selectionModel.select(it) }
         }
-        State.fireRefresh()
-        root.children.flatMap { it.children + it }.flatMap { it.children + it }
-                .find { it.value.repository == selected.repository && it.value.value == selected.value }
-                ?.let { selectionModel.select(it) }
     }
 
     private fun deleteBranch(entry: RepositoryEntry) {

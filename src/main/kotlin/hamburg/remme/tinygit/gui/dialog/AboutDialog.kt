@@ -12,6 +12,7 @@ import javafx.scene.control.Label
 import javafx.scene.image.Image
 import javafx.stage.Window
 
+// TODO: should be wider
 class AboutDialog(window: Window) : Dialog(window, "About") {
 
     init {

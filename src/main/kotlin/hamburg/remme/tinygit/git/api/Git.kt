@@ -420,6 +420,20 @@ object Git {
     }
 
     /**
+     * Will return the commit messages of all commits to be squashed.
+     */
+    fun prepareSquash(repository: LocalRepository): String {
+        return "" // TODO
+    }
+
+    /**
+     * - git rebase --interactive <branch_base>
+     */
+    fun squash(repository: LocalRepository, message: String) {
+        // TODO
+    }
+
+    /**
      * - git commit --message="[message]"
      */
     fun commit(repository: LocalRepository, message: String) {

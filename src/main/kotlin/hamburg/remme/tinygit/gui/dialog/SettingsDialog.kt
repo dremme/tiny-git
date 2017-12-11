@@ -18,6 +18,7 @@ import hamburg.remme.tinygit.gui.builder.textInputDialog
 import javafx.scene.control.Label
 import javafx.stage.Window
 
+// TODO: should be wider
 class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(window, "Repository Settings") {
 
     init {
@@ -39,7 +40,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(windo
             graphic = FontAwesome.link()
             maxWidth = Double.MAX_VALUE
             setOnAction {
-                textInputDialog(window, "Enter Remote URL", FontAwesome.link()) {
+                textInputDialog(window, "Enter Remote URL", "Apply", FontAwesome.link(), Git.getRemote(repository)) {
                     // TODO: make removal more clear
                     if (it.isNotBlank()) Git.setRemote(repository, it)
                     else Git.removeRemote(repository)

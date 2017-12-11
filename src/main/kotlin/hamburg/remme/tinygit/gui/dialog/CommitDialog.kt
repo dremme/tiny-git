@@ -13,8 +13,6 @@ import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
-import javafx.scene.control.ButtonBar
-import javafx.scene.control.ButtonType
 import javafx.scene.layout.Priority
 import javafx.stage.Window
 
@@ -41,7 +39,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window,
             }
         }
 
-        +DialogButton(ButtonType("Commit", ButtonBar.ButtonData.OK_DONE),
+        +DialogButton(DialogButton.ok("Commit"),
                 message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
         +DialogButton(DialogButton.CANCEL)
 
