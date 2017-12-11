@@ -90,7 +90,7 @@ class GitView : VBoxBuilder() {
         val reset = Action("Auto Reset", { FontAwesome.undo() }, disable = State.canReset.not(),
                 handler = { autoReset(State.selectedRepository) })
         val squash = Action("Auto Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
-                handler = { /* TODO */ })
+                handler = { autoSquash(State.selectedRepository) })
         // ?
         val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
                 handler = { TinyGit.show("https://github.com/deso88/TinyGit") })
@@ -234,7 +234,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun createBranch(repository: LocalRepository) {
-        textInputDialog(window, "Enter a New Branch Name", FontAwesome.codeFork()) { name ->
+        textInputDialog(window, "Enter a New Branch Name", "Create", FontAwesome.codeFork()) { name ->
             State.startProcess("Branching...", object : Task<Unit>() {
                 override fun call() = Git.branchCreate(repository, name)
 
@@ -288,6 +288,21 @@ class GitView : VBoxBuilder() {
 
         State.startProcess("Resetting branch...", object : Task<Unit>() {
             override fun call() = Git.resetHard(repository)
+
+            override fun succeeded() = State.fireRefresh()
+
+            override fun failed() = exception.printStackTrace()
+        })
+    }
+
+    private fun autoSquash(repository: LocalRepository) {
+        val message = Git.prepareSquash(repository)
+
+        if (!confirmWarningAlert(window, "Auto Squash Branch", "Squash",
+                "This will automatically squash all commits of the current branch into its first commit.")) return
+
+        State.startProcess("Squashing branch...", object : Task<Unit>() {
+            override fun call() = Git.squash(repository, message)
 
             override fun succeeded() = State.fireRefresh()
 

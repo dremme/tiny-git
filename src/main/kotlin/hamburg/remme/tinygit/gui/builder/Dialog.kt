@@ -1,11 +1,11 @@
 package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.gui.dialog.TextDialog
 import javafx.scene.Node
 import javafx.scene.control.Alert
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.ButtonType
-import javafx.scene.control.TextInputDialog
 import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
 import javafx.stage.Modality
@@ -65,8 +65,30 @@ private fun alert(window: Window,
     return alert
 }
 
-inline fun textInputDialog(window: Window, header: String, icon: Node, block: (String) -> Unit) {
-    val dialog = TextInputDialog()
+inline fun textInputDialog(window: Window,
+                           header: String,
+                           ok: String,
+                           icon: Node,
+                           defaultValue: String = "",
+                           block: (String) -> Unit) {
+    val dialog = TextDialog(ok, "", defaultValue, false)
+    dialog.initModality(Modality.WINDOW_MODAL)
+    dialog.initOwner(window)
+    dialog.title = "Input"
+    dialog.headerText = header
+    dialog.graphic = icon
+    State.modalVisible.set(true)
+    dialog.showAndWait().orElse(null)?.let(block)
+}
+
+inline fun textAreaDialog(window: Window,
+                          header: String,
+                          ok: String,
+                          icon: Node,
+                          defaultValue: String = "",
+                          description: String = "",
+                          block: (String) -> Unit) {
+    val dialog = TextDialog(ok, description, defaultValue, true)
     dialog.initModality(Modality.WINDOW_MODAL)
     dialog.initOwner(window)
     dialog.title = "Input"

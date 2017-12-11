@@ -115,7 +115,7 @@ object State {
             .and(Bindings.isNotEmpty(stagedFiles)).or(Bindings.isNotEmpty(pendingFiles))!!
     val canApplyStash = selectedRepositoryProperty.isNotNull.and(stashEntries.greater0()).and(runningProcesses.equals0())!!
     val canReset = selectedRepositoryProperty.isNotNull.and(behindProperty.greater0()).and(runningProcesses.equals0())!!
-    val canSquash = FALSE // TODO: selectedRepositoryProperty.isNotNull.and(runningProcesses.isZero())!!
+    val canSquash = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())!!
 
     val canStageAll = Bindings.isNotEmpty(pendingFiles)!!
     val canUpdateAll = Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.ADDED && !it.cached })!!
