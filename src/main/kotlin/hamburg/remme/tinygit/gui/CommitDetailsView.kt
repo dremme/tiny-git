@@ -10,6 +10,7 @@ import hamburg.remme.tinygit.gui.builder.SplitPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
+import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
@@ -18,7 +19,6 @@ import hamburg.remme.tinygit.htmlEncode
 import hamburg.remme.tinygit.htmlEncodeAll
 import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
-import javafx.scene.control.ToolBar
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.scene.web.WebEngine
@@ -48,7 +48,7 @@ class CommitDetailsView : SplitPaneBuilder() {
             +webView
             +stackPane {
                 +vbox {
-                    +ToolBar(StatusCountView(files))
+                    +toolBar { +StatusCountView(files) }
                     +files
                 }
                 +stackPane {

@@ -18,6 +18,7 @@ object FontAwesome {
     fun database() = icon('\uf1c0')
     fun desktop() = icon('\uf108')
     fun envelope() = icon('\uf0e0')
+    fun eraser() = icon('\uf12d')
     fun exclamationTriangle() = icon('\uf071')
     fun folder() = icon('\uf07b')
     fun folderOpen() = icon('\uf07c')
