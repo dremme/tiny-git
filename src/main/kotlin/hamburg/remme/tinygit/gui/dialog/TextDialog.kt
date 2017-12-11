@@ -14,11 +14,12 @@ import javafx.scene.control.Dialog as FXDialog
 class TextDialog(ok: String, contextText: String, defaultValue: String, textArea: Boolean) : FXDialog<String>() {
 
     init {
-        val input = if (textArea) TextArea(defaultValue) else TextField(defaultValue)
+        val input = if (textArea) TextArea(defaultValue).also { it.prefHeight = 100.0 } else TextField(defaultValue)
         input.minWidth = 300.0
         Platform.runLater { input.requestFocus() }
 
         dialogPane.content = vbox {
+            spacing = 6.0
             if (contextText.isNotBlank()) +Label(contextText)
             +input
         }

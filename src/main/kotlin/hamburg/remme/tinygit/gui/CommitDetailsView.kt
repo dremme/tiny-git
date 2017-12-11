@@ -130,7 +130,7 @@ class CommitDetailsView : SplitPaneBuilder() {
             <body>
                 <table>
                     <tr><td class="label">Commit:</td><td>${commit.id} [${commit.shortId}]</td></tr>
-                    <tr><td class="label">Parents:</td><td>${commit.parents.joinToString()}</td></tr>
+                    <tr><td class="label">Parents:</td><td>${commit.shortParents.joinToString()}</td></tr>
                     <tr><td class="label">Author:</td><td>${commit.author.htmlEncode()}</td></tr>
                     <tr><td class="label">Date:</td><td>${commit.date.format(FULL_DATE)}</td></tr>
                     <tr><td colspan="2"><br/>${commit.fullMessage.htmlEncodeAll().replace("\r?\n".toRegex(), "<br/>")}</td></tr>

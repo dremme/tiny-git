@@ -24,6 +24,7 @@ import hamburg.remme.tinygit.gui.builder.menuBar
 import hamburg.remme.tinygit.gui.builder.progressSpinner
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
+import hamburg.remme.tinygit.gui.builder.textAreaDialog
 import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vgrow
@@ -87,9 +88,9 @@ class GitView : VBoxBuilder() {
                 { stash(State.selectedRepository) })
         val stashPop = Action("Pop Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
                 { stashPop(State.selectedRepository) })
-        val reset = Action("Auto Reset", { FontAwesome.undo() }, disable = State.canReset.not(),
+        val reset = Action("Auto-Reset", { FontAwesome.undo() }, disable = State.canReset.not(),
                 handler = { autoReset(State.selectedRepository) })
-        val squash = Action("Auto Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
+        val squash = Action("Auto-Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
                 handler = { autoSquash(State.selectedRepository) })
         // ?
         val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
@@ -296,18 +297,19 @@ class GitView : VBoxBuilder() {
     }
 
     private fun autoSquash(repository: LocalRepository) {
-        val message = Git.prepareSquash(repository)
+        val commits = Git.prepareSquash(repository)
+        val message = commits.joinToString { it.fullMessage }
+        val count = commits.size
+        textAreaDialog(window, "Auto Squash Branch", "Squash", FontAwesome.gavel(), message,
+                "This will automatically squash all $count commits of the current branch.\n\nNew commit message:") {
+            State.startProcess("Squashing branch...", object : Task<Unit>() {
+                override fun call() = Git.squash(repository, it)
 
-        if (!confirmWarningAlert(window, "Auto Squash Branch", "Squash",
-                "This will automatically squash all commits of the current branch into its first commit.")) return
+                override fun succeeded() = State.fireRefresh()
 
-        State.startProcess("Squashing branch...", object : Task<Unit>() {
-            override fun call() = Git.squash(repository, message)
-
-            override fun succeeded() = State.fireRefresh()
-
-            override fun failed() = exception.printStackTrace()
-        })
+                override fun failed() = exception.printStackTrace()
+            })
+        }
     }
 
 }
