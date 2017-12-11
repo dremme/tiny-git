@@ -159,17 +159,17 @@ object Git {
             if (fetch) it.fetch(repository)
             val logCommand = it.log().setSkip(skip).setMaxCount(max)
             it.branchListIds().forEach { logCommand.add(it) }
-            logCommand.call().map {
-                LocalCommit(
-                        it.id.name, it.abbreviate(10).name(),
-                        it.parents.map { it.abbreviate(10).name() },
-                        it.fullMessage, it.shortMessage,
-                        it.commitTime(),
-                        it.authorIdent.name,
-                        it.authorIdent.emailAddress)
-            }
+            logCommand.call().map { it.toLocalCommit() }
         }
     }
+
+    private fun RevCommit.toLocalCommit() = LocalCommit(
+            id.name, abbreviate(10).name(),
+            parents.map { it.id.name }, parents.map { abbreviate(10).name() },
+            fullMessage, shortMessage,
+            commitTime(),
+            authorIdent.name,
+            authorIdent.emailAddress)
 
     private fun RevCommit.commitTime()
             = LocalDateTime.ofEpochSecond(commitTime.toLong(), 0,
@@ -420,10 +420,18 @@ object Git {
     }
 
     /**
-     * Will return the commit messages of all commits to be squashed.
+     * Will return all commits to be squashed.
      */
-    fun prepareSquash(repository: LocalRepository): String {
-        return "" // TODO
+    fun prepareSquash(repository: LocalRepository): List<LocalCommit> {
+        return repository.open("prep squash") {
+            val head = it.resolve(it.branch)
+            val defaultIds = DEFAULT_BRANCHES.mapNotNull(it::findRef).map { it.objectId }
+            it.revWalk().use {
+                defaultIds.map(it::parseCommit).forEach(it::markUninteresting)
+                it.markStart(it.parseCommit(head))
+                it.map { it.toLocalCommit() }
+            }
+        }
     }
 
     /**
