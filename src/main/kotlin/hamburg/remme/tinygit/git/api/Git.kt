@@ -56,6 +56,7 @@ object Git {
 
     private val REMOTE = Constants.DEFAULT_REMOTE_NAME
     private val HEAD = Constants.HEAD
+    private val DEFAULT_BRANCHES = arrayOf("master", "develop", "trunk")
     private val cache = mutableSetOf<LocalRepository>()
     private var proxyHost = ThreadLocal<String>() // TODO: really needed? cannot interact with more than one repo atm
     private var proxyPort = ThreadLocal<Int>() // TODO: really needed? cannot interact with more than one repo atm
@@ -196,7 +197,7 @@ object Git {
             LocalBranch(
                     Repository.shortenRefName(it.name),
                     it.objectId.name,
-                    it.name.contains("remotes"))
+                    it.name.startsWith(Constants.R_REMOTES))
         }
     }
 
@@ -260,15 +261,11 @@ object Git {
             when {
                 localBranch == null -> LocalDivergence(0, 0)
                 remoteBranch == null -> {
-                    val master = it.findRef("master")?.objectId
-                    val develop = it.findRef("develop")?.objectId
-                    val trunk = it.findRef("trunk")?.objectId
-                    it.revWalk().use { walk ->
-                        master?.let { walk.markUninteresting(walk.parseCommit(it)) }
-                        develop?.let { walk.markUninteresting(walk.parseCommit(it)) }
-                        trunk?.let { walk.markUninteresting(walk.parseCommit(it)) }
-                        walk.markStart(walk.parseCommit(localBranch))
-                        LocalDivergence(walk.count(), 0)
+                    val defaultIds = DEFAULT_BRANCHES.mapNotNull(it::findRef).map { it.objectId }
+                    it.revWalk().use {
+                        defaultIds.map(it::parseCommit).forEach(it::markUninteresting)
+                        it.markStart(it.parseCommit(localBranch))
+                        LocalDivergence(it.count(), 0)
                     }
                 }
                 else -> it.revWalk().use {
@@ -656,10 +653,10 @@ object Git {
 
     // TODO: test performance if objectreader is created here instead
     private fun Repository.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {
-        return revWalk().use { walk ->
-            val commit = walk.parseCommit(commitId).takeIf { it.parentCount < 2 }
-            val parent = commit?.takeIf { it.parents.isNotEmpty() }?.let { walk.parseCommit(it.parents[0]) }
-            walk.iteratorOf(commit) to walk.iteratorOf(parent)
+        return revWalk().use {
+            val commit = it.parseCommit(commitId).takeIf { it.parentCount < 2 }
+            val parent = commit?.parents?.firstOrNull()?.let(it::parseCommit)
+            it.iteratorOf(commit) to it.iteratorOf(parent)
         }
     }
 
