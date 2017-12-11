@@ -74,6 +74,8 @@ class GitView : VBoxBuilder() {
                 { pull(State.selectedRepository) }, State.behindProperty())
         val fetch = Action("Fetch", { FontAwesome.refresh() }, "Shortcut+F", State.canFetch.not(),
                 { fetch(State.selectedRepository) })
+        val fetchGc = Action("Fetch and GC", { FontAwesome.eraser() }, "Shortcut+Shift+F", State.canFetch.not(),
+                { fetchGc(State.selectedRepository) })
         val tag = Action("Tag", { FontAwesome.tag() }, "Shortcut+T", State.canTag.not(),
                 handler = { /* TODO */ })
         val branch = Action("Branch", { FontAwesome.codeFork() }, "Shortcut+B", State.canBranch.not(),
@@ -100,7 +102,7 @@ class GitView : VBoxBuilder() {
             +ActionCollection("View", ActionGroup(showCommits, showWorkingCopy))
             +ActionCollection("Repository",
                     ActionGroup(commit),
-                    ActionGroup(push, pushForce, pull, fetch, tag),
+                    ActionGroup(push, pushForce, pull, fetch, fetchGc, tag),
                     ActionGroup(branch, merge),
                     ActionGroup(stash, stashPop),
                     ActionGroup(reset, squash),
@@ -167,7 +169,17 @@ class GitView : VBoxBuilder() {
 
     private fun fetch(repository: LocalRepository) {
         State.startProcess("Fetching...", object : Task<Unit>() {
-            override fun call() = Git.fetchPrune(repository)
+            override fun call() = Git.fetch(repository)
+
+            override fun succeeded() = State.fireRefresh()
+
+            override fun failed() = exception.printStackTrace()
+        })
+    }
+
+    private fun fetchGc(repository: LocalRepository) {
+        State.startProcess("Fetching and GC...", object : Task<Unit>() {
+            override fun call() = Git.fetchGc(repository)
 
             override fun succeeded() = State.fireRefresh()
 

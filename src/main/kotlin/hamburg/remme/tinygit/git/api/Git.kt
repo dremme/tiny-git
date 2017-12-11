@@ -56,7 +56,7 @@ object Git {
 
     private val REMOTE = Constants.DEFAULT_REMOTE_NAME
     private val HEAD = Constants.HEAD
-    private val updatedRepositories = mutableSetOf<LocalRepository>()
+    private val cache = mutableSetOf<LocalRepository>()
     private var proxyHost = ThreadLocal<String>() // TODO: really needed? cannot interact with more than one repo atm
     private var proxyPort = ThreadLocal<Int>() // TODO: really needed? cannot interact with more than one repo atm
 
@@ -73,7 +73,7 @@ object Git {
         })
     }
 
-    fun isUpdated(repository: LocalRepository) = updatedRepositories.contains(repository)
+    fun isUpdated(repository: LocalRepository) = cache.contains(repository)
 
     /**
      * - git remote
@@ -584,11 +584,20 @@ object Git {
     }
 
     /**
+     * - git fetch
+     */
+    fun fetch(repository: LocalRepository) {
+        cache -= repository
+        repository.openGit("fetch") { it.fetch(repository) }
+    }
+
+    /**
      * - git fetch --prune
      * - git gc --aggressive
      */
-    fun fetchPrune(repository: LocalRepository) {
-        repository.openGit("fetch") {
+    fun fetchGc(repository: LocalRepository) {
+        cache -= repository
+        repository.openGit("fetch prune gc") {
             it.fetch().applyAuth(repository).setRemoveDeletedRefs(true).call()
             // TODO: clarify when to do
             try {
@@ -597,7 +606,14 @@ object Git {
                 ex.printStackTrace()
             }
         }
-        updatedRepositories += repository
+        cache += repository
+    }
+
+    private fun JGit.fetch(repository: LocalRepository) {
+        if (!isUpdated(repository)) {
+            fetch().applyAuth(repository).call()
+            cache += repository
+        }
     }
 
     /**
@@ -614,13 +630,6 @@ object Git {
     fun clone(url: String, path: File): LocalRepository {
         JGit.cloneRepository().setDirectory(path).setURI(url).call()
         return LocalRepository(path.absolutePath)
-    }
-
-    private fun JGit.fetch(repository: LocalRepository) {
-        if (!isUpdated(repository)) {
-            fetch().applyAuth(repository).call()
-            updatedRepositories += repository
-        }
     }
 
     private fun <C : GitCommand<T>, T> TransportCommand<C, T>.applyAuth(repository: LocalRepository): C {
