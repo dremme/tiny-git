@@ -7,11 +7,12 @@ import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStashEntry
 import hamburg.remme.tinygit.git.LocalStatus
-import hamburg.remme.tinygit.printError
+import hamburg.remme.tinygit.stopTime
 import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.ListBranchCommand
 import org.eclipse.jgit.api.MergeResult
+import org.eclipse.jgit.api.RebaseCommand
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.api.TransportCommand
 import org.eclipse.jgit.diff.DiffConfig
@@ -22,6 +23,7 @@ import org.eclipse.jgit.lib.AnyObjectId
 import org.eclipse.jgit.lib.Config
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
+import org.eclipse.jgit.lib.RebaseTodoLine
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.lib.RepositoryCache
@@ -75,6 +77,10 @@ object Git {
     }
 
     fun isUpdated(repository: LocalRepository) = cache.contains(repository)
+
+    fun isDefaultBranch(repository: LocalRepository): Boolean {
+        return repository.open("default") { DEFAULT_BRANCHES.contains(it.branch) }
+    }
 
     /**
      * - git remote
@@ -164,8 +170,8 @@ object Git {
     }
 
     private fun RevCommit.toLocalCommit() = LocalCommit(
-            id.name, abbreviate(10).name(),
-            parents.map { it.id.name }, parents.map { abbreviate(10).name() },
+            name, abbreviate(10).name(),
+            parents.map { it.name }, parents.map { it.abbreviate(10).name() },
             fullMessage, shortMessage,
             commitTime(),
             authorIdent.name,
@@ -435,10 +441,24 @@ object Git {
     }
 
     /**
-     * - git rebase --interactive <branch_base>
+     * - git rebase --interactive <[baseId]>
      */
-    fun squash(repository: LocalRepository, message: String) {
-        // TODO
+    fun squash(repository: LocalRepository, baseId: String, message: String) {
+        repository.openGit("quash") {
+            val result = it.rebase().setUpstream(ObjectId.fromString(baseId))
+                    .runInteractively(object : RebaseCommand.InteractiveHandler {
+                        override fun prepareSteps(steps: List<RebaseTodoLine>) {
+                            steps.drop(1).forEach { it.action = RebaseTodoLine.Action.SQUASH }
+                        }
+
+                        override fun modifyCommitMessage(commit: String) = message
+                    })
+                    .call()
+            if (!result.status.isSuccessful) {
+                it.rebase().setOperation(RebaseCommand.Operation.ABORT).call()
+                throw SquashException("Could not squash commits of branch ${it.repository.branch}")
+            }
+        }
     }
 
     /**
@@ -592,7 +612,7 @@ object Git {
      * - git stash list
      */
     fun stashList(repository: LocalRepository): List<LocalStashEntry> {
-        return repository.openGit("stash list") { it.stashList().call().map { LocalStashEntry(it.id.name, it.fullMessage) } }
+        return repository.openGit("stash list") { it.stashList().call().map { LocalStashEntry(it.name, it.fullMessage) } }
     }
 
     /**
@@ -660,13 +680,10 @@ object Git {
     private inline fun <T> LocalRepository.open(description: String, block: (Repository) -> T): T {
         Git.proxyHost.set(proxyHost)
         Git.proxyPort.set(proxyPort)
-        val startTime = System.currentTimeMillis()
         val key = RepositoryCache.FileKey.lenient(File(path), FS.DETECTED)
-        val value = RepositoryBuilder().setFS(FS.DETECTED).setGitDir(key.file).setMustExist(true).build().let(block)
-        val time = (System.currentTimeMillis() - startTime) / 1000.0
-        if (time < 1) println(String.format("[%-18s] %-15s in %6.3fs", shortPath, description, time))
-        if (time >= 1) printError(String.format("[%-18s] %-15s in %6.3fs", shortPath, description, time))
-        return value
+        return stopTime(String.format("%-18s %s", "$shortPath:", description)) {
+            RepositoryBuilder().setFS(FS.DETECTED).setGitDir(key.file).setMustExist(true).build().let(block)
+        }
     }
 
     private inline fun <T> LocalRepository.openGit(description: String, block: (JGit) -> T) = open(description) { JGit(it).let(block) }

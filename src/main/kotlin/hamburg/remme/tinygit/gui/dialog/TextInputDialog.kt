@@ -11,7 +11,7 @@ import javafx.scene.control.TextField
 import javafx.scene.control.Dialog as FXDialog
 
 // TODO: maybe inherit from our dialog?
-class TextDialog(ok: String, contextText: String, defaultValue: String, textArea: Boolean) : FXDialog<String>() {
+class TextInputDialog(ok: String, contextText: String, defaultValue: String, textArea: Boolean) : FXDialog<String>() {
 
     init {
         val input = if (textArea) TextArea(defaultValue).also { it.prefHeight = 100.0 } else TextField(defaultValue)

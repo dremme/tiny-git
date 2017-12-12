@@ -3,8 +3,6 @@ package hamburg.remme.tinygit.gui
 import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.asPath
-import hamburg.remme.tinygit.exists
 import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStashEntry
@@ -22,6 +20,7 @@ import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
+import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
@@ -41,10 +40,9 @@ import java.util.concurrent.Callable
 
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
-    val actions: Array<ActionGroup>
-        get() = arrayOf(ActionGroup(settings))
+    val actions: Array<ActionGroup> get() = arrayOf(ActionGroup(settings))
     private val settings = Action("Settings", { FontAwesome.cog() }, if (PlatformUtil.isMac()) "Shortcut+Comma" else null,
-            disable = State.canSettings.not(), handler = { SettingsDialog(State.selectedRepository, window).show() })
+            disable = State.canSettings.not(), handler = { SettingsDialog(State.getSelectedRepository(), window).show() })
 
     private val window: Window get() = scene.window
     private val selectedEntry: RepositoryEntry? get() = selectionModel.selectedItem?.value
@@ -54,7 +52,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         setCellFactory { RepositoryEntryListCell() }
         root = TreeItem()
         isShowRoot = false
-        selectionModel.selectedItemProperty().addListener { _, _, it -> it?.let { State.selectedRepository = it.value.repository } }
+        selectionModel.selectedItemProperty().addListener { _, _, it -> State.setSelectedRepository(it?.value?.repository) }
 
         // TODO: should be menu bar actions as well
         val canRenameBranch = Bindings.createBooleanBinding(
@@ -63,11 +61,11 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         val canDeleteBranch = Bindings.createBooleanBinding(
                 Callable { selectedEntry.isLocal() && !selectedEntry.isHead() },
                 selectionModel.selectedItemProperty())
-        val removeRepository = Action("Remove Repository", { FontAwesome.trash() }, disable = State.canRemove.not(),
+        val removeRepository = Action("Remove Repository (Del)", { FontAwesome.trash() }, disable = State.canRemove.not(),
                 handler = { removeRepository(selectedEntry!!) })
         val renameBranch = Action("Rename Branch", { FontAwesome.pencil() }, disable = canRenameBranch.not(),
                 handler = { renameBranch(selectedEntry!!) })
-        val deleteBranch = Action("Delete Branch", { FontAwesome.trash() }, disable = canDeleteBranch.not(),
+        val deleteBranch = Action("Delete Branch (Del)", { FontAwesome.trash() }, disable = canDeleteBranch.not(),
                 handler = { deleteBranch(selectedEntry!!) })
 
         contextMenu = context {
@@ -98,7 +96,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             }
         }
 
-        State.repositories.addListener(ListChangeListener {
+        State.getRepositories().addListener(ListChangeListener {
             while (it.next()) {
                 when {
                     it.wasAdded() -> {
@@ -108,10 +106,10 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                     it.wasRemoved() -> it.removed.forEach { treeRemove(it) }
                 }
             }
+            if (it.list.isEmpty()) selectionModel.clearSelection() // forcefully clear selection
         })
-        State.repositories.forEach { treeAdd(it) }
-        // TODO: this is being executed on startup
-        State.addRefreshListener { State.repositories.forEach { treeUpdate(it) } }
+        State.getRepositories().forEach { treeAdd(it) }
+        State.addRefreshListener { Platform.runLater { State.getRepositories().forEach { treeUpdate(it) } } }
 
         Settings.setTree {
             root.children.flatMap { it.children + it }.map {
@@ -119,8 +117,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             }
         }
         Settings.setTreeSelection {
-            val item = selectionModel.selectedItem
-            Settings.TreeItem(item.value.repository.path, item.value.value)
+            selectedEntry?.let { Settings.TreeItem(it.repository.path, it.value) } ?: Settings.TreeItem()
         }
         Settings.load { settings ->
             root.children.flatMap { it.children + it }
@@ -136,19 +133,16 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     }
 
     private fun treeAdd(repository: LocalRepository) {
-        // TODO: maybe be more graceful here; remember missing repos and show a missing-entry for them
-        if (repository.path.asPath().exists()) {
-            val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", EntryType.LOCAL))
-            val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", EntryType.REMOTE))
-            val tags = TreeItem(RepositoryEntry(repository, "Tags", EntryType.TAGS))
-            val stash = TreeItem(RepositoryEntry(repository, "Stash", EntryType.STASH))
+        val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", EntryType.LOCAL))
+        val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", EntryType.REMOTE))
+        val tags = TreeItem(RepositoryEntry(repository, "Tags", EntryType.TAGS))
+        val stash = TreeItem(RepositoryEntry(repository, "Stash", EntryType.STASH))
 
-            val repoTree = TreeItem(RepositoryEntry(repository, repository.shortPath, EntryType.REPOSITORY))
-            repoTree.children.addAll(localBranches, remoteBranches, tags, stash)
-            root.children += repoTree
+        val repoTree = TreeItem(RepositoryEntry(repository, repository.shortPath, EntryType.REPOSITORY))
+        repoTree.children.addAll(localBranches, remoteBranches, tags, stash)
+        root.children += repoTree
 
-            treeUpdate(repository)
-        }
+        treeUpdate(repository)
     }
 
     private fun treeUpdate(repository: LocalRepository) {
@@ -191,7 +185,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun removeRepository(entry: RepositoryEntry) {
         if (confirmWarningAlert(window, "Remove Repository", "Remove",
                 "Will remove the repository '${entry.repository}' from TinyGit, but keep it on the disk."))
-            State.repositories -= entry.repository
+            State.removeRepository(entry.repository)
     }
 
     private fun renameBranch(entry: RepositoryEntry) {

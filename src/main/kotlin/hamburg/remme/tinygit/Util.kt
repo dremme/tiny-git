@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit
 
+import javafx.application.Platform
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -56,4 +57,14 @@ private fun cipher(mode: Int): Cipher {
     val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
     cipher.init(mode, key, iv)
     return cipher
+}
+
+inline fun <T> stopTime(message: String, block: () -> T): T {
+    val startTime = System.currentTimeMillis()
+    val value = block.invoke()
+    val totalTime = (System.currentTimeMillis() - startTime) / 1000.0
+    val async = if (!Platform.isFxApplicationThread()) "[async]" else ""
+    val log = String.format("[%6.3fs] %7s $message", totalTime, async)
+    if (totalTime < 1) println(log) else printError(log)
+    return value
 }

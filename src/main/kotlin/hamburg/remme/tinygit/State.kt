@@ -5,7 +5,6 @@ import hamburg.remme.tinygit.git.LocalRepository
 import javafx.beans.binding.Bindings
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.ReadOnlyBooleanWrapper
-import javafx.beans.property.ReadOnlyIntegerWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
@@ -30,14 +29,14 @@ object State {
     private val cachedThreadPool = Executors.newCachedThreadPool()
     private val processStopped = EventHandler<WorkerStateEvent> { runningProcesses.value -= 1 }
     private val runningProcesses = SimpleIntegerProperty(0)
-    private val processTextProperty = ReadOnlyStringWrapper()
+    private val processText = ReadOnlyStringWrapper()
 
-    fun processTextProperty() = processTextProperty.readOnlyProperty!!
+    fun processTextProperty() = processText.readOnlyProperty!!
 
     fun execute(task: Task<*>) = cachedThreadPool.execute(task)
 
     fun startProcess(message: String, task: Task<*>) {
-        processTextProperty.set(message)
+        processText.set(message)
         runningProcesses.value += 1
         task.onCancelled = processStopped
         task.onFailed = processStopped
@@ -54,27 +53,30 @@ object State {
      * REPOSITORIES                                                                                                  *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    var ahead: Int
-        get() = aheadProperty.get()
-        set(value) = aheadProperty.set(value)
-    var behind: Int
-        get() = behindProperty.get()
-        set(value) = behindProperty.set(value)
-    val repositories = FXCollections.observableArrayList<LocalRepository>()!!
-    var selectedRepository: LocalRepository
-        get() = selectedRepositoryProperty.get()
-        set(value) = selectedRepositoryProperty.set(value)
-    private val aheadProperty = ReadOnlyIntegerWrapper()
-    private val behindProperty = ReadOnlyIntegerWrapper()
-    private val selectedRepositoryProperty = SimpleObjectProperty<LocalRepository>()
+    private val allRepositories = FXCollections.observableArrayList<LocalRepository>()!!
+    private val repositories = allRepositories.filtered { it.path.asPath().exists() }!!
+    val selectedRepository = SimpleObjectProperty<LocalRepository>()
+    val ahead = SimpleIntegerProperty()
+    val behind = SimpleIntegerProperty()
+    val featureBranch = SimpleBooleanProperty()
 
-    fun aheadProperty() = aheadProperty.readOnlyProperty!!
+    fun getAllRepositories() = allRepositories
 
-    fun behindProperty() = behindProperty.readOnlyProperty!!
+    fun getRepositories() = repositories
 
-    fun addRepositoryListener(block: (LocalRepository) -> Unit) {
-        selectedRepositoryProperty.addListener { _, _, it -> it?.let { block.invoke(it) } }
+    fun setRepositories(repositories: Collection<LocalRepository>) = allRepositories.setAll(repositories)
+
+    fun addRepository(repository: LocalRepository) {
+        if (!allRepositories.contains(repository)) allRepositories.add(repository)
     }
+
+    fun removeRepository(repository: LocalRepository) = allRepositories.remove(repository)
+
+    fun getSelectedRepository() = selectedRepository.get()!!
+
+    fun setSelectedRepository(repository: LocalRepository?) = selectedRepository.set(repository)
+
+    fun addRepositoryListener(block: (LocalRepository?) -> Unit) = selectedRepository.addListener { _, _, it -> block.invoke(it) }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
@@ -94,7 +96,7 @@ object State {
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     val showGlobalInfo = Bindings.isEmpty(repositories)!!
-    val showGlobalOverlay = runningProcesses.greaterThan(0)!!
+    val showGlobalOverlay = runningProcesses.greater0()!!
     val modalVisible = SimpleBooleanProperty()
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -102,20 +104,20 @@ object State {
      * ACTIONS                                                                                                       *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    val canRemove = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())!!
-    val canSettings = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())!!
-    val canCommit = selectedRepositoryProperty.isNotNull.and(Bindings.isNotEmpty(stagedFiles)).and(runningProcesses.equals0())!!
-    val canPush = selectedRepositoryProperty.isNotNull.and(aheadProperty.notEquals0()).and(runningProcesses.equals0())!!
-    val canPull = selectedRepositoryProperty.isNotNull.and(behindProperty.greater0()).and(runningProcesses.equals0())!!
-    val canFetch = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())!!
-    val canTag = FALSE // TODO: selectedRepositoryProperty.isNotNull.and(runningProcesses.isZero())!!
-    val canBranch = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())!!
-    val canMerge = FALSE // TODO: selectedRepositoryProperty.isNotNull.and(runningProcesses.isZero())!!
-    val canStash = selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())
-            .and(Bindings.isNotEmpty(stagedFiles)).or(Bindings.isNotEmpty(pendingFiles))!!
-    val canApplyStash = selectedRepositoryProperty.isNotNull.and(stashEntries.greater0()).and(runningProcesses.equals0())!!
-    val canReset = selectedRepositoryProperty.isNotNull.and(behindProperty.greater0()).and(runningProcesses.equals0())!!
-    val canSquash = FALSE // TODO: selectedRepositoryProperty.isNotNull.and(runningProcesses.equals0())!!
+    private val isReady = selectedRepository.isNotNull.and(runningProcesses.equals0())!!
+    val canRemove = isReady
+    val canSettings = isReady
+    val canCommit = isReady.and(Bindings.isNotEmpty(stagedFiles))!!
+    val canPush = isReady.and(ahead.unequals0())!!
+    val canPull = isReady.and(behind.greater0())!!
+    val canFetch = isReady
+    val canTag = FALSE // TODO
+    val canBranch = isReady
+    val canMerge = FALSE // TODO
+    val canStash = isReady.and(Bindings.isNotEmpty(stagedFiles).or(Bindings.isNotEmpty(pendingFiles)))!!
+    val canApplyStash = isReady.and(stashEntries.greater0())!!
+    val canReset = isReady.and(behind.greater0())!!
+    val canSquash = isReady.and(featureBranch).and(ahead.greater1())!!
 
     val canStageAll = Bindings.isNotEmpty(pendingFiles)!!
     val canUpdateAll = Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.ADDED && !it.cached })!!
@@ -124,8 +126,9 @@ object State {
     val canUnstageSelected = stagedFilesSelected.greater0()!!
 
     private fun IntegerProperty.equals0() = isEqualTo(0)
-    private fun IntegerProperty.notEquals0() = isNotEqualTo(0)
+    private fun IntegerProperty.unequals0() = isNotEqualTo(0)
     private fun IntegerProperty.greater0() = greaterThan(0)
+    private fun IntegerProperty.greater1() = greaterThan(1)
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
@@ -139,7 +142,7 @@ object State {
     }
 
     fun fireRefresh() {
-        selectedRepositoryProperty.get()?.let { repo -> refreshListeners.forEach { it.invoke(repo) } }
+        selectedRepository.get()?.let { repo -> refreshListeners.forEach { it.invoke(repo) } }
     }
 
 }

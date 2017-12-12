@@ -76,10 +76,10 @@ class CommitLogView : Tab() {
         localCommits.columns.addAll(message, date, author, commit)
         localCommits.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
         localCommits.selectionModel.selectedItemProperty().addListener { _, _, it ->
-            it?.let { commitDetails.update(State.selectedRepository, it) }
+            it?.let { commitDetails.update(State.getSelectedRepository(), it) }
         }
         // TODO: you have to scroll further than the end to make this fire
-        localCommits.setOnScroll { if (it.deltaY < 0) logMore(State.selectedRepository) }
+        localCommits.setOnScroll { if (it.deltaY < 0) logMore(State.getSelectedRepository()) }
 
         progressPane = ProgressPane(
                 splitPane {
@@ -96,9 +96,11 @@ class CommitLogView : Tab() {
         content = progressPane
 
         State.addRepositoryListener {
-            skip = 0
-            logQuick(it)
-            localCommits.scrollTo(0)
+            it?.let {
+                skip = 0
+                logQuick(it)
+                localCommits.scrollTo(0)
+            } ?: clearContent()
         }
         State.addRefreshListener { logQuick(it) }
 
@@ -115,41 +117,37 @@ class CommitLogView : Tab() {
         cache.putAll(Git.branchListAll(repository).groupBy { it.commitId })
     }
 
-    private fun clearLog() {
-        localCommits.items.clear()
-    }
-
-    private fun updateLog(commits: List<LocalCommit>) {
+    private fun setContent(commits: List<LocalCommit>, divergence: LocalDivergence, defaultBranch: Boolean) {
         val selected = localCommits.selectionModel.selectedItem
         localCommits.items.setAll(commits)
         localCommits.items.find { it == selected }?.let { localCommits.selectionModel.select(it) }
         localCommits.selectionModel.selectedItem ?: localCommits.selectionModel.selectFirst()
+
+        State.ahead.set(divergence.ahead)
+        State.behind.set(divergence.behind)
+
+        State.featureBranch.set(!defaultBranch)
     }
 
-    private fun addLog(commits: List<LocalCommit>) {
-        localCommits.items.addAll(commits)
-        localCommits.scrollTo(skip - 1)
-    }
-
-    private fun clearDivergence() {
-        State.ahead = 0
-        State.behind = 0
-    }
-
-    private fun updateDivergence(divergence: LocalDivergence) {
-        State.ahead = divergence.ahead
-        State.behind = divergence.behind
+    private fun clearContent() {
+        task?.cancel()
+        localCommits.items.clear()
+        State.ahead.set(0)
+        State.behind.set(0)
+        State.featureBranch.set(false)
     }
 
     private fun logQuick(repository: LocalRepository) {
+        task?.cancel()
         head = Git.head(repository)
         try {
             invalidateCache(repository)
-            updateLog(Git.log(repository, 0, logSize + skip))
-            updateDivergence(Git.divergence(repository))
+            setContent(
+                    Git.log(repository, 0, logSize + skip),
+                    Git.divergence(repository),
+                    Git.isDefaultBranch(repository))
         } catch (ex: NoHeadException) {
-            clearLog()
-            clearDivergence()
+            clearContent()
         }
         logRemote(repository)
     }
@@ -159,13 +157,12 @@ class CommitLogView : Tab() {
         val commits = Git.log(repository, skip + skipSize, logSize)
         if (commits.isNotEmpty()) {
             skip += skipSize
-            addLog(commits)
+            localCommits.items.addAll(commits)
+            localCommits.scrollTo(skip - 1)
         }
     }
 
     private fun logRemote(repository: LocalRepository) {
-        task?.cancel()
-
         if (!Git.hasRemote(repository) || Git.isUpdated(repository)) return
 
         task = object : Task<List<LocalCommit>>() {
@@ -173,8 +170,7 @@ class CommitLogView : Tab() {
 
             override fun succeeded() {
                 invalidateCache(repository)
-                updateLog(value)
-                updateDivergence(Git.divergence(repository))
+                setContent(value, Git.divergence(repository), Git.isDefaultBranch(repository))
             }
 
             override fun failed() {
