@@ -19,7 +19,7 @@ import javafx.scene.control.Label
 import javafx.stage.Window
 
 // TODO: should be wider
-class SettingsDialog(repository: LocalRepository, window: Window) : Dialog(window, "Repository Settings") {
+class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>(window, "Repository Settings") {
 
     init {
         +DialogButton(DialogButton.OK)

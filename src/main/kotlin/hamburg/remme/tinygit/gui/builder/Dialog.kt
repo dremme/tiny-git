@@ -71,14 +71,11 @@ inline fun textInputDialog(window: Window,
                            icon: Node,
                            defaultValue: String = "",
                            block: (String) -> Unit) {
-    val dialog = TextInputDialog(ok, "", defaultValue, false)
-    dialog.initModality(Modality.WINDOW_MODAL)
-    dialog.initOwner(window)
-    dialog.title = "Input"
-    dialog.headerText = header
+    val dialog = TextInputDialog(ok, false, window)
+    dialog.header = header
     dialog.graphic = icon
-    State.modalVisible.set(true)
-    dialog.showAndWait().orElse(null)?.let(block)
+    dialog.defaultValue = defaultValue
+    dialog.showAndWait()?.let(block)
 }
 
 inline fun textAreaDialog(window: Window,
@@ -88,14 +85,12 @@ inline fun textAreaDialog(window: Window,
                           defaultValue: String = "",
                           description: String = "",
                           block: (String) -> Unit) {
-    val dialog = TextInputDialog(ok, description, defaultValue, true)
-    dialog.initModality(Modality.WINDOW_MODAL)
-    dialog.initOwner(window)
-    dialog.title = "Input"
-    dialog.headerText = header
+    val dialog = TextInputDialog(ok, true, window)
+    dialog.header = header
     dialog.graphic = icon
-    State.modalVisible.set(true)
-    dialog.showAndWait().orElse(null)?.let(block)
+    dialog.defaultValue = defaultValue
+    dialog.description = description
+    dialog.showAndWait()?.let(block)
 }
 
 inline fun fileChooser(window: Window, title: String, block: (File) -> Unit) {

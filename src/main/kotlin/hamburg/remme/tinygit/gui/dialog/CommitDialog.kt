@@ -16,7 +16,7 @@ import javafx.beans.binding.Bindings
 import javafx.scene.layout.Priority
 import javafx.stage.Window
 
-class CommitDialog(repository: LocalRepository, window: Window) : Dialog(window, "New Commit", true) {
+class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>(window, "New Commit", true) {
 
     init {
         val fileDiff = FileDiffView()
