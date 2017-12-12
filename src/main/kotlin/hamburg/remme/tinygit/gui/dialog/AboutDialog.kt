@@ -13,13 +13,13 @@ import javafx.scene.image.Image
 import javafx.stage.Window
 
 // TODO: should be wider
-class AboutDialog(window: Window) : Dialog(window, "About") {
+class AboutDialog(window: Window) : Dialog<Unit>(window, "About") {
 
     init {
         +DialogButton(DialogButton.CLOSE)
 
         header = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
-        graphic = Image("icon.s.png".asResource())
+        image = Image("icon.s.png".asResource())
         content = grid(2) {
             addClass("about-view")
 

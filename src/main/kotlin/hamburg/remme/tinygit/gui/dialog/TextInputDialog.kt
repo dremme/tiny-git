@@ -1,31 +1,41 @@
 package hamburg.remme.tinygit.gui.dialog
 
-import hamburg.remme.tinygit.gui.builder.isOk
 import hamburg.remme.tinygit.gui.builder.vbox
 import javafx.application.Platform
-import javafx.scene.control.ButtonBar
-import javafx.scene.control.ButtonType
 import javafx.scene.control.Label
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
-import javafx.scene.control.Dialog as FXDialog
+import javafx.stage.Window
 
-// TODO: maybe inherit from our dialog?
-class TextInputDialog(ok: String, contextText: String, defaultValue: String, textArea: Boolean) : FXDialog<String>() {
+class TextInputDialog(ok: String, textArea: Boolean, window: Window) : Dialog<String>(window, "Input") {
+
+    var defaultValue: String
+        get() = throw RuntimeException("Write-only property.")
+        set(value) {
+            input.text = value
+        }
+    var description: String
+        get() = throw RuntimeException("Write-only property.")
+        set(value) {
+            label.text = value
+        }
+    private val label = Label()
+    private val input = if (textArea) TextArea().also { it.prefHeight = 100.0 } else TextField()
 
     init {
-        val input = if (textArea) TextArea(defaultValue).also { it.prefHeight = 100.0 } else TextField(defaultValue)
         input.minWidth = 300.0
         Platform.runLater { input.requestFocus() }
 
-        dialogPane.content = vbox {
+        content = vbox {
             spacing = 6.0
-            if (contextText.isNotBlank()) +Label(contextText)
+            +label
             +input
         }
-        dialogPane.buttonTypes.addAll(ButtonType(ok, ButtonBar.ButtonData.OK_DONE), ButtonType.CANCEL)
 
-        setResultConverter { if (it.isOk()) input.text else null }
+        +DialogButton(DialogButton.ok(ok))
+        +DialogButton(DialogButton.CANCEL)
+
+        okAction = { input.text }
     }
 
 }

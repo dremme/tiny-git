@@ -16,19 +16,14 @@ import javafx.stage.Window
 import javafx.util.Callback
 import javafx.scene.control.Dialog as FXDialog
 
-abstract class Dialog(window: Window, title: String, resizable: Boolean = false) {
+abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = false) {
 
-    protected var content: Node
-        get() = throw RuntimeException("Write-only property.")
-        set(value) {
-            dialog.dialogPane.content = value
-        }
-    protected var header: String
+    var header: String
         get() = throw RuntimeException("Write-only property.")
         set(value) {
             dialog.dialogPane.headerText = value
         }
-    protected var graphic: Image
+    var image: Image
         get() = throw RuntimeException("Write-only property.")
         set(value) {
             dialog.graphic = imageView {
@@ -39,10 +34,20 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
                 fitHeight = 35.0
             }
         }
-    protected var okAction: () -> Unit = {}
-    protected var cancelAction: () -> Unit = {}
-    protected var focusAction: () -> Unit = {}
-    private val dialog: FXDialog<Unit> = FXDialog()
+    var graphic: Node
+        get() = throw RuntimeException("Write-only property.")
+        set(value) {
+            dialog.graphic = value
+        }
+    protected var content: Node
+        get() = throw RuntimeException("Write-only property.")
+        set(value) {
+            dialog.dialogPane.content = value
+        }
+    protected var okAction: () -> T? = { null }
+    protected var cancelAction: () -> T? = { null }
+    protected var focusAction: () -> Unit = { }
+    private val dialog: FXDialog<T> = FXDialog()
 
     init {
         dialog.initModality(Modality.WINDOW_MODAL)
@@ -54,6 +59,7 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
                 it == null -> cancelAction.invoke()
                 it.isOk() -> okAction.invoke()
                 it.isCancel() -> cancelAction.invoke()
+                else -> null
             }
         }
         dialog.dialogPane.scene.window.focusedProperty().addListener { _, _, it -> if (it) focusAction.invoke() }
@@ -62,6 +68,11 @@ abstract class Dialog(window: Window, title: String, resizable: Boolean = false)
     fun show() {
         State.modalVisible.set(true)
         dialog.show()
+    }
+
+    fun showAndWait(): T? {
+        State.modalVisible.set(true)
+        return dialog.showAndWait().orElse(null)
     }
 
     protected operator fun DialogButton.unaryPlus() {
