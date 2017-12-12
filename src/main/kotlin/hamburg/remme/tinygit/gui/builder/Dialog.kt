@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.gui.dialog.TextDialog
+import hamburg.remme.tinygit.gui.dialog.TextInputDialog
 import javafx.scene.Node
 import javafx.scene.control.Alert
 import javafx.scene.control.ButtonBar
@@ -71,7 +71,7 @@ inline fun textInputDialog(window: Window,
                            icon: Node,
                            defaultValue: String = "",
                            block: (String) -> Unit) {
-    val dialog = TextDialog(ok, "", defaultValue, false)
+    val dialog = TextInputDialog(ok, "", defaultValue, false)
     dialog.initModality(Modality.WINDOW_MODAL)
     dialog.initOwner(window)
     dialog.title = "Input"
@@ -88,7 +88,7 @@ inline fun textAreaDialog(window: Window,
                           defaultValue: String = "",
                           description: String = "",
                           block: (String) -> Unit) {
-    val dialog = TextDialog(ok, description, defaultValue, true)
+    val dialog = TextInputDialog(ok, description, defaultValue, true)
     dialog.initModality(Modality.WINDOW_MODAL)
     dialog.initOwner(window)
     dialog.title = "Input"

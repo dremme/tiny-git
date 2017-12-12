@@ -7,6 +7,7 @@ import hamburg.remme.tinygit.exists
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.git.api.PushRejectedException
+import hamburg.remme.tinygit.git.api.SquashException
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionCollection
 import hamburg.remme.tinygit.gui.builder.ActionGroup
@@ -67,31 +68,31 @@ class GitView : VBoxBuilder() {
                 handler = { tabs.selectionModel.select(workingCopy) })
         // Repository
         val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+K", State.canCommit.not(),
-                { commit(State.selectedRepository) })
+                { commit(State.getSelectedRepository()) })
         val push = Action("Push", { FontAwesome.cloudUpload() }, "Shortcut+P", State.canPush.not(),
-                { push(State.selectedRepository, false) }, State.aheadProperty())
+                { push(State.getSelectedRepository(), false) }, State.ahead)
         val pushForce = Action("Force Push", { FontAwesome.cloudUpload() }, "Shortcut+Shift+P", State.canPush.not(),
-                { push(State.selectedRepository, true) })
+                { push(State.getSelectedRepository(), true) }, State.ahead)
         val pull = Action("Pull", { FontAwesome.cloudDownload() }, "Shortcut+L", State.canPull.not(),
-                { pull(State.selectedRepository) }, State.behindProperty())
+                { pull(State.getSelectedRepository()) }, State.behind)
         val fetch = Action("Fetch", { FontAwesome.refresh() }, "Shortcut+F", State.canFetch.not(),
-                { fetch(State.selectedRepository) })
+                { fetch(State.getSelectedRepository()) })
         val fetchGc = Action("Fetch and GC", { FontAwesome.eraser() }, "Shortcut+Shift+F", State.canFetch.not(),
-                { fetchGc(State.selectedRepository) })
+                { fetchGc(State.getSelectedRepository()) })
         val tag = Action("Tag", { FontAwesome.tag() }, "Shortcut+T", State.canTag.not(),
                 handler = { /* TODO */ })
         val branch = Action("Branch", { FontAwesome.codeFork() }, "Shortcut+B", State.canBranch.not(),
-                { createBranch(State.selectedRepository) })
+                { createBranch(State.getSelectedRepository()) })
         val merge = Action("Merge", { FontAwesome.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
                 handler = { /* TODO */ })
         val stash = Action("Stash", { FontAwesome.cube() }, "Shortcut+S", State.canStash.not(),
-                { stash(State.selectedRepository) })
+                { stash(State.getSelectedRepository()) })
         val stashPop = Action("Pop Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
-                { stashPop(State.selectedRepository) })
+                { stashPop(State.getSelectedRepository()) })
         val reset = Action("Auto-Reset", { FontAwesome.undo() }, disable = State.canReset.not(),
-                handler = { autoReset(State.selectedRepository) })
+                handler = { autoReset(State.getSelectedRepository()) })
         val squash = Action("Auto-Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
-                handler = { autoSquash(State.selectedRepository) })
+                handler = { autoSquash(State.getSelectedRepository()) })
         // ?
         val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
                 handler = { TinyGit.show("https://github.com/deso88/TinyGit") })
@@ -148,16 +149,14 @@ class GitView : VBoxBuilder() {
 
     private fun newRepo() {
         directoryChooser(window, "New Repository") {
-            val repository = Git.init(it)
-            if (!State.repositories.contains(repository)) State.repositories += repository
+            State.addRepository(Git.init(it))
         }
     }
 
     private fun addRepo() {
         directoryChooser(window, "Add Repository") {
             if ("${it.absolutePath}/.git".asPath().exists()) {
-                val repository = LocalRepository(it.absolutePath)
-                if (!State.repositories.contains(repository)) State.repositories += repository
+                State.addRepository(LocalRepository(it.absolutePath))
             } else {
                 errorAlert(window, "Invalid Repository",
                         "'${it.absolutePath}' does not contain a valid '.git' directory.")
@@ -298,16 +297,22 @@ class GitView : VBoxBuilder() {
 
     private fun autoSquash(repository: LocalRepository) {
         val commits = Git.prepareSquash(repository)
-        val message = commits.joinToString { it.fullMessage }
+        val message = commits.joinToString("\n") { it.fullMessage }
+        val baseId = commits.last().parents.first()
         val count = commits.size
         textAreaDialog(window, "Auto Squash Branch", "Squash", FontAwesome.gavel(), message,
                 "This will automatically squash all $count commits of the current branch.\n\nNew commit message:") {
             State.startProcess("Squashing branch...", object : Task<Unit>() {
-                override fun call() = Git.squash(repository, it)
+                override fun call() = Git.squash(repository, baseId, it)
 
                 override fun succeeded() = State.fireRefresh()
 
-                override fun failed() = exception.printStackTrace()
+                override fun failed() {
+                    when (exception) {
+                        is SquashException -> errorAlert(window, "Cannot Squash", exception.message!!)
+                        else -> exception.printStackTrace()
+                    }
+                }
             })
         }
     }

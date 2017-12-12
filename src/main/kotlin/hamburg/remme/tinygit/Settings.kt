@@ -26,14 +26,14 @@ object Settings {
 
     fun save() {
         settingsFile.write(yaml.dump(LocalSettings(
-                getCategory(Category.REPOSITORY),
+                getCategory(Category.REPOSITORIES),
                 getCategory(Category.TREE),
                 getCategory(Category.TREE_SELECTION),
                 getCategory(Category.WINDOW))))
     }
 
-    fun setRepository(supplier: () -> List<LocalRepository>) {
-        suppliers[Category.REPOSITORY] = supplier
+    fun setRepositories(supplier: () -> List<LocalRepository>) {
+        suppliers[Category.REPOSITORIES] = supplier
     }
 
     fun setTree(supplier: () -> List<TreeItem>) {
@@ -69,6 +69,6 @@ object Settings {
                          var maximized: Boolean = false,
                          var fullscreen: Boolean = false)
 
-    enum class Category { REPOSITORY, TREE, TREE_SELECTION, WINDOW }
+    enum class Category { REPOSITORIES, TREE, TREE_SELECTION, WINDOW }
 
 }

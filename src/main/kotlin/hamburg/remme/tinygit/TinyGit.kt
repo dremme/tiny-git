@@ -2,11 +2,13 @@ package hamburg.remme.tinygit
 
 import hamburg.remme.tinygit.gui.GitView
 import javafx.application.Application
+import javafx.beans.binding.Bindings
 import javafx.scene.Scene
 import javafx.scene.image.Image
 import javafx.scene.text.Font
 import javafx.stage.Stage
 import java.util.Locale
+import java.util.concurrent.Callable
 
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
@@ -33,10 +35,10 @@ class TinyGit : Application() {
     override fun start(stage: Stage) {
         tinygit = this
 
-        Settings.setRepository { State.repositories }
+        Settings.setRepositories { State.getAllRepositories() }
         Settings.setWindow { Settings.WindowSettings(stage.x, stage.y, stage.width, stage.height, stage.isMaximized, stage.isFullScreen) }
         Settings.load {
-            State.repositories.setAll(it.repositories)
+            State.setRepositories(it.repositories)
             stage.x = it.window.x
             stage.y = it.window.y
             stage.width = it.window.width.takeIf { it > 1.0 } ?: 1280.0
@@ -53,8 +55,13 @@ class TinyGit : Application() {
         }
         stage.scene = Scene(GitView())
         stage.scene.stylesheets += "default.css".asResource()
-        stage.title = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
         stage.icons += Image("icon.png".asResource())
+        stage.titleProperty().bind(Bindings.createStringBinding(
+                Callable {
+                    val repo = State.selectedRepository.get()
+                    "${repo?.let { "${it.shortPath} [$it] \u2012 " } ?: ""}TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
+                },
+                State.selectedRepository))
         stage.show()
     }
 
