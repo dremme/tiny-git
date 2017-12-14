@@ -30,6 +30,11 @@ fun <T : Node> T.visibleWhen(observable: ObservableBooleanValue): T {
     return this
 }
 
+fun <T : Node> T.managedWhen(observable: ObservableBooleanValue): T {
+    managedProperty().bind(observable)
+    return this
+}
+
 fun <T : Node> T.disabledWhen(observable: ObservableBooleanValue): T {
     disableProperty().bind(observable)
     return this

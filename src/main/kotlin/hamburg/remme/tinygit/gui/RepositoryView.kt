@@ -289,7 +289,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             graphic = if (empty) null else {
                 when (item!!.type) {
                     EntryType.REPOSITORY -> repoItem(item)
-                    EntryType.LOCAL -> item(FontAwesome.desktop(), item.value)
+                    EntryType.LOCAL -> item(FontAwesome.hdd(), item.value)
                     EntryType.REMOTE -> item(FontAwesome.cloud(), item.value)
                     EntryType.LOCAL_BRANCH -> branchItem(item)
                     EntryType.REMOTE_BRANCH -> item(FontAwesome.codeFork(), item.value)

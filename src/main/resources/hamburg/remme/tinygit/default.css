@@ -89,6 +89,10 @@
     -fx-alignment: center;
 }
 
+.menu-item > .graphic-container .icon-wrapper {
+    -fx-min-width: 24px;
+}
+
 .menu-item > .accelerator-text {
     -fx-text-fill: #aaa;
 }

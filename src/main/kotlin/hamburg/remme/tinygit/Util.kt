@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
+import kotlin.streams.toList
 
 val SHORT_DATE = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val FULL_DATE = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
@@ -29,6 +30,10 @@ fun Path.delete() = Files.delete(this)
 
 fun Path.read() = Files.readAllBytes(this).toString(StandardCharsets.UTF_8)
 
+fun Path.readLines() = Files.lines(this).use { it.toList() }
+
+fun Path.readFirst() = Files.lines(this).use { it.findFirst() }.orElse("")!!
+
 fun Path.write(text: String) = Files.write(this, text.toByteArray())!!
 
 fun String.normalize() = replace('\\', '/')
@@ -43,15 +48,9 @@ fun String.htmlEncodeSpaces() = replace(" ", "&nbsp;")
 
 fun String.htmlEncodeAll() = htmlEncode().htmlEncodeSpaces()
 
-fun String.encrypt(): ByteArray {
-    val cipher = cipher(Cipher.ENCRYPT_MODE)
-    return cipher.doFinal(toByteArray())
-}
+fun String.encrypt() = cipher(Cipher.ENCRYPT_MODE).doFinal(toByteArray())!!
 
-fun ByteArray.decrypt(): String {
-    val cipher = cipher(Cipher.DECRYPT_MODE)
-    return cipher.doFinal(this).toString(StandardCharsets.UTF_8)
-}
+fun ByteArray.decrypt() = cipher(Cipher.DECRYPT_MODE).doFinal(this).toString(StandardCharsets.UTF_8)
 
 private fun cipher(mode: Int): Cipher {
     val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
@@ -59,12 +58,16 @@ private fun cipher(mode: Int): Cipher {
     return cipher
 }
 
-inline fun <T> stopTime(message: String, block: () -> T): T {
-    val startTime = System.currentTimeMillis()
-    val value = block.invoke()
-    val totalTime = (System.currentTimeMillis() - startTime) / 1000.0
-    val async = if (!Platform.isFxApplicationThread()) "[async]" else ""
-    val log = String.format("[%6.3fs] %7s $message", totalTime, async)
-    if (totalTime < 1) println(log) else printError(log)
-    return value
+inline fun <T> stopTime(type: String, message: String, block: () -> T): T {
+    if (type.isNotBlank() && message.isNotBlank()) {
+        val startTime = System.currentTimeMillis()
+        val value = block.invoke()
+        val totalTime = (System.currentTimeMillis() - startTime) / 1000.0
+        val async = if (!Platform.isFxApplicationThread()) "[async]" else ""
+        val log = String.format("[%6.3fs] %7s %-18s: %s", totalTime, async, type, message)
+        if (totalTime < 1) println(log) else printError(log)
+        return value
+    } else {
+        return block.invoke()
+    }
 }

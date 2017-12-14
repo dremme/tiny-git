@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.gui.dialog.ChoiceDialog
 import hamburg.remme.tinygit.gui.dialog.TextInputDialog
 import javafx.scene.Node
 import javafx.scene.control.Alert
@@ -89,6 +90,21 @@ inline fun textAreaDialog(window: Window,
     dialog.header = header
     dialog.graphic = icon
     dialog.defaultValue = defaultValue
+    dialog.description = description
+    dialog.showAndWait()?.let(block)
+}
+
+inline fun choiceDialog(window: Window,
+                        header: String,
+                        ok: String,
+                        icon: Node,
+                        items: List<String>,
+                        description: String = "",
+                        block: (String) -> Unit) {
+    val dialog = ChoiceDialog(ok, window)
+    dialog.header = header
+    dialog.graphic = icon
+    dialog.items = items
     dialog.description = description
     dialog.showAndWait()?.let(block)
 }

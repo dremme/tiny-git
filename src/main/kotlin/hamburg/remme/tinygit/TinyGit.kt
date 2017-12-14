@@ -32,6 +32,8 @@ class TinyGit : Application() {
 
     }
 
+    private val title = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
+
     override fun start(stage: Stage) {
         tinygit = this
 
@@ -56,18 +58,23 @@ class TinyGit : Application() {
         stage.scene = Scene(GitView())
         stage.scene.stylesheets += "default.css".asResource()
         stage.icons += Image("icon.png".asResource())
-        stage.titleProperty().bind(Bindings.createStringBinding(
-                Callable {
-                    val repo = State.selectedRepository.get()
-                    "${repo?.let { "${it.shortPath} [$it] \u2012 " } ?: ""}TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
-                },
-                State.selectedRepository))
+        stage.titleProperty().bind(Bindings.createStringBinding(Callable { updateTitle() },
+                State.selectedRepository, State.merging, State.rebasing, State.rebaseNext, State.rebaseLast))
         stage.show()
     }
 
     override fun stop() {
         State.stop()
         Settings.save()
+    }
+
+    private fun updateTitle(): String {
+        val repository = State.selectedRepository.get()?.let {
+            val rebase = if (State.rebasing.get()) "REBASING ${State.rebaseNext.get()}/${State.rebaseLast.get()} " else ""
+            val merge = if (State.merging.get()) "MERGING " else ""
+            "${it.shortPath} [$it] $merge$rebase\u2012 "
+        } ?: ""
+        return "$repository$title"
     }
 
 }

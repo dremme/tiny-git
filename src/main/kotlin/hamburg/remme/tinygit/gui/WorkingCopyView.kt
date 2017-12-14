@@ -65,7 +65,7 @@ class WorkingCopyView : Tab() {
 
     init {
         text = "Working Copy"
-        graphic = FontAwesome.desktop()
+        graphic = FontAwesome.hdd()
         isClosable = false
 
         val unstageFile = Action("Unstage (L)", { FontAwesome.arrowCircleDown() }, disable = State.canUnstageSelected.not(),

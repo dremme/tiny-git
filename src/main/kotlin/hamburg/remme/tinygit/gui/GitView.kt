@@ -14,13 +14,16 @@ import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.FontAwesome
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.choiceDialog
 import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.directoryChooser
 import hamburg.remme.tinygit.gui.builder.errorAlert
+import hamburg.remme.tinygit.gui.builder.flipX
 import hamburg.remme.tinygit.gui.builder.flipXY
 import hamburg.remme.tinygit.gui.builder.flipY
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
+import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.menuBar
 import hamburg.remme.tinygit.gui.builder.progressSpinner
 import hamburg.remme.tinygit.gui.builder.splitPane
@@ -42,6 +45,7 @@ import javafx.stage.Window
 import org.eclipse.jgit.api.errors.JGitInternalException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.api.errors.StashApplyFailureException
+import org.eclipse.jgit.api.errors.UnmergedPathsException
 
 class GitView : VBoxBuilder() {
 
@@ -64,7 +68,7 @@ class GitView : VBoxBuilder() {
         // View
         val showCommits = Action("Show Commits", { FontAwesome.list() }, "F1",
                 handler = { tabs.selectionModel.select(commitLog) })
-        val showWorkingCopy = Action("Show Working Copy", { FontAwesome.desktop() }, "F2",
+        val showWorkingCopy = Action("Show Working Copy", { FontAwesome.hdd() }, "F2",
                 handler = { tabs.selectionModel.select(workingCopy) })
         // Repository
         val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+K", State.canCommit.not(),
@@ -85,6 +89,12 @@ class GitView : VBoxBuilder() {
                 { createBranch(State.getSelectedRepository()) })
         val merge = Action("Merge", { FontAwesome.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
                 handler = { /* TODO */ })
+        val rebase = Action("Rebase", { FontAwesome.levelUp().flipX() }, "Shortcut+R", State.canRebase.not(),
+                handler = { rebase(State.getSelectedRepository()) })
+        val rebaseContinue = Action("Continue Rebase", { FontAwesome.forward() }, "Shortcut+Shift+R", State.canRebaseContinue.not(),
+                handler = { rebaseContinue(State.getSelectedRepository()) })
+        val rebaseAbort = Action("Abort Rebase", { FontAwesome.timesCircle() }, disable = State.canRebaseAbort.not(),
+                handler = { rebaseAbort(State.getSelectedRepository()) })
         val stash = Action("Stash", { FontAwesome.cube() }, "Shortcut+S", State.canStash.not(),
                 { stash(State.getSelectedRepository()) })
         val stashPop = Action("Pop Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
@@ -94,7 +104,7 @@ class GitView : VBoxBuilder() {
         val squash = Action("Auto-Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
                 handler = { autoSquash(State.getSelectedRepository()) })
         // ?
-        val github = Action("Star TinyGit on GitHub", { FontAwesome.githubAlt() },
+        val github = Action("Star TinyGit on GitHub", { FontAwesome.github() },
                 handler = { TinyGit.show("https://github.com/deso88/TinyGit") })
         val about = Action("About", { FontAwesome.questionCircle() },
                 handler = { AboutDialog(window).show() })
@@ -107,6 +117,7 @@ class GitView : VBoxBuilder() {
                     ActionGroup(commit),
                     ActionGroup(push, pushForce, pull, fetch, fetchGc, tag),
                     ActionGroup(branch, merge),
+                    ActionGroup(rebase, rebaseContinue, rebaseAbort),
                     ActionGroup(stash, stashPop),
                     ActionGroup(reset, squash),
                     *repositoryView.actions)
@@ -114,11 +125,19 @@ class GitView : VBoxBuilder() {
             +ActionCollection("?", ActionGroup(github, about))
         }
         +toolBar {
+            visibleWhen(State.showToolBar)
+            managedWhen(State.showToolBar)
             +ActionGroup(addCopy)
             +ActionGroup(commit, push, pull, fetch, tag)
             +ActionGroup(branch, merge)
             +ActionGroup(stash, stashPop)
             +ActionGroup(reset, squash)
+        }
+        +toolBar {
+            visibleWhen(State.showRebaseBar)
+            managedWhen(State.showRebaseBar)
+            +ActionGroup(addCopy)
+            +ActionGroup(rebaseContinue, rebaseAbort)
         }
         +stackPane {
             vgrow(Priority.ALWAYS)
@@ -253,6 +272,47 @@ class GitView : VBoxBuilder() {
         }
     }
 
+    private fun rebase(repository: LocalRepository) {
+        val current = Git.head(repository)
+        val branches = Git.branchListAll(repository).map { it.shortRef }.filter { it != current }
+        choiceDialog(window, "Select a Branch for Rebasing", "Rebase", FontAwesome.levelUp().flipX(), branches) { branch ->
+            State.startProcess("Rebasing...", object : Task<Unit>() {
+                override fun call() = Git.rebase(repository, branch)
+
+                override fun succeeded() = State.fireRefresh()
+
+                override fun failed() = exception.printStackTrace()
+            })
+        }
+    }
+
+    private fun rebaseContinue(repository: LocalRepository) {
+        State.startProcess("Rebasing...", object : Task<Unit>() {
+            override fun call() = Git.rebaseContinue(repository)
+
+            override fun succeeded() = State.fireRefresh()
+
+            override fun failed() {
+                when (exception) {
+                    is UnmergedPathsException ->
+                        errorAlert(window, "Unresolved Conflicts",
+                                "Cannot continue with rebase because there are unresolved conflicts.")
+                    else -> exception.printStackTrace()
+                }
+            }
+        })
+    }
+
+    private fun rebaseAbort(repository: LocalRepository) {
+        State.startProcess("Aborting...", object : Task<Unit>() {
+            override fun call() = Git.rebaseAbort(repository)
+
+            override fun succeeded() = State.fireRefresh()
+
+            override fun failed() = exception.printStackTrace()
+        })
+    }
+
     private fun stash(repository: LocalRepository) {
         State.startProcess("Stashing files...", object : Task<Unit>() {
             override fun call() = Git.stash(repository)
@@ -296,14 +356,14 @@ class GitView : VBoxBuilder() {
     }
 
     private fun autoSquash(repository: LocalRepository) {
-        val commits = Git.prepareSquash(repository)
-        val message = commits.joinToString("\n") { it.fullMessage }
+        val commits = Git.logWithoutDefault(repository)
+        val message = commits.joinToString("\n\n") { "# ${it.shortId}\n${it.fullMessage}" }
         val baseId = commits.last().parents.first()
         val count = commits.size
         textAreaDialog(window, "Auto Squash Branch", "Squash", FontAwesome.gavel(), message,
                 "This will automatically squash all $count commits of the current branch.\n\nNew commit message:") {
             State.startProcess("Squashing branch...", object : Task<Unit>() {
-                override fun call() = Git.squash(repository, baseId, it)
+                override fun call() = Git.rebaseSquash(repository, baseId, it)
 
                 override fun succeeded() = State.fireRefresh()
 
