@@ -16,8 +16,8 @@ class GitCredentials(private val sshPath: String, private val username: String, 
     val sshTransport by lazy {
         TransportConfigCallback {
             (it as SshTransport).sshSessionFactory = object : JschConfigSessionFactory() {
-                override fun createDefaultJSch(fs: FS) = super.createDefaultJSch(fs).also {
-                    it.addIdentity(sshPath, password.takeIf { it.isNotEmpty() }?.decrypt())
+                override fun createDefaultJSch(fs: FS) = super.createDefaultJSch(fs).apply {
+                    addIdentity(sshPath, password.takeIf { it.isNotEmpty() }?.decrypt())
                 }
 
                 override fun configure(host: Host, session: Session) = Unit

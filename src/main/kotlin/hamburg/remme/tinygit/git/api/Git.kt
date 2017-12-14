@@ -150,9 +150,6 @@ object Git {
         }
     }
 
-    /**
-     * TODO
-     */
     fun head(repository: LocalRepository): String {
         return repository.open("head") { it.branch }
     }
@@ -300,7 +297,8 @@ object Git {
                     it.revWalk().use {
                         defaultIds.map(it::parseCommit).forEach(it::markUninteresting)
                         it.markStart(it.parseCommit(localBranch))
-                        LocalDivergence(it.count(), 0)
+                        val ahead = it.count().takeIf { it > 0 } ?: -1
+                        LocalDivergence(ahead, 0)
                     }
                 }
                 else -> it.revWalk().use {

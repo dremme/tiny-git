@@ -225,7 +225,6 @@ class FileDiffView : VBoxBuilder() {
         val oldLineNumber: String
         val newLineNumber: String
         when {
-        // TODO: don't show empty line diffs
             line.startsWith('@') -> return /*language=HTML*/ """
                 <tr>
                     <td class="line-number header">&nbsp;</td>

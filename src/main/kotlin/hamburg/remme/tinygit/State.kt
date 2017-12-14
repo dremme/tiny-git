@@ -12,8 +12,6 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.concurrent.Task
-import javafx.concurrent.WorkerStateEvent
-import javafx.event.EventHandler
 import java.util.concurrent.Executors
 
 object State {
@@ -27,7 +25,6 @@ object State {
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private val cachedThreadPool = Executors.newCachedThreadPool()
-    private val processStopped = EventHandler<WorkerStateEvent> { runningProcesses.dec() }
     private val runningProcesses = SimpleIntegerProperty(0)
     private val processText = ReadOnlyStringWrapper()
 
@@ -36,11 +33,11 @@ object State {
     fun execute(task: Task<*>) = cachedThreadPool.execute(task)
 
     fun startProcess(message: String, task: Task<*>) {
+        task.setOnSucceeded { runningProcesses.dec() }
+        task.setOnCancelled { runningProcesses.dec() }
+        task.setOnFailed { runningProcesses.dec() }
         processText.set(message)
         runningProcesses.inc()
-        task.onCancelled = processStopped
-        task.onFailed = processStopped
-        task.onSucceeded = processStopped
         cachedThreadPool.execute(task)
     }
 

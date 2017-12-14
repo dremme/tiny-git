@@ -258,21 +258,21 @@
     -fx-padding: 0;
 }
 
-.log-progress {
+.progress-pane-bar {
     -fx-indeterminate-bar-length: 400;
 }
 
-.log-progress > .bar {
+.progress-pane-bar > .bar {
     -fx-padding: 0.15em;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
 }
 
-.log-progress:indeterminate > .bar {
+.progress-pane-bar:indeterminate > .bar {
     -fx-background-color: -fx-focus-color;
 }
 
-.log-progress > .track {
+.progress-pane-bar > .track {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
