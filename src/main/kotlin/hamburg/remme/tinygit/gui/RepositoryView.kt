@@ -55,6 +55,9 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         selectionModel.selectedItemProperty().addListener { _, _, it -> State.setSelectedRepository(it?.value?.repository) }
 
         // TODO: should be menu bar actions as well
+        val canCheckout = Bindings.createBooleanBinding(
+                Callable { selectedEntry.isBranch() },
+                selectionModel.selectedItemProperty())
         val canRenameBranch = Bindings.createBooleanBinding(
                 Callable { selectedEntry.isLocal() },
                 selectionModel.selectedItemProperty())
@@ -63,6 +66,8 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                 selectionModel.selectedItemProperty())
         val removeRepository = Action("Remove Repository (Del)", { FontAwesome.trash() }, disable = State.canRemove.not(),
                 handler = { removeRepository(selectedEntry!!) })
+        val checkoutBranch = Action("Checkout Branch", { FontAwesome.cloudDownload() }, disable = canCheckout.not(),
+                handler = { checkout(selectedEntry!!) })
         val renameBranch = Action("Rename Branch", { FontAwesome.pencil() }, disable = canRenameBranch.not(),
                 handler = { renameBranch(selectedEntry!!) })
         val deleteBranch = Action("Delete Branch (Del)", { FontAwesome.trash() }, disable = canDeleteBranch.not(),
@@ -71,7 +76,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         contextMenu = context {
             isAutoHide = true
             +ActionGroup(removeRepository)
-            +ActionGroup(renameBranch, deleteBranch)
+            +ActionGroup(checkoutBranch, renameBranch, deleteBranch)
             +ActionGroup(settings)
         }
 
@@ -87,12 +92,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         }
         setOnMouseClicked {
             if (it.button == MouseButton.PRIMARY && it.clickCount == 2) {
-                val entry = selectedEntry!!
-                when (entry.type) {
-                    EntryType.LOCAL_BRANCH -> checkout(entry.repository, entry.value)
-                    EntryType.REMOTE_BRANCH -> checkoutRemote(entry.repository, entry.value)
-                    else -> Unit
-                }
+                checkout(selectedEntry!!)
             }
         }
 
@@ -209,7 +209,15 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         State.fireRefresh()
     }
 
-    private fun checkout(repository: LocalRepository, branch: String) {
+    private fun checkout(entry: RepositoryEntry) {
+        when (entry.type) {
+            EntryType.LOCAL_BRANCH -> checkoutLocal(entry.repository, entry.value)
+            EntryType.REMOTE_BRANCH -> checkoutRemote(entry.repository, entry.value)
+            else -> Unit
+        }
+    }
+
+    private fun checkoutLocal(repository: LocalRepository, branch: String) {
         if (branch == Git.head(repository)) return
 
         State.startProcess("Switching branches...", object : Task<Unit>() {
@@ -235,7 +243,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
             override fun failed() {
                 when (exception) {
-                    is RefAlreadyExistsException -> checkout(repository, branch.substringAfter('/'))
+                    is RefAlreadyExistsException -> checkoutLocal(repository, branch.substringAfter('/'))
                     else -> exception.printStackTrace()
                 }
             }
@@ -245,6 +253,10 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun RepositoryEntry?.isRoot() = this?.let { it.type == EntryType.REPOSITORY } == true
 
     private fun RepositoryEntry?.isLocal() = this?.let { it.type == EntryType.LOCAL_BRANCH } == true
+
+    private fun RepositoryEntry?.isBranch(): Boolean {
+        return this?.let { !it.isHead() && it.type == EntryType.LOCAL_BRANCH || it.type == EntryType.REMOTE_BRANCH } == true
+    }
 
     private fun RepositoryEntry?.isHead() = this?.let { it.value == cache[it.repository] } == true
 
