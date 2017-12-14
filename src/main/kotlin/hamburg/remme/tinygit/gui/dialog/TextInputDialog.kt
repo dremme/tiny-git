@@ -1,10 +1,10 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.gui.builder.managedWhen
+import hamburg.remme.tinygit.gui.builder.textArea
 import hamburg.remme.tinygit.gui.builder.vbox
 import javafx.application.Platform
 import javafx.scene.control.Label
-import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
 import javafx.stage.Window
 
@@ -21,7 +21,7 @@ class TextInputDialog(ok: String, textArea: Boolean, window: Window) : Dialog<St
             label.text = value
         }
     private val label = Label().apply { managedWhen(textProperty().isNotEmpty) }
-    private val input = if (textArea) TextArea() else TextField()
+    private val input = if (textArea) textArea {} else TextField()
 
     init {
         input.minWidth = 300.0
