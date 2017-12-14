@@ -7,8 +7,8 @@ import org.yaml.snakeyaml.representer.Representer
 
 object Settings {
 
-    private val yaml = Yaml(Representer().also { it.propertyUtils.setSkipMissingProperties(true) },
-            DumperOptions().also { it.defaultFlowStyle = DumperOptions.FlowStyle.BLOCK })
+    private val yaml = Yaml(Representer().apply { propertyUtils.setSkipMissingProperties(true) },
+            DumperOptions().apply { defaultFlowStyle = DumperOptions.FlowStyle.BLOCK })
     private val settingsFile = "${System.getProperty("user.home")}/.tinygit".asPath()
     private val suppliers: MutableMap<Category, () -> Any> = mutableMapOf()
     private var settings: LocalSettings? = null

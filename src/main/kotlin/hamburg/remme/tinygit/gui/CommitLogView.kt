@@ -4,15 +4,15 @@ import hamburg.remme.tinygit.SHORT_DATE
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalCommit
-import hamburg.remme.tinygit.git.LocalDivergence
-import hamburg.remme.tinygit.git.LocalRebase
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.builder.FontAwesome
+import hamburg.remme.tinygit.gui.builder.ProgressPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.column
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
+import hamburg.remme.tinygit.gui.builder.progressPane
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.vgrow
@@ -22,7 +22,6 @@ import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.concurrent.Task
-import javafx.concurrent.Worker
 import javafx.scene.control.Label
 import javafx.scene.control.Tab
 import javafx.scene.control.TableCell
@@ -36,7 +35,7 @@ import org.eclipse.jgit.api.errors.TransportException
 class CommitLogView : Tab() {
 
     private val window: Window get() = content.scene.window
-    private val progressPane: ProgressPane
+    private val progressPane: ProgressPaneBuilder
     private val localCommits = TableView<LocalCommit>()
     private val commitDetails = CommitDetailsView()
     private val cache: MutableMap<String, List<LocalBranch>> = mutableMapOf()
@@ -82,18 +81,19 @@ class CommitLogView : Tab() {
         // TODO: you have to scroll further than the end to make this fire
         localCommits.setOnScroll { if (it.deltaY < 0) logMore(State.getSelectedRepository()) }
 
-        progressPane = ProgressPane(
-                splitPane {
-                    addClass("log-view")
-                    vgrow(Priority.ALWAYS)
-                    +localCommits
-                    +commitDetails
-                },
-                stackPane {
-                    addClass("overlay")
-                    visibleWhen(Bindings.isEmpty(localCommits.items))
-                    +Text("There are no commits.")
-                })
+        progressPane = progressPane {
+            +splitPane {
+                addClass("log-view")
+                vgrow(Priority.ALWAYS)
+                +localCommits
+                +commitDetails
+            }
+            +stackPane {
+                addClass("overlay")
+                visibleWhen(Bindings.isEmpty(localCommits.items))
+                +Text("There are no commits.")
+            }
+        }
         content = progressPane
 
         State.addRepositoryListener {
@@ -118,43 +118,16 @@ class CommitLogView : Tab() {
         cache.putAll(Git.branchListAll(repository).groupBy { it.commitId })
     }
 
-    // TODO: some special props are set here, maybe they should be moved
-    private fun setContent(commits: List<LocalCommit>,
-                           divergence: LocalDivergence,
-                           defaultBranch: Boolean,
-                           merging: Boolean,
-                           rebasing: Boolean,
-                           rebaseState: LocalRebase) {
+    private fun setContent(commits: List<LocalCommit>) {
         val selected = localCommits.selectionModel.selectedItem
         localCommits.items.setAll(commits)
         localCommits.items.find { it == selected }?.let { localCommits.selectionModel.select(it) }
         localCommits.selectionModel.selectedItem ?: localCommits.selectionModel.selectFirst()
-
-        Platform.runLater {
-            State.ahead.set(divergence.ahead)
-            State.behind.set(divergence.behind)
-            State.featureBranch.set(!defaultBranch)
-            State.merging.set(merging)
-            State.rebasing.set(rebasing)
-            State.rebaseNext.set(rebaseState.next)
-            State.rebaseLast.set(rebaseState.last)
-        }
     }
 
-    // TODO: some special props are set here, maybe they should be moved
     private fun clearContent() {
         task?.cancel()
         localCommits.items.clear()
-
-        Platform.runLater {
-            State.ahead.set(0)
-            State.behind.set(0)
-            State.featureBranch.set(false)
-            State.merging.set(false)
-            State.rebasing.set(false)
-            State.rebaseNext.set(0)
-            State.rebaseLast.set(0)
-        }
     }
 
     private fun logQuick(repository: LocalRepository) {
@@ -162,13 +135,7 @@ class CommitLogView : Tab() {
         head = Git.head(repository)
         try {
             invalidateCache(repository)
-            setContent(
-                    Git.log(repository, 0, logSize + skip),
-                    Git.divergence(repository),
-                    Git.isDefaultBranch(repository),
-                    Git.isMerging(repository),
-                    Git.isRebasing(repository),
-                    Git.rebaseState(repository))
+            setContent(Git.log(repository, 0, logSize + skip))
         } catch (ex: NoHeadException) {
             clearContent()
         }
@@ -193,13 +160,7 @@ class CommitLogView : Tab() {
 
             override fun succeeded() {
                 invalidateCache(repository)
-                setContent(
-                        value,
-                        Git.divergence(repository),
-                        Git.isDefaultBranch(repository),
-                        Git.isMerging(repository),
-                        Git.isRebasing(repository),
-                        Git.rebaseState(repository))
+                setContent(value)
             }
 
             override fun failed() {
@@ -209,17 +170,7 @@ class CommitLogView : Tab() {
                     else -> exception.printStackTrace()
                 }
             }
-
-            override fun done() {
-                Platform.runLater {
-                    if (state != Worker.State.CANCELLED) progressPane.hideProgress()
-                    else if (task?.state != Worker.State.READY) progressPane.hideProgress()
-                }
-            }
-        }.also {
-            progressPane.showProgress()
-            State.execute(it)
-        }
+        }.also { progressPane.execute(it) }
     }
 
     private inner class LogMessageTableCell : TableCell<LocalCommit, LocalCommit>() {
