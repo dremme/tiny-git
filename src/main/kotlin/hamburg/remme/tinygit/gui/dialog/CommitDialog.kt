@@ -25,7 +25,6 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>(w
         files.prefHeight = 500.0
         files.selectionModel.selectedItemProperty().addListener { _, _, it -> it?.let { fileDiff.update(repository, it) } }
 
-        // TODO: tab out of the text area
         val message = textArea {
             promptText = "Enter commit message"
             prefHeight = 100.0
