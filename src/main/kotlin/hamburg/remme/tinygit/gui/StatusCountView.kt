@@ -7,6 +7,7 @@ import hamburg.remme.tinygit.gui.builder.label
 import javafx.collections.ListChangeListener
 import javafx.scene.control.Tooltip
 
+// TODO: use visibility and managed here
 class StatusCountView(statusView: FileStatusView) : HBoxBuilder() {
 
     private val conflicting = label {
@@ -56,6 +57,7 @@ class StatusCountView(statusView: FileStatusView) : HBoxBuilder() {
         fetchStatus(statusView.items)
     }
 
+    // TODO: use size not count()
     private fun fetchStatus(files: List<LocalFile>) {
         val conflictingCount = files.filter { it.status == LocalFile.Status.CONFLICT }.count()
         val addedCount = files.filter { it.status == LocalFile.Status.ADDED && it.cached }.count()

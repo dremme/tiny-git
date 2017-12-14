@@ -1,18 +1,23 @@
 package hamburg.remme.tinygit.git.api
 
+import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalDivergence
 import hamburg.remme.tinygit.git.LocalFile
+import hamburg.remme.tinygit.git.LocalRebase
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStashEntry
 import hamburg.remme.tinygit.git.LocalStatus
+import hamburg.remme.tinygit.readFirst
+import hamburg.remme.tinygit.readLines
 import hamburg.remme.tinygit.stopTime
 import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.ListBranchCommand
 import org.eclipse.jgit.api.MergeResult
 import org.eclipse.jgit.api.RebaseCommand
+import org.eclipse.jgit.api.RebaseResult
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.api.TransportCommand
 import org.eclipse.jgit.diff.DiffConfig
@@ -27,6 +32,7 @@ import org.eclipse.jgit.lib.RebaseTodoLine
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.lib.RepositoryCache
+import org.eclipse.jgit.lib.RepositoryState
 import org.eclipse.jgit.revwalk.FollowFilter
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.revwalk.RevWalk
@@ -79,7 +85,15 @@ object Git {
     fun isUpdated(repository: LocalRepository) = cache.contains(repository)
 
     fun isDefaultBranch(repository: LocalRepository): Boolean {
-        return repository.open("default") { DEFAULT_BRANCHES.contains(it.branch) }
+        return repository.open { DEFAULT_BRANCHES.contains(it.branch) }
+    }
+
+    fun isMerging(repository: LocalRepository): Boolean {
+        return repository.open { it.repositoryState == RepositoryState.MERGING }
+    }
+
+    fun isRebasing(repository: LocalRepository): Boolean {
+        return repository.open { it.repositoryState.isRebasing }
     }
 
     /**
@@ -166,6 +180,21 @@ object Git {
             val logCommand = it.log().setSkip(skip).setMaxCount(max)
             it.branchListIds().forEach { logCommand.add(it) }
             logCommand.call().map { it.toLocalCommit() }
+        }
+    }
+
+    /**
+     * - git log master..
+     */
+    fun logWithoutDefault(repository: LocalRepository): List<LocalCommit> {
+        return repository.open("prep squash") {
+            val head = it.resolve(it.branch)
+            val defaultIds = DEFAULT_BRANCHES.mapNotNull(it::findRef).map { it.objectId }
+            it.revWalk().use {
+                defaultIds.map(it::parseCommit).forEach(it::markUninteresting)
+                it.markStart(it.parseCommit(head))
+                it.map { it.toLocalCommit() }
+            }
         }
     }
 
@@ -426,42 +455,6 @@ object Git {
     }
 
     /**
-     * Will return all commits to be squashed.
-     */
-    fun prepareSquash(repository: LocalRepository): List<LocalCommit> {
-        return repository.open("prep squash") {
-            val head = it.resolve(it.branch)
-            val defaultIds = DEFAULT_BRANCHES.mapNotNull(it::findRef).map { it.objectId }
-            it.revWalk().use {
-                defaultIds.map(it::parseCommit).forEach(it::markUninteresting)
-                it.markStart(it.parseCommit(head))
-                it.map { it.toLocalCommit() }
-            }
-        }
-    }
-
-    /**
-     * - git rebase --interactive <[baseId]>
-     */
-    fun squash(repository: LocalRepository, baseId: String, message: String) {
-        repository.openGit("quash") {
-            val result = it.rebase().setUpstream(ObjectId.fromString(baseId))
-                    .runInteractively(object : RebaseCommand.InteractiveHandler {
-                        override fun prepareSteps(steps: List<RebaseTodoLine>) {
-                            steps.drop(1).forEach { it.action = RebaseTodoLine.Action.SQUASH }
-                        }
-
-                        override fun modifyCommitMessage(commit: String) = message
-                    })
-                    .call()
-            if (!result.status.isSuccessful) {
-                it.rebase().setOperation(RebaseCommand.Operation.ABORT).call()
-                throw SquashException("Could not squash commits of branch ${it.repository.branch}")
-            }
-        }
-    }
-
-    /**
      * - git commit --message="[message]"
      */
     fun commit(repository: LocalRepository, message: String) {
@@ -554,6 +547,82 @@ object Git {
             it.branchDelete().setForce(force).setBranchNames(name).call()
         }
     }
+
+    /**
+     * - git rebase <[branch]>
+     */
+    fun rebase(repository: LocalRepository, branch: String) {
+        repository.openGit("rebase $branch") { it.rebase().setUpstream(branch).call() }
+    }
+
+    /**
+     * - git rebase --continue
+     */
+    fun rebaseContinue(repository: LocalRepository) {
+        repository.openGit("rebase continue") {
+            val result = it.rebase().setOperation(RebaseCommand.Operation.CONTINUE).call()
+            if (result.status == RebaseResult.Status.NOTHING_TO_COMMIT) {
+                it.rebase().setOperation(RebaseCommand.Operation.SKIP).call()
+            }
+        }
+    }
+
+    /**
+     * - git rebase --abort
+     */
+    fun rebaseAbort(repository: LocalRepository) {
+        repository.openGit("rebase abort") { it.rebase().setOperation(RebaseCommand.Operation.ABORT).call() }
+    }
+
+    /**
+     * - git rebase --interactive <[baseId]>
+     */
+    fun rebaseSquash(repository: LocalRepository, baseId: String, message: String) {
+        repository.openGit("squash") {
+            val result = it.rebase().setUpstream(ObjectId.fromString(baseId))
+                    .runInteractively(object : RebaseCommand.InteractiveHandler {
+                        override fun prepareSteps(steps: List<RebaseTodoLine>) {
+                            steps.drop(1).forEach { it.action = RebaseTodoLine.Action.SQUASH }
+                        }
+
+                        override fun modifyCommitMessage(commit: String) = message
+                    })
+                    .call()
+            if (!result.status.isSuccessful) {
+                it.rebase().setOperation(RebaseCommand.Operation.ABORT).call()
+                throw SquashException("Could not squash commits of branch ${it.repository.branch}")
+            }
+        }
+    }
+
+    fun rebaseState(repository: LocalRepository): LocalRebase {
+        val state = repository.open { it.repositoryState }
+        if (state.isRebasing) {
+            return when (state) {
+                RepositoryState.REBASING, RepositoryState.REBASING_REBASING -> rebaseStateApply(repository)
+                RepositoryState.REBASING_MERGE, RepositoryState.REBASING_INTERACTIVE -> rebaseStateMerge(repository)
+                else -> throw IllegalStateException("Unexpected state $state")
+            }
+        } else {
+            return LocalRebase(0, 0)
+        }
+    }
+
+    private fun rebaseStateApply(repository: LocalRepository): LocalRebase {
+        val rebasePath = "${repository.path}/.git/rebase-apply".asPath()
+        val next = rebasePath.resolve("next").readFirst().toInt()
+        val last = rebasePath.resolve("last").readFirst().toInt()
+        return LocalRebase(next, last)
+    }
+
+    private fun rebaseStateMerge(repository: LocalRepository): LocalRebase {
+        val rebasePath = "${repository.path}/.git/rebase-merge".asPath()
+        val done = rebasePath.resolve("done").readLines().countMeaningful()
+        val todo = rebasePath.resolve("git-rebase-todo").readLines().countMeaningful()
+        return LocalRebase(done, done + todo)
+    }
+
+    private fun List<String>.countMeaningful() = filterNot { it.isBlank() || it.startsWith("#") }.size
 
     /**
      * - git checkout [branch]
@@ -677,16 +746,16 @@ object Git {
         else setCredentialsProvider(credentials.userCredentials)
     }
 
-    private inline fun <T> LocalRepository.open(description: String, block: (Repository) -> T): T {
+    private inline fun <T> LocalRepository.open(description: String = "", block: (Repository) -> T): T {
         Git.proxyHost.set(proxyHost)
         Git.proxyPort.set(proxyPort)
         val key = RepositoryCache.FileKey.lenient(File(path), FS.DETECTED)
-        return stopTime(String.format("%-18s %s", "$shortPath:", description)) {
+        return stopTime(shortPath, description) {
             RepositoryBuilder().setFS(FS.DETECTED).setGitDir(key.file).setMustExist(true).build().let(block)
         }
     }
 
-    private inline fun <T> LocalRepository.openGit(description: String, block: (JGit) -> T) = open(description) { JGit(it).let(block) }
+    private inline fun <T> LocalRepository.openGit(description: String = "", block: (JGit) -> T) = open(description) { JGit(it).let(block) }
 
     private fun Repository.revWalk() = RevWalk(this)
 

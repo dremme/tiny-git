@@ -19,7 +19,7 @@ import java.util.concurrent.Executors
 object State {
 
     private val TRUE = ReadOnlyBooleanWrapper(true).readOnlyProperty!!
-    private val FALSE = ReadOnlyBooleanWrapper().readOnlyProperty!!
+    private val FALSE = ReadOnlyBooleanWrapper(false).readOnlyProperty!!
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
@@ -27,7 +27,7 @@ object State {
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private val cachedThreadPool = Executors.newCachedThreadPool()
-    private val processStopped = EventHandler<WorkerStateEvent> { runningProcesses.value -= 1 }
+    private val processStopped = EventHandler<WorkerStateEvent> { runningProcesses.dec() }
     private val runningProcesses = SimpleIntegerProperty(0)
     private val processText = ReadOnlyStringWrapper()
 
@@ -37,7 +37,7 @@ object State {
 
     fun startProcess(message: String, task: Task<*>) {
         processText.set(message)
-        runningProcesses.value += 1
+        runningProcesses.inc()
         task.onCancelled = processStopped
         task.onFailed = processStopped
         task.onSucceeded = processStopped
@@ -47,6 +47,9 @@ object State {
     fun stop() {
         cachedThreadPool.shutdownNow()
     }
+
+    private fun IntegerProperty.inc() = set(get() + 1)
+    private fun IntegerProperty.dec() = set(get() - 1)
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
@@ -59,6 +62,10 @@ object State {
     val ahead = SimpleIntegerProperty()
     val behind = SimpleIntegerProperty()
     val featureBranch = SimpleBooleanProperty()
+    val merging = SimpleBooleanProperty()
+    val rebasing = SimpleBooleanProperty()
+    val rebaseNext = SimpleIntegerProperty()
+    val rebaseLast = SimpleIntegerProperty()
 
     fun getAllRepositories() = allRepositories
 
@@ -97,6 +104,9 @@ object State {
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     val showGlobalInfo = Bindings.isEmpty(repositories)!!
     val showGlobalOverlay = runningProcesses.greater0()!!
+    val showToolBar = merging.not().and(rebasing.not())!!
+    val showMergeBar = merging
+    val showRebaseBar = rebasing
     val modalVisible = SimpleBooleanProperty()
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -104,7 +114,8 @@ object State {
      * ACTIONS                                                                                                       *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val isReady = selectedRepository.isNotNull.and(runningProcesses.equals0())!!
+    private val isIdle = selectedRepository.isNotNull.and(runningProcesses.equals0())!!
+    private val isReady = isIdle.and(merging.not()).and(rebasing.not())!!
     val canRemove = isReady
     val canSettings = isReady
     val canCommit = isReady.and(Bindings.isNotEmpty(stagedFiles))!!
@@ -114,6 +125,9 @@ object State {
     val canTag = FALSE // TODO
     val canBranch = isReady
     val canMerge = FALSE // TODO
+    val canRebase = isReady
+    val canRebaseContinue = isIdle.and(rebasing)!!
+    val canRebaseAbort = isIdle.and(rebasing)!!
     val canStash = isReady.and(Bindings.isNotEmpty(stagedFiles).or(Bindings.isNotEmpty(pendingFiles)))!!
     val canApplyStash = isReady.and(stashEntries.greater0())!!
     val canReset = isReady.and(behind.greater0())!!

@@ -16,17 +16,19 @@ object FontAwesome {
     fun cube() = icon('\uf1b2')
     fun cubes() = icon('\uf1b3')
     fun database() = icon('\uf1c0')
-    fun desktop() = icon('\uf108')
     fun envelope() = icon('\uf0e0')
     fun eraser() = icon('\uf12d')
     fun exclamationTriangle() = icon('\uf071')
     fun folder() = icon('\uf07b')
     fun folderOpen() = icon('\uf07c')
+    fun forward() = icon('\uf04e')
     fun gavel() = icon('\uf0e3')
-    fun githubAlt() = icon('\uf113', true)
+    fun github() = icon('\uf113', true)
     fun globe() = icon('\uf0ac')
+    fun hdd() = icon('\uf0a0')
+    fun levelUp() = icon('\uf3bf')
     fun link() = icon('\uf0c1')
-    fun list() = icon('\uf03a')
+    fun list() = icon('\uf022')
     fun minus() = icon('\uf068')
     fun pencil() = icon('\uf303')
     fun plus() = icon('\uf067')
@@ -39,6 +41,7 @@ object FontAwesome {
     fun spinner() = icon('\uf110')
     fun tag() = icon('\uf02b')
     fun tags() = icon('\uf02c')
+    fun timesCircle() = icon('\uf057')
     fun trash() = icon('\uf1f8')
     fun undo() = icon('\uf0e2')
 
@@ -46,8 +49,7 @@ object FontAwesome {
         val icon = Text(glyph.toString()).addClass("icon")
         if (brand) icon.addClass("brand")
         return stackPane {
-            minWidth = 14.0
-            minHeight = 14.0
+            addClass("icon-wrapper")
             +icon
         }
     }
