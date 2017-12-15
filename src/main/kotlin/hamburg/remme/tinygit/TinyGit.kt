@@ -1,10 +1,10 @@
 package hamburg.remme.tinygit
 
 import hamburg.remme.tinygit.gui.GitView
-import hamburg.remme.tinygit.service.BranchService
 import hamburg.remme.tinygit.service.DivergenceService
 import hamburg.remme.tinygit.service.MergeService
 import hamburg.remme.tinygit.service.RebaseService
+import hamburg.remme.tinygit.service.StashService
 import javafx.application.Application
 import javafx.beans.binding.Bindings
 import javafx.scene.Scene
@@ -40,10 +40,10 @@ class TinyGit : Application() {
 
     override fun start(stage: Stage) {
         tinygit = this
-        BranchService
         DivergenceService
         MergeService
         RebaseService
+        StashService
 
         Settings.setRepositories { State.getAllRepositories() }
         Settings.setWindow { Settings.WindowSettings(stage.x, stage.y, stage.width, stage.height, stage.isMaximized, stage.isFullScreen) }

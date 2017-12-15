@@ -104,7 +104,7 @@ class GitView : VBoxBuilder() {
         val reset = Action("Auto-Reset", { FontAwesome.undo() }, disable = State.canReset.not(),
                 handler = { autoReset(State.getSelectedRepository()) })
         val squash = Action("Auto-Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
-                handler = { autoSquash(State.getSelectedRepository()) })
+                handler = { autoSquash(State.getSelectedRepository()) }, count = State.aheadDefault)
         // ?
         val github = Action("Star TinyGit on GitHub", { FontAwesome.github() },
                 handler = { TinyGit.show("https://github.com/deso88/TinyGit") })
