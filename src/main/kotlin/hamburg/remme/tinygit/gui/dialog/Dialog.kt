@@ -44,6 +44,7 @@ abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = fal
         set(value) {
             dialog.dialogPane.content = value
         }
+    protected val dialogWindow: Window get() = dialog.dialogPane.scene.window
     protected var okAction: () -> T? = { null }
     protected var cancelAction: () -> T? = { null }
     protected var focusAction: () -> Unit = { }

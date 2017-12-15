@@ -35,6 +35,7 @@ import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.dialog.AboutDialog
+import hamburg.remme.tinygit.gui.dialog.CloneDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
@@ -61,9 +62,11 @@ class GitView : VBoxBuilder() {
         addClass("git-view")
 
         // File
-        val newCopy = Action("New Repository", { FontAwesome.folder() }, "Shortcut+N",
+        val cloneRepo = Action("Clone Repository", { FontAwesome.clone() }, // TODO: add shortcut
+                handler = { CloneDialog(window).show() })
+        val newRepo = Action("New Repository", { FontAwesome.folder() }, "Shortcut+N",
                 handler = { newRepo() })
-        val addCopy = Action("Add Repository", { FontAwesome.folderOpen() }, "Shortcut+O",
+        val addRepo = Action("Add Repository", { FontAwesome.folderOpen() }, "Shortcut+O",
                 handler = { addRepo() })
         val quit = Action("Quit TinyGit", { FontAwesome.signOut() },
                 handler = { Platform.exit() })
@@ -113,7 +116,7 @@ class GitView : VBoxBuilder() {
 
         +menuBar {
             isUseSystemMenuBar = true
-            +ActionCollection("File", ActionGroup(newCopy, addCopy), ActionGroup(quit))
+            +ActionCollection("File", ActionGroup(cloneRepo, newRepo, addRepo), ActionGroup(quit))
             +ActionCollection("View", ActionGroup(showCommits, showWorkingCopy))
             +ActionCollection("Repository",
                     ActionGroup(commit),
@@ -129,7 +132,7 @@ class GitView : VBoxBuilder() {
         +toolBar {
             visibleWhen(State.showToolBar)
             managedWhen(State.showToolBar)
-            +ActionGroup(addCopy)
+            +ActionGroup(addRepo)
             +ActionGroup(commit, push, pull, fetch, tag)
             +ActionGroup(branch, merge)
             +ActionGroup(stash, stashPop)
@@ -138,7 +141,7 @@ class GitView : VBoxBuilder() {
         +toolBar {
             visibleWhen(State.showRebaseBar)
             managedWhen(State.showRebaseBar)
-            +ActionGroup(addCopy)
+            +ActionGroup(addRepo)
             +ActionGroup(rebaseContinue, rebaseAbort)
         }
         +stackPane {
