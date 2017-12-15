@@ -3,7 +3,7 @@ package hamburg.remme.tinygit.gui.builder
 import javafx.scene.Node
 import javafx.scene.text.Text
 
-object FontAwesome {
+object Icons {
 
     fun arrowCircleDown() = icon('\uf0ab')
     fun arrowCircleUp() = icon('\uf0aa')

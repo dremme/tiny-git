@@ -9,10 +9,10 @@ import hamburg.remme.tinygit.git.LocalStatus
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
-import hamburg.remme.tinygit.gui.builder.FontAwesome
+import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
-import hamburg.remme.tinygit.gui.builder.context
+import hamburg.remme.tinygit.gui.builder.contextMenu
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
@@ -40,15 +40,15 @@ class WorkingCopyView : Tab() {
         get() = arrayOf(
                 ActionGroup(updateAll, stageAll, stageSelected),
                 ActionGroup(unstageAll, unstageSelected))
-    private val unstageAll = Action("Unstage all", { FontAwesome.arrowCircleDown() }, "Shortcut+Shift+L", State.canUnstageAll.not(),
+    private val unstageAll = Action("Unstage all", { Icons.arrowCircleDown() }, "Shortcut+Shift+L", State.canUnstageAll.not(),
             { unstage(State.getSelectedRepository()) })
-    private val unstageSelected = Action("Unstage selected", { FontAwesome.arrowCircleDown() }, disable = State.canUnstageSelected.not(),
+    private val unstageSelected = Action("Unstage selected", { Icons.arrowCircleDown() }, disable = State.canUnstageSelected.not(),
             handler = { unstage(State.getSelectedRepository(), stagedFilesSelection.selectedItems) })
-    private val updateAll = Action("Update all", { FontAwesome.arrowCircleUp() }, disable = State.canUpdateAll.not(),
+    private val updateAll = Action("Update all", { Icons.arrowCircleUp() }, disable = State.canUpdateAll.not(),
             handler = { update(State.getSelectedRepository()) })
-    private val stageAll = Action("Stage all", { FontAwesome.arrowCircleUp() }, "Shortcut+Shift+K", State.canStageAll.not(),
+    private val stageAll = Action("Stage all", { Icons.arrowCircleUp() }, "Shortcut+Shift+K", State.canStageAll.not(),
             { stage(State.getSelectedRepository()) })
-    private val stageSelected = Action("Stage selected", { FontAwesome.arrowCircleUp() }, disable = State.canStageSelected.not(),
+    private val stageSelected = Action("Stage selected", { Icons.arrowCircleUp() }, disable = State.canStageSelected.not(),
             handler = {
                 if (pendingFiles.items.size == pendingFilesSelection.selectedItems.size) stage(State.getSelectedRepository())
                 else stage(State.getSelectedRepository(), pendingFilesSelection.selectedItems)
@@ -65,13 +65,13 @@ class WorkingCopyView : Tab() {
 
     init {
         text = "Working Copy"
-        graphic = FontAwesome.hdd()
+        graphic = Icons.hdd()
         isClosable = false
 
-        val unstageFile = Action("Unstage (L)", { FontAwesome.arrowCircleDown() }, disable = State.canUnstageSelected.not(),
+        val unstageFile = Action("Unstage (L)", { Icons.arrowCircleDown() }, disable = State.canUnstageSelected.not(),
                 handler = { unstage(State.getSelectedRepository(), stagedFilesSelection.selectedItems) })
 
-        stagedFiles.contextMenu = context {
+        stagedFiles.contextMenu = contextMenu {
             isAutoHide = true
             +ActionGroup(unstageFile)
         }
@@ -87,14 +87,14 @@ class WorkingCopyView : Tab() {
         val canDiscard = Bindings.createBooleanBinding(
                 Callable { !pendingFilesSelection.selectedItems.all { it.status == LocalFile.Status.ADDED } },
                 pendingFilesSelection.selectedItemProperty())
-        val stageFile = Action("Stage (K)", { FontAwesome.arrowCircleUp() }, disable = State.canStageSelected.not(),
+        val stageFile = Action("Stage (K)", { Icons.arrowCircleUp() }, disable = State.canStageSelected.not(),
                 handler = { stage(State.getSelectedRepository(), pendingFilesSelection.selectedItems) })
-        val deleteFile = Action("Delete (Del)", { FontAwesome.trash() }, disable = canDelete.not(),
+        val deleteFile = Action("Delete (Del)", { Icons.trash() }, disable = canDelete.not(),
                 handler = { deleteFile(State.getSelectedRepository(), pendingFilesSelection.selectedItems) })
-        val discardChanges = Action("Discard Changes (D)", { FontAwesome.undo() }, disable = canDiscard.not(),
+        val discardChanges = Action("Discard Changes (D)", { Icons.undo() }, disable = canDiscard.not(),
                 handler = { discardChanges(State.getSelectedRepository(), pendingFilesSelection.selectedItems) })
 
-        pendingFiles.contextMenu = context {
+        pendingFiles.contextMenu = contextMenu {
             isAutoHide = true
             +ActionGroup(stageFile)
             +ActionGroup(deleteFile, discardChanges)

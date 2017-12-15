@@ -6,7 +6,7 @@ import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
-import hamburg.remme.tinygit.gui.builder.FontAwesome
+import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.ProgressPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.column
@@ -48,7 +48,7 @@ class CommitLogView : Tab() {
 
     init {
         text = "Commits"
-        graphic = FontAwesome.list()
+        graphic = Icons.list()
         isClosable = false
 
         val message = column<LocalCommit, LocalCommit> {
@@ -191,7 +191,7 @@ class CommitLogView : Tab() {
 
     }
 
-    private inner class BranchBadge(name: String) : Label(name, FontAwesome.codeFork()) {
+    private inner class BranchBadge(name: String) : Label(name, Icons.codeFork()) {
 
         init {
             addClass("branch-badge")

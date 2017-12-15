@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.git.api
 
 import hamburg.remme.tinygit.asPath
+import hamburg.remme.tinygit.decrypt
 import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalDivergence
@@ -40,6 +41,7 @@ import org.eclipse.jgit.revwalk.RevWalkUtils
 import org.eclipse.jgit.revwalk.filter.RevFilter
 import org.eclipse.jgit.transport.RemoteRefUpdate
 import org.eclipse.jgit.transport.URIish
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.eclipse.jgit.treewalk.AbstractTreeIterator
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.treewalk.EmptyTreeIterator
@@ -756,9 +758,8 @@ object Git {
     }
 
     private fun <C : GitCommand<T>, T> TransportCommand<C, T>.applyAuth(repository: LocalRepository): C {
-        val credentials = GitCredentials(repository.ssh, repository.username, repository.password)
-        return if (credentials.isSSH) setTransportConfigCallback(credentials.sshTransport)
-        else setCredentialsProvider(credentials.userCredentials)
+        return if (repository.ssh.isNotBlank()) setTransportConfigCallback(TransportCallback(repository.ssh, repository.password))
+        else setCredentialsProvider(UsernamePasswordCredentialsProvider(repository.username, repository.password.decrypt()))
     }
 
     private inline fun <T> LocalRepository.open(description: String = "", block: (Repository) -> T): T {
