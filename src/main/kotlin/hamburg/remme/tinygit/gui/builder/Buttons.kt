@@ -3,10 +3,34 @@ package hamburg.remme.tinygit.gui.builder
 import javafx.beans.binding.Bindings
 import javafx.geometry.Pos
 import javafx.scene.Node
+import javafx.scene.control.Button
+import javafx.scene.control.Hyperlink
 import javafx.scene.control.Separator
 import javafx.scene.control.ToolBar
+import javafx.scene.control.Tooltip
+import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
+
+fun button(action: Action) = button {
+    text = action.text
+    graphic = action.icon.invoke()
+    action.shortcut?.let { KeyCombination.valueOf(it).displayText }?.let { tooltip = Tooltip(it) }
+    action.disable?.let { disabledWhen(it) }
+    setOnAction { action.handler.invoke() }
+}
+
+inline fun button(block: Button.() -> Unit): Button {
+    val button = Button()
+    block.invoke(button)
+    return button
+}
+
+inline fun link(block: Hyperlink.() -> Unit): Hyperlink {
+    val link = Hyperlink()
+    block.invoke(link)
+    return link
+}
 
 inline fun toolBar(block: ToolBarBuilder.() -> Unit): ToolBar {
     val toolBar = ToolBarBuilder()

@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.gui.builder.FontAwesome
+import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.collections.ObservableList
 import javafx.scene.control.ListCell
@@ -12,14 +12,14 @@ class FileStatusView : ListView<LocalFile> {
 
     companion object {
 
-        fun conflictIcon() = FontAwesome.exclamationTriangle()
-        fun addedIcon() = FontAwesome.plus()
-        fun copiedIcon() = FontAwesome.plus()
-        fun renamedIcon() = FontAwesome.share()
-        fun modifiedIcon() = FontAwesome.pencil()
-        fun removedIcon() = FontAwesome.minus()
-        fun missingIcon() = FontAwesome.minus()
-        fun untrackedIcon() = FontAwesome.question()
+        fun conflictIcon() = Icons.exclamationTriangle()
+        fun addedIcon() = Icons.plus()
+        fun copiedIcon() = Icons.plus()
+        fun renamedIcon() = Icons.share()
+        fun modifiedIcon() = Icons.pencil()
+        fun removedIcon() = Icons.minus()
+        fun missingIcon() = Icons.minus()
+        fun untrackedIcon() = Icons.question()
 
     }
 

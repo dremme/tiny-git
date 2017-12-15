@@ -9,12 +9,12 @@ import hamburg.remme.tinygit.git.LocalStashEntry
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
-import hamburg.remme.tinygit.gui.builder.FontAwesome
+import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.addStyle
 import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
-import hamburg.remme.tinygit.gui.builder.context
+import hamburg.remme.tinygit.gui.builder.contextMenu
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
@@ -40,7 +40,7 @@ import java.util.concurrent.Callable
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     val actions: Array<ActionGroup> get() = arrayOf(ActionGroup(settings))
-    private val settings = Action("Settings", { FontAwesome.cog() }, if (PlatformUtil.isMac()) "Shortcut+Comma" else null,
+    private val settings = Action("Settings", { Icons.cog() }, if (PlatformUtil.isMac()) "Shortcut+Comma" else null,
             disable = State.canSettings.not(), handler = { SettingsDialog(State.getSelectedRepository(), window).show() })
 
     private val window: Window get() = scene.window
@@ -63,16 +63,16 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         val canDeleteBranch = Bindings.createBooleanBinding(
                 Callable { selectedEntry.isLocal() && !selectedEntry.isHead() },
                 selectionModel.selectedItemProperty())
-        val removeRepository = Action("Remove Repository (Del)", { FontAwesome.trash() }, disable = State.canRemove.not(),
+        val removeRepository = Action("Remove Repository (Del)", { Icons.trash() }, disable = State.canRemove.not(),
                 handler = { removeRepository(selectedEntry!!) })
-        val checkoutBranch = Action("Checkout Branch", { FontAwesome.cloudDownload() }, disable = canCheckout.not(),
+        val checkoutBranch = Action("Checkout Branch", { Icons.cloudDownload() }, disable = canCheckout.not(),
                 handler = { checkout(selectedEntry!!) })
-        val renameBranch = Action("Rename Branch", { FontAwesome.pencil() }, disable = canRenameBranch.not(),
+        val renameBranch = Action("Rename Branch", { Icons.pencil() }, disable = canRenameBranch.not(),
                 handler = { renameBranch(selectedEntry!!) })
-        val deleteBranch = Action("Delete Branch (Del)", { FontAwesome.trash() }, disable = canDeleteBranch.not(),
+        val deleteBranch = Action("Delete Branch (Del)", { Icons.trash() }, disable = canDeleteBranch.not(),
                 handler = { deleteBranch(selectedEntry!!) })
 
-        contextMenu = context {
+        contextMenu = contextMenu {
             isAutoHide = true
             +ActionGroup(removeRepository)
             +ActionGroup(checkoutBranch, renameBranch, deleteBranch)
@@ -193,7 +193,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     }
 
     private fun renameBranch(entry: RepositoryEntry) {
-        textInputDialog(window, "Enter a New Branch Name", "Rename", FontAwesome.pencil(), entry.value) { name ->
+        textInputDialog(window, "Enter a New Branch Name", "Rename", Icons.pencil(), entry.value) { name ->
             Git.branchRename(entry.repository, entry.value, name)
             fireRefresh(entry.repository)
             root.children.flatMap { it.children + it }.flatMap { it.children + it }
@@ -305,14 +305,14 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             graphic = if (empty) null else {
                 when (item!!.type) {
                     EntryType.REPOSITORY -> repoItem(item)
-                    EntryType.LOCAL -> item(FontAwesome.hdd(), item.value)
-                    EntryType.REMOTE -> item(FontAwesome.cloud(), item.value)
+                    EntryType.LOCAL -> item(Icons.hdd(), item.value)
+                    EntryType.REMOTE -> item(Icons.cloud(), item.value)
                     EntryType.LOCAL_BRANCH -> branchItem(item)
-                    EntryType.REMOTE_BRANCH -> item(FontAwesome.codeFork(), item.value)
-                    EntryType.TAGS -> item(FontAwesome.tags(), item.value)
-                    EntryType.TAG -> item(FontAwesome.tag(), item.value)
-                    EntryType.STASH -> item(FontAwesome.cubes(), item.value)
-                    EntryType.STASH_ENTRY -> item(FontAwesome.cube(), item.value)
+                    EntryType.REMOTE_BRANCH -> item(Icons.codeFork(), item.value)
+                    EntryType.TAGS -> item(Icons.tags(), item.value)
+                    EntryType.TAG -> item(Icons.tag(), item.value)
+                    EntryType.STASH -> item(Icons.cubes(), item.value)
+                    EntryType.STASH_ENTRY -> item(Icons.cube(), item.value)
                 }.addClass("repository-cell")
             }
         }
@@ -323,24 +323,24 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         }
 
         private fun repoItem(item: RepositoryEntry) = hbox {
-            +FontAwesome.database()
+            +Icons.database()
             +label {
                 addStyle("-fx-font-weight:bold")
                 text = item.value
             }
             +button {
                 addClass("settings")
-                graphic = FontAwesome.cog()
+                graphic = Icons.cog()
                 setOnAction { SettingsDialog(item.repository, window).show() }
             }
         }
 
         private fun branchItem(item: RepositoryEntry) = hbox {
-            +FontAwesome.codeFork()
+            +Icons.codeFork()
             +Label(item.value)
             if (item.isHead()) {
                 addClass("current")
-                +FontAwesome.check()
+                +Icons.check()
             }
         }
 

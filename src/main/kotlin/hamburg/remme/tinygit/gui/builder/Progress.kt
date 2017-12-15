@@ -19,7 +19,7 @@ inline fun progressBar(block: ProgressBar.() -> Unit): ProgressBar {
 }
 
 inline fun progressSpinner(block: Node.() -> Unit): Node {
-    val indicator = FontAwesome.spinner()
+    val indicator = Icons.spinner()
     block.invoke(indicator)
     SpinAnimation(indicator, 2.0).play()
     return indicator

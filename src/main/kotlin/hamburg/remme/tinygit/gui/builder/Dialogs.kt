@@ -22,7 +22,7 @@ fun confirmAlert(window: Window, header: String, ok: String, text: String): Bool
             Alert.AlertType.CONFIRMATION,
             header,
             text,
-            FontAwesome.questionCircle().addClass("info"),
+            Icons.questionCircle().addClass("info"),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
             ButtonType.CANCEL)
     State.modalVisible.set(true)
@@ -34,7 +34,7 @@ fun confirmWarningAlert(window: Window, header: String, ok: String, text: String
             Alert.AlertType.CONFIRMATION,
             header,
             text,
-            FontAwesome.exclamationTriangle().addClass("warning"),
+            Icons.exclamationTriangle().addClass("warning"),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
             ButtonType.CANCEL)
     State.modalVisible.set(true)
@@ -46,7 +46,7 @@ fun errorAlert(window: Window, header: String, text: String) {
             Alert.AlertType.ERROR,
             header,
             text,
-            FontAwesome.exclamationTriangle().addClass("error"),
+            Icons.exclamationTriangle().addClass("error"),
             ButtonType.OK)
     State.modalVisible.set(true)
     alert.showAndWait()

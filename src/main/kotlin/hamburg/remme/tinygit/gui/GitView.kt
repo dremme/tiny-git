@@ -12,7 +12,7 @@ import hamburg.remme.tinygit.git.api.SquashException
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionCollection
 import hamburg.remme.tinygit.gui.builder.ActionGroup
-import hamburg.remme.tinygit.gui.builder.FontAwesome
+import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.choiceDialog
@@ -62,56 +62,56 @@ class GitView : VBoxBuilder() {
         addClass("git-view")
 
         // File
-        val cloneRepo = Action("Clone Repository", { FontAwesome.clone() }, // TODO: add shortcut
+        val cloneRepo = Action("Clone Repository", { Icons.clone() }, // TODO: add shortcut
                 handler = { CloneDialog(window).show() })
-        val newRepo = Action("New Repository", { FontAwesome.folder() }, "Shortcut+N",
+        val newRepo = Action("New Repository", { Icons.folder() }, "Shortcut+N",
                 handler = { newRepo() })
-        val addRepo = Action("Add Repository", { FontAwesome.folderOpen() }, "Shortcut+O",
+        val addRepo = Action("Add Repository", { Icons.folderOpen() }, "Shortcut+O",
                 handler = { addRepo() })
-        val quit = Action("Quit TinyGit", { FontAwesome.signOut() },
+        val quit = Action("Quit TinyGit", { Icons.signOut() },
                 handler = { Platform.exit() })
         // View
-        val showCommits = Action("Show Commits", { FontAwesome.list() }, "F1",
+        val showCommits = Action("Show Commits", { Icons.list() }, "F1",
                 handler = { tabs.selectionModel.select(commitLog) })
-        val showWorkingCopy = Action("Show Working Copy", { FontAwesome.hdd() }, "F2",
+        val showWorkingCopy = Action("Show Working Copy", { Icons.hdd() }, "F2",
                 handler = { tabs.selectionModel.select(workingCopy) })
         // Repository
-        val commit = Action("Commit", { FontAwesome.plus() }, "Shortcut+K", State.canCommit.not(),
+        val commit = Action("Commit", { Icons.plus() }, "Shortcut+K", State.canCommit.not(),
                 { commit(State.getSelectedRepository()) })
-        val push = Action("Push", { FontAwesome.cloudUpload() }, "Shortcut+P", State.canPush.not(),
+        val push = Action("Push", { Icons.cloudUpload() }, "Shortcut+P", State.canPush.not(),
                 { push(State.getSelectedRepository(), false) }, State.ahead)
-        val pushForce = Action("Force Push", { FontAwesome.cloudUpload() }, "Shortcut+Shift+P", State.canPush.not(),
+        val pushForce = Action("Force Push", { Icons.cloudUpload() }, "Shortcut+Shift+P", State.canPush.not(),
                 { push(State.getSelectedRepository(), true) }, State.ahead)
-        val pull = Action("Pull", { FontAwesome.cloudDownload() }, "Shortcut+L", State.canPull.not(),
+        val pull = Action("Pull", { Icons.cloudDownload() }, "Shortcut+L", State.canPull.not(),
                 { pull(State.getSelectedRepository()) }, State.behind)
-        val fetch = Action("Fetch", { FontAwesome.refresh() }, "Shortcut+F", State.canFetch.not(),
+        val fetch = Action("Fetch", { Icons.refresh() }, "Shortcut+F", State.canFetch.not(),
                 { fetch(State.getSelectedRepository()) })
-        val fetchGc = Action("Fetch and GC", { FontAwesome.eraser() }, "Shortcut+Shift+F", State.canFetch.not(),
+        val fetchGc = Action("Fetch and GC", { Icons.eraser() }, "Shortcut+Shift+F", State.canFetch.not(),
                 { fetchGc(State.getSelectedRepository()) })
-        val tag = Action("Tag", { FontAwesome.tag() }, "Shortcut+T", State.canTag.not(),
+        val tag = Action("Tag", { Icons.tag() }, "Shortcut+T", State.canTag.not(),
                 handler = { /* TODO */ })
-        val branch = Action("Branch", { FontAwesome.codeFork() }, "Shortcut+B", State.canBranch.not(),
+        val branch = Action("Branch", { Icons.codeFork() }, "Shortcut+B", State.canBranch.not(),
                 { createBranch(State.getSelectedRepository()) })
-        val merge = Action("Merge", { FontAwesome.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
+        val merge = Action("Merge", { Icons.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
                 handler = { /* TODO */ })
-        val rebase = Action("Rebase", { FontAwesome.levelUp().flipX() }, "Shortcut+R", State.canRebase.not(),
+        val rebase = Action("Rebase", { Icons.levelUp().flipX() }, "Shortcut+R", State.canRebase.not(),
                 handler = { rebase(State.getSelectedRepository()) })
-        val rebaseContinue = Action("Continue Rebase", { FontAwesome.forward() }, "Shortcut+Shift+R", State.canRebaseContinue.not(),
+        val rebaseContinue = Action("Continue Rebase", { Icons.forward() }, "Shortcut+Shift+R", State.canRebaseContinue.not(),
                 handler = { rebaseContinue(State.getSelectedRepository()) })
-        val rebaseAbort = Action("Abort Rebase", { FontAwesome.timesCircle() }, disable = State.canRebaseAbort.not(),
+        val rebaseAbort = Action("Abort Rebase", { Icons.timesCircle() }, disable = State.canRebaseAbort.not(),
                 handler = { rebaseAbort(State.getSelectedRepository()) })
-        val stash = Action("Stash", { FontAwesome.cube() }, "Shortcut+S", State.canStash.not(),
+        val stash = Action("Stash", { Icons.cube() }, "Shortcut+S", State.canStash.not(),
                 { stash(State.getSelectedRepository()) })
-        val stashPop = Action("Pop Stash", { FontAwesome.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
+        val stashPop = Action("Pop Stash", { Icons.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
                 { stashPop(State.getSelectedRepository()) })
-        val reset = Action("Auto-Reset", { FontAwesome.undo() }, disable = State.canReset.not(),
+        val reset = Action("Auto-Reset", { Icons.undo() }, disable = State.canReset.not(),
                 handler = { autoReset(State.getSelectedRepository()) })
-        val squash = Action("Auto-Squash", { FontAwesome.gavel() }, disable = State.canSquash.not(),
+        val squash = Action("Auto-Squash", { Icons.gavel() }, disable = State.canSquash.not(),
                 handler = { autoSquash(State.getSelectedRepository()) }, count = State.aheadDefault)
         // ?
-        val github = Action("Star TinyGit on GitHub", { FontAwesome.github() },
+        val github = Action("Star TinyGit on GitHub", { Icons.github() },
                 handler = { TinyGit.show("https://github.com/deso88/TinyGit") })
-        val about = Action("About", { FontAwesome.questionCircle() },
+        val about = Action("About", { Icons.questionCircle() },
                 handler = { AboutDialog(window).show() })
 
         +menuBar {
@@ -158,7 +158,7 @@ class GitView : VBoxBuilder() {
                 +hbox {
                     addClass("box")
                     +Text("Click ")
-                    +FontAwesome.folderOpen()
+                    +Icons.folderOpen()
                     +Text(" to add a repository.")
                 }
             }
@@ -259,7 +259,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun createBranch(repository: LocalRepository) {
-        textInputDialog(window, "Enter a New Branch Name", "Create", FontAwesome.codeFork()) { name ->
+        textInputDialog(window, "Enter a New Branch Name", "Create", Icons.codeFork()) { name ->
             State.startProcess("Branching...", object : Task<Unit>() {
                 override fun call() = Git.branchCreate(repository, name)
 
@@ -281,7 +281,7 @@ class GitView : VBoxBuilder() {
     private fun rebase(repository: LocalRepository) {
         val current = Git.head(repository)
         val branches = Git.branchListAll(repository).map { it.shortRef }.filter { it != current }
-        choiceDialog(window, "Select a Branch for Rebasing", "Rebase", FontAwesome.levelUp().flipX(), branches) { branch ->
+        choiceDialog(window, "Select a Branch for Rebasing", "Rebase", Icons.levelUp().flipX(), branches) { branch ->
             State.startProcess("Rebasing...", object : Task<Unit>() {
                 override fun call() = Git.rebase(repository, branch)
 
@@ -366,7 +366,7 @@ class GitView : VBoxBuilder() {
         val message = commits.joinToString("\n\n") { "# ${it.shortId}\n${it.fullMessage}" }
         val baseId = commits.last().parents.first()
         val count = commits.size
-        textAreaDialog(window, "Auto Squash Branch", "Squash", FontAwesome.gavel(), message,
+        textAreaDialog(window, "Auto Squash Branch", "Squash", Icons.gavel(), message,
                 "This will automatically squash all $count commits of the current branch.\n\nNew commit message:") {
             State.startProcess("Squashing branch...", object : Task<Unit>() {
                 override fun call() = Git.rebaseSquash(repository, baseId, it)

@@ -5,7 +5,7 @@ import hamburg.remme.tinygit.decrypt
 import hamburg.remme.tinygit.encrypt
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
-import hamburg.remme.tinygit.gui.builder.FontAwesome
+import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.columnSpan
@@ -37,10 +37,10 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         val urlSet = button {
             columnSpan(2)
             fillWidth()
-            graphic = FontAwesome.link()
+            graphic = Icons.link()
             maxWidth = Double.MAX_VALUE
             setOnAction {
-                textInputDialog(dialogWindow, "Enter Remote URL", "Apply", FontAwesome.link(), Git.getRemote(repository)) {
+                textInputDialog(dialogWindow, "Enter Remote URL", "Apply", Icons.link(), Git.getRemote(repository)) {
                     // TODO: make removal more clear
                     if (it.isNotBlank()) Git.setRemote(repository, it)
                     else Git.removeRemote(repository)
@@ -54,7 +54,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         val sshSearch = button {
             columnSpan(2)
             fillWidth()
-            graphic = FontAwesome.search()
+            graphic = Icons.search()
             maxWidth = Double.MAX_VALUE
             setOnAction { fileChooser(dialogWindow, "Choose a SSH Key") { ssh.text = it.absolutePath } }
         }

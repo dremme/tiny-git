@@ -4,7 +4,7 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.encrypt
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
-import hamburg.remme.tinygit.gui.builder.FontAwesome
+import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.columnSpan
@@ -26,7 +26,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
         val locationSet = button {
             columnSpan(2)
             fillWidth()
-            graphic = FontAwesome.search()
+            graphic = Icons.search()
             maxWidth = Double.MAX_VALUE
             setOnAction { directoryChooser(dialogWindow, "Choose a Directory") { location.text = it.absolutePath } }
         }
@@ -35,7 +35,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
         val sshSearch = button {
             columnSpan(2)
             fillWidth()
-            graphic = FontAwesome.search()
+            graphic = Icons.search()
             maxWidth = Double.MAX_VALUE
             setOnAction { fileChooser(dialogWindow, "Choose a SSH Key") { ssh.text = it.absolutePath } }
         }

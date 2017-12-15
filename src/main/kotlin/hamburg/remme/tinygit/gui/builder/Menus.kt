@@ -25,7 +25,7 @@ inline fun menuItem(block: MenuItem.() -> Unit): MenuItem {
     return item
 }
 
-inline fun context(block: ContextMenuBuilder.() -> Unit): ContextMenu {
+inline fun contextMenu(block: ContextMenuBuilder.() -> Unit): ContextMenu {
     val menu = ContextMenuBuilder()
     block.invoke(menu)
     return menu
