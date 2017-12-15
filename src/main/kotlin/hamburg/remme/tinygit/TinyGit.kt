@@ -60,7 +60,7 @@ class TinyGit : Application() {
         stage.focusedProperty().addListener { _, _, it ->
             if (it) {
                 if (State.modalVisible.get()) State.modalVisible.set(false)
-                else State.fireRefresh()
+                else State.fireRefresh(stage)
             }
         }
         stage.scene = Scene(GitView())

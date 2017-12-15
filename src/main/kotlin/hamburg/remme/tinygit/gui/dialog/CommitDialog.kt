@@ -54,7 +54,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>(w
             else Git.commit(repository, message.text)
 
             State.commitMessage.set("")
-            State.fireRefresh()
+            State.fireRefresh(this)
         }
         content = vbox {
             addClass("commit-view")

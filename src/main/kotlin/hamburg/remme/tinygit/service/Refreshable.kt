@@ -7,7 +7,7 @@ abstract class Refreshable {
 
     init {
         State.addRepositoryListener { it?.let { onRepositoryChanged(it) } ?: onRepositoryDeselected() }
-        State.addRefreshListener { onRefresh(it) }
+        State.addRefreshListener(this) { onRefresh(it) }
     }
 
     abstract fun onRefresh(repository: LocalRepository)

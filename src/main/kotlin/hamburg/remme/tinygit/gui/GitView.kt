@@ -6,6 +6,7 @@ import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.exists
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.git.api.PrepareSquashException
 import hamburg.remme.tinygit.git.api.PushRejectedException
 import hamburg.remme.tinygit.git.api.SquashException
 import hamburg.remme.tinygit.gui.builder.Action
@@ -42,6 +43,7 @@ import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Window
+import org.eclipse.jgit.api.errors.CheckoutConflictException
 import org.eclipse.jgit.api.errors.JGitInternalException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.api.errors.StashApplyFailureException
@@ -191,7 +193,7 @@ class GitView : VBoxBuilder() {
         State.startProcess("Fetching...", object : Task<Unit>() {
             override fun call() = Git.fetch(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = State.fireRefresh(this)
 
             override fun failed() = exception.printStackTrace()
         })
@@ -201,7 +203,7 @@ class GitView : VBoxBuilder() {
         State.startProcess("Fetching and GC...", object : Task<Unit>() {
             override fun call() = Git.fetchGc(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = State.fireRefresh(this)
 
             override fun failed() = exception.printStackTrace()
         })
@@ -212,14 +214,15 @@ class GitView : VBoxBuilder() {
             override fun call() = Git.pull(repository)
 
             override fun succeeded() {
-                if (value) State.fireRefresh()
+                if (value) State.fireRefresh(this)
             }
 
             override fun failed() {
-                exception.printStackTrace()
-                // TODO: make more specific to exception
-                errorAlert(window, "Cannot Pull From Remote Branch",
-                        "${exception.message}\n\nPlease commit or stash them before pulling.")
+                when (exception) {
+                    is CheckoutConflictException -> errorAlert(window, "Cannot Pull From Remote Branch",
+                            "${exception.message}\n\nPlease commit or stash them before pulling.")
+                    else -> exception.printStackTrace()
+                }
             }
         })
     }
@@ -240,7 +243,7 @@ class GitView : VBoxBuilder() {
                 else Git.push(repository)
             }
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = State.fireRefresh(this)
 
             override fun failed() {
                 when (exception) {
@@ -257,7 +260,7 @@ class GitView : VBoxBuilder() {
             State.startProcess("Branching...", object : Task<Unit>() {
                 override fun call() = Git.branchCreate(repository, name)
 
-                override fun succeeded() = State.fireRefresh()
+                override fun succeeded() = State.fireRefresh(this)
 
                 override fun failed() {
                     when (exception) {
@@ -279,7 +282,7 @@ class GitView : VBoxBuilder() {
             State.startProcess("Rebasing...", object : Task<Unit>() {
                 override fun call() = Git.rebase(repository, branch)
 
-                override fun succeeded() = State.fireRefresh()
+                override fun succeeded() = State.fireRefresh(this)
 
                 override fun failed() = exception.printStackTrace()
             })
@@ -290,7 +293,7 @@ class GitView : VBoxBuilder() {
         State.startProcess("Rebasing...", object : Task<Unit>() {
             override fun call() = Git.rebaseContinue(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = State.fireRefresh(this)
 
             override fun failed() {
                 when (exception) {
@@ -307,7 +310,7 @@ class GitView : VBoxBuilder() {
         State.startProcess("Aborting...", object : Task<Unit>() {
             override fun call() = Git.rebaseAbort(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = State.fireRefresh(this)
 
             override fun failed() = exception.printStackTrace()
         })
@@ -317,7 +320,7 @@ class GitView : VBoxBuilder() {
         State.startProcess("Stashing files...", object : Task<Unit>() {
             override fun call() = Git.stash(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = State.fireRefresh(this)
 
             override fun failed() = exception.printStackTrace()
         })
@@ -327,12 +330,12 @@ class GitView : VBoxBuilder() {
         State.startProcess("Applying stash...", object : Task<Unit>() {
             override fun call() = Git.stashPop(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = State.fireRefresh(this)
 
             override fun failed() {
                 when (exception) {
                     is StashApplyFailureException -> {
-                        State.fireRefresh()
+                        State.fireRefresh(this)
                         errorAlert(window, "Cannot Pop Stash",
                                 "Applying stashed changes resulted in a conflict.\nTherefore the stash entry has been preserved.")
                     }
@@ -349,7 +352,7 @@ class GitView : VBoxBuilder() {
         State.startProcess("Resetting branch...", object : Task<Unit>() {
             override fun call() = Git.resetHard(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = State.fireRefresh(this)
 
             override fun failed() = exception.printStackTrace()
         })
@@ -365,10 +368,12 @@ class GitView : VBoxBuilder() {
             State.startProcess("Squashing branch...", object : Task<Unit>() {
                 override fun call() = Git.rebaseSquash(repository, baseId, it)
 
-                override fun succeeded() = State.fireRefresh()
+                override fun succeeded() = State.fireRefresh(this)
 
                 override fun failed() {
                     when (exception) {
+                        is PrepareSquashException -> errorAlert(window, "Cannot Squash",
+                                "${exception.message}\n\nPlease commit or stash them before squashing.")
                         is SquashException -> errorAlert(window, "Cannot Squash", exception.message!!)
                         else -> exception.printStackTrace()
                     }
