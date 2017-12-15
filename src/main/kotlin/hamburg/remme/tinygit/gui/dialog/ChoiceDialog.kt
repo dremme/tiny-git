@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
+import hamburg.remme.tinygit.gui.builder.addStylesheet
 import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.vbox
 import javafx.application.Platform
@@ -24,10 +25,10 @@ class ChoiceDialog(ok: String, window: Window) : Dialog<String>(window, "Select"
     private val input = ComboBox<String>()
 
     init {
-        input.minWidth = 300.0
         Platform.runLater { input.requestFocus() }
 
         content = vbox {
+            addStylesheet("input-dialog.css")
             spacing = 6.0
             +label
             +input

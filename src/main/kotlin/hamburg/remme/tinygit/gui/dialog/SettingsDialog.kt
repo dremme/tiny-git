@@ -79,7 +79,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
             repository.proxyHost = host.text
             repository.proxyPort = port.text.toInt()
 
-            State.fireRefresh()
+            State.fireRefresh(this)
         }
         content = grid(4) {
             addClass("settings-view")

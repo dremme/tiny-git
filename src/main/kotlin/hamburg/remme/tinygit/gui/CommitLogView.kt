@@ -103,13 +103,13 @@ class CommitLogView : Tab() {
                 localCommits.scrollTo(0)
             } ?: clearContent()
         }
-        State.addRefreshListener { logQuick(it) }
+        State.addRefreshListener(this) { logQuick(it) }
 
         Platform.runLater {
-            localCommits.resizeColumn(message, 0.6 * localCommits.width)
-            localCommits.resizeColumn(date, -0.1 * localCommits.width)
-            localCommits.resizeColumn(author, 0.3 * localCommits.width)
-            localCommits.resizeColumn(commit, -0.1 * localCommits.width)
+            localCommits.resizeColumn(message, localCommits.width * 0.6)
+            localCommits.resizeColumn(date, localCommits.width * -0.1)
+            localCommits.resizeColumn(author, localCommits.width * 0.3)
+            localCommits.resizeColumn(commit, localCommits.width * -0.1)
         }
     }
 
@@ -161,6 +161,7 @@ class CommitLogView : Tab() {
             override fun succeeded() {
                 invalidateCache(repository)
                 setContent(value)
+                State.fireRefresh(this)
             }
 
             override fun failed() {

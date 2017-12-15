@@ -1,7 +1,9 @@
 package hamburg.remme.tinygit.gui.builder
 
+import hamburg.remme.tinygit.asResource
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.Node
+import javafx.scene.Parent
 
 fun <T : Node> T.addClass(vararg styleClass: String): T {
     this.styleClass += styleClass
@@ -10,6 +12,11 @@ fun <T : Node> T.addClass(vararg styleClass: String): T {
 
 fun <T : Node> T.addStyle(style: String): T {
     this.style += style.let { if (!it.endsWith(";")) "$it;" else it }
+    return this
+}
+
+fun <T : Parent> T.addStylesheet(stylesheet: String): T {
+    this.stylesheets += stylesheet.asResource()
     return this
 }
 

@@ -157,7 +157,7 @@ class WorkingCopyView : Tab() {
         }
 
         State.addRepositoryListener { it?.let { status(it) } ?: clearContent() }
-        State.addRefreshListener { status(it) }
+        State.addRefreshListener(this) { status(it) }
     }
 
     private fun setContent(status: LocalStatus, stashSize: Int) {

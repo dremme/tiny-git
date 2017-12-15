@@ -586,7 +586,9 @@ object Git {
                         override fun modifyCommitMessage(commit: String) = message
                     })
                     .call()
-            if (!result.status.isSuccessful) {
+            if (result.status == RebaseResult.Status.UNCOMMITTED_CHANGES) {
+                throw PrepareSquashException("There are uncommitted changes on ${it.repository.branch}.")
+            } else if (!result.status.isSuccessful) {
                 it.rebase().setOperation(RebaseCommand.Operation.ABORT).call()
                 throw SquashException("Could not squash commits of branch ${it.repository.branch}")
             }

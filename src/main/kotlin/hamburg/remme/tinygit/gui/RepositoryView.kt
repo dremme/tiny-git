@@ -20,7 +20,6 @@ import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
-import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
@@ -109,7 +108,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             if (it.list.isEmpty()) selectionModel.clearSelection() // forcefully clear selection
         })
         State.getRepositories().forEach { treeAdd(it) }
-        State.addRefreshListener { Platform.runLater { State.getRepositories().forEach { treeUpdate(it) } } }
+        State.addRefreshListener(this) { State.getRepositories().forEach { treeUpdate(it) } }
 
         Settings.setTree {
             root.children.flatMap { it.children + it }.map {
@@ -161,6 +160,11 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         root.children.find { it.value.repository == repository }?.let { root.children -= it }
     }
 
+    private fun fireRefresh(repository: LocalRepository) {
+        treeUpdate(repository)
+        State.fireRefresh(this)
+    }
+
     private fun updateBranchItems(branchItems: ObservableList<TreeItem<RepositoryEntry>>,
                                   repository: LocalRepository,
                                   branchList: List<LocalBranch>,
@@ -191,7 +195,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun renameBranch(entry: RepositoryEntry) {
         textInputDialog(window, "Enter a New Branch Name", "Rename", FontAwesome.pencil(), entry.value) { name ->
             Git.branchRename(entry.repository, entry.value, name)
-            State.fireRefresh()
+            fireRefresh(entry.repository)
             root.children.flatMap { it.children + it }.flatMap { it.children + it }
                     .find { it.value.repository == entry.repository && it.value.value == name }
                     ?.let { selectionModel.select(it) }
@@ -206,7 +210,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                     "Branch '${entry.value}' was not deleted as it has not been merged yet.\n\nForce deletion?"))
                 Git.branchDeleteForce(entry.repository, entry.value)
         }
-        State.fireRefresh()
+        fireRefresh(entry.repository)
     }
 
     private fun checkout(entry: RepositoryEntry) {
@@ -223,7 +227,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         State.startProcess("Switching branches...", object : Task<Unit>() {
             override fun call() = Git.checkout(repository, branch)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = fireRefresh(repository)
 
             override fun failed() {
                 when (exception) {
@@ -239,7 +243,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         State.startProcess("Getting remote branch...", object : Task<Unit>() {
             override fun call() = Git.checkoutRemote(repository, branch)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = fireRefresh(repository)
 
             override fun failed() {
                 when (exception) {

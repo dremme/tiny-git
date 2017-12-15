@@ -146,14 +146,18 @@ object State {
      * REFRESH                                                                                                       *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val refreshListeners = mutableListOf<(LocalRepository) -> Unit>()
+    private val refreshListeners = mutableMapOf<Any, (LocalRepository) -> Unit>()
 
-    fun addRefreshListener(block: (LocalRepository) -> Unit) {
-        refreshListeners += block
+    fun addRefreshListener(receiver: Any, block: (LocalRepository) -> Unit) {
+        refreshListeners[receiver] = block
     }
 
-    fun fireRefresh() {
-        selectedRepository.get()?.let { repo -> refreshListeners.forEach { it.invoke(repo) } }
+    fun fireRefresh(source: Any) {
+        selectedRepository.get()?.let { repository ->
+            refreshListeners.forEach { receiver, it ->
+                if (source !== receiver) it.invoke(repository)
+            }
+        }
     }
 
 }

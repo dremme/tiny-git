@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
+import hamburg.remme.tinygit.gui.builder.addStylesheet
 import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.textArea
 import hamburg.remme.tinygit.gui.builder.vbox
@@ -24,10 +25,10 @@ class TextInputDialog(ok: String, textArea: Boolean, window: Window) : Dialog<St
     private val input = if (textArea) textArea {} else TextField()
 
     init {
-        input.minWidth = 300.0
         Platform.runLater { input.requestFocus() }
 
         content = vbox {
+            addStylesheet("input-dialog.css")
             spacing = 6.0
             +label
             +input
