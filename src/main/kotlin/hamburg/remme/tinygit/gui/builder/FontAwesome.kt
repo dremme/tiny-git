@@ -8,6 +8,7 @@ object FontAwesome {
     fun arrowCircleDown() = icon('\uf0ab')
     fun arrowCircleUp() = icon('\uf0aa')
     fun check() = icon('\uf00c')
+    fun clone() = icon('\uf24d')
     fun cloud() = icon('\uf0c2')
     fun cloudDownload() = icon('\uf381')
     fun cloudUpload() = icon('\uf382')

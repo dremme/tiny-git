@@ -751,9 +751,8 @@ object Git {
     /**
      * - git clone <[url]>
      */
-    fun clone(url: String, path: File): LocalRepository {
-        JGit.cloneRepository().setDirectory(path).setURI(url).call()
-        return LocalRepository(path.absolutePath)
+    fun clone(url: String, path: String) {
+        JGit.cloneRepository().setDirectory(File(path)).setURI(url).call()
     }
 
     private fun <C : GitCommand<T>, T> TransportCommand<C, T>.applyAuth(repository: LocalRepository): C {
