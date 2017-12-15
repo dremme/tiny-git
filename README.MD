@@ -17,32 +17,23 @@ java -jar tinygit-x.x.x.jar
 
 ### Features
 
- - Staging/unstaging files
- - Adding local Git repositories
+ - Creating and cloning Git repositories
  - Separate settings for each repository
- - Creating/popping stashes
- - Fetching/pulling/pushing commits
- - Branching
- - Commit log and detailed file diffs
+ - Working with stashes
+ - Working with branches
+ - Automatic squashing of feature branches
+ - Automatic reset if a branch diverged from remote branch
 
 ### Missing Features
 
- - Squashing branches (interactive rebase)
- - Rebasing and merging branches
- - Creating/cloning/removing repositories
- - Removing branches
- - Changing local repo/remote URL
+ - Merging branches
  - Tracking only wanted branches
  - Commit graph in the log
- - Endless scroll the log
  - Viewing/applying/removing explicit stashes
  - Resetting branches
- - Resetting files in working copy view
  - Tagging commits & push/remove tags
- - File diff settings (e.g. surrounding lines)
  - Staging/unstaging code blocks
  - Saving selected tab
- - Saving window state
  - Opening selected file in explorer/finder
  - Pull request notifications?
  - Set author and email per repository
