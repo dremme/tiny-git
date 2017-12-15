@@ -160,17 +160,15 @@ class WorkingCopyView : Tab() {
         State.addRefreshListener(this) { status(it) }
     }
 
-    private fun setContent(status: LocalStatus, stashSize: Int) {
+    private fun setContent(status: LocalStatus) {
         stagedFiles.items.setAll(status.staged)
         pendingFiles.items.setAll(status.pending)
-        State.stashEntries.set(stashSize)
     }
 
     private fun clearContent() {
         task?.cancel()
         stagedFiles.items.clear()
         pendingFiles.items.clear()
-        State.stashEntries.set(0)
     }
 
     private fun status(repository: LocalRepository, block: (() -> Unit)? = null) {
@@ -180,12 +178,12 @@ class WorkingCopyView : Tab() {
 
             override fun succeeded() {
                 if (block != null) {
-                    setContent(value, Git.stashListSize(repository))
+                    setContent(value)
                     block.invoke()
                 } else {
                     val staged = (stagedFilesSelection.selectedItems + stagedFilesSelection.selectedItem).filterNotNull()
                     val pending = (pendingFilesSelection.selectedItems + pendingFilesSelection.selectedItem).filterNotNull()
-                    setContent(value, Git.stashListSize(repository))
+                    setContent(value)
                     staged.map { stagedFiles.items.indexOf(it) }.forEach { stagedFilesSelection.select(it) }
                     pending.map { pendingFiles.items.indexOf(it) }.forEach { pendingFilesSelection.select(it) }
                 }

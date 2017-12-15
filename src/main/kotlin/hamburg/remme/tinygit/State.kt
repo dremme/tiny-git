@@ -56,9 +56,9 @@ object State {
     private val allRepositories = FXCollections.observableArrayList<LocalRepository>()!!
     private val repositories = allRepositories.filtered { it.path.asPath().exists() }!!
     val selectedRepository = SimpleObjectProperty<LocalRepository>()
+    val aheadDefault = SimpleIntegerProperty()
     val ahead = SimpleIntegerProperty()
     val behind = SimpleIntegerProperty()
-    val featureBranch = SimpleBooleanProperty()
     val merging = SimpleBooleanProperty()
     val rebasing = SimpleBooleanProperty()
     val rebaseNext = SimpleIntegerProperty()
@@ -128,7 +128,7 @@ object State {
     val canStash = isReady.and(Bindings.isNotEmpty(stagedFiles).or(Bindings.isNotEmpty(pendingFiles)))!!
     val canApplyStash = isReady.and(stashEntries.greater0())!!
     val canReset = isReady.and(behind.greater0())!!
-    val canSquash = isReady.and(featureBranch).and(ahead.greater1())!!
+    val canSquash = isReady.and(aheadDefault.greater1())!!
 
     val canStageAll = Bindings.isNotEmpty(pendingFiles)!!
     val canUpdateAll = Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.ADDED && !it.cached })!!

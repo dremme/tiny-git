@@ -319,6 +319,22 @@ object Git {
     }
 
     /**
+     * - git status
+     */
+    // TODO: redundancy with logWithoutDefault
+    fun divergenceDefault(repository: LocalRepository): Int {
+        return repository.open("divergence default") {
+            val head = it.resolve(it.branch)
+            val defaultIds = DEFAULT_BRANCHES.mapNotNull(it::findRef).map { it.objectId }
+            it.revWalk().use {
+                defaultIds.map(it::parseCommit).forEach(it::markUninteresting)
+                it.markStart(it.parseCommit(head))
+                it.count()
+            }
+        }
+    }
+
+    /**
      * Creates a source code difference using `git diff` depending on the [file]'s status.
      */
     fun diff(repository: LocalRepository, file: LocalFile, lines: Int): String {
