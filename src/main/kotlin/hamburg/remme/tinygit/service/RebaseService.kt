@@ -17,14 +17,14 @@ object RebaseService : Refreshable() {
     override fun onRepositoryDeselected() {
         State.rebaseNext.set(0)
         State.rebaseLast.set(0)
-        State.rebasing.set(false)
+        State.isRebasing.set(false)
     }
 
     private fun update(repository: LocalRepository) {
         val (next, last) = Git.rebaseState(repository)
         State.rebaseNext.set(next)
         State.rebaseLast.set(last)
-        State.rebasing.set(Git.isRebasing(repository))
+        State.isRebasing.set(Git.isRebasing(repository))
     }
 
 }

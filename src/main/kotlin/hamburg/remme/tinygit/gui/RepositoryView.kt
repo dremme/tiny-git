@@ -41,7 +41,8 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     val actions: Array<ActionGroup> get() = arrayOf(ActionGroup(settings))
     private val settings = Action("Settings", { Icons.cog() }, if (PlatformUtil.isMac()) "Shortcut+Comma" else null,
-            disable = State.canSettings.not(), handler = { SettingsDialog(State.getSelectedRepository(), window).show() })
+            disable = State.canSettings.not(),
+            handler = { SettingsDialog(State.getSelectedRepository(), window).show() })
 
     private val window: Window get() = scene.window
     private val selectedEntry: RepositoryEntry? get() = selectionModel.selectedItem?.value

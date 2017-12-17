@@ -4,7 +4,7 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
 
-object StashService : Refreshable() {
+object BranchService : Refreshable() {
 
     override fun onRefresh(repository: LocalRepository) {
         update(repository)
@@ -15,11 +15,11 @@ object StashService : Refreshable() {
     }
 
     override fun onRepositoryDeselected() {
-        State.stashSize.set(0)
+        State.branchCount.set(0)
     }
 
     private fun update(repository: LocalRepository) {
-        State.stashSize.set(Git.stashListSize(repository))
+        State.branchCount.set(Git.branchListAll(repository).size)
     }
 
 }

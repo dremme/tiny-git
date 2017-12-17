@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit
 
 import hamburg.remme.tinygit.gui.GitView
+import hamburg.remme.tinygit.service.BranchService
 import hamburg.remme.tinygit.service.DivergenceService
 import hamburg.remme.tinygit.service.MergeService
 import hamburg.remme.tinygit.service.RebaseService
@@ -40,6 +41,7 @@ class TinyGit : Application() {
 
     override fun start(stage: Stage) {
         tinygit = this
+        BranchService
         DivergenceService
         MergeService
         RebaseService
@@ -59,7 +61,7 @@ class TinyGit : Application() {
 
         stage.focusedProperty().addListener { _, _, it ->
             if (it) {
-                if (State.modalVisible.get()) State.modalVisible.set(false)
+                if (State.isModal.get()) State.isModal.set(false)
                 else State.fireRefresh(stage)
             }
         }
@@ -67,7 +69,7 @@ class TinyGit : Application() {
         stage.scene.stylesheets += "default.css".asResource()
         stage.icons += Image("icon.png".asResource())
         stage.titleProperty().bind(Bindings.createStringBinding(Callable { updateTitle() },
-                State.selectedRepository, State.merging, State.rebasing, State.rebaseNext, State.rebaseLast))
+                State.selectedRepository, State.isMerging, State.isRebasing, State.rebaseNext, State.rebaseLast))
         stage.show()
     }
 
@@ -78,8 +80,8 @@ class TinyGit : Application() {
 
     private fun updateTitle(): String {
         val repository = State.selectedRepository.get()?.let {
-            val rebase = if (State.rebasing.get()) "REBASING ${State.rebaseNext.get()}/${State.rebaseLast.get()} " else ""
-            val merge = if (State.merging.get()) "MERGING " else ""
+            val rebase = if (State.isRebasing.get()) "REBASING ${State.rebaseNext.get()}/${State.rebaseLast.get()} " else ""
+            val merge = if (State.isMerging.get()) "MERGING " else ""
             "${it.shortPath} [$it] $merge$rebase\u2012 "
         } ?: ""
         return "$repository$title"

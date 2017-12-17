@@ -10,6 +10,7 @@ import hamburg.remme.tinygit.git.LocalRebase
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStashEntry
 import hamburg.remme.tinygit.git.LocalStatus
+import hamburg.remme.tinygit.read
 import hamburg.remme.tinygit.readFirst
 import hamburg.remme.tinygit.readLines
 import hamburg.remme.tinygit.stopTime
@@ -86,17 +87,9 @@ object Git {
 
     fun isUpdated(repository: LocalRepository) = cache.contains(repository)
 
-    fun isDefaultBranch(repository: LocalRepository): Boolean {
-        return repository.open { DEFAULT_BRANCHES.contains(it.branch) }
-    }
+    fun isMerging(repository: LocalRepository) = repository.open { it.repositoryState == RepositoryState.MERGING }
 
-    fun isMerging(repository: LocalRepository): Boolean {
-        return repository.open { it.repositoryState == RepositoryState.MERGING }
-    }
-
-    fun isRebasing(repository: LocalRepository): Boolean {
-        return repository.open { it.repositoryState.isRebasing }
-    }
+    fun isRebasing(repository: LocalRepository) = repository.open { it.repositoryState.isRebasing }
 
     /**
      * - git remote
@@ -212,6 +205,7 @@ object Git {
     /**
      * - git log HEAD --max-count=1
      */
+    // TODO: or use commit edit file
     fun headMessage(repository: LocalRepository): String {
         return repository.open("head message") {
             val head = it.findRef(it.branch)
@@ -563,6 +557,28 @@ object Git {
             it.branchDelete().setForce(force).setBranchNames(name).call()
         }
     }
+
+    /**
+     * - git merge <[branch]>
+     */
+    fun merge(repository: LocalRepository, branch: String) {
+        repository.openGit("merge $branch") {
+            it.merge().include(it.repository.resolve(branch)).setMessage("Merged '$branch' into '${it.repository.branch}'.").call()
+        }
+    }
+
+    /**
+     * - git merge --abort
+     */
+    fun mergeAbort(repository: LocalRepository) {
+        repository.openGit("merge abort") {
+            it.repository.writeMergeHeads(null)
+            it.repository.writeMergeCommitMsg(null)
+            it.reset().setMode(ResetCommand.ResetType.HARD).call()
+        }
+    }
+
+    fun mergeMessage(repository: LocalRepository) = "${repository.path}/.git/MERGE_MSG".asPath().read()
 
     /**
      * - git rebase <[branch]>
