@@ -56,13 +56,10 @@ object State {
     private val allRepositories = FXCollections.observableArrayList<LocalRepository>()!!
     private val repositories = allRepositories.filtered { it.path.asPath().exists() }!!
     val selectedRepository = SimpleObjectProperty<LocalRepository>()
+    val branchCount = SimpleIntegerProperty()
     val aheadDefault = SimpleIntegerProperty()
     val ahead = SimpleIntegerProperty()
     val behind = SimpleIntegerProperty()
-    val merging = SimpleBooleanProperty()
-    val rebasing = SimpleBooleanProperty()
-    val rebaseNext = SimpleIntegerProperty()
-    val rebaseLast = SimpleIntegerProperty()
 
     fun getAllRepositories() = allRepositories
 
@@ -87,11 +84,15 @@ object State {
      * WORKING COPY                                                                                                  *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    val isMerging = SimpleBooleanProperty()
+    val isRebasing = SimpleBooleanProperty()
+    val rebaseNext = SimpleIntegerProperty()
+    val rebaseLast = SimpleIntegerProperty()
     val stagedFiles = FXCollections.observableArrayList<LocalFile>()!!
     val pendingFiles = FXCollections.observableArrayList<LocalFile>()!!
-    val stagedFilesSelected = SimpleIntegerProperty()
-    val pendingFilesSelected = SimpleIntegerProperty()
-    val stashEntries = SimpleIntegerProperty()
+    val stagedSelectedCount = SimpleIntegerProperty()
+    val pendingSelectedCount = SimpleIntegerProperty()
+    val stashSize = SimpleIntegerProperty()
     val commitMessage = SimpleStringProperty()
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -101,10 +102,10 @@ object State {
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     val showGlobalInfo = Bindings.isEmpty(repositories)!!
     val showGlobalOverlay = runningProcesses.greater0()!!
-    val showToolBar = merging.not().and(rebasing.not())!!
-    val showMergeBar = merging
-    val showRebaseBar = rebasing
-    val modalVisible = SimpleBooleanProperty()
+    val showToolBar = isMerging.not().and(isRebasing.not())!!
+    val showMergeBar = isMerging
+    val showRebaseBar = isRebasing
+    val isModal = SimpleBooleanProperty()
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
@@ -112,29 +113,33 @@ object State {
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private val isIdle = selectedRepository.isNotNull.and(runningProcesses.equals0())!!
-    private val isReady = isIdle.and(merging.not()).and(rebasing.not())!!
+    private val isReady = isIdle.and(isMerging.not()).and(isRebasing.not())!!
     val canRemove = isReady
     val canSettings = isReady
     val canCommit = isReady.and(Bindings.isNotEmpty(stagedFiles))!!
     val canPush = isReady.and(ahead.unequals0())!!
+    val canForcePush = canPush
     val canPull = isReady.and(behind.greater0())!!
     val canFetch = isReady
+    val canGc = canFetch
     val canTag = FALSE // TODO
     val canBranch = isReady
-    val canMerge = FALSE // TODO
-    val canRebase = isReady
-    val canRebaseContinue = isIdle.and(rebasing)!!
-    val canRebaseAbort = isIdle.and(rebasing)!!
+    val canMerge = isReady.and(branchCount.greater1())!!
+    val canMergeContinue = isIdle.and(isMerging)!!
+    val canMergeAbort = isIdle.and(isMerging)!!
+    val canRebase = isReady.and(branchCount.greater1())!!
+    val canRebaseContinue = isIdle.and(isRebasing)!!
+    val canRebaseAbort = isIdle.and(isRebasing)!!
     val canStash = isReady.and(Bindings.isNotEmpty(stagedFiles).or(Bindings.isNotEmpty(pendingFiles)))!!
-    val canApplyStash = isReady.and(stashEntries.greater0())!!
+    val canApplyStash = isReady.and(stashSize.greater0())!!
     val canReset = isReady.and(behind.greater0())!!
     val canSquash = isReady.and(aheadDefault.greater1())!!
 
     val canStageAll = Bindings.isNotEmpty(pendingFiles)!!
-    val canUpdateAll = Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.ADDED && !it.cached })!!
-    val canStageSelected = pendingFilesSelected.greater0()!!
+    val canUpdateAll = Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.ADDED })!!
+    val canStageSelected = pendingSelectedCount.greater0()!!
     val canUnstageAll = Bindings.isNotEmpty(stagedFiles)!!
-    val canUnstageSelected = stagedFilesSelected.greater0()!!
+    val canUnstageSelected = stagedSelectedCount.greater0()!!
 
     private fun IntegerProperty.equals0() = isEqualTo(0)
     private fun IntegerProperty.unequals0() = isNotEqualTo(0)

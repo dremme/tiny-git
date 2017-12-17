@@ -54,14 +54,14 @@ class ToolBarBuilder : ToolBar() {
 
     operator fun ActionGroup.unaryPlus() {
         if (items.isNotEmpty()) +Separator()
-        action.forEach {
+        action.forEach { action ->
             +stackPane {
-                +button(it)
-                it.count?.let {
+                +button(action)
+                action.count?.let {
                     +label {
                         addClass("count-badge")
                         alignment(Pos.TOP_RIGHT)
-                        visibleWhen(Bindings.lessThan(0, it))
+                        visibleWhen(Bindings.lessThan(0, it).run { action.disable?.let { and(Bindings.not(it)) } ?: this })
                         isMouseTransparent = true
                         textProperty().bind(Bindings.convert(it))
                     }

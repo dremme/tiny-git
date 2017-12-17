@@ -67,12 +67,12 @@ abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = fal
     }
 
     fun show() {
-        State.modalVisible.set(true)
+        State.isModal.set(true)
         dialog.show()
     }
 
     fun showAndWait(): T? {
-        State.modalVisible.set(true)
+        State.isModal.set(true)
         return dialog.showAndWait().orElse(null)
     }
 

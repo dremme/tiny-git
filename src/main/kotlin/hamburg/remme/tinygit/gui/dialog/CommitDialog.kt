@@ -7,6 +7,7 @@ import hamburg.remme.tinygit.gui.FileDiffView
 import hamburg.remme.tinygit.gui.FileStatusView
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.checkBox
+import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.textArea
 import hamburg.remme.tinygit.gui.builder.vbox
@@ -15,8 +16,10 @@ import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.scene.layout.Priority
 import javafx.stage.Window
+import org.eclipse.jgit.api.errors.WrongRepositoryStateException
 
-class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>(window, "New Commit", true) {
+class CommitDialog(repository: LocalRepository, window: Window)
+    : Dialog<Unit>(window, if (State.isMerging.get()) "Merge Commit" else "New Commit", true) {
 
     init {
         val fileDiff = FileDiffView()
@@ -31,6 +34,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>(w
             textProperty().bindBidirectional(State.commitMessage)
             Platform.runLater { requestFocus() }
         }
+        if (State.isMerging.get() && message.text.isNullOrBlank()) message.text = Git.mergeMessage(repository)
 
         val amend = checkBox {
             text = "Amend last commit."
@@ -50,8 +54,13 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>(w
             files.selectionModel.selectedItem ?: files.selectionModel.selectFirst()
         }
         okAction = {
-            if (amend.isSelected) Git.commitAmend(repository, message.text)
-            else Git.commit(repository, message.text)
+            try {
+                if (amend.isSelected) Git.commitAmend(repository, message.text)
+                else Git.commit(repository, message.text)
+            } catch (ex: WrongRepositoryStateException) {
+                errorAlert(dialogWindow, "Cannot Commit", "Cannot commit because there are unmerged changes.")
+                throw ex
+            }
 
             State.commitMessage.set("")
             State.fireRefresh(this)
@@ -65,7 +74,7 @@ class CommitDialog(repository: LocalRepository, window: Window) : Dialog<Unit>(w
                 +fileDiff
             }
             +message
-            +amend
+            if (!State.isMerging.get()) +amend
         }
     }
 

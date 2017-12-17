@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.delete
+import hamburg.remme.tinygit.exists
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStatus
@@ -82,11 +83,14 @@ class WorkingCopyView : Tab() {
             }
         }
 
-        // TODO: menubar actions?
-        val canDelete = State.canStageSelected // TODO: own binding?
+        // TODO: state props?
+        val canDelete = Bindings.createBooleanBinding(
+                Callable { !pendingFilesSelection.selectedItems.all { it.status == LocalFile.Status.REMOVED } },
+                pendingFilesSelection.selectedIndexProperty())
         val canDiscard = Bindings.createBooleanBinding(
                 Callable { !pendingFilesSelection.selectedItems.all { it.status == LocalFile.Status.ADDED } },
-                pendingFilesSelection.selectedItemProperty())
+                pendingFilesSelection.selectedIndexProperty())
+        // TODO: menubar actions?
         val stageFile = Action("Stage (K)", { Icons.arrowCircleUp() }, disable = State.canStageSelected.not(),
                 handler = { stage(State.getSelectedRepository(), pendingFilesSelection.selectedItems) })
         val deleteFile = Action("Delete (Del)", { Icons.trash() }, disable = canDelete.not(),
@@ -108,10 +112,10 @@ class WorkingCopyView : Tab() {
             }
         }
 
-        stagedFilesSelection.selectedItems.addListener(ListChangeListener { State.stagedFilesSelected.set(it.list.size) })
+        stagedFilesSelection.selectedItems.addListener(ListChangeListener { State.stagedSelectedCount.set(it.list.size) })
         stagedFilesSelection.selectedItemProperty().addListener({ _, _, it -> it?.let { pendingFilesSelection.clearSelection() } })
 
-        pendingFilesSelection.selectedItems.addListener(ListChangeListener { State.pendingFilesSelected.set(it.list.size) })
+        pendingFilesSelection.selectedItems.addListener(ListChangeListener { State.pendingSelectedCount.set(it.list.size) })
         pendingFilesSelection.selectedItemProperty().addListener({ _, _, it -> it?.let { stagedFilesSelection.clearSelection() } })
 
         // TODO: selection is little buggy sometimes / not refreshing correctly
@@ -192,7 +196,7 @@ class WorkingCopyView : Tab() {
     }
 
     private fun stage(repository: LocalRepository) {
-        Git.stageAll(repository, pendingFiles.items.filter { it.status == LocalFile.Status.REMOVED && !it.cached })
+        Git.stageAll(repository, pendingFiles.items.filter { it.status == LocalFile.Status.REMOVED })
         status(repository)
     }
 
@@ -222,7 +226,7 @@ class WorkingCopyView : Tab() {
         if (confirmWarningAlert(window, "Delete Files", "Delete",
                 "This will remove the selected files from the disk.")) {
             val selected = getIndex(pendingFilesSelection)
-            files.forEach { repository.resolve(it).asPath().delete() }
+            files.forEach { repository.resolve(it).asPath().takeIf { it.exists() }?.delete() }
             status(repository) { setIndex(pendingFilesSelection, selected) }
         }
     }

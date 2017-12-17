@@ -77,23 +77,27 @@ class GitView : VBoxBuilder() {
                 handler = { tabs.selectionModel.select(workingCopy) })
         // Repository
         val commit = Action("Commit", { Icons.plus() }, "Shortcut+K", State.canCommit.not(),
-                { commit(State.getSelectedRepository()) })
+                { CommitDialog(State.getSelectedRepository(), window).show() })
         val push = Action("Push", { Icons.cloudUpload() }, "Shortcut+P", State.canPush.not(),
                 { push(State.getSelectedRepository(), false) }, State.ahead)
-        val pushForce = Action("Force Push", { Icons.cloudUpload() }, "Shortcut+Shift+P", State.canPush.not(),
+        val pushForce = Action("Force Push", { Icons.cloudUpload() }, "Shortcut+Shift+P", State.canForcePush.not(),
                 { push(State.getSelectedRepository(), true) }, State.ahead)
         val pull = Action("Pull", { Icons.cloudDownload() }, "Shortcut+L", State.canPull.not(),
                 { pull(State.getSelectedRepository()) }, State.behind)
         val fetch = Action("Fetch", { Icons.refresh() }, "Shortcut+F", State.canFetch.not(),
                 { fetch(State.getSelectedRepository()) })
-        val fetchGc = Action("Fetch and GC", { Icons.eraser() }, "Shortcut+Shift+F", State.canFetch.not(),
+        val fetchGc = Action("Fetch and GC", { Icons.eraser() }, "Shortcut+Shift+F", State.canGc.not(),
                 { fetchGc(State.getSelectedRepository()) })
         val tag = Action("Tag", { Icons.tag() }, "Shortcut+T", State.canTag.not(),
                 handler = { /* TODO */ })
         val branch = Action("Branch", { Icons.codeFork() }, "Shortcut+B", State.canBranch.not(),
                 { createBranch(State.getSelectedRepository()) })
         val merge = Action("Merge", { Icons.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
-                handler = { /* TODO */ })
+                handler = { merge(State.getSelectedRepository()) })
+        val mergeContinue = Action("Continue Merge", { Icons.forward() }, "Shortcut+Shift+M", State.canMergeContinue.not(),
+                handler = { CommitDialog(State.getSelectedRepository(), window).show() })
+        val mergeAbort = Action("Abort Merge", { Icons.timesCircle() }, disable = State.canMergeAbort.not(),
+                handler = { mergeAbort(State.getSelectedRepository()) })
         val rebase = Action("Rebase", { Icons.levelUp().flipX() }, "Shortcut+R", State.canRebase.not(),
                 handler = { rebase(State.getSelectedRepository()) })
         val rebaseContinue = Action("Continue Rebase", { Icons.forward() }, "Shortcut+Shift+R", State.canRebaseContinue.not(),
@@ -121,7 +125,7 @@ class GitView : VBoxBuilder() {
             +ActionCollection("Repository",
                     ActionGroup(commit),
                     ActionGroup(push, pushForce, pull, fetch, fetchGc, tag),
-                    ActionGroup(branch, merge),
+                    ActionGroup(branch, merge, mergeContinue, mergeAbort),
                     ActionGroup(rebase, rebaseContinue, rebaseAbort),
                     ActionGroup(stash, stashPop),
                     ActionGroup(reset, squash),
@@ -137,6 +141,12 @@ class GitView : VBoxBuilder() {
             +ActionGroup(branch, merge)
             +ActionGroup(stash, stashPop)
             +ActionGroup(reset, squash)
+        }
+        +toolBar {
+            visibleWhen(State.showMergeBar)
+            managedWhen(State.showMergeBar)
+            +ActionGroup(addRepo)
+            +ActionGroup(mergeContinue, mergeAbort)
         }
         +toolBar {
             visibleWhen(State.showRebaseBar)
@@ -186,10 +196,6 @@ class GitView : VBoxBuilder() {
                         "'${it.absolutePath}' does not contain a valid '.git' directory.")
             }
         }
-    }
-
-    private fun commit(repository: LocalRepository) {
-        CommitDialog(repository, window).show()
     }
 
     private fun fetch(repository: LocalRepository) {
@@ -276,6 +282,34 @@ class GitView : VBoxBuilder() {
                 }
             })
         }
+    }
+
+    private fun merge(repository: LocalRepository) {
+        val current = Git.head(repository)
+        val branches = Git.branchListAll(repository).map { it.shortRef }.filter { it != current }
+        choiceDialog(window, "Select a Branch to Merge", "Merge", Icons.codeFork().flipY(), branches) { branch ->
+            State.startProcess("Merging...", object : Task<Unit>() {
+                override fun call() = Git.merge(repository, branch)
+
+                override fun succeeded() = State.fireRefresh(this)
+
+                override fun failed() {
+                    exception.printStackTrace()
+                }
+            })
+        }
+    }
+
+    private fun mergeAbort(repository: LocalRepository) {
+        State.startProcess("Aborting...", object : Task<Unit>() {
+            override fun call() = Git.mergeAbort(repository)
+
+            override fun succeeded() = State.fireRefresh(this)
+
+            override fun failed() {
+                exception.printStackTrace()
+            }
+        })
     }
 
     private fun rebase(repository: LocalRepository) {

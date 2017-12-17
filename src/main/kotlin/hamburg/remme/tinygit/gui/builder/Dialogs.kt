@@ -25,7 +25,7 @@ fun confirmAlert(window: Window, header: String, ok: String, text: String): Bool
             Icons.questionCircle().addClass("info"),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
             ButtonType.CANCEL)
-    State.modalVisible.set(true)
+    State.isModal.set(true)
     return alert.showAndWait().get().isOk()
 }
 
@@ -37,7 +37,7 @@ fun confirmWarningAlert(window: Window, header: String, ok: String, text: String
             Icons.exclamationTriangle().addClass("warning"),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
             ButtonType.CANCEL)
-    State.modalVisible.set(true)
+    State.isModal.set(true)
     return alert.showAndWait().get().isOk()
 }
 
@@ -48,7 +48,7 @@ fun errorAlert(window: Window, header: String, text: String) {
             text,
             Icons.exclamationTriangle().addClass("error"),
             ButtonType.OK)
-    State.modalVisible.set(true)
+    State.isModal.set(true)
     alert.showAndWait()
 }
 
@@ -113,7 +113,7 @@ inline fun fileChooser(window: Window, title: String, block: (File) -> Unit) {
     val chooser = FileChooser()
     chooser.title = title
     chooser.initialDirectory = File(System.getProperty("user.home"))
-    State.modalVisible.set(true)
+    State.isModal.set(true)
     chooser.showOpenDialog(window)?.let(block)
 }
 
@@ -121,6 +121,6 @@ inline fun directoryChooser(window: Window, title: String, block: (File) -> Unit
     val chooser = DirectoryChooser()
     chooser.title = title
     chooser.initialDirectory = File(System.getProperty("user.home"))
-    State.modalVisible.set(true)
+    State.isModal.set(true)
     chooser.showDialog(window)?.let(block)
 }
