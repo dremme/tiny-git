@@ -118,7 +118,6 @@ class WorkingCopyView : Tab() {
         pendingFilesSelection.selectedItems.addListener(ListChangeListener { State.pendingSelectedCount.set(it.list.size) })
         pendingFilesSelection.selectedItemProperty().addListener({ _, _, it -> it?.let { stagedFilesSelection.clearSelection() } })
 
-        // TODO: selection is little buggy sometimes / not refreshing correctly
         selectedFile = Bindings.createObjectBinding(
                 Callable { stagedFilesSelection.selectedItem ?: pendingFilesSelection.selectedItem },
                 stagedFilesSelection.selectedItemProperty(), pendingFilesSelection.selectedItemProperty())
@@ -165,8 +164,10 @@ class WorkingCopyView : Tab() {
     }
 
     private fun setContent(status: LocalStatus) {
-        stagedFiles.items.setAll(status.staged)
-        pendingFiles.items.setAll(status.pending)
+        stagedFiles.items.addAll(status.staged.filter { stagedFiles.items.none(it::equals) })
+        stagedFiles.items.removeAll(stagedFiles.items.filter { status.staged.none(it::equals) })
+        pendingFiles.items.addAll(status.pending.filter { pendingFiles.items.none(it::equals) })
+        pendingFiles.items.removeAll(pendingFiles.items.filter { status.pending.none(it::equals) })
     }
 
     private fun clearContent() {
@@ -181,16 +182,8 @@ class WorkingCopyView : Tab() {
             override fun call() = Git.status(repository)
 
             override fun succeeded() {
-                if (block != null) {
-                    setContent(value)
-                    block.invoke()
-                } else {
-                    val staged = (stagedFilesSelection.selectedItems + stagedFilesSelection.selectedItem).filterNotNull()
-                    val pending = (pendingFilesSelection.selectedItems + pendingFilesSelection.selectedItem).filterNotNull()
-                    setContent(value)
-                    staged.map { stagedFiles.items.indexOf(it) }.forEach { stagedFilesSelection.select(it) }
-                    pending.map { pendingFiles.items.indexOf(it) }.forEach { pendingFilesSelection.select(it) }
-                }
+                setContent(value)
+                block?.invoke()
             }
         }.also { State.execute(it) }
     }

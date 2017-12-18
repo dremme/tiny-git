@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit
 
 import javafx.application.Platform
+import javafx.collections.FXCollections
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -57,6 +58,10 @@ private fun cipher(mode: Int): Cipher {
     cipher.init(mode, key, iv)
     return cipher
 }
+
+fun <T> List<T>.toObservableList() = FXCollections.observableArrayList(this)!!
+
+fun <T> observableList() = FXCollections.observableArrayList<T>()!!
 
 inline fun <T> stopTime(type: String, message: String, block: () -> T): T {
     if (type.isNotBlank() && message.isNotBlank()) {

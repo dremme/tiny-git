@@ -9,8 +9,8 @@ class LocalCommit(val id: String,
                   val fullMessage: String,
                   val shortMessage: String,
                   val date: LocalDateTime,
-                  authorName: String,
-                  authorMail: String) {
+                  val authorName: String,
+                  val authorMail: String) {
 
     val author = "$authorName <$authorMail>"
 

@@ -3,9 +3,11 @@ package hamburg.remme.tinygit.gui.builder
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.SplitPane
+import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
+import javafx.scene.layout.RowConstraints
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 
@@ -99,6 +101,24 @@ open class VBoxBuilder : VBox() {
 class GridPaneBuilder(private val width: Int) : GridPane() {
 
     private var rowIndex = 0
+
+    fun addColumn(vararg percent: Double) {
+        percent.forEach {
+            columnConstraints += ColumnConstraints().apply {
+                percentWidth = it
+                isFillWidth = true
+            }
+        }
+    }
+
+    fun addRow(vararg percent: Double) {
+        percent.forEach {
+            rowConstraints += RowConstraints().apply {
+                percentHeight = it
+                isFillHeight = true
+            }
+        }
+    }
 
     operator fun List<Node>.unaryPlus() {
         var columnIndex = 0

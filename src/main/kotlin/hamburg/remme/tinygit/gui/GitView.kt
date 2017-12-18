@@ -76,7 +76,7 @@ class GitView : VBoxBuilder() {
                 handler = { tabs.selectionModel.select(commitLog) })
         val showWorkingCopy = Action("Show Working Copy", { Icons.hdd() }, "F2",
                 handler = { tabs.selectionModel.select(workingCopy) })
-        val showStats = Action("Show Statistics", { Icons.chartPie() }, "F3", State.TRUE,
+        val showStats = Action("Show Statistics", { Icons.chartPie() }, "F3",
                 handler = { tabs.selectionModel.select(stats) })
         // Repository
         val commit = Action("Commit", { Icons.plus() }, "Shortcut+K", State.canCommit.not(),
@@ -297,9 +297,7 @@ class GitView : VBoxBuilder() {
 
                 override fun succeeded() = State.fireRefresh(this)
 
-                override fun failed() {
-                    exception.printStackTrace()
-                }
+                override fun failed() = exception.printStackTrace()
             })
         }
     }
@@ -310,9 +308,7 @@ class GitView : VBoxBuilder() {
 
             override fun succeeded() = State.fireRefresh(this)
 
-            override fun failed() {
-                exception.printStackTrace()
-            }
+            override fun failed() = exception.printStackTrace()
         })
     }
 

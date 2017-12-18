@@ -10,7 +10,6 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
-import javafx.collections.FXCollections
 import javafx.concurrent.Task
 import java.util.concurrent.Executors
 
@@ -53,7 +52,7 @@ object State {
      * REPOSITORIES                                                                                                  *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val allRepositories = FXCollections.observableArrayList<LocalRepository>()!!
+    private val allRepositories = observableList<LocalRepository>()!!
     private val repositories = allRepositories.filtered { it.path.asPath().exists() }!!
     val selectedRepository = SimpleObjectProperty<LocalRepository>()
     val branchCount = SimpleIntegerProperty()
@@ -88,8 +87,8 @@ object State {
     val isRebasing = SimpleBooleanProperty()
     val rebaseNext = SimpleIntegerProperty()
     val rebaseLast = SimpleIntegerProperty()
-    val stagedFiles = FXCollections.observableArrayList<LocalFile>()!!
-    val pendingFiles = FXCollections.observableArrayList<LocalFile>()!!
+    val stagedFiles = observableList<LocalFile>()!!
+    val pendingFiles = observableList<LocalFile>()!!
     val stagedSelectedCount = SimpleIntegerProperty()
     val pendingSelectedCount = SimpleIntegerProperty()
     val stashSize = SimpleIntegerProperty()
