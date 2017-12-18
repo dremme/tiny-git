@@ -39,6 +39,7 @@
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
+            <!-- TODO: add klint -->
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>

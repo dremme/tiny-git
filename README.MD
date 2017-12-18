@@ -26,7 +26,6 @@ java -jar tinygit-x.x.x.jar
 
 ### Missing Features
 
- - Merging branches
  - Tracking only wanted branches
  - Commit graph in the log
  - Viewing/applying/removing explicit stashes
@@ -34,6 +33,8 @@ java -jar tinygit-x.x.x.jar
  - Tagging commits & push/remove tags
  - Staging/unstaging code blocks
  - Saving selected tab
+ - Saving split pane dividers
  - Opening selected file in explorer/finder
  - Pull request notifications?
  - Set author and email per repository
+ - Git statistics

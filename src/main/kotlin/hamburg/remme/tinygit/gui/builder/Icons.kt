@@ -7,6 +7,7 @@ object Icons {
 
     fun arrowCircleDown() = icon('\uf0ab')
     fun arrowCircleUp() = icon('\uf0aa')
+    fun chartPie() = icon('\uf200')
     fun check() = icon('\uf00c')
     fun clone() = icon('\uf24d')
     fun cloud() = icon('\uf0c2')
