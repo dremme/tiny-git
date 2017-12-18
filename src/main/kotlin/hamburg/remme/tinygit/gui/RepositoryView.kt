@@ -255,15 +255,15 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         })
     }
 
-    private fun RepositoryEntry?.isRoot() = this?.let { it.type == EntryType.REPOSITORY } == true
+    private fun RepositoryEntry?.isRoot() = this?.type == EntryType.REPOSITORY
 
-    private fun RepositoryEntry?.isLocal() = this?.let { it.type == EntryType.LOCAL_BRANCH } == true
+    private fun RepositoryEntry?.isLocal() = this?.type == EntryType.LOCAL_BRANCH
 
     private fun RepositoryEntry?.isBranch(): Boolean {
-        return this?.let { !it.isHead() && it.type == EntryType.LOCAL_BRANCH || it.type == EntryType.REMOTE_BRANCH } == true
+        return !this.isHead() && this?.type == EntryType.LOCAL_BRANCH || this?.type == EntryType.REMOTE_BRANCH
     }
 
-    private fun RepositoryEntry?.isHead() = this?.let { it.value == cache[it.repository] } == true
+    private fun RepositoryEntry?.isHead() = this?.value == cache[this?.repository ?: ""]
 
     inner class RepositoryEntry(val repository: LocalRepository, val value: String, val type: EntryType) {
 

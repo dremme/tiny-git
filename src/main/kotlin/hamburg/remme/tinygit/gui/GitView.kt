@@ -72,11 +72,11 @@ class GitView : VBoxBuilder() {
         val quit = Action("Quit TinyGit", { Icons.signOut() },
                 handler = { Platform.exit() })
         // View
-        val showCommits = Action("Show Commits", { Icons.list() }, "F1",
+        val showCommits = Action("Show Commits", { Icons.list() }, "F1", State.selectedRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(commitLog) })
-        val showWorkingCopy = Action("Show Working Copy", { Icons.hdd() }, "F2",
+        val showWorkingCopy = Action("Show Working Copy", { Icons.hdd() }, "F2", State.selectedRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(workingCopy) })
-        val showStats = Action("Show Statistics", { Icons.chartPie() }, "F3",
+        val showStats = Action("Show Statistics", { Icons.chartPie() }, "F3", State.selectedRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(stats) })
         // Repository
         val commit = Action("Commit", { Icons.plus() }, "Shortcut+K", State.canCommit.not(),

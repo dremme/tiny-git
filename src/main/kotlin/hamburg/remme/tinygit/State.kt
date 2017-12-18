@@ -15,8 +15,8 @@ import java.util.concurrent.Executors
 
 object State {
 
-    val TRUE = ReadOnlyBooleanWrapper(true).readOnlyProperty!!
-    val FALSE = ReadOnlyBooleanWrapper(false).readOnlyProperty!!
+    private val TRUE = ReadOnlyBooleanWrapper(true).readOnlyProperty!!
+    private val FALSE = ReadOnlyBooleanWrapper(false).readOnlyProperty!!
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
@@ -52,7 +52,7 @@ object State {
      * REPOSITORIES                                                                                                  *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val allRepositories = observableList<LocalRepository>()!!
+    private val allRepositories = observableList<LocalRepository>()
     private val repositories = allRepositories.filtered { it.path.asPath().exists() }!!
     val selectedRepository = SimpleObjectProperty<LocalRepository>()
     val branchCount = SimpleIntegerProperty()
@@ -87,8 +87,8 @@ object State {
     val isRebasing = SimpleBooleanProperty()
     val rebaseNext = SimpleIntegerProperty()
     val rebaseLast = SimpleIntegerProperty()
-    val stagedFiles = observableList<LocalFile>()!!
-    val pendingFiles = observableList<LocalFile>()!!
+    val stagedFiles = observableList<LocalFile>()
+    val pendingFiles = observableList<LocalFile>()
     val stagedSelectedCount = SimpleIntegerProperty()
     val pendingSelectedCount = SimpleIntegerProperty()
     val stashSize = SimpleIntegerProperty()

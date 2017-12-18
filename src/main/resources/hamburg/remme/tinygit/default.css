@@ -13,6 +13,14 @@
     -fx-mark-color: derive(white, -10%);
     -fx-mark-highlight-color: white;
 
+    CHART_COLOR_1: #bf7060;
+    CHART_COLOR_2: #bf8f60;
+    CHART_COLOR_3: #bfaf60;
+    CHART_COLOR_4: #8fbf60;
+    CHART_COLOR_5: #60bf8f;
+    CHART_COLOR_6: #608fbf;
+    CHART_COLOR_7: #6060bf;
+    CHART_COLOR_8: #9e60bf;
     -fx-chart-grid-color: rgba(255, 255, 255, 0.2);
     -fx-chart-label-color: rgba(255, 255, 255, 0.5);
 
