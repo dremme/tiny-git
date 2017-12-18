@@ -16,8 +16,8 @@ import java.util.concurrent.Executors
 
 object State {
 
-    private val TRUE = ReadOnlyBooleanWrapper(true).readOnlyProperty!!
-    private val FALSE = ReadOnlyBooleanWrapper(false).readOnlyProperty!!
+    val TRUE = ReadOnlyBooleanWrapper(true).readOnlyProperty!!
+    val FALSE = ReadOnlyBooleanWrapper(false).readOnlyProperty!!
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *

@@ -56,7 +56,8 @@ class GitView : VBoxBuilder() {
     private val repositoryView = RepositoryView()
     private val commitLog = CommitLogView()
     private val workingCopy = WorkingCopyView()
-    private val tabs = TabPane(commitLog, workingCopy)
+    private val stats = StatsView()
+    private val tabs = TabPane(commitLog, workingCopy, stats)
 
     init {
         addClass("git-view")
@@ -75,6 +76,8 @@ class GitView : VBoxBuilder() {
                 handler = { tabs.selectionModel.select(commitLog) })
         val showWorkingCopy = Action("Show Working Copy", { Icons.hdd() }, "F2",
                 handler = { tabs.selectionModel.select(workingCopy) })
+        val showStats = Action("Show Statistics", { Icons.chartPie() }, "F3", State.TRUE,
+                handler = { tabs.selectionModel.select(stats) })
         // Repository
         val commit = Action("Commit", { Icons.plus() }, "Shortcut+K", State.canCommit.not(),
                 { CommitDialog(State.getSelectedRepository(), window).show() })
@@ -121,16 +124,17 @@ class GitView : VBoxBuilder() {
         +menuBar {
             isUseSystemMenuBar = true
             +ActionCollection("File", ActionGroup(cloneRepo, newRepo, addRepo), ActionGroup(quit))
-            +ActionCollection("View", ActionGroup(showCommits, showWorkingCopy))
+            +ActionCollection("View", ActionGroup(showCommits, showWorkingCopy, showStats))
             +ActionCollection("Repository",
-                    ActionGroup(commit),
                     ActionGroup(push, pushForce, pull, fetch, fetchGc, tag),
                     ActionGroup(branch, merge, mergeContinue, mergeAbort),
                     ActionGroup(rebase, rebaseContinue, rebaseAbort),
-                    ActionGroup(stash, stashPop),
                     ActionGroup(reset, squash),
                     *repositoryView.actions)
-            +ActionCollection("Actions", *workingCopy.actions)
+            +ActionCollection("Actions",
+                    ActionGroup(commit),
+                    *workingCopy.actions,
+                    ActionGroup(stash, stashPop))
             +ActionCollection("?", ActionGroup(github, about))
         }
         +toolBar {
