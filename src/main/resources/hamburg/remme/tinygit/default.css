@@ -13,6 +13,9 @@
     -fx-mark-color: derive(white, -10%);
     -fx-mark-highlight-color: white;
 
+    -fx-chart-grid-color: rgba(255, 255, 255, 0.2);
+    -fx-chart-label-color: rgba(255, 255, 255, 0.5);
+
     -fx-color-status-conflict: #ffc66d;
     -fx-color-status-added: #7dbf5c;
     -fx-color-status-copied: #ffc66d;
@@ -176,6 +179,28 @@
 .hyperlink:hover:visited {
     -fx-padding: 0;
     -fx-text-fill: derive(-fx-focus-color, 15%);
+}
+
+.axis {
+    AXIS_COLOR: -fx-chart-grid-color;
+}
+
+.chart-vertical-grid-lines {
+    -fx-stroke: -fx-chart-grid-color;
+    -fx-stroke-dash-array: 0.25em, 0.25em;
+}
+
+.chart-horizontal-grid-lines {
+    -fx-stroke: -fx-chart-grid-color;
+    -fx-stroke-dash-array: 0.25em, 0.25em;
+}
+
+.chart-horizontal-zero-line {
+    -fx-stroke: none;
+}
+
+.chart-pie-label-line {
+    -fx-stroke: -fx-chart-label-color;
 }
 
 .git-view > .tool-bar .button {

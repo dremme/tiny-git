@@ -39,6 +39,7 @@ import org.eclipse.jgit.revwalk.FollowFilter
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.revwalk.RevWalkUtils
+import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter
 import org.eclipse.jgit.revwalk.filter.RevFilter
 import org.eclipse.jgit.transport.RemoteRefUpdate
 import org.eclipse.jgit.transport.URIish
@@ -47,6 +48,7 @@ import org.eclipse.jgit.treewalk.AbstractTreeIterator
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.treewalk.EmptyTreeIterator
 import org.eclipse.jgit.treewalk.FileTreeIterator
+import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.treewalk.filter.PathFilter
 import org.eclipse.jgit.treewalk.filter.TreeFilter
 import org.eclipse.jgit.util.FS
@@ -172,6 +174,18 @@ object Git {
             val logCommand = it.log().setSkip(skip).setMaxCount(max)
             it.branchListIds().forEach { logCommand.add(it) }
             logCommand.call().map { it.toLocalCommit() }
+        }
+    }
+
+    /**
+     * - git log --all --after=<[date]>
+     */
+    fun log(repository: LocalRepository, date: LocalDateTime?): Iterable<LocalCommit> {
+        return repository.openGit("log stream") {
+            val walk = it.revWalk()
+            date?.let { walk.revFilter = CommitTimeRevFilter.after(it.toInstant(ZoneOffset.UTC).toEpochMilli()) }
+            it.branchListIds().map { walk.parseCommit(it) }.forEach { walk.markStart(it) }
+            walk.map { it.toLocalCommit() }
         }
     }
 
@@ -389,6 +403,21 @@ object Git {
                     DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED)
                 }
             }.sortedBy { it.status }
+        }
+    }
+
+    fun tree(repository: LocalRepository): List<String> {
+        return repository.open("tree") {
+            val head = it.resolve("$HEAD^{tree}")
+            it.treeWalk().use {
+                it.addTree(head)
+                it.isRecursive = true
+                mutableListOf<String>().apply {
+                    while (it.next()) {
+                        add(it.pathString)
+                    }
+                }
+            }
         }
     }
 
@@ -790,6 +819,10 @@ object Git {
     private inline fun <T> LocalRepository.openGit(description: String = "", block: (JGit) -> T) = open(description) { JGit(it).let(block) }
 
     private fun Repository.revWalk() = RevWalk(this)
+
+    private fun Repository.treeWalk() = TreeWalk(this)
+
+    private fun JGit.revWalk() = RevWalk(repository)
 
     // TODO: test performance if objectreader is created here instead
     private fun Repository.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {
