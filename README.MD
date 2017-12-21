@@ -5,9 +5,13 @@ No need to toggle the proxy setting of `.gitconfig`.
 
 ![TinyGit](image/image1.png)
 
+Analyse your and other repositories with the help of TinyGit's statistics.
+
+![Stats](image/image2.png)
+
 ### Usage
 
-TinyGrid runs without a Git installation on your device.
+TinyGit runs without a Git installation on your device.
 
 Requires Java 1.8 or newer to be installed.
 
