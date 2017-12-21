@@ -12,8 +12,10 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlin.streams.toList
 
-val SHORT_DATE = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
-val FULL_DATE = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
+val SHORT_DATE = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
+val FULL_DATE = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy")!!
+val SHORT_DATE_TIME = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
+val FULL_DATE_TIME = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
 private val key = SecretKeySpec("FUMN1QLIf8sVkUdv".toByteArray(), "AES")
 private val iv = IvParameterSpec("Ay81aeLRJM5xtx9h".toByteArray())
 
@@ -61,7 +63,9 @@ private fun cipher(mode: Int): Cipher {
 
 fun <T> List<T>.toObservableList() = FXCollections.observableArrayList(this)!!
 
-fun <T> observableList() = FXCollections.observableArrayList<T>()!!
+fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*items)!!
+
+fun <T> observableList(items: Collection<T>) = FXCollections.observableArrayList<T>(items)!!
 
 inline fun <T> stopTime(type: String, message: String, block: () -> T): T {
     if (type.isNotBlank() && message.isNotBlank()) {

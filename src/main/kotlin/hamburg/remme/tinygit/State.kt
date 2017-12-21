@@ -23,7 +23,9 @@ object State {
      * THREAD POOLS                                                                                                  *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val cachedThreadPool = Executors.newCachedThreadPool()
+    private val cachedThreadPool = Executors.newCachedThreadPool({
+        Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true }
+    })
     private val runningProcesses = SimpleIntegerProperty(0)
     private val processText = ReadOnlyStringWrapper()
 
@@ -38,10 +40,6 @@ object State {
         processText.set(message)
         runningProcesses.inc()
         cachedThreadPool.execute(task)
-    }
-
-    fun stop() {
-        cachedThreadPool.shutdownNow()
     }
 
     private fun IntegerProperty.inc() = set(get() + 1)

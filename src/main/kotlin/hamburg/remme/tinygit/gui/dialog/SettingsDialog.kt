@@ -5,7 +5,6 @@ import hamburg.remme.tinygit.decrypt
 import hamburg.remme.tinygit.encrypt
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
-import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.columnSpan
@@ -15,6 +14,7 @@ import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.passwordField
 import hamburg.remme.tinygit.gui.builder.textField
 import hamburg.remme.tinygit.gui.builder.textInputDialog
+import hamburg.remme.tinygit.gui.component.Icons
 import javafx.scene.control.Label
 import javafx.stage.Window
 

@@ -10,7 +10,6 @@ import hamburg.remme.tinygit.git.LocalStatus
 import hamburg.remme.tinygit.git.api.Git
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
-import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.contextMenu
@@ -21,6 +20,7 @@ import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
+import hamburg.remme.tinygit.gui.component.Icons
 import javafx.beans.binding.Bindings
 import javafx.beans.value.ObservableObjectValue
 import javafx.collections.ListChangeListener
@@ -163,6 +163,7 @@ class WorkingCopyView : Tab() {
         State.addRefreshListener(this) { status(it) }
     }
 
+    // TODO: file status order gets messed up here
     private fun setContent(status: LocalStatus) {
         stagedFiles.items.addAll(status.staged.filter { stagedFiles.items.none(it::equals) })
         stagedFiles.items.removeAll(stagedFiles.items.filter { status.staged.none(it::equals) })
@@ -241,7 +242,7 @@ class WorkingCopyView : Tab() {
     }
 
     private fun setIndex(selectionModel: MultipleSelectionModel<LocalFile>, index: Int) {
-        selectionModel.select(index)
+        selectionModel.clearAndSelect(index)
         selectionModel.selectedItem ?: selectionModel.selectLast()
     }
 

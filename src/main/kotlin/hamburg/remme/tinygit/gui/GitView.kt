@@ -12,7 +12,6 @@ import hamburg.remme.tinygit.git.api.SquashException
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionCollection
 import hamburg.remme.tinygit.gui.builder.ActionGroup
-import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.choiceDialog
@@ -34,6 +33,7 @@ import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
+import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.AboutDialog
 import hamburg.remme.tinygit.gui.dialog.CloneDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog

@@ -1,12 +1,11 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.SHORT_DATE
+import hamburg.remme.tinygit.SHORT_DATE_TIME
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
-import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.ProgressPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.column
@@ -17,6 +16,7 @@ import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
+import hamburg.remme.tinygit.gui.component.Icons
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyObjectWrapper
@@ -60,7 +60,7 @@ class CommitLogView : Tab() {
         val date = column<LocalCommit, String> {
             text = "Date"
             isSortable = false
-            setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(SHORT_DATE)) }
+            setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(SHORT_DATE_TIME)) }
         }
         val author = column<LocalCommit, String> {
             text = "Author"
