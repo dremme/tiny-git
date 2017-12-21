@@ -43,13 +43,13 @@ class StatsView : Tab() {
         graphic = Icons.chartPie()
         isClosable = false
 
-        val contributions = PieChart(contributionData)
+        val contributions = PieChart(contributionData, "commits")
         contributions.title = "Contributions"
 
-        val files = PieChart(fileData)
+        val files = PieChart(fileData, "files")
         files.title = "Files"
 
-        val commits = PieChart(commitData)
+        val commits = PieChart(commitData, "commits")
         commits.title = "Commits by Month"
 
         val calendar = CalendarChart(calendarData)
@@ -125,12 +125,16 @@ class StatsView : Tab() {
             override fun failed() = exception.printStackTrace()
 
             private fun ObservableList<PieData>.setPieData(data: List<PieData>) {
-                if (size > data.size) remove(data.size, size)
-                forEachIndexed { i, it ->
-                    it.name = data[i].name
-                    it.pieValue = data[i].pieValue
+                if (isEmpty()) {
+                    setAll(data)
+                } else {
+                    if (size > data.size) remove(data.size, size)
+                    forEachIndexed { i, it ->
+                        it.name = data[i].name
+                        it.pieValue = data[i].pieValue
+                    }
+                    if (size < data.size) addAll(data.subList(size, data.size))
                 }
-                if (size < data.size) addAll(data.subList(size, data.size))
             }
         }.also { progressPane.execute(it) }
     }
