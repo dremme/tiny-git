@@ -11,7 +11,7 @@ fun <T : Node> T.addClass(vararg styleClass: String): T {
 }
 
 fun <T : Node> T.addStyle(style: String): T {
-    this.style += style.let { if (!it.endsWith(";")) "$it;" else it }
+    this.style += style.takeIf { it.endsWith(';') } ?: "$style;"
     return this
 }
 

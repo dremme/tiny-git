@@ -1,8 +1,8 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.component.Icons
 import javafx.collections.ObservableList
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView

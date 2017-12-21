@@ -2,12 +2,12 @@ package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asResource
-import hamburg.remme.tinygit.gui.builder.Icons
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.columnSpan
 import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.link
+import hamburg.remme.tinygit.gui.component.Icons
 import javafx.scene.control.Label
 import javafx.scene.image.Image
 import javafx.stage.Window

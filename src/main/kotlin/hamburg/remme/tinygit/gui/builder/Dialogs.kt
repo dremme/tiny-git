@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.ChoiceDialog
 import hamburg.remme.tinygit.gui.dialog.TextInputDialog
 import javafx.scene.Node

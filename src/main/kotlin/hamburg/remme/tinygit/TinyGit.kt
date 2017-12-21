@@ -15,6 +15,11 @@ import javafx.stage.Stage
 import java.util.Locale
 import java.util.concurrent.Callable
 
+// TODO: the great clean-up tbd
+// clean-up nested collection methods
+// cache stuff in nested collection methods, like find {}
+// clean-up nested let {} for map {}
+// instead of also {} and apply {}, use onEach {} at the end of a statement chain
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
     Font.loadFont("font/Roboto-Regular.ttf".asResource(), 13.0)
@@ -73,10 +78,7 @@ class TinyGit : Application() {
         stage.show()
     }
 
-    override fun stop() {
-        State.stop()
-        Settings.save()
-    }
+    override fun stop() = Settings.save()
 
     private fun updateTitle(): String {
         val repository = State.selectedRepository.get()?.let {

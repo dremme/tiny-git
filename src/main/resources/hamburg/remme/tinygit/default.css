@@ -211,6 +211,26 @@
     -fx-stroke: -fx-chart-label-color;
 }
 
+.chart-calendar-day.day-0 {
+    -fx-background-color: derive(-fx-background, 7.5%);
+}
+
+.chart-calendar-day.day-1 {
+    -fx-background-color: #566473;
+}
+
+.chart-calendar-day.day-2 {
+    -fx-background-color: #5c7a99;
+}
+
+.chart-calendar-day.day-3 {
+    -fx-background-color: #497eb3;
+}
+
+.chart-calendar-day.day-4 {
+    -fx-background-color: #297acc;
+}
+
 .git-view > .tool-bar .button {
     -fx-min-width: 48px;
     -fx-content-display: top;
@@ -345,6 +365,10 @@
 
 .commit-details-view .overlay {
     -fx-font-size: 1.25em;
+}
+
+.stats-view {
+    -fx-vgap: 1em;
 }
 
 .branch-badge {

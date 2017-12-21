@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.gui.component.Icons
 import javafx.animation.Interpolator
 import javafx.animation.Transition
 import javafx.concurrent.Task
