@@ -4,7 +4,6 @@ import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
 import javafx.beans.binding.Bindings
 import javafx.beans.property.IntegerProperty
-import javafx.beans.property.ReadOnlyBooleanWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
@@ -14,9 +13,6 @@ import javafx.concurrent.Task
 import java.util.concurrent.Executors
 
 object State {
-
-    private val TRUE = ReadOnlyBooleanWrapper(true).readOnlyProperty!!
-    private val FALSE = ReadOnlyBooleanWrapper(false).readOnlyProperty!!
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
@@ -119,7 +115,6 @@ object State {
     val canPull = isReady.and(behind.greater0())!!
     val canFetch = isReady
     val canGc = canFetch
-    val canTag = FALSE // TODO
     val canBranch = isReady
     val canMerge = isReady.and(branchCount.greater1())!!
     val canMergeContinue = isIdle.and(isMerging)!!
@@ -132,11 +127,11 @@ object State {
     val canReset = isReady.and(behind.greater0())!!
     val canSquash = isReady.and(aheadDefault.greater1())!!
 
-    val canStageAll = Bindings.isNotEmpty(pendingFiles)!!
-    val canUpdateAll = Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.ADDED })!!
-    val canStageSelected = pendingSelectedCount.greater0()!!
-    val canUnstageAll = Bindings.isNotEmpty(stagedFiles)!!
-    val canUnstageSelected = stagedSelectedCount.greater0()!!
+    val canStageAll = isIdle.and(Bindings.isNotEmpty(pendingFiles))!!
+    val canUpdateAll = isIdle.and(Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.ADDED }))!!
+    val canStageSelected = isIdle.and(pendingSelectedCount.greater0())!!
+    val canUnstageAll = isIdle.and(Bindings.isNotEmpty(stagedFiles))!!
+    val canUnstageSelected = isIdle.and(stagedSelectedCount.greater0())!!
 
     private fun IntegerProperty.equals0() = isEqualTo(0)
     private fun IntegerProperty.unequals0() = isNotEqualTo(0)
