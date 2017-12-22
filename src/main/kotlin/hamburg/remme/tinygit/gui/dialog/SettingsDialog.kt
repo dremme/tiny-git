@@ -25,11 +25,6 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         +DialogButton(DialogButton.OK)
         +DialogButton(DialogButton.CANCEL)
 
-        val location = textField {
-            columnSpan(3)
-            isEditable = false
-            text = repository.path
-        }
         val url = textField {
             isEditable = false
             text = Git.getRemote(repository)
@@ -47,6 +42,11 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
                     url.text = Git.getRemote(repository)
                 }
             }
+        }
+        val location = textField {
+            columnSpan(3)
+            isEditable = false
+            text = repository.path
         }
         val ssh = textField {
             text = repository.ssh
@@ -83,8 +83,8 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
         }
         content = grid(4) {
             addClass("settings-view")
-            +listOf(Label("Location:"), location,
-                    Label("Remote:"), url, urlSet,
+            +listOf(Label("Remote:"), url, urlSet,
+                    Label("Location:"), location,
                     Label("SSH Key:"), ssh, sshSearch,
                     Label("User:"), username,
                     Label("Password:"), password,

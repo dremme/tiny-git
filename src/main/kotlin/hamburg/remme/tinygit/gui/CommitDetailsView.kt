@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.FULL_DATE_TIME
+import hamburg.remme.tinygit.dateTimeFormat
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalFile
@@ -132,7 +132,7 @@ class CommitDetailsView : SplitPaneBuilder() {
                     <tr><td class="label">Commit:</td><td>${commit.id} [${commit.shortId}]</td></tr>
                     <tr><td class="label">Parents:</td><td>${commit.shortParents.joinToString()}</td></tr>
                     <tr><td class="label">Author:</td><td>${commit.author.htmlEncode()}</td></tr>
-                    <tr><td class="label">Date:</td><td>${commit.date.format(FULL_DATE_TIME)}</td></tr>
+                    <tr><td class="label">Date:</td><td>${commit.date.format(dateTimeFormat)}</td></tr>
                     <tr><td colspan="2"><br/>${commit.fullMessage.htmlEncodeAll().replace("\r?\n".toRegex(), "<br/>")}</td></tr>
                 </table>
             </body>

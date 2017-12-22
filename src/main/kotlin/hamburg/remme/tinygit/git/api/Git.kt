@@ -13,7 +13,7 @@ import hamburg.remme.tinygit.git.LocalStatus
 import hamburg.remme.tinygit.read
 import hamburg.remme.tinygit.readFirst
 import hamburg.remme.tinygit.readLines
-import hamburg.remme.tinygit.stopTime
+import hamburg.remme.tinygit.measureTime
 import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.ListBranchCommand
@@ -798,8 +798,8 @@ object Git {
     /**
      * - git clone <[url]>
      */
-    fun clone(url: String, path: String) {
-        JGit.cloneRepository().setDirectory(File(path)).setURI(url).call()
+    fun clone(repository: LocalRepository, url: String) {
+        JGit.cloneRepository().applyAuth(repository).setDirectory(File(repository.path)).setURI(url).call()
     }
 
     private fun <C : GitCommand<T>, T> TransportCommand<C, T>.applyAuth(repository: LocalRepository): C {
@@ -811,7 +811,7 @@ object Git {
         Git.proxyHost.set(proxyHost)
         Git.proxyPort.set(proxyPort)
         val key = RepositoryCache.FileKey.lenient(File(path), FS.DETECTED)
-        return stopTime(shortPath, description) {
+        return measureTime(shortPath, description) {
             RepositoryBuilder().setFS(FS.DETECTED).setGitDir(key.file).setMustExist(true).build().let(block)
         }
     }

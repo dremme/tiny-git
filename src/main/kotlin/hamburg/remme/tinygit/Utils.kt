@@ -12,10 +12,10 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlin.streams.toList
 
-val SHORT_DATE = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
-val FULL_DATE = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy")!!
-val SHORT_DATE_TIME = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
-val FULL_DATE_TIME = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
+val shortDateFormat = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
+val dateFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy")!!
+val shortDateTimeFormat = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
+val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
 private val key = SecretKeySpec("FUMN1QLIf8sVkUdv".toByteArray(), "AES")
 private val iv = IvParameterSpec("Ay81aeLRJM5xtx9h".toByteArray())
 
@@ -51,23 +51,19 @@ fun String.htmlEncodeSpaces() = replace(" ", "&nbsp;")
 
 fun String.htmlEncodeAll() = htmlEncode().htmlEncodeSpaces()
 
-fun String.encrypt() = cipher(Cipher.ENCRYPT_MODE).doFinal(toByteArray())!!
+fun String.encrypt() = Cipher.ENCRYPT_MODE.getInstance().doFinal(toByteArray())!!
 
-fun ByteArray.decrypt() = cipher(Cipher.DECRYPT_MODE).doFinal(this).toString(StandardCharsets.UTF_8)
+fun ByteArray.decrypt() = Cipher.DECRYPT_MODE.getInstance().doFinal(this).toString(StandardCharsets.UTF_8)
 
-private fun cipher(mode: Int): Cipher {
+private fun Int.getInstance(): Cipher {
     val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-    cipher.init(mode, key, iv)
+    cipher.init(this, key, iv)
     return cipher
 }
 
-fun <T> List<T>.toObservableList() = FXCollections.observableArrayList(this)!!
-
 fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*items)!!
 
-fun <T> observableList(items: Collection<T>) = FXCollections.observableArrayList<T>(items)!!
-
-inline fun <T> stopTime(type: String, message: String, block: () -> T): T {
+inline fun <T> measureTime(type: String, message: String, block: () -> T): T {
     if (type.isNotBlank() && message.isNotBlank()) {
         val startTime = System.currentTimeMillis()
         val value = block.invoke()

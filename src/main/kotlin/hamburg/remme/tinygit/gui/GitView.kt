@@ -63,7 +63,7 @@ class GitView : VBoxBuilder() {
         addClass("git-view")
 
         // File
-        val cloneRepo = Action("Clone Repository", { Icons.clone() }, // TODO: add shortcut
+        val cloneRepo = Action("Clone Repository", { Icons.clone() }, "Shortcut+Shift+O",
                 handler = { CloneDialog(window).show() })
         val newRepo = Action("New Repository", { Icons.folder() }, "Shortcut+N",
                 handler = { newRepo() })

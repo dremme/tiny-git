@@ -15,6 +15,7 @@ import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.passwordField
 import hamburg.remme.tinygit.gui.builder.textField
 import hamburg.remme.tinygit.gui.component.Icons
+import javafx.concurrent.Task
 import javafx.scene.control.Label
 import javafx.stage.Window
 
@@ -22,6 +23,7 @@ import javafx.stage.Window
 class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
 
     init {
+        val url = textField { columnSpan(3) }
         val location = textField { }
         val locationSet = button {
             columnSpan(2)
@@ -30,7 +32,6 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             maxWidth = Double.MAX_VALUE
             setOnAction { directoryChooser(dialogWindow, "Choose a Directory") { location.text = it.absolutePath } }
         }
-        val url = textField { columnSpan(3) }
         val ssh = textField { }
         val sshSearch = button {
             columnSpan(2)
@@ -58,20 +59,18 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             repository.password = password.text.encrypt()
             repository.proxyHost = host.text
             repository.proxyPort = port.text.toInt()
+            State.startProcess("Cloning...", object : Task<Unit>() {
+                override fun call() = Git.clone(repository, url.text)
 
-            try {
-                Git.clone(url.text, location.text)
-            } catch (ex: Exception) {
-                errorAlert(dialogWindow, "Cannot Clone Repository", ex.message!!)
-                throw ex
-            }
+                override fun succeeded() = State.addRepository(repository)
 
-            State.addRepository(repository)
+                override fun failed() = errorAlert(window, "Cannot Clone Repository", exception.message!!)
+            })
         }
         content = grid(4) {
             addClass("settings-view")
-            +listOf(Label("Location:"), location, locationSet,
-                    Label("Remote:"), url,
+            +listOf(Label("Remote:"), url,
+                    Label("Location:"), location, locationSet,
                     Label("SSH Key:"), ssh, sshSearch,
                     Label("User:"), username,
                     Label("Password:"), password,
