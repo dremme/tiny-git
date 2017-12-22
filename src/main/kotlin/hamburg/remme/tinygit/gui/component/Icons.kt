@@ -43,8 +43,6 @@ object Icons {
     fun share() = icon('\uf064')
     fun signOut() = icon('\uf2f5')
     fun spinner() = icon('\uf110')
-    fun tag() = icon('\uf02b')
-    fun tags() = icon('\uf02c')
     fun timesCircle() = icon('\uf057')
     fun trash() = icon('\uf1f8')
     fun undo() = icon('\uf0e2')

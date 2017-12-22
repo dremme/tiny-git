@@ -37,6 +37,7 @@ import org.eclipse.jgit.api.errors.NotMergedException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import java.util.concurrent.Callable
 
+// TODO: create expand/collapse all actions
 class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     val actions: Array<ActionGroup> get() = arrayOf(ActionGroup(settings))
@@ -135,11 +136,10 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun treeAdd(repository: LocalRepository) {
         val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", EntryType.LOCAL))
         val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", EntryType.REMOTE))
-        val tags = TreeItem(RepositoryEntry(repository, "Tags", EntryType.TAGS))
         val stash = TreeItem(RepositoryEntry(repository, "Stash", EntryType.STASH))
 
         val repoTree = TreeItem(RepositoryEntry(repository, repository.shortPath, EntryType.REPOSITORY))
-        repoTree.children.addAll(localBranches, remoteBranches, tags, stash)
+        repoTree.children.addAll(localBranches, remoteBranches, stash)
         root.children += repoTree
 
         treeUpdate(repository)
@@ -153,7 +153,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             // TODO: selection might get lost on removed branches (e.g. after pruning)
             updateBranchItems(it.children[0].children, repository, branchList.filter { it.local }, EntryType.LOCAL_BRANCH)
             updateBranchItems(it.children[1].children, repository, branchList.filter { it.remote }, EntryType.REMOTE_BRANCH)
-            updateStashItems(it.children[3].children, repository, stashList)
+            updateStashItems(it.children[2].children, repository, stashList)
         }
     }
 
@@ -294,7 +294,6 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         REPOSITORY,
         LOCAL, LOCAL_BRANCH,
         REMOTE, REMOTE_BRANCH,
-        TAGS, TAG,
         STASH, STASH_ENTRY
 
     }
@@ -310,8 +309,6 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
                     EntryType.REMOTE -> item(Icons.cloud(), item.value)
                     EntryType.LOCAL_BRANCH -> branchItem(item)
                     EntryType.REMOTE_BRANCH -> item(Icons.codeFork(), item.value)
-                    EntryType.TAGS -> item(Icons.tags(), item.value)
-                    EntryType.TAG -> item(Icons.tag(), item.value)
                     EntryType.STASH -> item(Icons.cubes(), item.value)
                     EntryType.STASH_ENTRY -> item(Icons.cube(), item.value)
                 }.addClass("repository-cell")

@@ -78,6 +78,7 @@ class GitView : VBoxBuilder() {
                 handler = { tabs.selectionModel.select(workingCopy) })
         val showStats = Action("Show Statistics", { Icons.chartPie() }, "F3", State.selectedRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(stats) })
+        // TODO: add F5 refresh
         // Repository
         val commit = Action("Commit", { Icons.plus() }, "Shortcut+K", State.canCommit.not(),
                 { CommitDialog(State.getSelectedRepository(), window).show() })
@@ -91,8 +92,6 @@ class GitView : VBoxBuilder() {
                 { fetch(State.getSelectedRepository()) })
         val fetchGc = Action("Fetch and GC", { Icons.eraser() }, "Shortcut+Shift+F", State.canGc.not(),
                 { fetchGc(State.getSelectedRepository()) })
-        val tag = Action("Tag", { Icons.tag() }, "Shortcut+T", State.canTag.not(),
-                handler = { /* TODO */ })
         val branch = Action("Branch", { Icons.codeFork() }, "Shortcut+B", State.canBranch.not(),
                 { createBranch(State.getSelectedRepository()) })
         val merge = Action("Merge", { Icons.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
@@ -126,7 +125,7 @@ class GitView : VBoxBuilder() {
             +ActionCollection("File", ActionGroup(cloneRepo, newRepo, addRepo), ActionGroup(quit))
             +ActionCollection("View", ActionGroup(showCommits, showWorkingCopy, showStats))
             +ActionCollection("Repository",
-                    ActionGroup(push, pushForce, pull, fetch, fetchGc, tag),
+                    ActionGroup(push, pushForce, pull, fetch, fetchGc),
                     ActionGroup(branch, merge, mergeContinue, mergeAbort),
                     ActionGroup(rebase, rebaseContinue, rebaseAbort),
                     ActionGroup(reset, squash),
@@ -141,7 +140,7 @@ class GitView : VBoxBuilder() {
             visibleWhen(State.showToolBar)
             managedWhen(State.showToolBar)
             +ActionGroup(addRepo)
-            +ActionGroup(commit, push, pull, fetch, tag)
+            +ActionGroup(commit, push, pull, fetch)
             +ActionGroup(branch, merge)
             +ActionGroup(stash, stashPop)
             +ActionGroup(reset, squash)
