@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.gui.component
 
-import hamburg.remme.tinygit.SHORT_DATE
+import hamburg.remme.tinygit.shortDateFormat
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.observableList
 import javafx.animation.FadeTransition
@@ -51,7 +51,7 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
 
         if (item.node == null) {
             item.node = StackPane()
-            Tooltip.install(item.node, Tooltip("${item.xValue.format(SHORT_DATE)} - $value commits"))
+            Tooltip.install(item.node, Tooltip("${item.xValue.format(shortDateFormat)} - $value commits"))
         }
 
         val newHash = hash(series)

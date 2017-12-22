@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.SHORT_DATE_TIME
+import hamburg.remme.tinygit.shortDateTimeFormat
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalCommit
@@ -60,7 +60,7 @@ class CommitLogView : Tab() {
         val date = column<LocalCommit, String> {
             text = "Date"
             isSortable = false
-            setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(SHORT_DATE_TIME)) }
+            setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(shortDateTimeFormat)) }
         }
         val author = column<LocalCommit, String> {
             text = "Author"
