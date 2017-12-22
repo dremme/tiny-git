@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.shortDateTimeFormat
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalCommit
@@ -17,6 +16,7 @@ import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.component.Icons
+import hamburg.remme.tinygit.shortDateTimeFormat
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyObjectWrapper

@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.dateTimeFormat
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.dateTimeFormat
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository

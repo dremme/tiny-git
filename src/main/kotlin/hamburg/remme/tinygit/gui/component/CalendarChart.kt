@@ -1,8 +1,8 @@
 package hamburg.remme.tinygit.gui.component
 
-import hamburg.remme.tinygit.shortDateFormat
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.observableList
+import hamburg.remme.tinygit.shortDateFormat
 import javafx.animation.FadeTransition
 import javafx.collections.ObservableList
 import javafx.scene.chart.XYChart
@@ -14,7 +14,6 @@ import java.time.LocalDate
 import java.time.Year
 import java.util.Arrays
 import java.util.Objects
-import kotlin.math.roundToInt
 
 class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<LocalDate, DayOfWeek>(DayOfYearAxis(), DayOfWeekAxis()) {
 
@@ -80,9 +79,9 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
 
     private fun updateQuarters(series: Series<LocalDate, DayOfWeek>) {
         series.data.map { it.extraValue as Int }.sortedDescending().distinct().takeIf { it.isNotEmpty() }.let {
-            quarters[0] = it?.let { it[(it.size * 0.25).roundToInt()] } ?: 0
-            quarters[1] = it?.let { it[(it.size * 0.5).roundToInt()] } ?: 0
-            quarters[2] = it?.let { it[(it.size * 0.75).roundToInt()] } ?: 0
+            quarters[0] = it?.let { it[(it.size * 0.25).toInt()] } ?: 0
+            quarters[1] = it?.let { it[(it.size * 0.5).toInt()] } ?: 0
+            quarters[2] = it?.let { it[(it.size * 0.75).toInt()] } ?: 0
         }
     }
 

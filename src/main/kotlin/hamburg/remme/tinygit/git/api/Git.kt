@@ -10,10 +10,10 @@ import hamburg.remme.tinygit.git.LocalRebase
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.LocalStashEntry
 import hamburg.remme.tinygit.git.LocalStatus
+import hamburg.remme.tinygit.measureTime
 import hamburg.remme.tinygit.read
 import hamburg.remme.tinygit.readFirst
 import hamburg.remme.tinygit.readLines
-import hamburg.remme.tinygit.measureTime
 import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.ListBranchCommand
