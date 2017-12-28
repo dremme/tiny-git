@@ -159,7 +159,10 @@ class WorkingCopyView : Tab() {
             }
         }
 
-        State.addRepositoryListener { it?.let { status(it) } ?: clearContent() }
+        State.addRepositoryListener {
+            clearContent()
+            it?.let { status(it) }
+        }
         State.addRefreshListener(this) { status(it) }
     }
 
