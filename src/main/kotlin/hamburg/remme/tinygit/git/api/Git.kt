@@ -298,8 +298,8 @@ object Git {
      */
     fun divergence(repository: LocalRepository): LocalDivergence {
         return repository.open("divergence") {
-            val localBranch = it.findRef(it.branch)?.objectId
-            val remoteBranch = it.findRef("$REMOTE/${it.branch}")?.objectId
+            val localBranch = it.resolve(it.branch)
+            val remoteBranch = it.resolve("$REMOTE/${it.branch}")
             when {
                 localBranch == null -> LocalDivergence(0, 0)
                 remoteBranch == null -> {
@@ -334,7 +334,7 @@ object Git {
     // TODO: redundancy with logWithoutDefault
     fun divergenceDefault(repository: LocalRepository): Int {
         return repository.open("divergence default") {
-            val head = it.resolve(it.branch)
+            val head = it.resolve(it.branch) ?: return 0
             val defaultIds = DEFAULT_BRANCHES.mapNotNull(it::findRef).map { it.objectId }
             it.revWalk().use {
                 defaultIds.map(it::parseCommit).forEach(it::markUninteresting)
@@ -348,14 +348,16 @@ object Git {
      * Creates a source code difference using `git diff` depending on the [file]'s status.
      */
     fun diff(repository: LocalRepository, file: LocalFile, lines: Int): String {
-        return if (file.status == LocalFile.Status.CONFLICT && file.cached) ""
-        else repository.openGit("diff cached=${file.cached} $file") {
+        if (file.status == LocalFile.Status.CONFLICT && file.cached) return ""
+        return repository.openGit("diff cached=${file.cached} $file") {
             val diffCommand = it.diff()
                     .setCached(file.cached)
                     .setContextLines(lines)
                     .setPathFilter(file.toPathFilter())
-            if (file.status == LocalFile.Status.CONFLICT) {
-                val head = it.repository.resolve("$HEAD^{tree}")
+            val head = it.repository.resolve("$HEAD^{tree}")
+            if (file.cached && head == null) {
+                diffCommand.setOldTree(EmptyTreeIterator())
+            } else if (file.status == LocalFile.Status.CONFLICT) {
                 diffCommand.setOldTree(it.repository.newObjectReader().use { CanonicalTreeParser(null, it, head) })
                 diffCommand.setNewTree(FileTreeIterator(it.repository))
             }
@@ -408,7 +410,7 @@ object Git {
 
     fun tree(repository: LocalRepository): List<String> {
         return repository.open("tree") {
-            val head = it.resolve("$HEAD^{tree}")
+            val head = it.resolve("$HEAD^{tree}") ?: return emptyList()
             it.treeWalk().use {
                 it.addTree(head)
                 it.isRecursive = true
