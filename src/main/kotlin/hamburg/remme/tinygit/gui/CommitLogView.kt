@@ -97,11 +97,12 @@ class CommitLogView : Tab() {
         content = progressPane
 
         State.addRepositoryListener {
+            clearContent()
             it?.let {
                 skip = 0
                 logQuick(it)
                 localCommits.scrollTo(0)
-            } ?: clearContent()
+            }
         }
         State.addRefreshListener(this) { logQuick(it) }
 
