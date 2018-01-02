@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asPath
@@ -182,6 +183,9 @@ class GitView : VBoxBuilder() {
                 +label { textProperty().bind(State.processTextProperty()) }
             }
         }
+
+        Settings.setTabSelection { tabs.selectionModel.selectedIndex }
+        Settings.load { tabs.selectionModel.select(it.tabSelection) }
     }
 
     private fun newRepo() {

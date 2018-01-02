@@ -3,7 +3,7 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
-import hamburg.remme.tinygit.gui.builder.ProgressPaneBuilder
+import hamburg.remme.tinygit.gui.builder.ProgressPane
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.columnSpan
 import hamburg.remme.tinygit.gui.builder.comboBox
@@ -31,7 +31,7 @@ import javafx.scene.chart.XYChart.Data as XYData
 
 class StatsView : Tab() {
 
-    private val progressPane: ProgressPaneBuilder
+    private val progressPane: ProgressPane
     private val contributionData = observableList<PieData>()
     private val fileData = observableList<PieData>()
     private val commitData = observableList<PieData>()
@@ -68,8 +68,8 @@ class StatsView : Tab() {
                 +grid(3) {
                     addClass("stats-view")
                     vgrow(Priority.ALWAYS)
-                    addColumn(33.333, 33.333, 33.333)
-                    addRow(65.0, 35.0)
+                    columns(33.333, 33.333, 33.333)
+                    rows(65.0, 35.0)
                     +listOf(contributions, commits, files, calendar)
                 }
             }
@@ -89,7 +89,7 @@ class StatsView : Tab() {
             lateinit var calendar: List<Pair<LocalDate, Int>>
 
             override fun call() {
-                val log = Git.log(repository, Year.now().atDay(1).atStartOfDay()).toList()
+                val log = Git.log(repository, Year.now().atDay(1).atStartOfDay())
 
                 contribution = log.groupingBy { it.authorMail }
                         .eachCount()
@@ -115,16 +115,16 @@ class StatsView : Tab() {
             }
 
             override fun succeeded() {
-                contributionData.setPieData(contribution.map { (author, value) -> PieData(author, value.toDouble()) })
-                fileData.setPieData(files.map { (ext, value) -> PieData(ext, value.toDouble()) })
-                commitData.setPieData(commits.map { (month, value) -> PieData(month.getDisplayName(TextStyle.FULL, Locale.ROOT), value.toDouble()) })
+                contributionData.upsert(contribution.map { (author, value) -> PieData(author, value.toDouble()) })
+                fileData.upsert(files.map { (ext, value) -> PieData(ext, value.toDouble()) })
+                commitData.upsert(commits.map { (month, value) -> PieData(month.getDisplayName(TextStyle.FULL, Locale.ROOT), value.toDouble()) })
                 // TODO: this is still refreshing every time
                 calendarData.setAll(calendar.map { (date, value) -> XYData(date, date.dayOfWeek, value) })
             }
 
             override fun failed() = exception.printStackTrace()
 
-            private fun ObservableList<PieData>.setPieData(data: List<PieData>) {
+            private fun ObservableList<PieData>.upsert(data: List<PieData>) {
                 if (isEmpty()) {
                     setAll(data)
                 } else {

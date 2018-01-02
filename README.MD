@@ -36,9 +36,8 @@ java -jar tinygit-x.x.x.jar
  - Resetting branches
  - Tagging commits & push/remove tags
  - Staging/unstaging code blocks
- - Saving selected tab
  - Saving split pane dividers
  - Opening selected file in explorer/finder
- - Pull request notifications?
+ - Opening pull requests.
  - Set author and email per repository
  - Git statistics

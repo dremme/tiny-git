@@ -180,7 +180,7 @@ object Git {
     /**
      * - git log --all --after=<[date]>
      */
-    fun log(repository: LocalRepository, date: LocalDateTime?): Iterable<LocalCommit> {
+    fun log(repository: LocalRepository, date: LocalDateTime?): List<LocalCommit> {
         return repository.openGit("log stream") {
             val walk = it.revWalk()
             date?.let { walk.revFilter = CommitTimeRevFilter.after(it.toInstant(ZoneOffset.UTC).toEpochMilli()) }
@@ -349,6 +349,7 @@ object Git {
      */
     fun diff(repository: LocalRepository, file: LocalFile, lines: Int): String {
         if (file.status == LocalFile.Status.CONFLICT && file.cached) return ""
+
         return repository.openGit("diff cached=${file.cached} $file") {
             val diffCommand = it.diff()
                     .setCached(file.cached)
@@ -694,6 +695,7 @@ object Git {
      */
     fun checkout(repository: LocalRepository, branch: String) {
         if (branch == HEAD) return // cannot checkout HEAD directly
+
         repository.openGit("checkout $branch") { it.checkout().setName(branch).call() }
     }
 
@@ -713,6 +715,7 @@ object Git {
      */
     fun checkoutRemote(repository: LocalRepository, remote: String) {
         if (remote.substringAfter('/') == HEAD) return // cannot checkout HEAD directly
+
         repository.openGit("checkout $remote") {
             it.checkout()
                     .setCreateBranch(true)

@@ -60,8 +60,8 @@ inline fun vbox(block: VBoxBuilder.() -> Unit): VBox {
     return box
 }
 
-inline fun grid(width: Int, block: GridPaneBuilder.() -> Unit): GridPane {
-    val grid = GridPaneBuilder(width)
+inline fun grid(numberOfColumns: Int, block: GridPaneBuilder.() -> Unit): GridPane {
+    val grid = GridPaneBuilder(numberOfColumns)
     block.invoke(grid)
     return grid
 }
@@ -98,11 +98,11 @@ open class VBoxBuilder : VBox() {
 
 }
 
-class GridPaneBuilder(private val width: Int) : GridPane() {
+class GridPaneBuilder(private val numberOfColumns: Int) : GridPane() {
 
     private var rowIndex = 0
 
-    fun addColumn(vararg percent: Double) {
+    fun columns(vararg percent: Double) {
         percent.forEach {
             columnConstraints += ColumnConstraints().apply {
                 percentWidth = it
@@ -111,7 +111,7 @@ class GridPaneBuilder(private val width: Int) : GridPane() {
         }
     }
 
-    fun addRow(vararg percent: Double) {
+    fun rows(vararg percent: Double) {
         percent.forEach {
             rowConstraints += RowConstraints().apply {
                 percentHeight = it
@@ -125,7 +125,7 @@ class GridPaneBuilder(private val width: Int) : GridPane() {
         forEach {
             add(it, columnIndex, rowIndex)
             columnIndex += getColumnSpan(it) ?: 1
-            if (columnIndex >= width) {
+            if (columnIndex >= numberOfColumns) {
                 columnIndex = 0
                 rowIndex++
             }

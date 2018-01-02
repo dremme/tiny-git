@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.component
 
+import hamburg.remme.tinygit.numberOfWeeks
 import javafx.geometry.Side
 import javafx.scene.chart.Axis
 import java.time.DayOfWeek
@@ -25,7 +26,7 @@ class DayOfYearAxis : Axis<LocalDate>() {
     override fun autoRange(length: Double): Any {
         today = LocalDate.now()
         currentYear = Year.now()
-        val numberOfWeeks = currentYear.atDay(currentYear.length()).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
+        val numberOfWeeks = currentYear.numberOfWeeks()
         val extraWeek = if (currentYear.atDay(1).dayOfWeek > DayOfWeek.THURSDAY) 1 else 0
         step = length / (numberOfWeeks + extraWeek)
         return Unit
@@ -41,7 +42,7 @@ class DayOfYearAxis : Axis<LocalDate>() {
 
     override fun getDisplayPosition(date: LocalDate): Double {
         val week = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
-        return if (date.month == Month.JANUARY && week >= 52) 0.0 else week * step
+        return if (date.month == Month.JANUARY && week >= 52) 0.0 else (week - 1) * step
     }
 
     override fun getValueForDisplay(displayPosition: Double) = throw UnsupportedOperationException()
