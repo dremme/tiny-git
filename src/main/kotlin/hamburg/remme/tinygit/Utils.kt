@@ -7,6 +7,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.LocalTime
 import java.time.Year
 import java.time.format.DateTimeFormatter
 import javax.crypto.Cipher
@@ -20,6 +22,8 @@ val shortDateTimeFormat = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
 private val key = SecretKeySpec("FUMN1QLIf8sVkUdv".toByteArray(), "AES")
 private val iv = IvParameterSpec("Ay81aeLRJM5xtx9h".toByteArray())
+
+fun LocalDate.atEndOfDay() = atTime(LocalTime.MAX)!!
 
 fun Year.numberOfWeeks(): Int {
     val firstDay = atDay(1)
