@@ -24,14 +24,23 @@
     -fx-chart-grid-color: rgba(255, 255, 255, 0.2);
     -fx-chart-label-color: rgba(255, 255, 255, 0.5);
 
-    -fx-color-status-conflict: #ffc66d;
-    -fx-color-status-added: #7dbf5c;
-    -fx-color-status-copied: #ffc66d;
-    -fx-color-status-renamed: #56aebf;
-    -fx-color-status-modified: #ffc66d;
-    -fx-color-status-removed: #d25252;
-    -fx-color-status-missing: #808080;
-    -fx-color-status-untracked: #ab86bf;
+    -git-red: #d25252;
+    -git-yellow: #ffc66d;
+    -git-green: #7dbf5c;
+    -git-blue: #56aebf;
+    -git-pink: #ab86bf;
+    -git-grey: #808080;
+
+    -git-badge: -fx-focus-color;
+
+    -git-status-conflict: -git-yellow;
+    -git-status-added: -git-green;
+    -git-status-copied: -git-yellow;
+    -git-status-renamed: -git-blue;
+    -git-status-modified: -git-yellow;
+    -git-status-removed: -git-red;
+    -git-status-missing: -git-grey;
+    -git-status-untracked: -git-pink;
 
     -fx-font: normal 13px "Roboto", sans-serif;
 }
@@ -359,17 +368,24 @@
 
 .branch-badge {
     -fx-padding: 1px 6px 1px 6px;
-    -fx-background-color: derive(-fx-accent, 25%), -fx-accent;
+    -fx-text-fill: derive(-git-badge, 25%);
+    -fx-background-color: derive(-git-badge, -25%), derive(-git-badge, -35%);
     -fx-background-insets: 0, 1;
-    -fx-background-radius: 2, 2;
-}
-
-.branch-badge.current {
-    -fx-accent: -fx-focus-color;
+    -fx-background-radius: 2;
 }
 
 .branch-badge .icon {
     -fx-font-size: 12px;
+    -fx-fill: derive(-git-badge, 25%);
+}
+
+.branch-badge.current {
+    -fx-text-fill: white;
+    -fx-background-color: derive(-git-badge, 25%), -git-badge;
+}
+
+.branch-badge.current .icon {
+    -fx-fill: white;
 }
 
 .count-badge {
@@ -432,65 +448,65 @@
 }
 
 .label.status-conflict {
-    -fx-text-fill: -fx-color-status-conflict;
+    -fx-text-fill: -git-status-conflict;
 }
 
 .status-conflict .icon {
-    -fx-fill: -fx-color-status-conflict;
+    -fx-fill: -git-status-conflict;
 }
 
 .label.status-added {
-    -fx-text-fill: -fx-color-status-added;
+    -fx-text-fill: -git-status-added;
 }
 
 .status-added .icon {
-    -fx-fill: -fx-color-status-added;
+    -fx-fill: -git-status-added;
 }
 
 .label.status-copied {
-    -fx-text-fill: -fx-color-status-copied;
+    -fx-text-fill: -git-status-copied;
 }
 
 .status-copied .icon {
-    -fx-fill: -fx-color-status-copied;
+    -fx-fill: -git-status-copied;
 }
 
 .label.status-renamed {
-    -fx-text-fill: -fx-color-status-renamed;
+    -fx-text-fill: -git-status-renamed;
 }
 
 .status-renamed .icon {
-    -fx-fill: -fx-color-status-renamed;
+    -fx-fill: -git-status-renamed;
 }
 
 .label.status-modified {
-    -fx-text-fill: -fx-color-status-modified;
+    -fx-text-fill: -git-status-modified;
 }
 
 .status-modified .icon {
-    -fx-fill: -fx-color-status-modified;
+    -fx-fill: -git-status-modified;
 }
 
 .label.status-removed {
-    -fx-text-fill: -fx-color-status-removed;
+    -fx-text-fill: -git-status-removed;
 }
 
 .status-removed .icon {
-    -fx-fill: -fx-color-status-removed;
+    -fx-fill: -git-status-removed;
 }
 
 .label.status-missing {
-    -fx-text-fill: -fx-color-status-missing;
+    -fx-text-fill: -git-status-missing;
 }
 
 .status-missing .icon {
-    -fx-fill: -fx-color-status-missing;
+    -fx-fill: -git-status-missing;
 }
 
 .label.status-untracked {
-    -fx-text-fill: -fx-color-status-untracked;
+    -fx-text-fill: -git-status-untracked;
 }
 
 .status-untracked .icon {
-    -fx-fill: -fx-color-status-untracked;
+    -fx-fill: -git-status-untracked;
 }
