@@ -47,7 +47,7 @@ class DayOfYearAxis : Axis<LocalDate>() {
 
     override fun getValueForDisplay(displayPosition: Double) = throw UnsupportedOperationException()
 
-    override fun isValueOnAxis(date: LocalDate) = !date.isAfter(today) && date.year == currentYear.value
+    override fun isValueOnAxis(date: LocalDate) = true
 
     override fun getZeroPosition() = 0.0
 

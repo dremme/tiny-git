@@ -18,8 +18,11 @@ import hamburg.remme.tinygit.gui.component.PieChart
 import hamburg.remme.tinygit.observableList
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
+import javafx.scene.control.ComboBox
+import javafx.scene.control.ListCell
 import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
+import javafx.util.Callback
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Month
@@ -32,6 +35,7 @@ import javafx.scene.chart.XYChart.Data as XYData
 class StatsView : Tab() {
 
     private val progressPane: ProgressPane
+    private val period: ComboBox<Year>
     private val contributionData = observableList<PieData>()
     private val fileData = observableList<PieData>()
     private val commitData = observableList<PieData>()
@@ -56,14 +60,19 @@ class StatsView : Tab() {
         calendar.columnSpan(3)
         calendar.title = "Activity"
 
+        period = comboBox {
+            val currentYear = Year.now()
+            items.addAll(currentYear, currentYear.minusYears(1), currentYear.minusYears(2))
+            buttonCell = PeriodListCell()
+            cellFactory = Callback { PeriodListCell() }
+            value = currentYear
+            valueProperty().addListener { _, _, it -> update(State.getSelectedRepository(), it) }
+        }
         progressPane = progressPane {
             +vbox {
                 +toolBar {
                     addSpacer()
-                    +comboBox<String> {
-                        isDisable = true
-                        value = "This Year"
-                    }
+                    +period
                 }
                 +grid(3) {
                     addClass("stats-view")
@@ -76,11 +85,11 @@ class StatsView : Tab() {
         }
         content = progressPane
 
-        State.addRepositoryListener { it?.let { update(it) } }
-        State.addRefreshListener(this) { update(it) }
+        State.addRepositoryListener { it?.let { update(it, period.value) } }
+        State.addRefreshListener(this) { update(it, period.value) }
     }
 
-    private fun update(repository: LocalRepository) {
+    private fun update(repository: LocalRepository, year: Year) {
         task?.cancel()
         task = object : Task<Unit>() {
             lateinit var contribution: List<Pair<String, Int>>
@@ -89,7 +98,7 @@ class StatsView : Tab() {
             lateinit var calendar: List<Pair<LocalDate, Int>>
 
             override fun call() {
-                val log = Git.log(repository, Year.now().atDay(1).atStartOfDay())
+                val log = Git.log(repository, year.atDay(1), year.atDay(year.length()))
 
                 contribution = log.groupingBy { it.authorMail }
                         .eachCount()
@@ -137,6 +146,13 @@ class StatsView : Tab() {
                 }
             }
         }.also { progressPane.execute(it) }
+    }
+
+    private class PeriodListCell : ListCell<Year>() {
+        override fun updateItem(item: Year?, empty: Boolean) {
+            super.updateItem(item, empty)
+            text = item?.value?.toString()
+        }
     }
 
 }

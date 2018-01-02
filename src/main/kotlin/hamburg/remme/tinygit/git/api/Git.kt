@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.git.api
 
 import hamburg.remme.tinygit.asPath
+import hamburg.remme.tinygit.atEndOfDay
 import hamburg.remme.tinygit.decrypt
 import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalCommit
@@ -39,6 +40,7 @@ import org.eclipse.jgit.revwalk.FollowFilter
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.revwalk.RevWalkUtils
+import org.eclipse.jgit.revwalk.filter.AndRevFilter
 import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter
 import org.eclipse.jgit.revwalk.filter.RevFilter
 import org.eclipse.jgit.transport.RemoteRefUpdate
@@ -61,6 +63,7 @@ import java.net.Proxy
 import java.net.ProxySelector
 import java.net.SocketAddress
 import java.net.URI
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import org.eclipse.jgit.api.Git as JGit
@@ -178,16 +181,25 @@ object Git {
     }
 
     /**
-     * - git log --all --after=<[date]>
+     * - git log --all --after=<[after]> --before=<[before]>
      */
-    fun log(repository: LocalRepository, date: LocalDateTime?): List<LocalCommit> {
+    fun log(repository: LocalRepository, after: LocalDate?, before: LocalDate?): List<LocalCommit> {
         return repository.openGit("log stream") {
             val walk = it.revWalk()
-            date?.let { walk.revFilter = CommitTimeRevFilter.after(it.toInstant(ZoneOffset.UTC).toEpochMilli()) }
+            if (after != null && before != null) {
+                walk.revFilter = AndRevFilter.create(after.toAfterFilter(), before.toBeforeFilter())
+            } else if (after != null) {
+                walk.revFilter = after.toAfterFilter()
+            } else if (before != null) {
+                walk.revFilter = before.toBeforeFilter()
+            }
             it.branchListIds().map { walk.parseCommit(it) }.forEach { walk.markStart(it) }
             walk.map { it.toLocalCommit() }
         }
     }
+
+    private fun LocalDate.toAfterFilter() = CommitTimeRevFilter.after(atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli())
+    private fun LocalDate.toBeforeFilter() = CommitTimeRevFilter.before(atEndOfDay().toInstant(ZoneOffset.UTC).toEpochMilli())
 
     /**
      * - git log master..

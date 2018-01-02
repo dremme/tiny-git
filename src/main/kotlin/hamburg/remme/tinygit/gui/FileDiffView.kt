@@ -33,7 +33,7 @@ class FileDiffView : VBoxBuilder() {
 
     init {
         contextLines = comboBox {
-            items.setAll(0, 1, 3, 6, 12, 25, 50, 100)
+            items.addAll(0, 1, 3, 6, 12, 25, 50, 100)
             buttonCell = ContextLinesListCell()
             cellFactory = Callback { ContextLinesListCell() }
             value = 3
@@ -274,7 +274,7 @@ class FileDiffView : VBoxBuilder() {
     private class ContextLinesListCell : ListCell<Int>() {
         override fun updateItem(item: Int?, empty: Boolean) {
             super.updateItem(item, empty)
-            text = "$item lines"
+            text = item?.let { "$it lines" }
         }
     }
 
