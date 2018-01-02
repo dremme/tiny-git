@@ -17,24 +17,31 @@ class DayOfYearAxis : Axis<LocalDate>() {
         private set
     private lateinit var today: LocalDate
     private lateinit var currentYear: Year
+    private var extraWeek: Int = 0
+    private var length: Double = 0.0
 
     init {
         side = Side.TOP
-        isAutoRanging = false
+    }
+
+    override fun invalidateRange(data: List<LocalDate>) {
+        if (data.size == 1) setRange(Year.of(data.map { it.year }.distinct().first()), shouldAnimate())
     }
 
     override fun autoRange(length: Double): Any {
+        this.length = length
         today = LocalDate.now()
         currentYear = Year.now()
-        val numberOfWeeks = currentYear.numberOfWeeks()
-        val extraWeek = if (currentYear.atDay(1).dayOfWeek > DayOfWeek.THURSDAY) 1 else 0
-        step = length / (numberOfWeeks + extraWeek)
-        return Unit
+        return currentYear
     }
 
     override fun getRange() = Unit
 
-    override fun setRange(range: Any, animate: Boolean) = Unit
+    override fun setRange(range: Any, animate: Boolean) {
+        currentYear = range as Year
+        extraWeek = if (currentYear.atDay(1).dayOfWeek > DayOfWeek.THURSDAY) 1 else 0
+        step = length / (currentYear.numberOfWeeks() + extraWeek)
+    }
 
     override fun getTickMarkLabel(date: LocalDate) = date.month.getDisplayName(TextStyle.SHORT, Locale.ROOT)!!
 
@@ -42,12 +49,12 @@ class DayOfYearAxis : Axis<LocalDate>() {
 
     override fun getDisplayPosition(date: LocalDate): Double {
         val week = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
-        return if (date.month == Month.JANUARY && week >= 52) 0.0 else (week - 1) * step
+        return if (date.month == Month.JANUARY && week >= 52) 0.0 else (week + extraWeek - 1) * step
     }
 
     override fun getValueForDisplay(displayPosition: Double) = throw UnsupportedOperationException()
 
-    override fun isValueOnAxis(date: LocalDate) = true
+    override fun isValueOnAxis(date: LocalDate) = !date.isAfter(today) && date.year <= currentYear.value
 
     override fun getZeroPosition() = 0.0
 

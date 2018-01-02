@@ -56,17 +56,21 @@ class StatsView : Tab() {
         val commits = PieChart(commitData, "commits")
         commits.title = "Commits by Month"
 
+        val currentYear = Year.now()
         val calendar = CalendarChart(calendarData)
         calendar.columnSpan(3)
         calendar.title = "Activity"
+        calendar.updateYear(currentYear)
 
         period = comboBox {
-            val currentYear = Year.now()
             items.addAll(currentYear, currentYear.minusYears(1), currentYear.minusYears(2))
             buttonCell = PeriodListCell()
             cellFactory = Callback { PeriodListCell() }
             value = currentYear
-            valueProperty().addListener { _, _, it -> update(State.getSelectedRepository(), it) }
+            valueProperty().addListener { _, _, it ->
+                calendar.updateYear(it)
+                update(State.getSelectedRepository(), it)
+            }
         }
         progressPane = progressPane {
             +vbox {

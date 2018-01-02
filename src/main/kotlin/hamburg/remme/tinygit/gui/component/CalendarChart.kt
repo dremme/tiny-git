@@ -18,8 +18,8 @@ import java.util.Objects
 class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<LocalDate, DayOfWeek>(DayOfYearAxis(), DayOfWeekAxis()) {
 
     private val padding = 2.0
-    private val placeholders: List<Data<LocalDate, DayOfWeek>>
     private val quarters = intArrayOf(0, 0, 0)
+    private var placeholders: List<Data<LocalDate, DayOfWeek>> = emptyList()
     private var seriesHash = 0
 
     init {
@@ -28,15 +28,17 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
         isHorizontalZeroLineVisible = false
         verticalGridLinesVisible = false
         isVerticalZeroLineVisible = false
-        val now = Year.now()
-        placeholders = (1..now.length())
-                .map { now.atDay(it) }
+        this.data = observableList(Series(data))
+    }
+
+    fun updateYear(year: Year) {
+        xAxis.invalidateRange(listOf(year.atDay(1)))
+        plotChildren.removeAll(placeholders.map { it.node })
+        placeholders = (1..year.length())
+                .map { year.atDay(it) }
                 .map { Data(it, it.dayOfWeek) }
-                .onEach {
-                    it.node = StackPane().addClass("chart-calendar-day", "day-0")
-                    plotChildren += it.node
-                }
-        this.data = observableList(Series(now.toString(), data))
+                .onEach { it.node = StackPane().addClass("chart-calendar-day", "day-0") }
+        plotChildren.addAll(0, placeholders.map { it.node })
     }
 
     override fun seriesRemoved(series: Series<LocalDate, DayOfWeek>) = throw UnsupportedOperationException()
@@ -105,17 +107,17 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
     override fun layoutPlotChildren() {
         val w = (xAxis as DayOfYearAxis).step
         val h = (yAxis as DayOfWeekAxis).step
-        getDisplayedDataIterator(data[0]).forEach { it.resizeRelocate(w, h) }
-        placeholders.forEach { it.resizeRelocate(w, h) }
+        data[0].data.forEach { resizeRelocate(it, w, h) }
+        placeholders.forEach { resizeRelocate(it, w, h) }
     }
 
-    private fun Data<LocalDate, DayOfWeek>.resizeRelocate(w: Double, h: Double) {
-        if (xAxis.isValueOnAxis(xValue) && yAxis.isValueOnAxis(yValue)) {
-            val x = xAxis.getDisplayPosition(xValue)
-            val y = yAxis.getDisplayPosition(yValue)
-            node.resizeRelocate(x, y, w - padding, h - padding)
+    private fun resizeRelocate(data: Data<LocalDate, DayOfWeek>, w: Double, h: Double) {
+        if (xAxis.isValueOnAxis(data.xValue)) {
+            val x = xAxis.getDisplayPosition(data.xValue)
+            val y = yAxis.getDisplayPosition(data.yValue)
+            data.node.resizeRelocate(x, y, w - padding, h - padding)
         } else {
-            node.resizeRelocate(0.0, 0.0, 0.0, 0.0)
+            data.node.resizeRelocate(0.0, 0.0, 0.0, 0.0)
         }
     }
 
