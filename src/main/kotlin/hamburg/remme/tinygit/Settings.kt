@@ -29,7 +29,8 @@ object Settings {
                 getCategory(Category.REPOSITORIES),
                 getCategory(Category.TREE),
                 getCategory(Category.TREE_SELECTION),
-                getCategory(Category.WINDOW))))
+                getCategory(Category.WINDOW),
+                getCategory(Category.TAB_SELECTION))))
     }
 
     fun setRepositories(supplier: () -> List<LocalRepository>) {
@@ -48,6 +49,10 @@ object Settings {
         suppliers[Category.WINDOW] = supplier
     }
 
+    fun setTabSelection(supplier: () -> Int) {
+        suppliers[Category.TAB_SELECTION] = supplier
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun <T> getCategory(category: Category): T {
         return suppliers[category]?.invoke() as? T ?: throw RuntimeException("Missing supplier for setting $category")
@@ -56,7 +61,8 @@ object Settings {
     class LocalSettings(var repositories: List<LocalRepository> = emptyList(),
                         var tree: List<TreeItem> = emptyList(),
                         var treeSelection: TreeItem = TreeItem(),
-                        var window: WindowSettings = WindowSettings())
+                        var window: WindowSettings = WindowSettings(),
+                        var tabSelection: Int = 0)
 
     class TreeItem(var repository: String = "",
                    var name: String = "",
@@ -69,6 +75,6 @@ object Settings {
                          var maximized: Boolean = false,
                          var fullscreen: Boolean = false)
 
-    enum class Category { REPOSITORIES, TREE, TREE_SELECTION, WINDOW }
+    enum class Category { REPOSITORIES, TREE, TREE_SELECTION, WINDOW, TAB_SELECTION }
 
 }

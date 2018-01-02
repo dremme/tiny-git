@@ -3,16 +3,18 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalBranch
 import hamburg.remme.tinygit.git.LocalCommit
+import hamburg.remme.tinygit.git.LocalGraph
 import hamburg.remme.tinygit.git.LocalRepository
 import hamburg.remme.tinygit.git.api.Git
-import hamburg.remme.tinygit.gui.builder.ProgressPaneBuilder
+import hamburg.remme.tinygit.gui.builder.ProgressPane
 import hamburg.remme.tinygit.gui.builder.addClass
-import hamburg.remme.tinygit.gui.builder.column
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
+import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.progressPane
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
+import hamburg.remme.tinygit.gui.builder.tableColumn
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.component.Icons
@@ -22,7 +24,6 @@ import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.concurrent.Task
-import javafx.scene.control.Label
 import javafx.scene.control.Tab
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
@@ -35,15 +36,16 @@ import org.eclipse.jgit.api.errors.TransportException
 class CommitLogView : Tab() {
 
     private val window: Window get() = content.scene.window
-    private val progressPane: ProgressPaneBuilder
+    private val progressPane: ProgressPane
     private val localCommits = TableView<LocalCommit>()
     private val commitDetails = CommitDetailsView()
-    private val cache: MutableMap<String, List<LocalBranch>> = mutableMapOf()
-    private lateinit var head: String
     private var task: Task<*>? = null
 
+    private val cache: MutableMap<String, List<LocalBranch>> = mutableMapOf()
     private val logSize = 50
     private val skipSize = 50
+    private lateinit var graph: LocalGraph
+    private lateinit var head: String
     private var skip = 0
 
     init {
@@ -51,23 +53,23 @@ class CommitLogView : Tab() {
         graphic = Icons.list()
         isClosable = false
 
-        val message = column<LocalCommit, LocalCommit> {
+        val message = tableColumn<LocalCommit, LocalCommit> {
             text = "Message"
             isSortable = false
             setCellValueFactory { ReadOnlyObjectWrapper(it.value) }
             setCellFactory { LogMessageTableCell() }
         }
-        val date = column<LocalCommit, String> {
+        val date = tableColumn<LocalCommit, String> {
             text = "Date"
             isSortable = false
             setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(shortDateTimeFormat)) }
         }
-        val author = column<LocalCommit, String> {
+        val author = tableColumn<LocalCommit, String> {
             text = "Author"
             isSortable = false
             setCellValueFactory { ReadOnlyStringWrapper(it.value.author) }
         }
-        val commit = column<LocalCommit, String> {
+        val commit = tableColumn<LocalCommit, String> {
             text = "Commit"
             isSortable = false
             setCellValueFactory { ReadOnlyStringWrapper(it.value.shortId) }
@@ -120,6 +122,7 @@ class CommitLogView : Tab() {
     }
 
     private fun setContent(commits: List<LocalCommit>) {
+        graph = LocalGraph(commits)
         val selected = localCommits.selectionModel.selectedItem
         localCommits.items.setAll(commits)
         localCommits.items.find { it == selected }?.let { localCommits.selectionModel.select(it) }
@@ -134,8 +137,8 @@ class CommitLogView : Tab() {
     private fun logQuick(repository: LocalRepository) {
         task?.cancel()
         head = Git.head(repository)
+        invalidateCache(repository)
         try {
-            invalidateCache(repository)
             setContent(Git.log(repository, 0, logSize + skip))
         } catch (ex: NoHeadException) {
             clearContent()
@@ -145,8 +148,10 @@ class CommitLogView : Tab() {
 
     private fun logMore(repository: LocalRepository) {
         if (localCommits.items.size < skipSize) return
+
         val commits = Git.log(repository, skip + skipSize, logSize)
         if (commits.isNotEmpty()) {
+            graph = LocalGraph(localCommits.items + commits) // TODO: add-function on graph
             skip += skipSize
             localCommits.items.addAll(commits)
             localCommits.scrollTo(skip - 1)
@@ -184,19 +189,17 @@ class CommitLogView : Tab() {
                 cache[item!!.id]?.let {
                     hbox {
                         spacing = 4.0
-                        it.forEach { +BranchBadge(it.shortRef) }
+                        it.forEach {
+                            +label {
+                                addClass("branch-badge")
+                                if (it.shortRef == head) addClass("current")
+                                text = it.shortRef
+                                graphic = Icons.codeFork()
+                            }
+                        }
                     }
                 }
             }
-        }
-
-    }
-
-    private inner class BranchBadge(name: String) : Label(name, Icons.codeFork()) {
-
-        init {
-            addClass("branch-badge")
-            if (name == this@CommitLogView.head) addClass("current")
         }
 
     }

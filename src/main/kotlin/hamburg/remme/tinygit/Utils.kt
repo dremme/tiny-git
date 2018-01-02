@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.DayOfWeek
+import java.time.Year
 import java.time.format.DateTimeFormatter
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
@@ -18,6 +20,19 @@ val shortDateTimeFormat = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
 private val key = SecretKeySpec("FUMN1QLIf8sVkUdv".toByteArray(), "AES")
 private val iv = IvParameterSpec("Ay81aeLRJM5xtx9h".toByteArray())
+
+fun Year.numberOfWeeks(): Int {
+    val firstDay = atDay(1)
+    val lastDay = atDay(length())
+    if (isLeap) {
+        if (firstDay.dayOfWeek == DayOfWeek.WEDNESDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY) return 53
+        else if (firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.FRIDAY) return 53
+        return 52
+    } else {
+        if (firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY) return 53
+        return 52
+    }
+}
 
 fun printError(message: String) {
     System.err.println(message)

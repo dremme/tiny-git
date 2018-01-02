@@ -20,6 +20,7 @@ import java.util.concurrent.Callable
 // cache stuff in nested collection methods, like find {}
 // clean-up nested let {} for map {}
 // instead of also {} and apply {}, use onEach {} at the end of a statement chain
+// boolean properties (and parameters) should start with 'is'
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
     Font.loadFont("font/Roboto-Regular.ttf".asResource(), 13.0)

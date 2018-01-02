@@ -26,7 +26,7 @@ inline fun progressSpinner(block: Node.() -> Unit): Node {
     return indicator
 }
 
-inline fun progressPane(block: ProgressPaneBuilder.() -> Unit): ProgressPaneBuilder {
+inline fun progressPane(block: ProgressPaneBuilder.() -> Unit): ProgressPane {
     val pane = ProgressPaneBuilder()
     block.invoke(pane)
     return pane
@@ -46,7 +46,7 @@ class SpinAnimation(private val node: Node, rate: Double = 1.0) : Transition(spi
 
 }
 
-class ProgressPaneBuilder : StackPane() {
+open class ProgressPane : StackPane() {
 
     private val progress = progressBar {
         addClass("progress-pane-bar")
@@ -57,10 +57,6 @@ class ProgressPaneBuilder : StackPane() {
 
     init {
         children.add(progress)
-    }
-
-    operator fun Node.unaryPlus() {
-        children.add(children.size - 1, this)
     }
 
     fun execute(task: Task<*>) {
@@ -77,6 +73,14 @@ class ProgressPaneBuilder : StackPane() {
 
     private fun hideProgress() {
         progress.isVisible = false
+    }
+
+}
+
+class ProgressPaneBuilder : ProgressPane() {
+
+    operator fun Node.unaryPlus() {
+        children.add(children.size - 1, this)
     }
 
 }

@@ -193,20 +193,6 @@
     AXIS_COLOR: -fx-chart-grid-color;
 }
 
-.chart-vertical-grid-lines {
-    -fx-stroke: -fx-chart-grid-color;
-    -fx-stroke-dash-array: 0.25em, 0.25em;
-}
-
-.chart-horizontal-grid-lines {
-    -fx-stroke: -fx-chart-grid-color;
-    -fx-stroke-dash-array: 0.25em, 0.25em;
-}
-
-.chart-horizontal-zero-line {
-    -fx-stroke: none;
-}
-
 .chart-pie-label-line {
     -fx-stroke: -fx-chart-label-color;
 }
