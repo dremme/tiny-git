@@ -1,8 +1,8 @@
-package hamburg.remme.tinygit.service
+package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.git.Git
 
 object DivergenceService : Refreshable() {
 

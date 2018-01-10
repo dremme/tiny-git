@@ -3,10 +3,10 @@ package hamburg.remme.tinygit.gui
 import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.git.LocalBranch
-import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.git.LocalStashEntry
-import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.domain.LocalBranch
+import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.domain.LocalStashEntry
+import hamburg.remme.tinygit.git.Git
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.addClass

@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit
 
-import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.domain.LocalRepository
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.representer.Representer

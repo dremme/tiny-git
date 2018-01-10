@@ -1,16 +1,16 @@
-package hamburg.remme.tinygit.git.api
+package hamburg.remme.tinygit.git
 
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.atEndOfDay
 import hamburg.remme.tinygit.decrypt
-import hamburg.remme.tinygit.git.LocalBranch
-import hamburg.remme.tinygit.git.LocalCommit
-import hamburg.remme.tinygit.git.LocalDivergence
-import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.git.LocalRebase
-import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.git.LocalStashEntry
-import hamburg.remme.tinygit.git.LocalStatus
+import hamburg.remme.tinygit.domain.LocalBranch
+import hamburg.remme.tinygit.domain.LocalCommit
+import hamburg.remme.tinygit.domain.LocalDivergence
+import hamburg.remme.tinygit.domain.LocalFile
+import hamburg.remme.tinygit.domain.LocalRebase
+import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.domain.LocalStashEntry
+import hamburg.remme.tinygit.domain.LocalStatus
 import hamburg.remme.tinygit.measureTime
 import hamburg.remme.tinygit.read
 import hamburg.remme.tinygit.readFirst

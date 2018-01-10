@@ -1,4 +1,4 @@
-package hamburg.remme.tinygit.git
+package hamburg.remme.tinygit.domain
 
 class LocalRebase(val next: Int, val last: Int) {
 
