@@ -43,6 +43,7 @@ import org.eclipse.jgit.revwalk.RevWalkUtils
 import org.eclipse.jgit.revwalk.filter.AndRevFilter
 import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter
 import org.eclipse.jgit.revwalk.filter.RevFilter
+import org.eclipse.jgit.storage.file.WindowCacheConfig
 import org.eclipse.jgit.transport.RemoteRefUpdate
 import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
@@ -78,6 +79,12 @@ object Git {
     private var proxyPort = ThreadLocal<Int>() // TODO: really needed? cannot interact with more than one repo atm
 
     init {
+        val config = WindowCacheConfig()
+        config.packedGitLimit = 524288000L
+        config.deltaBaseCacheLimit = 524288000
+        config.streamFileThreshold = 524288000
+        config.install()
+
         ProxySelector.setDefault(object : ProxySelector() {
             private val delegate = ProxySelector.getDefault()
 
@@ -173,7 +180,7 @@ object Git {
 
     private fun log(repository: LocalRepository, skip: Int, max: Int, fetch: Boolean): List<LocalCommit> {
         return repository.openGit("log $skip->${max + skip}") {
-            if (fetch) it.fetch(repository)
+            if (fetch) it.fetch(repository, false)
             val logCommand = it.log().setSkip(skip).setMaxCount(max)
             it.branchListIds().forEach { logCommand.add(it) }
             logCommand.call().map { it.toLocalCommit() }
@@ -262,6 +269,7 @@ object Git {
     /**
      * - git status
      */
+    // TODO: buggy in cases where the modified file has no content changes
     fun status(repository: LocalRepository): LocalStatus {
         return repository.open("status") {
             val formatter = DiffFormatter(NullOutputStream.INSTANCE)
@@ -557,10 +565,10 @@ object Git {
             if (result.count() > 0) {
                 result.first().remoteUpdates.forEach {
                     when (it.status) {
-                        RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD -> throw PushRejectedException(it.message)
-                        RemoteRefUpdate.Status.REJECTED_NODELETE -> throw DeleteRejectedException(it.message)
-                        RemoteRefUpdate.Status.REJECTED_REMOTE_CHANGED -> throw RemoteChangedException(it.message)
-                        RemoteRefUpdate.Status.REJECTED_OTHER_REASON -> throw RejectedException(it.message)
+                        RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD -> throw PushRejectedException(it.message ?: "")
+                        RemoteRefUpdate.Status.REJECTED_NODELETE -> throw DeleteRejectedException(it.message ?: "")
+                        RemoteRefUpdate.Status.REJECTED_REMOTE_CHANGED -> throw RemoteChangedException(it.message ?: "")
+                        RemoteRefUpdate.Status.REJECTED_OTHER_REASON -> throw RejectedException(it.message ?: "")
                         else -> Unit
                     }
                 }
@@ -772,34 +780,30 @@ object Git {
     }
 
     /**
-     * - git fetch
+     * - git fetch --[prune]
      */
-    fun fetch(repository: LocalRepository) {
+    fun fetch(repository: LocalRepository, prune: Boolean) {
         cache -= repository
-        repository.openGit("fetch") { it.fetch(repository) }
+        repository.openGit("fetch") { it.fetch(repository, prune) }
     }
 
     /**
-     * - git fetch --prune
      * - git gc --aggressive
      */
-    fun fetchGc(repository: LocalRepository) {
-        cache -= repository
-        repository.openGit("fetch prune gc") {
-            it.fetch().applyAuth(repository).setRemoveDeletedRefs(true).call()
-            // TODO: clarify when to do
+    // TODO: not pruning correctly
+    fun gc(repository: LocalRepository) {
+        repository.openGit("gc") {
             try {
                 it.gc().setAggressive(true).call()
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
         }
-        cache += repository
     }
 
-    private fun JGit.fetch(repository: LocalRepository) {
+    private fun JGit.fetch(repository: LocalRepository, prune: Boolean) {
         if (!isUpdated(repository)) {
-            fetch().applyAuth(repository).call()
+            fetch().applyAuth(repository).setRemoveDeletedRefs(prune).call()
             cache += repository
         }
     }
