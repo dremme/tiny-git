@@ -2,10 +2,10 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.dateTimeFormat
-import hamburg.remme.tinygit.git.LocalCommit
-import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.domain.LocalCommit
+import hamburg.remme.tinygit.domain.LocalFile
+import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.git.Git
 import hamburg.remme.tinygit.gui.builder.SplitPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.splitPane

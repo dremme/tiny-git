@@ -4,10 +4,10 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.delete
 import hamburg.remme.tinygit.exists
-import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.git.LocalStatus
-import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.domain.LocalFile
+import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.domain.LocalStatus
+import hamburg.remme.tinygit.git.Git
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.addClass

@@ -1,11 +1,11 @@
 package hamburg.remme.tinygit
 
 import hamburg.remme.tinygit.gui.GitView
-import hamburg.remme.tinygit.service.BranchService
-import hamburg.remme.tinygit.service.DivergenceService
-import hamburg.remme.tinygit.service.MergeService
-import hamburg.remme.tinygit.service.RebaseService
-import hamburg.remme.tinygit.service.StashService
+import hamburg.remme.tinygit.domain.service.BranchService
+import hamburg.remme.tinygit.domain.service.DivergenceService
+import hamburg.remme.tinygit.domain.service.MergeService
+import hamburg.remme.tinygit.domain.service.RebaseService
+import hamburg.remme.tinygit.domain.service.StashService
 import javafx.application.Application
 import javafx.beans.binding.Bindings
 import javafx.scene.Scene

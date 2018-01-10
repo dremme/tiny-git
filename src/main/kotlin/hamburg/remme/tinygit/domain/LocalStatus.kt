@@ -1,3 +1,3 @@
-package hamburg.remme.tinygit.git
+package hamburg.remme.tinygit.domain
 
 class LocalStatus(val staged: List<LocalFile>, val pending: List<LocalFile>)

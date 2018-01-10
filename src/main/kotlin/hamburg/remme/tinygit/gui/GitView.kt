@@ -5,11 +5,11 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.exists
-import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.git.api.Git
-import hamburg.remme.tinygit.git.api.PrepareSquashException
-import hamburg.remme.tinygit.git.api.PushRejectedException
-import hamburg.remme.tinygit.git.api.SquashException
+import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.PrepareSquashException
+import hamburg.remme.tinygit.git.PushRejectedException
+import hamburg.remme.tinygit.git.SquashException
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionCollection
 import hamburg.remme.tinygit.gui.builder.ActionGroup

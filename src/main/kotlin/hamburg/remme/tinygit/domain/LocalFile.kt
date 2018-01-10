@@ -1,4 +1,4 @@
-package hamburg.remme.tinygit.git
+package hamburg.remme.tinygit.domain
 
 class LocalFile(val path: String, val status: Status, val cached: Boolean = true) {
 

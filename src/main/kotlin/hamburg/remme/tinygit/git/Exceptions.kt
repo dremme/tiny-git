@@ -1,4 +1,4 @@
-package hamburg.remme.tinygit.git.api
+package hamburg.remme.tinygit.git
 
 import org.eclipse.jgit.api.errors.GitAPIException
 

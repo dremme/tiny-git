@@ -1,4 +1,4 @@
-package hamburg.remme.tinygit.git.api
+package hamburg.remme.tinygit.git
 
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Session

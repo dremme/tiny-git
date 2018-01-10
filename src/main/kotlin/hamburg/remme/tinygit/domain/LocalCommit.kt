@@ -1,4 +1,4 @@
-package hamburg.remme.tinygit.git
+package hamburg.remme.tinygit.domain
 
 import java.time.LocalDateTime
 

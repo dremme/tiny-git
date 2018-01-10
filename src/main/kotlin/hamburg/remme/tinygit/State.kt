@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit
 
-import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.domain.LocalFile
+import hamburg.remme.tinygit.domain.LocalRepository
 import javafx.beans.binding.Bindings
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.ReadOnlyStringWrapper
