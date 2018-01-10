@@ -11,6 +11,7 @@ class LocalFile(val path: String, val status: Status, val cached: Boolean = true
         other as LocalFile
 
         if (path != other.path) return false
+        if (status != other.status) return false
         if (cached != other.cached) return false
 
         return true
@@ -18,6 +19,7 @@ class LocalFile(val path: String, val status: Status, val cached: Boolean = true
 
     override fun hashCode(): Int {
         var result = path.hashCode()
+        result = 31 * result + status.hashCode()
         result = 31 * result + cached.hashCode()
         return result
     }

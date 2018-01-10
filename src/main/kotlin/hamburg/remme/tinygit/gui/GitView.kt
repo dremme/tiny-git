@@ -91,8 +91,8 @@ class GitView : VBoxBuilder() {
                 { pull(State.getSelectedRepository()) }, State.behind)
         val fetch = Action("Fetch", { Icons.refresh() }, "Shortcut+F", State.canFetch.not(),
                 { fetch(State.getSelectedRepository()) })
-        val fetchGc = Action("Fetch and GC", { Icons.eraser() }, "Shortcut+Shift+F", State.canGc.not(),
-                { fetchGc(State.getSelectedRepository()) })
+        val fetchGc = Action("GC", { Icons.eraser() }, "Shortcut+Shift+F", State.canGc.not(),
+                { gc(State.getSelectedRepository()) })
         val branch = Action("Branch", { Icons.codeFork() }, "Shortcut+B", State.canBranch.not(),
                 { createBranch(State.getSelectedRepository()) })
         val merge = Action("Merge", { Icons.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
@@ -207,7 +207,7 @@ class GitView : VBoxBuilder() {
 
     private fun fetch(repository: LocalRepository) {
         State.startProcess("Fetching...", object : Task<Unit>() {
-            override fun call() = Git.fetch(repository)
+            override fun call() = Git.fetch(repository, true)
 
             override fun succeeded() = State.fireRefresh(this)
 
@@ -215,9 +215,9 @@ class GitView : VBoxBuilder() {
         })
     }
 
-    private fun fetchGc(repository: LocalRepository) {
-        State.startProcess("Fetching and GC...", object : Task<Unit>() {
-            override fun call() = Git.fetchGc(repository)
+    private fun gc(repository: LocalRepository) {
+        State.startProcess("Cleaning...", object : Task<Unit>() {
+            override fun call() = Git.gc(repository)
 
             override fun succeeded() = State.fireRefresh(this)
 

@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.git.LocalCommit
 import hamburg.remme.tinygit.git.LocalFile
 import hamburg.remme.tinygit.git.LocalRepository
@@ -20,6 +21,17 @@ class FileDiffView : VBoxBuilder() {
 
     private val contextLines: ComboBox<Int>
     private val fileDiff: WebEngine
+    private val empty = /*language=HTML*/ """
+        <html>
+        <head>
+            <style>
+                html, body {
+                    background-color: #3c3f41;
+                }
+            </style>
+        </head>
+        </html>
+    """
     private val emptyDiff = /*language=HTML*/ """
         <tr>
             <td class="line-number header">&nbsp;</td>
@@ -37,10 +49,7 @@ class FileDiffView : VBoxBuilder() {
             buttonCell = ContextLinesListCell()
             cellFactory = Callback { ContextLinesListCell() }
             value = 3
-            valueProperty().addListener { _, _, it ->
-                if (commit == null) setContent(Git.diff(repository!!, file!!, it))
-                else setContent(Git.diff(repository!!, file!!, commit!!, it))
-            }
+            valueProperty().addListener { _, _, it -> update(it) }
         }
         +toolBar {
             addSpacer()
@@ -52,10 +61,13 @@ class FileDiffView : VBoxBuilder() {
             isContextMenuEnabled = false
             prefWidth = 400.0
             prefHeight = 300.0
+            engine.loadContent(empty)
         }
         fileDiff = webView.engine
         +webView
         clearContent()
+
+        State.addRefreshListener(this) { update(contextLines.value) }
     }
 
     fun update(newRepository: LocalRepository, newFile: LocalFile) {
@@ -78,23 +90,18 @@ class FileDiffView : VBoxBuilder() {
         }
     }
 
+    fun update(contextLines: Int) {
+        if (repository == null || file == null) clearContent()
+        else if (commit == null) setContent(Git.diff(repository!!, file!!, contextLines))
+        else setContent(Git.diff(repository!!, file!!, commit!!, contextLines))
+    }
+
     fun clearContent() {
         repository = null
         file = null
         commit = null
 
-        //language=HTML
-        fileDiff.loadContent("""
-            <html>
-            <head>
-                <style>
-                    html, body {
-                        background-color: #3c3f41;
-                    }
-                </style>
-            </head>
-            </html>
-        """)
+        fileDiff.loadContent(empty)
     }
 
     // TODO: slow and can make the ui stuck on huge files, e.g. package-lock.json
