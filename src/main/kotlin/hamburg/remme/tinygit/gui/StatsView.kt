@@ -1,8 +1,9 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.gitLsTree
 import hamburg.remme.tinygit.gui.builder.ProgressPane
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.columnSpan
@@ -93,7 +94,7 @@ class StatsView : Tab() {
         State.addRefreshListener(this) { update(it, period.value) }
     }
 
-    private fun update(repository: LocalRepository, year: Year) {
+    private fun update(repository: Repository, year: Year) {
         task?.cancel()
         task = object : Task<Unit>() {
             lateinit var contribution: List<Pair<String, Int>>
@@ -110,7 +111,7 @@ class StatsView : Tab() {
                         .sortedBy { (_, value) -> value }
                         .takeLast(8)
 
-                files = Git.tree(repository)
+                files = gitLsTree(repository)
                         .groupingBy { it.substringAfterLast('.', it.substringAfterLast('/')) }
                         .eachCount()
                         .map { (ext, value) -> ext to value }

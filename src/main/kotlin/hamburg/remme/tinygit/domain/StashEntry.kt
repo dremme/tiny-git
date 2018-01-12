@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.domain
 
-class LocalStashEntry(val id: String,
-                      val message: String) {
+class StashEntry(val id: String,
+                 val message: String) {
 
     override fun toString() = id
 
@@ -9,7 +9,7 @@ class LocalStashEntry(val id: String,
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as LocalCommit
+        other as Commit
 
         if (id != other.id) return false
 

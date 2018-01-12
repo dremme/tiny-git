@@ -1,16 +1,16 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.Git
 
 object DivergenceService : Refreshable() {
 
-    override fun onRefresh(repository: LocalRepository) {
+    override fun onRefresh(repository: Repository) {
         update(repository)
     }
 
-    override fun onRepositoryChanged(repository: LocalRepository) {
+    override fun onRepositoryChanged(repository: Repository) {
         update(repository)
     }
 
@@ -20,7 +20,7 @@ object DivergenceService : Refreshable() {
         State.behind.set(0)
     }
 
-    private fun update(repository: LocalRepository) {
+    private fun update(repository: Repository) {
         State.aheadDefault.set(Git.divergenceDefault(repository))
         val (ahead, behind) = Git.divergence(repository)
         State.ahead.set(ahead)

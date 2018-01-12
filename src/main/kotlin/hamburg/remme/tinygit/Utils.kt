@@ -83,15 +83,11 @@ private fun Int.getInstance(): Cipher {
 fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*items)!!
 
 inline fun <T> measureTime(type: String, message: String, block: () -> T): T {
-    if (type.isNotBlank() && message.isNotBlank()) {
-        val startTime = System.currentTimeMillis()
-        val value = block.invoke()
-        val totalTime = (System.currentTimeMillis() - startTime) / 1000.0
-        val async = if (!Platform.isFxApplicationThread()) "[async]" else ""
-        val log = String.format("[%6.3fs] %7s %-18s: %s", totalTime, async, type, message)
-        if (totalTime < 1) println(log) else printError(log)
-        return value
-    } else {
-        return block.invoke()
-    }
+    val startTime = System.currentTimeMillis()
+    val value = block.invoke()
+    val totalTime = (System.currentTimeMillis() - startTime) / 1000.0
+    val async = if (!Platform.isFxApplicationThread()) "[async]" else ""
+    val log = String.format("[%6.3fs] %7s %-18s: %s", totalTime, async, type, message)
+    if (totalTime < 1) println(log) else printError(log)
+    return value
 }

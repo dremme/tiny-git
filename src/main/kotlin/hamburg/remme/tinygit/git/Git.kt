@@ -3,40 +3,28 @@ package hamburg.remme.tinygit.git
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.atEndOfDay
 import hamburg.remme.tinygit.decrypt
-import hamburg.remme.tinygit.domain.LocalBranch
-import hamburg.remme.tinygit.domain.LocalCommit
-import hamburg.remme.tinygit.domain.LocalDivergence
-import hamburg.remme.tinygit.domain.LocalFile
-import hamburg.remme.tinygit.domain.LocalRebase
-import hamburg.remme.tinygit.domain.LocalRepository
-import hamburg.remme.tinygit.domain.LocalStashEntry
-import hamburg.remme.tinygit.domain.LocalStatus
+import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.domain.Divergence
+import hamburg.remme.tinygit.domain.GitFile
+import hamburg.remme.tinygit.domain.Rebase
+import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.measureTime
 import hamburg.remme.tinygit.read
 import hamburg.remme.tinygit.readFirst
 import hamburg.remme.tinygit.readLines
-import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.ListBranchCommand
-import org.eclipse.jgit.api.MergeResult
 import org.eclipse.jgit.api.RebaseCommand
 import org.eclipse.jgit.api.RebaseResult
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.api.TransportCommand
-import org.eclipse.jgit.diff.DiffConfig
-import org.eclipse.jgit.diff.DiffEntry
-import org.eclipse.jgit.diff.DiffFormatter
-import org.eclipse.jgit.dircache.DirCacheIterator
 import org.eclipse.jgit.lib.AnyObjectId
-import org.eclipse.jgit.lib.Config
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.RebaseTodoLine
-import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.lib.RepositoryCache
 import org.eclipse.jgit.lib.RepositoryState
-import org.eclipse.jgit.revwalk.FollowFilter
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.revwalk.RevWalkUtils
@@ -44,19 +32,9 @@ import org.eclipse.jgit.revwalk.filter.AndRevFilter
 import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter
 import org.eclipse.jgit.revwalk.filter.RevFilter
 import org.eclipse.jgit.storage.file.WindowCacheConfig
-import org.eclipse.jgit.transport.RemoteRefUpdate
 import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
-import org.eclipse.jgit.treewalk.AbstractTreeIterator
-import org.eclipse.jgit.treewalk.CanonicalTreeParser
-import org.eclipse.jgit.treewalk.EmptyTreeIterator
-import org.eclipse.jgit.treewalk.FileTreeIterator
-import org.eclipse.jgit.treewalk.TreeWalk
-import org.eclipse.jgit.treewalk.filter.PathFilter
-import org.eclipse.jgit.treewalk.filter.TreeFilter
 import org.eclipse.jgit.util.FS
-import org.eclipse.jgit.util.io.NullOutputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -67,14 +45,46 @@ import java.net.URI
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.util.Scanner
 import org.eclipse.jgit.api.Git as JGit
+import org.eclipse.jgit.lib.Repository as JGitRepository
+
+val defaultBranches = arrayOf("master", "origin/master", "develop", "origin/develop", "trunk", "origin/trunk")
+private val proxy = arrayOf("config", "http.proxy")
+private val unsetProxy = arrayOf("config", "--unset", "http.proxy")
+
+fun gitProxy(repository: Repository) {
+    if (repository.proxyHost.isNotBlank()) git(repository, *proxy, "${repository.proxyHost}:${repository.proxyPort}")
+    else git(repository, *unsetProxy)
+}
+
+fun git(repository: Repository, vararg args: String, block: (String) -> Unit) {
+    measureTime(repository.shortPath, args.joinToString(" ")) {
+        val process = gitProcess(repository.path, *args)
+        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) block.invoke(it.nextLine()) }
+    }
+}
+
+fun git(repository: Repository, vararg args: String): String {
+    return measureTime(repository.shortPath, args.joinToString(" ")) {
+        val process = gitProcess(repository.path, *args)
+        val output = StringBuilder()
+        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) output.appendln(it.nextLine()) }
+        output.toString()
+    }
+}
+
+private fun gitProcess(path: String, vararg args: String): Process {
+    val processBuilder = ProcessBuilder("git", *args)
+    processBuilder.directory(File(path))
+    processBuilder.redirectErrorStream(true)
+    return processBuilder.start()
+}
 
 object Git {
 
     private val REMOTE = Constants.DEFAULT_REMOTE_NAME
-    private val HEAD = Constants.HEAD
-    private val DEFAULT_BRANCHES = arrayOf("master", "develop", "trunk")
-    private val cache = mutableSetOf<LocalRepository>()
+    private val cache = mutableSetOf<Repository>()
     private var proxyHost = ThreadLocal<String>() // TODO: really needed? cannot interact with more than one repo atm
     private var proxyPort = ThreadLocal<Int>() // TODO: really needed? cannot interact with more than one repo atm
 
@@ -97,38 +107,18 @@ object Git {
         })
     }
 
-    fun isUpdated(repository: LocalRepository) = cache.contains(repository)
+    fun isUpdated(repository: Repository) = cache.contains(repository)
 
-    fun isMerging(repository: LocalRepository) = repository.open { it.repositoryState == RepositoryState.MERGING }
+    fun isMerging(repository: Repository) = repository.open { it.repositoryState == RepositoryState.MERGING }
 
-    fun isRebasing(repository: LocalRepository) = repository.open { it.repositoryState.isRebasing }
-
-    /**
-     * - git remote
-     */
-    fun hasRemote(repository: LocalRepository): Boolean {
-        return repository.openGit("has remote") { it.remoteList().call().isNotEmpty() }
-    }
-
-    /**
-     * - git remote show origin
-     */
-    fun getRemote(repository: LocalRepository): String {
-        return repository.openGit("get remote") {
-            it.remoteList().call()
-                    .takeIf { it.isNotEmpty() }?.first()
-                    ?.urIs
-                    ?.takeIf { it.isNotEmpty() }?.first()
-                    ?.toString() ?: ""
-        }
-    }
+    fun isRebasing(repository: Repository) = repository.open { it.repositoryState.isRebasing }
 
     /**
      * One of the following:
      * - git remote add origin <[url]>
      * - git remote set-url origin <[url]>
      */
-    fun setRemote(repository: LocalRepository, url: String) {
+    fun setRemote(repository: Repository, url: String) {
         repository.openGit("set remote $url") {
             if (it.remoteList().call().isNotEmpty()) {
                 val cmd = it.remoteSetUrl()
@@ -149,7 +139,7 @@ object Git {
     /**
      * - git remote rm origin
      */
-    fun removeRemote(repository: LocalRepository) {
+    fun removeRemote(repository: Repository) {
         repository.openGit("remove remote") {
             val cmd = it.remoteRemove()
             cmd.setName(REMOTE)
@@ -157,15 +147,11 @@ object Git {
         }
     }
 
-    fun head(repository: LocalRepository): String {
-        return repository.open("head") { it.branch }
-    }
-
     /**
      * - git branch --all
      * - git log --all --skip=[skip] --max-count=[max]
      */
-    fun log(repository: LocalRepository, skip: Int, max: Int): List<LocalCommit> {
+    fun log(repository: Repository, skip: Int, max: Int): List<Commit> {
         return log(repository, skip, max, false)
     }
 
@@ -174,11 +160,11 @@ object Git {
      * - git branch --all
      * - git log --all --skip=[skip] --max-count=[max]
      */
-    fun logFetch(repository: LocalRepository, skip: Int, max: Int): List<LocalCommit> {
+    fun logFetch(repository: Repository, skip: Int, max: Int): List<Commit> {
         return log(repository, skip, max, true)
     }
 
-    private fun log(repository: LocalRepository, skip: Int, max: Int, fetch: Boolean): List<LocalCommit> {
+    private fun log(repository: Repository, skip: Int, max: Int, fetch: Boolean): List<Commit> {
         return repository.openGit("log $skip->${max + skip}") {
             if (fetch) it.fetch(repository, false)
             val logCommand = it.log().setSkip(skip).setMaxCount(max)
@@ -190,7 +176,7 @@ object Git {
     /**
      * - git log --all --after=<[after]> --before=<[before]>
      */
-    fun log(repository: LocalRepository, after: LocalDate?, before: LocalDate?): List<LocalCommit> {
+    fun log(repository: Repository, after: LocalDate?, before: LocalDate?): List<Commit> {
         return repository.openGit("log stream") {
             val walk = it.revWalk()
             if (after != null && before != null) {
@@ -211,10 +197,10 @@ object Git {
     /**
      * - git log master..
      */
-    fun logWithoutDefault(repository: LocalRepository): List<LocalCommit> {
+    fun logWithoutDefault(repository: Repository): List<Commit> {
         return repository.open("prep squash") {
             val head = it.resolve(it.branch)
-            val defaultIds = DEFAULT_BRANCHES.mapNotNull(it::findRef).map { it.objectId }
+            val defaultIds = defaultBranches.mapNotNull(it::findRef).map { it.objectId }
             it.revWalk().use {
                 defaultIds.map(it::parseCommit).forEach(it::markUninteresting)
                 it.markStart(it.parseCommit(head))
@@ -223,7 +209,7 @@ object Git {
         }
     }
 
-    private fun RevCommit.toLocalCommit() = LocalCommit(
+    private fun RevCommit.toLocalCommit() = Commit(
             name, abbreviate(10).name(),
             parents.map { it.name }, parents.map { it.abbreviate(10).name() },
             fullMessage, shortMessage,
@@ -239,26 +225,10 @@ object Git {
      * - git log HEAD --max-count=1
      */
     // TODO: or use commit edit file
-    fun headMessage(repository: LocalRepository): String {
+    fun headMessage(repository: Repository): String {
         return repository.open("head message") {
             val head = it.findRef(it.branch)
             it.revWalk().use { it.parseCommit(head.objectId) }.fullMessage
-        }
-    }
-
-    /**
-     * - git branch --all
-     */
-    fun branchListAll(repository: LocalRepository): List<LocalBranch> {
-        return repository.openGit("branch list") { it.branchListAll() }
-    }
-
-    private fun JGit.branchListAll(): List<LocalBranch> {
-        return branchList().setListMode(ListBranchCommand.ListMode.ALL).call().map {
-            LocalBranch(
-                    Repository.shortenRefName(it.name),
-                    it.objectId.name,
-                    it.name.startsWith(Constants.R_REMOTES))
         }
     }
 
@@ -269,66 +239,19 @@ object Git {
     /**
      * - git status
      */
-    // TODO: buggy in cases where the modified file has no content changes
-    fun status(repository: LocalRepository): LocalStatus {
-        return repository.open("status") {
-            val formatter = DiffFormatter(NullOutputStream.INSTANCE)
-            formatter.setRepository(it)
-            formatter.isDetectRenames = true
-            LocalStatus(formatter.stagedFiles(it), formatter.pendingFiles(it))
-        }
-    }
-
-    private fun DiffFormatter.pendingFiles(repository: Repository): List<LocalFile> {
-        val oldTree = DirCacheIterator(repository.readDirCache())
-        val newTree = FileTreeIterator(repository)
-        return scan(oldTree, newTree).map {
-            when (it.changeType!!) {
-                DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED, false)
-                DiffEntry.ChangeType.COPY -> throw IllegalStateException("Type not allowed: ${DiffEntry.ChangeType.COPY}")
-                DiffEntry.ChangeType.RENAME -> throw IllegalStateException("Type not allowed: ${DiffEntry.ChangeType.RENAME}")
-                DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.MODIFIED, false)
-                DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED, false)
-            }
-        }.detectConflicts().sortedBy { it.status }
-    }
-
-    private fun DiffFormatter.stagedFiles(repository: Repository): List<LocalFile> {
-        val head = repository.resolve("$HEAD^{tree}")
-        val oldTree = if (head != null) repository.newObjectReader().use { CanonicalTreeParser(null, it, head) } else EmptyTreeIterator()
-        val newTree = DirCacheIterator(repository.readDirCache())
-        return scan(oldTree, newTree).map {
-            when (it.changeType!!) {
-                DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED)
-                DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.COPIED)
-                DiffEntry.ChangeType.RENAME -> LocalFile(it.newPath, LocalFile.Status.RENAMED)
-                DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.MODIFIED)
-                DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED)
-            }
-        }.detectConflicts().sortedBy { it.status }
-    }
-
-    private fun List<LocalFile>.detectConflicts(): List<LocalFile> {
-        val conflicts = filter { file -> count { it.path == file.path } > 1 }.toSet()
-        return filter { !conflicts.contains(it) } + conflicts.map { LocalFile(it.path, LocalFile.Status.CONFLICT, it.cached) }
-    }
-
-    /**
-     * - git status
-     */
-    fun divergence(repository: LocalRepository): LocalDivergence {
+    fun divergence(repository: Repository): Divergence {
         return repository.open("divergence") {
             val localBranch = it.resolve(it.branch)
             val remoteBranch = it.resolve("$REMOTE/${it.branch}")
             when {
-                localBranch == null -> LocalDivergence(0, 0)
+                localBranch == null -> Divergence(0, 0)
                 remoteBranch == null -> {
-                    val defaultIds = DEFAULT_BRANCHES.mapNotNull(it::findRef).map { it.objectId }
+                    val defaultIds = defaultBranches.mapNotNull(it::findRef).map { it.objectId }
                     it.revWalk().use {
                         defaultIds.map(it::parseCommit).forEach(it::markUninteresting)
                         it.markStart(it.parseCommit(localBranch))
                         val ahead = it.count().takeIf { it > 0 } ?: -1
-                        LocalDivergence(ahead, 0)
+                        Divergence(ahead, 0)
                     }
                 }
                 else -> it.revWalk().use {
@@ -340,7 +263,7 @@ object Git {
                     val mergeBase = it.next()
                     it.reset()
                     it.revFilter = RevFilter.ALL
-                    LocalDivergence(
+                    Divergence(
                             RevWalkUtils.count(it, localCommit, mergeBase),
                             RevWalkUtils.count(it, remoteCommit, mergeBase))
                 }
@@ -352,10 +275,10 @@ object Git {
      * - git status
      */
     // TODO: redundancy with logWithoutDefault
-    fun divergenceDefault(repository: LocalRepository): Int {
+    fun divergenceDefault(repository: Repository): Int {
         return repository.open("divergence default") {
             val head = it.resolve(it.branch) ?: return 0
-            val defaultIds = DEFAULT_BRANCHES.mapNotNull(it::findRef).map { it.objectId }
+            val defaultIds = defaultBranches.mapNotNull(it::findRef).map { it.objectId }
             it.revWalk().use {
                 defaultIds.map(it::parseCommit).forEach(it::markUninteresting)
                 it.markStart(it.parseCommit(head))
@@ -365,93 +288,13 @@ object Git {
     }
 
     /**
-     * Creates a source code difference using `git diff` depending on the [file]'s status.
-     */
-    fun diff(repository: LocalRepository, file: LocalFile, lines: Int): String {
-        if (file.status == LocalFile.Status.CONFLICT && file.cached) return ""
-
-        return repository.openGit("diff cached=${file.cached} $file") {
-            val diffCommand = it.diff()
-                    .setCached(file.cached)
-                    .setContextLines(lines)
-                    .setPathFilter(file.toPathFilter())
-            val head = it.repository.resolve("$HEAD^{tree}")
-            if (file.cached && head == null) {
-                diffCommand.setOldTree(EmptyTreeIterator())
-            } else if (file.status == LocalFile.Status.CONFLICT) {
-                diffCommand.setOldTree(it.repository.newObjectReader().use { CanonicalTreeParser(null, it, head) })
-                diffCommand.setNewTree(FileTreeIterator(it.repository))
-            }
-            ByteArrayOutputStream().use {
-                diffCommand.setOutputStream(it).call()
-                it.toString("UTF-8")
-            }
-        }
-    }
-
-    /**
-     * - git diff --unified=<[lines]> <[commit]> <parent> <[file]>
-     */
-    fun diff(repository: LocalRepository, file: LocalFile, commit: LocalCommit, lines: Int): String {
-        return repository.openGit("diff $file of $commit") {
-            val (newTree, oldTree) = it.repository.treesOf(ObjectId.fromString(commit.id))
-            val diffCommand = it.diff()
-                    .setOldTree(oldTree)
-                    .setNewTree(newTree)
-                    .setContextLines(lines)
-                    .setPathFilter(file.toPathFilter())
-            ByteArrayOutputStream().use {
-                diffCommand.setOutputStream(it).call()
-                it.toString("UTF-8")
-            }
-        }
-    }
-
-    /**
-     * - git diff-tree -r <[commit]>
-     */
-    fun diffTree(repository: LocalRepository, commit: LocalCommit): List<LocalFile> {
-        return repository.open("diff tree $commit") {
-            val formatter = DiffFormatter(NullOutputStream.INSTANCE)
-            formatter.setRepository(it)
-            formatter.isDetectRenames = true
-
-            val (newTree, oldTree) = it.treesOf(ObjectId.fromString(commit.id))
-            formatter.scan(oldTree, newTree).map {
-                when (it.changeType!!) {
-                    DiffEntry.ChangeType.ADD -> LocalFile(it.newPath, LocalFile.Status.ADDED)
-                    DiffEntry.ChangeType.COPY -> LocalFile(it.newPath, LocalFile.Status.COPIED)
-                    DiffEntry.ChangeType.RENAME -> LocalFile(it.newPath, LocalFile.Status.RENAMED)
-                    DiffEntry.ChangeType.MODIFY -> LocalFile(it.newPath, LocalFile.Status.MODIFIED)
-                    DiffEntry.ChangeType.DELETE -> LocalFile(it.oldPath, LocalFile.Status.REMOVED)
-                }
-            }.sortedBy { it.status }
-        }
-    }
-
-    fun tree(repository: LocalRepository): List<String> {
-        return repository.open("tree") {
-            val head = it.resolve("$HEAD^{tree}") ?: return emptyList()
-            it.treeWalk().use {
-                it.addTree(head)
-                it.isRecursive = true
-                mutableListOf<String>().apply {
-                    while (it.next()) {
-                        add(it.pathString)
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * - git rm <[files] != MISSING>
      * - git add <[files] != MISSING>
      */
-    fun stage(repository: LocalRepository, files: List<LocalFile>) {
+    fun stage(repository: Repository, files: List<GitFile>) {
         repository.openGit("stage $files") { git ->
-            files.filter { it.status == LocalFile.Status.REMOVED }.let { if (it.isNotEmpty()) git.remove(it) }
-            files.filter { it.status != LocalFile.Status.REMOVED }.let { if (it.isNotEmpty()) git.add(it) }
+            files.filter { it.status == GitFile.Status.REMOVED }.let { if (it.isNotEmpty()) git.remove(it) }
+            files.filter { it.status != GitFile.Status.REMOVED }.let { if (it.isNotEmpty()) git.add(it) }
         }
     }
 
@@ -459,7 +302,7 @@ object Git {
      * - git rm <[removed]>
      * - git add .
      */
-    fun stageAll(repository: LocalRepository, removed: List<LocalFile>) {
+    fun stageAll(repository: Repository, removed: List<GitFile>) {
         repository.openGit("stage all") {
             if (removed.isNotEmpty()) it.remove(removed)
             it.addAll()
@@ -469,11 +312,11 @@ object Git {
     /**
      * - git add --update .
      */
-    fun updateAll(repository: LocalRepository) {
+    fun updateAll(repository: Repository) {
         repository.openGit("update") { it.add().setUpdate(true).addFilepattern(".").call() }
     }
 
-    private fun JGit.add(files: List<LocalFile>) {
+    private fun JGit.add(files: List<GitFile>) {
         val addCommand = add()
         files.forEach { addCommand.addFilepattern(it.path) }
         addCommand.call()
@@ -483,7 +326,7 @@ object Git {
         add().addFilepattern(".").call()
     }
 
-    private fun JGit.remove(files: List<LocalFile>) {
+    private fun JGit.remove(files: List<GitFile>) {
         val rmCommand = rm()
         files.forEach { rmCommand.addFilepattern(it.path) }
         rmCommand.call()
@@ -492,14 +335,14 @@ object Git {
     /**
      * - git reset
      */
-    fun reset(repository: LocalRepository) {
+    fun reset(repository: Repository) {
         repository.openGit("reset") { it.reset().call() }
     }
 
     /**
      * - git reset <[files]>
      */
-    fun reset(repository: LocalRepository, files: List<LocalFile>) {
+    fun reset(repository: Repository, files: List<GitFile>) {
         repository.openGit("reset $files") {
             val resetCommand = it.reset()
             files.forEach { resetCommand.addPath(it.path) }
@@ -510,7 +353,7 @@ object Git {
     /**
      * - git reset --hard origin/<current_branch>
      */
-    fun resetHard(repository: LocalRepository) {
+    fun resetHard(repository: Repository) {
         repository.openGit("reset hard") {
             it.reset().setMode(ResetCommand.ResetType.HARD).setRef("$REMOTE/${it.repository.branch}").call()
         }
@@ -519,92 +362,81 @@ object Git {
     /**
      * - git commit --message="[message]"
      */
-    fun commit(repository: LocalRepository, message: String) {
+    fun commit(repository: Repository, message: String) {
         commit(repository, message, false)
     }
 
     /**
      * - git commit --amend --message="[message]"
      */
-    fun commitAmend(repository: LocalRepository, message: String) {
+    fun commitAmend(repository: Repository, message: String) {
         commit(repository, message, true)
     }
 
-    private fun commit(repository: LocalRepository, message: String, amend: Boolean) {
+    private fun commit(repository: Repository, message: String, amend: Boolean) {
         repository.openGit("commit amend=$amend") { it.commit().setMessage(message).setAmend(amend).call() }
     }
 
-    /**
-     * - git pull
-     *
-     * @return true if something changed
-     */
-    fun pull(repository: LocalRepository): Boolean {
-        return repository.openGit("pull") {
-            it.pull().applyAuth(repository).call().mergeResult.mergeStatus != MergeResult.MergeStatus.ALREADY_UP_TO_DATE
-        }
-    }
-
-    /**
-     * - git push
-     */
-    fun push(repository: LocalRepository) {
-        push(repository, false)
-    }
-
-    /**
-     * - git push --force
-     */
-    fun pushForce(repository: LocalRepository) {
-        push(repository, true)
-    }
-
-    private fun push(repository: LocalRepository, force: Boolean) {
-        repository.openGit("push force=$force") {
-            val result = it.push().applyAuth(repository).setForce(force).call()
-            if (result.count() > 0) {
-                result.first().remoteUpdates.forEach {
-                    when (it.status) {
-                        RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD -> throw PushRejectedException(it.message ?: "")
-                        RemoteRefUpdate.Status.REJECTED_NODELETE -> throw DeleteRejectedException(it.message ?: "")
-                        RemoteRefUpdate.Status.REJECTED_REMOTE_CHANGED -> throw RemoteChangedException(it.message ?: "")
-                        RemoteRefUpdate.Status.REJECTED_OTHER_REASON -> throw RejectedException(it.message ?: "")
-                        else -> Unit
-                    }
-                }
-            }
-        }
-    }
+//    /**
+//     * - git push
+//     */
+//    fun push(repository: Repository) {
+//        push(repository, false)
+//    }
+//
+//    /**
+//     * - git push --force
+//     */
+//    fun pushForce(repository: Repository) {
+//        push(repository, true)
+//    }
+//
+//    private fun push(repository: Repository, force: Boolean) {
+//        repository.openGit("push force=$force") {
+//            val result = it.push().applyAuth(repository).setForce(force).call()
+//            if (result.count() > 0) {
+//                result.first().remoteUpdates.forEach {
+//                    when (it.status) {
+//                        RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD -> throw PushRejectedException(it.message ?: "")
+//                        RemoteRefUpdate.Status.REJECTED_NODELETE -> throw DeleteRejectedException(it.message ?: "")
+//                        RemoteRefUpdate.Status.REJECTED_REMOTE_CHANGED -> throw RemoteChangedException(it.message ?: "")
+//                        RemoteRefUpdate.Status.REJECTED_OTHER_REASON -> throw RejectedException(it.message ?: "")
+//                        else -> Unit
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     /**
      * - git checkout -b [name]
      */
-    fun branchCreate(repository: LocalRepository, name: String) {
+    fun branchCreate(repository: Repository, name: String) {
         repository.openGit("create $name") { it.checkout().setCreateBranch(true).setName(name).call() }
     }
 
     /**
      * - git branch --move [oldName] [newName]
      */
-    fun branchRename(repository: LocalRepository, oldName: String, newName: String) {
+    fun branchRename(repository: Repository, oldName: String, newName: String) {
         repository.openGit("rename $oldName -> $newName") { it.branchRename().setOldName(oldName).setNewName(newName).call() }
     }
 
     /**
      * - git branch --delete [name]
      */
-    fun branchDelete(repository: LocalRepository, name: String) {
+    fun branchDelete(repository: Repository, name: String) {
         branchDelete(repository, name, false)
     }
 
     /**
      * - git branch --delete --force [name]
      */
-    fun branchDeleteForce(repository: LocalRepository, name: String) {
+    fun branchDeleteForce(repository: Repository, name: String) {
         branchDelete(repository, name, true)
     }
 
-    private fun branchDelete(repository: LocalRepository, name: String, force: Boolean) {
+    private fun branchDelete(repository: Repository, name: String, force: Boolean) {
         repository.openGit("delete force=$force $name") {
             it.branchDelete().setForce(force).setBranchNames(name).call()
         }
@@ -613,7 +445,7 @@ object Git {
     /**
      * - git merge <[branch]>
      */
-    fun merge(repository: LocalRepository, branch: String) {
+    fun merge(repository: Repository, branch: String) {
         repository.openGit("merge $branch") {
             it.merge().include(it.repository.resolve(branch)).setMessage("Merged '$branch' into '${it.repository.branch}'.").call()
         }
@@ -622,7 +454,7 @@ object Git {
     /**
      * - git merge --abort
      */
-    fun mergeAbort(repository: LocalRepository) {
+    fun mergeAbort(repository: Repository) {
         repository.openGit("merge abort") {
             it.repository.writeMergeHeads(null)
             it.repository.writeMergeCommitMsg(null)
@@ -630,19 +462,19 @@ object Git {
         }
     }
 
-    fun mergeMessage(repository: LocalRepository) = "${repository.path}/.git/MERGE_MSG".asPath().read()
+    fun mergeMessage(repository: Repository) = "${repository.path}/.git/MERGE_MSG".asPath().read()
 
     /**
      * - git rebase <[branch]>
      */
-    fun rebase(repository: LocalRepository, branch: String) {
+    fun rebase(repository: Repository, branch: String) {
         repository.openGit("rebase $branch") { it.rebase().setUpstream(branch).call() }
     }
 
     /**
      * - git rebase --continue
      */
-    fun rebaseContinue(repository: LocalRepository) {
+    fun rebaseContinue(repository: Repository) {
         repository.openGit("rebase continue") {
             val result = it.rebase().setOperation(RebaseCommand.Operation.CONTINUE).call()
             if (result.status == RebaseResult.Status.NOTHING_TO_COMMIT) {
@@ -654,14 +486,14 @@ object Git {
     /**
      * - git rebase --abort
      */
-    fun rebaseAbort(repository: LocalRepository) {
+    fun rebaseAbort(repository: Repository) {
         repository.openGit("rebase abort") { it.rebase().setOperation(RebaseCommand.Operation.ABORT).call() }
     }
 
     /**
      * - git rebase --interactive <[baseId]>
      */
-    fun rebaseSquash(repository: LocalRepository, baseId: String, message: String) {
+    fun rebaseSquash(repository: Repository, baseId: String, message: String) {
         repository.openGit("squash") {
             val result = it.rebase().setUpstream(ObjectId.fromString(baseId))
                     .runInteractively(object : RebaseCommand.InteractiveHandler {
@@ -681,7 +513,7 @@ object Git {
         }
     }
 
-    fun rebaseState(repository: LocalRepository): LocalRebase {
+    fun rebaseState(repository: Repository): Rebase {
         val state = repository.open { it.repositoryState }
         if (state.isRebasing) {
             return when (state) {
@@ -690,118 +522,27 @@ object Git {
                 else -> throw IllegalStateException("Unexpected state $state")
             }
         } else {
-            return LocalRebase(0, 0)
+            return Rebase(0, 0)
         }
     }
 
-    private fun rebaseStateApply(repository: LocalRepository): LocalRebase {
+    private fun rebaseStateApply(repository: Repository): Rebase {
         val rebasePath = "${repository.path}/.git/rebase-apply".asPath()
         val next = rebasePath.resolve("next").readFirst().toInt()
         val last = rebasePath.resolve("last").readFirst().toInt()
-        return LocalRebase(next, last)
+        return Rebase(next, last)
     }
 
-    private fun rebaseStateMerge(repository: LocalRepository): LocalRebase {
+    private fun rebaseStateMerge(repository: Repository): Rebase {
         val rebasePath = "${repository.path}/.git/rebase-merge".asPath()
         val done = rebasePath.resolve("done").readLines().countMeaningful()
         val todo = rebasePath.resolve("git-rebase-todo").readLines().countMeaningful()
-        return LocalRebase(done, done + todo)
+        return Rebase(done, done + todo)
     }
 
     private fun List<String>.countMeaningful() = filterNot { it.isBlank() || it.startsWith("#") }.size
 
-    /**
-     * - git checkout [branch]
-     */
-    fun checkout(repository: LocalRepository, branch: String) {
-        if (branch == HEAD) return // cannot checkout HEAD directly
-
-        repository.openGit("checkout $branch") { it.checkout().setName(branch).call() }
-    }
-
-    /**
-     * - git checkout HEAD <[files]>
-     */
-    fun checkout(repository: LocalRepository, files: List<LocalFile>) {
-        repository.openGit("checkout $files") {
-            val checkoutCommand = it.checkout()
-            files.forEach { checkoutCommand.addPath(it.path) }
-            checkoutCommand.call()
-        }
-    }
-
-    /**
-     * - git checkout -b <local> --track <[remote]>
-     */
-    fun checkoutRemote(repository: LocalRepository, remote: String) {
-        if (remote.substringAfter('/') == HEAD) return // cannot checkout HEAD directly
-
-        repository.openGit("checkout $remote") {
-            it.checkout()
-                    .setCreateBranch(true)
-                    .setName(remote.substringAfter('/'))
-                    .setStartPoint(remote)
-                    .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
-                    .call()
-        }
-    }
-
-    /**
-     * - git stash
-     */
-    fun stash(repository: LocalRepository) {
-        repository.openGit("stash") { it.stashCreate().call() }
-    }
-
-    /**
-     * - git stash pop
-     *
-     * Will not pop on stash apply conflicts/errors
-     */
-    fun stashPop(repository: LocalRepository) {
-        repository.openGit("stash pop") {
-            it.stashApply().call()
-            it.stashDrop().call()
-        }
-    }
-
-    /**
-     * - git stash list
-     */
-    fun stashList(repository: LocalRepository): List<LocalStashEntry> {
-        return repository.openGit("stash list") { it.stashList().call().map { LocalStashEntry(it.name, it.fullMessage) } }
-    }
-
-    /**
-     * - git stash list
-     */
-    fun stashListSize(repository: LocalRepository): Int {
-        return repository.openGit("stash list size") { it.stashList().call().size }
-    }
-
-    /**
-     * - git fetch --[prune]
-     */
-    fun fetch(repository: LocalRepository, prune: Boolean) {
-        cache -= repository
-        repository.openGit("fetch") { it.fetch(repository, prune) }
-    }
-
-    /**
-     * - git gc --aggressive
-     */
-    // TODO: not pruning correctly
-    fun gc(repository: LocalRepository) {
-        repository.openGit("gc") {
-            try {
-                it.gc().setAggressive(true).call()
-            } catch (ex: Exception) {
-                ex.printStackTrace()
-            }
-        }
-    }
-
-    private fun JGit.fetch(repository: LocalRepository, prune: Boolean) {
+    private fun JGit.fetch(repository: Repository, prune: Boolean) {
         if (!isUpdated(repository)) {
             fetch().applyAuth(repository).setRemoveDeletedRefs(prune).call()
             cache += repository
@@ -811,24 +552,24 @@ object Git {
     /**
      * - git init
      */
-    fun init(path: File): LocalRepository {
+    fun init(path: File): Repository {
         JGit.init().setDirectory(path).call()
-        return LocalRepository(path.absolutePath)
+        return Repository(path.absolutePath)
     }
 
     /**
      * - git clone <[url]>
      */
-    fun clone(repository: LocalRepository, url: String) {
+    fun clone(repository: Repository, url: String) {
         JGit.cloneRepository().applyAuth(repository).setDirectory(File(repository.path)).setURI(url).call()
     }
 
-    private fun <C : GitCommand<T>, T> TransportCommand<C, T>.applyAuth(repository: LocalRepository): C {
+    private fun <C : GitCommand<T>, T> TransportCommand<C, T>.applyAuth(repository: Repository): C {
         return if (repository.ssh.isNotBlank()) setTransportConfigCallback(TransportCallback(repository.ssh, repository.password))
         else setCredentialsProvider(UsernamePasswordCredentialsProvider(repository.username, repository.password.decrypt()))
     }
 
-    private inline fun <T> LocalRepository.open(description: String = "", block: (Repository) -> T): T {
+    private inline fun <T> Repository.open(description: String = "", block: (JGitRepository) -> T): T {
         Git.proxyHost.set(proxyHost)
         Git.proxyPort.set(proxyPort)
         val key = RepositoryCache.FileKey.lenient(File(path), FS.DETECTED)
@@ -837,36 +578,10 @@ object Git {
         }
     }
 
-    private inline fun <T> LocalRepository.openGit(description: String = "", block: (JGit) -> T) = open(description) { JGit(it).let(block) }
+    private inline fun <T> Repository.openGit(description: String = "", block: (JGit) -> T) = open(description) { JGit(it).let(block) }
 
-    private fun Repository.revWalk() = RevWalk(this)
-
-    private fun Repository.treeWalk() = TreeWalk(this)
+    private fun JGitRepository.revWalk() = RevWalk(this)
 
     private fun JGit.revWalk() = RevWalk(repository)
-
-    // TODO: test performance if objectreader is created here instead
-    private fun Repository.treesOf(commitId: AnyObjectId): Pair<AbstractTreeIterator, AbstractTreeIterator> {
-        return revWalk().use {
-            val commit = it.parseCommit(commitId).takeIf { it.parentCount < 2 }
-            val parent = commit?.parents?.firstOrNull()?.let(it::parseCommit)
-            it.iteratorOf(commit) to it.iteratorOf(parent)
-        }
-    }
-
-    // TODO: test performance if objectreader is created here instead
-    private fun RevWalk.iteratorOf(commit: RevCommit?): AbstractTreeIterator {
-        return commit?.let { CanonicalTreeParser(null, objectReader, it.tree) } ?: EmptyTreeIterator()
-    }
-
-    private fun LocalFile.toPathFilter(): TreeFilter {
-        return if (status == LocalFile.Status.RENAMED || status == LocalFile.Status.COPIED) {
-            val config = Config()
-            config.setBoolean("diff", null, "renames", true)
-            FollowFilter.create(path, config.get(DiffConfig.KEY))
-        } else {
-            PathFilter.create(path)
-        }
-    }
 
 }

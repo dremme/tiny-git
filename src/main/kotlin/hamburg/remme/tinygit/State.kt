@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit
 
-import hamburg.remme.tinygit.domain.LocalFile
-import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.domain.GitFile
+import hamburg.remme.tinygit.domain.Repository
 import javafx.beans.binding.Bindings
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.ReadOnlyStringWrapper
@@ -46,9 +46,9 @@ object State {
      * REPOSITORIES                                                                                                  *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val allRepositories = observableList<LocalRepository>()
+    private val allRepositories = observableList<Repository>()
     private val repositories = allRepositories.filtered { it.path.asPath().exists() }!!
-    val selectedRepository = SimpleObjectProperty<LocalRepository>()
+    val selectedRepository = SimpleObjectProperty<Repository>()
     val branchCount = SimpleIntegerProperty()
     val aheadDefault = SimpleIntegerProperty()
     val ahead = SimpleIntegerProperty()
@@ -58,19 +58,19 @@ object State {
 
     fun getRepositories() = repositories
 
-    fun setRepositories(repositories: Collection<LocalRepository>) = allRepositories.setAll(repositories)
+    fun setRepositories(repositories: Collection<Repository>) = allRepositories.setAll(repositories)
 
-    fun addRepository(repository: LocalRepository) {
+    fun addRepository(repository: Repository) {
         if (!allRepositories.contains(repository)) allRepositories.add(repository)
     }
 
-    fun removeRepository(repository: LocalRepository) = allRepositories.remove(repository)
+    fun removeRepository(repository: Repository) = allRepositories.remove(repository)
 
     fun getSelectedRepository() = selectedRepository.get()!!
 
-    fun setSelectedRepository(repository: LocalRepository?) = selectedRepository.set(repository)
+    fun setSelectedRepository(repository: Repository?) = selectedRepository.set(repository)
 
-    fun addRepositoryListener(block: (LocalRepository?) -> Unit) = selectedRepository.addListener { _, _, it -> block.invoke(it) }
+    fun addRepositoryListener(block: (Repository?) -> Unit) = selectedRepository.addListener { _, _, it -> block.invoke(it) }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
@@ -81,8 +81,8 @@ object State {
     val isRebasing = SimpleBooleanProperty()
     val rebaseNext = SimpleIntegerProperty()
     val rebaseLast = SimpleIntegerProperty()
-    val stagedFiles = observableList<LocalFile>()
-    val pendingFiles = observableList<LocalFile>()
+    val stagedFiles = observableList<GitFile>()
+    val pendingFiles = observableList<GitFile>()
     val stagedSelectedCount = SimpleIntegerProperty()
     val pendingSelectedCount = SimpleIntegerProperty()
     val stashSize = SimpleIntegerProperty()
@@ -128,7 +128,7 @@ object State {
     val canSquash = isReady.and(aheadDefault.greater1())!!
 
     val canStageAll = isIdle.and(Bindings.isNotEmpty(pendingFiles))!!
-    val canUpdateAll = isIdle.and(Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.ADDED }))!!
+    val canUpdateAll = isIdle.and(Bindings.isNotEmpty(pendingFiles.filtered { it.status != GitFile.Status.ADDED }))!!
     val canStageSelected = isIdle.and(pendingSelectedCount.greater0())!!
     val canUnstageAll = isIdle.and(Bindings.isNotEmpty(stagedFiles))!!
     val canUnstageSelected = isIdle.and(stagedSelectedCount.greater0())!!
@@ -143,9 +143,9 @@ object State {
      * REFRESH                                                                                                       *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val refreshListeners = mutableMapOf<Any, (LocalRepository) -> Unit>()
+    private val refreshListeners = mutableMapOf<Any, (Repository) -> Unit>()
 
-    fun addRefreshListener(receiver: Any, block: (LocalRepository) -> Unit) {
+    fun addRefreshListener(receiver: Any, block: (Repository) -> Unit) {
         refreshListeners[receiver] = block
     }
 

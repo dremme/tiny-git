@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.domain.Repository
 
 abstract class Refreshable {
 
@@ -10,9 +10,9 @@ abstract class Refreshable {
         State.addRefreshListener(this) { onRefresh(it) }
     }
 
-    abstract fun onRefresh(repository: LocalRepository)
+    abstract fun onRefresh(repository: Repository)
 
-    abstract fun onRepositoryChanged(repository: LocalRepository)
+    abstract fun onRepositoryChanged(repository: Repository)
 
     abstract fun onRepositoryDeselected()
 

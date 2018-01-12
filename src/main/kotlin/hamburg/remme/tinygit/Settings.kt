@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit
 
-import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.domain.Repository
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.representer.Representer
@@ -33,7 +33,7 @@ object Settings {
                 getCategory(Category.TAB_SELECTION))))
     }
 
-    fun setRepositories(supplier: () -> List<LocalRepository>) {
+    fun setRepositories(supplier: () -> List<Repository>) {
         suppliers[Category.REPOSITORIES] = supplier
     }
 
@@ -58,7 +58,7 @@ object Settings {
         return suppliers[category]?.invoke() as? T ?: throw RuntimeException("Missing supplier for setting $category")
     }
 
-    class LocalSettings(var repositories: List<LocalRepository> = emptyList(),
+    class LocalSettings(var repositories: List<Repository> = emptyList(),
                         var tree: List<TreeItem> = emptyList(),
                         var treeSelection: TreeItem = TreeItem(),
                         var window: WindowSettings = WindowSettings(),

@@ -1,11 +1,14 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.domain.LocalBranch
-import hamburg.remme.tinygit.domain.LocalCommit
-import hamburg.remme.tinygit.domain.LocalGraph
-import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.domain.Branch
+import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.domain.GitGraph
+import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.gitBranchAll
+import hamburg.remme.tinygit.git.gitHasRemote
+import hamburg.remme.tinygit.git.gitHead
 import hamburg.remme.tinygit.gui.builder.ProgressPane
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.errorAlert
@@ -37,14 +40,14 @@ class CommitLogView : Tab() {
 
     private val window: Window get() = content.scene.window
     private val progressPane: ProgressPane
-    private val localCommits = TableView<LocalCommit>()
+    private val localCommits = TableView<Commit>()
     private val commitDetails = CommitDetailsView()
     private var task: Task<*>? = null
 
-    private val cache: MutableMap<String, List<LocalBranch>> = mutableMapOf()
+    private val cache: MutableMap<String, List<Branch>> = mutableMapOf()
     private val logSize = 50
     private val skipSize = 50
-    private lateinit var graph: LocalGraph
+    private lateinit var graph: GitGraph
     private lateinit var head: String
     private var skip = 0
 
@@ -53,23 +56,23 @@ class CommitLogView : Tab() {
         graphic = Icons.list()
         isClosable = false
 
-        val message = tableColumn<LocalCommit, LocalCommit> {
+        val message = tableColumn<Commit, Commit> {
             text = "Message"
             isSortable = false
             setCellValueFactory { ReadOnlyObjectWrapper(it.value) }
             setCellFactory { LogMessageTableCell() }
         }
-        val date = tableColumn<LocalCommit, String> {
+        val date = tableColumn<Commit, String> {
             text = "Date"
             isSortable = false
             setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(shortDateTimeFormat)) }
         }
-        val author = tableColumn<LocalCommit, String> {
+        val author = tableColumn<Commit, String> {
             text = "Author"
             isSortable = false
             setCellValueFactory { ReadOnlyStringWrapper(it.value.author) }
         }
-        val commit = tableColumn<LocalCommit, String> {
+        val commit = tableColumn<Commit, String> {
             text = "Commit"
             isSortable = false
             setCellValueFactory { ReadOnlyStringWrapper(it.value.shortId) }
@@ -116,13 +119,13 @@ class CommitLogView : Tab() {
         }
     }
 
-    private fun invalidateCache(repository: LocalRepository) {
+    private fun invalidateCache(repository: Repository) {
         cache.clear()
-        cache.putAll(Git.branchListAll(repository).groupBy { it.commitId })
+        cache.putAll(gitBranchAll(repository).groupBy { it.commitId })
     }
 
-    private fun setContent(commits: List<LocalCommit>) {
-        graph = LocalGraph(commits)
+    private fun setContent(commits: List<Commit>) {
+        graph = GitGraph(commits)
         val selected = localCommits.selectionModel.selectedItem
         localCommits.items.setAll(commits)
         localCommits.items.find { it == selected }?.let { localCommits.selectionModel.select(it) }
@@ -134,9 +137,9 @@ class CommitLogView : Tab() {
         localCommits.items.clear()
     }
 
-    private fun logQuick(repository: LocalRepository) {
+    private fun logQuick(repository: Repository) {
         task?.cancel()
-        head = Git.head(repository)
+        head = gitHead(repository)
         invalidateCache(repository)
         try {
             setContent(Git.log(repository, 0, logSize + skip))
@@ -146,22 +149,22 @@ class CommitLogView : Tab() {
         logRemote(repository)
     }
 
-    private fun logMore(repository: LocalRepository) {
+    private fun logMore(repository: Repository) {
         if (localCommits.items.size < skipSize) return
 
         val commits = Git.log(repository, skip + skipSize, logSize)
         if (commits.isNotEmpty()) {
-            graph = LocalGraph(localCommits.items + commits) // TODO: add-function on graph
+            graph = GitGraph(localCommits.items + commits) // TODO: add-function on graph
             skip += skipSize
             localCommits.items.addAll(commits)
             localCommits.scrollTo(skip - 1)
         }
     }
 
-    private fun logRemote(repository: LocalRepository) {
-        if (!Git.hasRemote(repository) || Git.isUpdated(repository)) return
+    private fun logRemote(repository: Repository) {
+        if (!gitHasRemote(repository) || Git.isUpdated(repository)) return
 
-        task = object : Task<List<LocalCommit>>() {
+        task = object : Task<List<Commit>>() {
             override fun call() = Git.logFetch(repository, 0, logSize + skip)
 
             override fun succeeded() {
@@ -180,9 +183,9 @@ class CommitLogView : Tab() {
         }.also { progressPane.execute(it) }
     }
 
-    private inner class LogMessageTableCell : TableCell<LocalCommit, LocalCommit>() {
+    private inner class LogMessageTableCell : TableCell<Commit, Commit>() {
 
-        override fun updateItem(item: LocalCommit?, empty: Boolean) {
+        override fun updateItem(item: Commit?, empty: Boolean) {
             super.updateItem(item, empty)
             text = item?.shortMessage
             graphic = if (empty) null else {
@@ -192,8 +195,8 @@ class CommitLogView : Tab() {
                         it.forEach {
                             +label {
                                 addClass("branch-badge")
-                                if (it.shortRef == head) addClass("current")
-                                text = it.shortRef
+                                if (it.name == head) addClass("current")
+                                text = it.name
                                 graphic = Icons.codeFork()
                             }
                         }

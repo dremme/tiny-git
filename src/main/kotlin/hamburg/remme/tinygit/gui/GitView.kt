@@ -4,12 +4,23 @@ import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asPath
+import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.exists
-import hamburg.remme.tinygit.domain.LocalRepository
 import hamburg.remme.tinygit.git.Git
 import hamburg.remme.tinygit.git.PrepareSquashException
-import hamburg.remme.tinygit.git.PushRejectedException
+import hamburg.remme.tinygit.git.PullException
+import hamburg.remme.tinygit.git.PushException
 import hamburg.remme.tinygit.git.SquashException
+import hamburg.remme.tinygit.git.TimeoutException
+import hamburg.remme.tinygit.git.gitBranchAll
+import hamburg.remme.tinygit.git.gitFetchPrune
+import hamburg.remme.tinygit.git.gitGc
+import hamburg.remme.tinygit.git.gitHasRemote
+import hamburg.remme.tinygit.git.gitHead
+import hamburg.remme.tinygit.git.gitPull
+import hamburg.remme.tinygit.git.gitPush
+import hamburg.remme.tinygit.git.gitStash
+import hamburg.remme.tinygit.git.gitStashPop
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionCollection
 import hamburg.remme.tinygit.gui.builder.ActionGroup
@@ -45,7 +56,6 @@ import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Window
-import org.eclipse.jgit.api.errors.CheckoutConflictException
 import org.eclipse.jgit.api.errors.JGitInternalException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.api.errors.StashApplyFailureException
@@ -197,7 +207,7 @@ class GitView : VBoxBuilder() {
     private fun addRepo() {
         directoryChooser(window, "Add Repository") {
             if ("${it.absolutePath}/.git".asPath().exists()) {
-                State.addRepository(LocalRepository(it.absolutePath))
+                State.addRepository(Repository(it.absolutePath))
             } else {
                 errorAlert(window, "Invalid Repository",
                         "'${it.absolutePath}' does not contain a valid '.git' directory.")
@@ -205,9 +215,9 @@ class GitView : VBoxBuilder() {
         }
     }
 
-    private fun fetch(repository: LocalRepository) {
+    private fun fetch(repository: Repository) {
         State.startProcess("Fetching...", object : Task<Unit>() {
-            override fun call() = Git.fetch(repository, true)
+            override fun call() = gitFetchPrune(repository)
 
             override fun succeeded() = State.fireRefresh(this)
 
@@ -215,9 +225,9 @@ class GitView : VBoxBuilder() {
         })
     }
 
-    private fun gc(repository: LocalRepository) {
-        State.startProcess("Cleaning...", object : Task<Unit>() {
-            override fun call() = Git.gc(repository)
+    private fun gc(repository: Repository) {
+        State.startProcess("Cleaning up...", object : Task<Unit>() {
+            override fun call() = gitGc(repository)
 
             override fun succeeded() = State.fireRefresh(this)
 
@@ -225,26 +235,25 @@ class GitView : VBoxBuilder() {
         })
     }
 
-    private fun pull(repository: LocalRepository) {
-        State.startProcess("Pulling commits...", object : Task<Boolean>() {
-            override fun call() = Git.pull(repository)
+    private fun pull(repository: Repository) {
+        State.startProcess("Pulling commits...", object : Task<Unit>() {
+            override fun call() = gitPull(repository)
 
-            override fun succeeded() {
-                if (value) State.fireRefresh(this)
-            }
+            override fun succeeded() = State.fireRefresh(this)
 
             override fun failed() {
                 when (exception) {
-                    is CheckoutConflictException -> errorAlert(window, "Cannot Pull From Remote Branch",
-                            "${exception.message}\n\nPlease commit or stash them before pulling.")
+                    is PullException -> errorAlert(window, "Cannot Pull From Remote Branch", exception.message!!)
+                    is TimeoutException -> errorAlert(window, "Connection Timed Out",
+                            "Check internet connection and proxy settings.")
                     else -> exception.printStackTrace()
                 }
             }
         })
     }
 
-    private fun push(repository: LocalRepository, force: Boolean) {
-        if (!Git.hasRemote(repository)) {
+    private fun push(repository: Repository, force: Boolean) {
+        if (!gitHasRemote(repository)) {
             errorAlert(window, "Push", "No remote configured.")
             SettingsDialog(repository, window).show()
             return
@@ -254,24 +263,23 @@ class GitView : VBoxBuilder() {
                 "This will rewrite the remote branch's history.\nChanges by others will be lost.")) return
 
         State.startProcess("Pushing commits...", object : Task<Unit>() {
-            override fun call() {
-                if (force) Git.pushForce(repository)
-                else Git.push(repository)
-            }
+            override fun call() = gitPush(repository, force)
 
             override fun succeeded() = State.fireRefresh(this)
 
             override fun failed() {
                 when (exception) {
-                    is PushRejectedException -> errorAlert(window, "Cannot Push to Remote Branch",
+                    is PushException -> errorAlert(window, "Cannot Push to Remote Branch",
                             "Updates were rejected because the tip of the current branch is behind.\nPull before pushing again or force push.")
+                    is TimeoutException -> errorAlert(window, "Connection Timed Out",
+                            "Check internet connection and proxy settings.")
                     else -> exception.printStackTrace()
                 }
             }
         })
     }
 
-    private fun createBranch(repository: LocalRepository) {
+    private fun createBranch(repository: Repository) {
         textInputDialog(window, "Enter a New Branch Name", "Create", Icons.codeFork()) { name ->
             State.startProcess("Branching...", object : Task<Unit>() {
                 override fun call() = Git.branchCreate(repository, name)
@@ -291,9 +299,9 @@ class GitView : VBoxBuilder() {
         }
     }
 
-    private fun merge(repository: LocalRepository) {
-        val current = Git.head(repository)
-        val branches = Git.branchListAll(repository).map { it.shortRef }.filter { it != current }
+    private fun merge(repository: Repository) {
+        val current = gitHead(repository)
+        val branches = gitBranchAll(repository).map { it.name }.filter { it != current }
         choiceDialog(window, "Select a Branch to Merge", "Merge", Icons.codeFork().flipY(), branches) { branch ->
             State.startProcess("Merging...", object : Task<Unit>() {
                 override fun call() = Git.merge(repository, branch)
@@ -305,7 +313,7 @@ class GitView : VBoxBuilder() {
         }
     }
 
-    private fun mergeAbort(repository: LocalRepository) {
+    private fun mergeAbort(repository: Repository) {
         State.startProcess("Aborting...", object : Task<Unit>() {
             override fun call() = Git.mergeAbort(repository)
 
@@ -315,9 +323,9 @@ class GitView : VBoxBuilder() {
         })
     }
 
-    private fun rebase(repository: LocalRepository) {
-        val current = Git.head(repository)
-        val branches = Git.branchListAll(repository).map { it.shortRef }.filter { it != current }
+    private fun rebase(repository: Repository) {
+        val current = gitHead(repository)
+        val branches = gitBranchAll(repository).map { it.name }.filter { it != current }
         choiceDialog(window, "Select a Branch for Rebasing", "Rebase", Icons.levelUp().flipX(), branches) { branch ->
             State.startProcess("Rebasing...", object : Task<Unit>() {
                 override fun call() = Git.rebase(repository, branch)
@@ -329,7 +337,7 @@ class GitView : VBoxBuilder() {
         }
     }
 
-    private fun rebaseContinue(repository: LocalRepository) {
+    private fun rebaseContinue(repository: Repository) {
         State.startProcess("Rebasing...", object : Task<Unit>() {
             override fun call() = Git.rebaseContinue(repository)
 
@@ -346,7 +354,7 @@ class GitView : VBoxBuilder() {
         })
     }
 
-    private fun rebaseAbort(repository: LocalRepository) {
+    private fun rebaseAbort(repository: Repository) {
         State.startProcess("Aborting...", object : Task<Unit>() {
             override fun call() = Git.rebaseAbort(repository)
 
@@ -356,9 +364,9 @@ class GitView : VBoxBuilder() {
         })
     }
 
-    private fun stash(repository: LocalRepository) {
+    private fun stash(repository: Repository) {
         State.startProcess("Stashing files...", object : Task<Unit>() {
-            override fun call() = Git.stash(repository)
+            override fun call() = gitStash(repository)
 
             override fun succeeded() = State.fireRefresh(this)
 
@@ -366,9 +374,9 @@ class GitView : VBoxBuilder() {
         })
     }
 
-    private fun stashPop(repository: LocalRepository) {
+    private fun stashPop(repository: Repository) {
         State.startProcess("Applying stash...", object : Task<Unit>() {
-            override fun call() = Git.stashPop(repository)
+            override fun call() = gitStashPop(repository)
 
             override fun succeeded() = State.fireRefresh(this)
 
@@ -385,7 +393,7 @@ class GitView : VBoxBuilder() {
         })
     }
 
-    private fun autoReset(repository: LocalRepository) {
+    private fun autoReset(repository: Repository) {
         if (!confirmWarningAlert(window, "Auto Reset Branch", "Reset",
                 "This will automatically reset the current branch to its remote branch.\nUnpushed commits will be lost.")) return
 
@@ -398,7 +406,7 @@ class GitView : VBoxBuilder() {
         })
     }
 
-    private fun autoSquash(repository: LocalRepository) {
+    private fun autoSquash(repository: Repository) {
         val commits = Git.logWithoutDefault(repository)
         val message = commits.joinToString("\n\n") { "# ${it.shortId}\n${it.fullMessage}" }
         val baseId = commits.last().parents.first()

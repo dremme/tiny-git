@@ -2,10 +2,10 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.dateTimeFormat
-import hamburg.remme.tinygit.domain.LocalCommit
-import hamburg.remme.tinygit.domain.LocalFile
-import hamburg.remme.tinygit.domain.LocalRepository
-import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.domain.GitFile
+import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.git.gitDiffTree
 import hamburg.remme.tinygit.gui.builder.SplitPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.splitPane
@@ -27,8 +27,8 @@ class CommitDetailsView : SplitPaneBuilder() {
 
     private val files: FileStatusView
     private val details: WebEngine
-    private var repository: LocalRepository? = null
-    private var commit: LocalCommit? = null
+    private var repository: Repository? = null
+    private var commit: Commit? = null
     private var task: Task<*>? = null
 
     init {
@@ -62,7 +62,7 @@ class CommitDetailsView : SplitPaneBuilder() {
         clearContent()
     }
 
-    fun update(newRepository: LocalRepository, newCommit: LocalCommit) {
+    fun update(newRepository: Repository, newCommit: Commit) {
         if (newRepository != repository || newCommit != commit) {
             repository = newRepository
             commit = newCommit
@@ -71,8 +71,8 @@ class CommitDetailsView : SplitPaneBuilder() {
 
             // TODO: add a process indicator
             task?.cancel()
-            task = object : Task<List<LocalFile>>() {
-                override fun call() = Git.diffTree(newRepository, newCommit)
+            task = object : Task<List<GitFile>>() {
+                override fun call() = gitDiffTree(newRepository, newCommit)
 
                 override fun succeeded() {
                     files.items.setAll(value)
@@ -101,7 +101,7 @@ class CommitDetailsView : SplitPaneBuilder() {
         """)
     }
 
-    private fun setContent(commit: LocalCommit) {
+    private fun setContent(commit: Commit) {
         //language=HTML
         details.loadContent("""
             <html>

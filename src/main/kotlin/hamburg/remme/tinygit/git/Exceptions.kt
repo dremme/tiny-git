@@ -2,14 +2,16 @@ package hamburg.remme.tinygit.git
 
 import org.eclipse.jgit.api.errors.GitAPIException
 
-class PushRejectedException(message: String) : GitAPIException(message)
+class TimeoutException : RuntimeException()
 
-class DeleteRejectedException(message: String) : GitAPIException(message)
+class PullException(message: String) : RuntimeException(message)
 
-class RemoteChangedException(message: String) : GitAPIException(message)
+class CheckoutException : RuntimeException()
 
-class RejectedException(message: String) : GitAPIException(message)
+class PushException : RuntimeException()
 
 class PrepareSquashException(message: String) : GitAPIException(message)
 
 class SquashException(message: String) : GitAPIException(message)
+
+class StashPopException : RuntimeException()
