@@ -1,10 +1,10 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.domain.LocalCommit
-import hamburg.remme.tinygit.domain.LocalFile
-import hamburg.remme.tinygit.domain.LocalRepository
-import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.domain.GitFile
+import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.git.gitDiff
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
 import hamburg.remme.tinygit.gui.builder.comboBox
 import hamburg.remme.tinygit.gui.builder.toolBar
@@ -39,9 +39,9 @@ class FileDiffView : VBoxBuilder() {
             <td class="code header">&nbsp;@@ No changes detected or binary file @@</td>
         </tr>
     """
-    private var repository: LocalRepository? = null
-    private var commit: LocalCommit? = null
-    private var file: LocalFile? = null
+    private var repository: Repository? = null
+    private var commit: Commit? = null
+    private var file: GitFile? = null
 
     init {
         contextLines = comboBox {
@@ -70,30 +70,30 @@ class FileDiffView : VBoxBuilder() {
         State.addRefreshListener(this) { update(contextLines.value) }
     }
 
-    fun update(newRepository: LocalRepository, newFile: LocalFile) {
+    fun update(newRepository: Repository, newFile: GitFile) {
         if (newRepository != repository || newFile != file) {
             repository = newRepository
             file = newFile
             commit = null
 
-            setContent(Git.diff(newRepository, newFile, contextLines.value))
+            setContent(gitDiff(newRepository, newFile, contextLines.value))
         }
     }
 
-    fun update(newRepository: LocalRepository, newFile: LocalFile, newCommit: LocalCommit) {
+    fun update(newRepository: Repository, newFile: GitFile, newCommit: Commit) {
         if (newRepository != repository || newFile != file || newCommit != commit) {
             repository = newRepository
             file = newFile
             commit = newCommit
 
-            setContent(Git.diff(newRepository, newFile, newCommit, contextLines.value))
+            setContent(gitDiff(newRepository, newFile, newCommit, contextLines.value))
         }
     }
 
     fun update(contextLines: Int) {
         if (repository == null || file == null) clearContent()
-        else if (commit == null) setContent(Git.diff(repository!!, file!!, contextLines))
-        else setContent(Git.diff(repository!!, file!!, commit!!, contextLines))
+        else if (commit == null) setContent(gitDiff(repository!!, file!!, contextLines))
+        else setContent(gitDiff(repository!!, file!!, commit!!, contextLines))
     }
 
     fun clearContent() {
@@ -194,18 +194,19 @@ class FileDiffView : VBoxBuilder() {
         val blocks = diff.lines()
                 .filter { it.startsWith('@') }
                 .map {
-                    val match = ".*?(\\d+)(,\\d+)?.*?(\\d+)(,\\d+)?.*".toRegex().matchEntire(it)!!.groups
+                    val match = ".*?[-+](\\d+)(,\\d+)? [-+](\\d+)(,\\d+)?( [-+](\\d+)(,\\d+))?.*".toRegex().matchEntire(it)!!.groups
                     DiffBlock(
-                            match[1]?.value?.toInt() ?: 1,
+                            match[1]!!.value.toInt(),
                             match[2]?.value?.substring(1)?.toInt() ?: 1,
-                            match[3]?.value?.toInt() ?: 1,
-                            match[4]?.value?.substring(1)?.toInt() ?: 1)
+                            match[3]!!.value.toInt(),
+                            match[4]?.value?.substring(1)?.toInt() ?: 1,
+                            match[6]?.value?.toInt() ?: 0,
+                            match[7]?.value?.substring(1)?.toInt() ?: 0)
                 }
         var blockIndex = -1
 
         val lineNumbers = LineNumbers()
         var conflict = false
-        // TODO: still buggy for conflicts
         return diff.lines()
                 .dropLast(1)
                 .map {
@@ -215,9 +216,9 @@ class FileDiffView : VBoxBuilder() {
                         lineNumbers.right = blocks[blockIndex].number2
                     }
                     if (blockIndex >= 0) {
-                        if (it.startsWith("+<<<<<<<")) conflict = true
+                        if (it.startsWith("++<<<<<<<")) conflict = true
                         val line = formatLine(it, lineNumbers, blocks[blockIndex], conflict)
-                        if (it.startsWith("+>>>>>>>")) conflict = false
+                        if (it.startsWith("++>>>>>>>")) conflict = false
                         return@map line
                     }
                     return@map ""
@@ -231,32 +232,39 @@ class FileDiffView : VBoxBuilder() {
         val codeClass: String
         val oldLineNumber: String
         val newLineNumber: String
-        when {
-            line.startsWith('@') -> return /*language=HTML*/ """
-                <tr>
-                    <td class="line-number header">&nbsp;</td>
-                    <td class="line-number header">&nbsp;</td>
-                    <td class="code header">&nbsp;@@ -${block.number1},${block.length1} +${block.number2},${block.length2} @@</td>
-                </tr>
-            """
-            line.startsWith("+++") -> return ""
-            line.startsWith("---") -> return ""
-            line.startsWith('+') -> {
+        when (line.firstOrNull() ?: "") {
+            '@' -> {
+                if (block.number3 > 0) return /*language=HTML*/ """
+                    <tr>
+                        <td class="line-number header">&nbsp;</td>
+                        <td class="line-number header">&nbsp;</td>
+                        <td class="code header">&nbsp;@@@ -${block.number1},${block.length1} -${block.number2},${block.length2} +${block.number3},${block.length3} @@@</td>
+                    </tr>
+                """
+                return /*language=HTML*/ """
+                    <tr>
+                        <td class="line-number header">&nbsp;</td>
+                        <td class="line-number header">&nbsp;</td>
+                        <td class="code header">&nbsp;@@ -${block.number1},${block.length1} +${block.number2},${block.length2} @@</td>
+                    </tr>
+                """
+            }
+            '+' -> {
                 newLineNumber = "${numbers.right++}"
                 oldLineNumber = "&nbsp;"
                 codeClass = if (conflict) "conflict" else "added"
             }
-            line.startsWith('-') -> {
+            '-' -> {
                 newLineNumber = "&nbsp;"
                 oldLineNumber = "${numbers.left++}"
                 codeClass = if (conflict) "conflict" else "removed"
             }
-            line.startsWith('\\') -> {
+            '\\' -> {
                 newLineNumber = "&nbsp;"
                 oldLineNumber = "&nbsp;"
                 codeClass = if (conflict) "conflict" else "eof"
             }
-            line.startsWith(' ') -> {
+            ' ' -> {
                 oldLineNumber = "${numbers.left++}"
                 newLineNumber = "${numbers.right++}"
                 codeClass = if (conflict) "conflict" else "&nbsp;"
@@ -276,7 +284,7 @@ class FileDiffView : VBoxBuilder() {
 
     private class LineNumbers(var left: Int = 0, var right: Int = 0)
 
-    private class DiffBlock(val number1: Int, val length1: Int, val number2: Int, val length2: Int)
+    private class DiffBlock(val number1: Int, val length1: Int, val number2: Int, val length2: Int, val number3: Int, val length3: Int)
 
     private class ContextLinesListCell : ListCell<Int>() {
         override fun updateItem(item: Int?, empty: Boolean) {

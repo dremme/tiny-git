@@ -1,5 +1,5 @@
 ## TinyGit
-A very small, fast and portable Git client.
+A very small, fast and portable Git GUI.
 Repositories can be configured with credentials, SSH keys and proxies separately.
 No need to toggle the proxy setting of `.gitconfig`.
 
@@ -11,7 +11,7 @@ Analyse your and other repositories with the help of TinyGit's statistics.
 
 ### Usage
 
-TinyGit runs without a Git installation on your device.
+TinyGit runs only with a [Git](https://git-scm.com/downloads) installation on your device.
 
 Requires Java 1.8 or newer to be installed.
 

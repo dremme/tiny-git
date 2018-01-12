@@ -3,11 +3,13 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.delete
+import hamburg.remme.tinygit.domain.GitFile
+import hamburg.remme.tinygit.domain.GitStatus
+import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.exists
-import hamburg.remme.tinygit.domain.LocalFile
-import hamburg.remme.tinygit.domain.LocalRepository
-import hamburg.remme.tinygit.domain.LocalStatus
 import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.gitCheckout
+import hamburg.remme.tinygit.git.gitStatus
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -23,8 +25,8 @@ import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.component.Icons
 import javafx.beans.binding.Bindings
 import javafx.beans.value.ObservableObjectValue
+import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
-import javafx.concurrent.Task
 import javafx.scene.control.MultipleSelectionModel
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.Tab
@@ -60,9 +62,9 @@ class WorkingCopyView : Tab() {
     private val pendingFiles = FileStatusView(State.pendingFiles, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
     private val stagedFilesSelection = stagedFiles.selectionModel
     private val pendingFilesSelection = pendingFiles.selectionModel
-    private val selectedFile: ObservableObjectValue<LocalFile>
+    private val selectedFile: ObservableObjectValue<GitFile>
     private val fileDiff = FileDiffView()
-    private var task: Task<*>? = null
+//    private var task: Task<*>? = null
 
     init {
         text = "Working Copy"
@@ -85,10 +87,10 @@ class WorkingCopyView : Tab() {
 
         // TODO: state props?
         val canDelete = Bindings.createBooleanBinding(
-                Callable { !pendingFilesSelection.selectedItems.all { it.status == LocalFile.Status.REMOVED } },
+                Callable { !pendingFilesSelection.selectedItems.all { it.status == GitFile.Status.REMOVED } },
                 pendingFilesSelection.selectedIndexProperty())
         val canDiscard = Bindings.createBooleanBinding(
-                Callable { !pendingFilesSelection.selectedItems.all { it.status == LocalFile.Status.ADDED } },
+                Callable { !pendingFilesSelection.selectedItems.all { it.status == GitFile.Status.ADDED } },
                 pendingFilesSelection.selectedIndexProperty())
         // TODO: menubar actions?
         val stageFile = Action("Stage (K)", { Icons.arrowCircleUp() }, disable = State.canStageSelected.not(),
@@ -166,60 +168,65 @@ class WorkingCopyView : Tab() {
         State.addRefreshListener(this) { status(it) }
     }
 
-    // TODO: file status order gets messed up here
-    private fun setContent(status: LocalStatus) {
+    // TODO: sort by status?
+    private fun setContent(status: GitStatus) {
         stagedFiles.items.addAll(status.staged.filter { stagedFiles.items.none(it::equals) })
         stagedFiles.items.removeAll(stagedFiles.items.filter { status.staged.none(it::equals) })
         pendingFiles.items.addAll(status.pending.filter { pendingFiles.items.none(it::equals) })
         pendingFiles.items.removeAll(pendingFiles.items.filter { status.pending.none(it::equals) })
+        FXCollections.sort(stagedFiles.items)
+        FXCollections.sort(pendingFiles.items)
     }
 
     private fun clearContent() {
-        task?.cancel()
+//        task?.cancel()
         stagedFiles.items.clear()
         pendingFiles.items.clear()
     }
 
-    private fun status(repository: LocalRepository, block: (() -> Unit)? = null) {
-        task?.cancel()
-        task = object : Task<LocalStatus>() {
-            override fun call() = Git.status(repository)
-
-            override fun succeeded() {
-                setContent(value)
-                block?.invoke()
-            }
-        }.also { State.execute(it) }
+    private fun status(repository: Repository, block: (() -> Unit)? = null) {
+        // TODO: task needed?
+//        task?.cancel()
+//        task = object : Task<GitStatus>() {
+//            override fun call() = gitStatus(repository)
+//
+//            override fun succeeded() {
+//                setContent(value)
+//                block?.invoke()
+//            }
+//        }.also { State.execute(it) }
+        setContent(gitStatus(repository))
+        block?.invoke()
     }
 
-    private fun stage(repository: LocalRepository) {
-        Git.stageAll(repository, pendingFiles.items.filter { it.status == LocalFile.Status.REMOVED })
+    private fun stage(repository: Repository) {
+        Git.stageAll(repository, pendingFiles.items.filter { it.status == GitFile.Status.REMOVED })
         status(repository)
     }
 
-    private fun stage(repository: LocalRepository, files: List<LocalFile>) {
+    private fun stage(repository: Repository, files: List<GitFile>) {
         val selected = getIndex(pendingFilesSelection)
         Git.stage(repository, files)
         status(repository) { setIndex(pendingFilesSelection, selected) }
     }
 
-    private fun update(repository: LocalRepository) {
+    private fun update(repository: Repository) {
         Git.updateAll(repository)
         status(repository)
     }
 
-    private fun unstage(repository: LocalRepository) {
+    private fun unstage(repository: Repository) {
         Git.reset(repository)
         status(repository)
     }
 
-    private fun unstage(repository: LocalRepository, files: List<LocalFile>) {
+    private fun unstage(repository: Repository, files: List<GitFile>) {
         val selected = getIndex(stagedFilesSelection)
         Git.reset(repository, files)
         status(repository) { setIndex(stagedFilesSelection, selected) }
     }
 
-    private fun deleteFile(repository: LocalRepository, files: List<LocalFile>) {
+    private fun deleteFile(repository: Repository, files: List<GitFile>) {
         if (confirmWarningAlert(window, "Delete Files", "Delete",
                 "This will remove the selected files from the disk.")) {
             val selected = getIndex(pendingFilesSelection)
@@ -228,11 +235,11 @@ class WorkingCopyView : Tab() {
         }
     }
 
-    private fun discardChanges(repository: LocalRepository, files: List<LocalFile>) {
+    private fun discardChanges(repository: Repository, files: List<GitFile>) {
         if (confirmWarningAlert(window, "Discard Changes", "Discard",
                 "This will discard all changes from the selected files.")) {
             try {
-                Git.checkout(repository, files)
+                gitCheckout(repository, files)
                 status(repository)
             } catch (ex: JGitInternalException) {
                 errorAlert(window, "Cannot Discard Changes", "${ex.message}")
@@ -240,11 +247,11 @@ class WorkingCopyView : Tab() {
         }
     }
 
-    private fun getIndex(selectionModel: MultipleSelectionModel<LocalFile>): Int {
+    private fun getIndex(selectionModel: MultipleSelectionModel<GitFile>): Int {
         return if (selectionModel.selectedItems.size == 1) selectionModel.selectedIndex else -1
     }
 
-    private fun setIndex(selectionModel: MultipleSelectionModel<LocalFile>, index: Int) {
+    private fun setIndex(selectionModel: MultipleSelectionModel<GitFile>, index: Int) {
         selectionModel.clearAndSelect(index)
         selectionModel.selectedItem ?: selectionModel.selectLast()
     }

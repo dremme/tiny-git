@@ -1,8 +1,9 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.gitStatus
 import hamburg.remme.tinygit.gui.FileDiffView
 import hamburg.remme.tinygit.gui.FileStatusView
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -18,7 +19,7 @@ import javafx.scene.layout.Priority
 import javafx.stage.Window
 import org.eclipse.jgit.api.errors.WrongRepositoryStateException
 
-class CommitDialog(repository: LocalRepository, window: Window)
+class CommitDialog(repository: Repository, window: Window)
     : Dialog<Unit>(window, if (State.isMerging.get()) "Merge Commit" else "New Commit", true) {
 
     init {
@@ -49,7 +50,7 @@ class CommitDialog(repository: LocalRepository, window: Window)
 
         focusAction = {
             val selected = files.selectionModel.selectedItem
-            files.items.setAll(Git.status(repository).staged)
+            files.items.setAll(gitStatus(repository).staged)
             files.selectionModel.select(files.items.indexOf(selected))
             files.selectionModel.selectedItem ?: files.selectionModel.selectFirst()
         }

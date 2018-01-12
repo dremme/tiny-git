@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.domain
 
-class LocalDivergence(val ahead: Int, val behind: Int) {
+class Divergence(val ahead: Int, val behind: Int) {
 
     operator fun component1() = ahead
 

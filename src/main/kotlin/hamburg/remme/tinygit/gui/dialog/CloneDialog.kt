@@ -1,8 +1,8 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.encrypt
-import hamburg.remme.tinygit.domain.LocalRepository
 import hamburg.remme.tinygit.git.Git
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
@@ -53,7 +53,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
         +DialogButton(DialogButton.CANCEL)
 
         okAction = {
-            val repository = LocalRepository(location.text)
+            val repository = Repository(location.text)
             repository.ssh = ssh.text
             repository.username = username.text
             repository.password = password.text.encrypt()

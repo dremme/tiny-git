@@ -2,9 +2,10 @@ package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.decrypt
+import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.encrypt
-import hamburg.remme.tinygit.domain.LocalRepository
 import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.gitGetRemoteUrl
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.columnSpan
@@ -19,7 +20,7 @@ import javafx.scene.control.Label
 import javafx.stage.Window
 
 // TODO: should be wider
-class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>(window, "Repository Settings") {
+class SettingsDialog(repository: Repository, window: Window) : Dialog<Unit>(window, "Repository Settings") {
 
     init {
         +DialogButton(DialogButton.OK)
@@ -27,7 +28,7 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
 
         val url = textField {
             isEditable = false
-            text = Git.getRemote(repository)
+            text = gitGetRemoteUrl(repository)
         }
         val urlSet = button {
             columnSpan(2)
@@ -35,11 +36,11 @@ class SettingsDialog(repository: LocalRepository, window: Window) : Dialog<Unit>
             graphic = Icons.link()
             maxWidth = Double.MAX_VALUE
             setOnAction {
-                textInputDialog(dialogWindow, "Enter Remote URL", "Apply", Icons.link(), Git.getRemote(repository)) {
+                textInputDialog(dialogWindow, "Enter Remote URL", "Apply", Icons.link(), gitGetRemoteUrl(repository)) {
                     // TODO: make removal more clear
                     if (it.isNotBlank()) Git.setRemote(repository, it)
                     else Git.removeRemote(repository)
-                    url.text = Git.getRemote(repository)
+                    url.text = gitGetRemoteUrl(repository)
                 }
             }
         }

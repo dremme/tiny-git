@@ -1,26 +1,26 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.domain.LocalFile
-import hamburg.remme.tinygit.domain.LocalRepository
+import hamburg.remme.tinygit.domain.GitFile
+import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.Git
 import javafx.collections.ListChangeListener
 
 object MergeService : Refreshable() {
 
     init {
-        val listener = ListChangeListener<LocalFile> {
+        val listener = ListChangeListener<GitFile> {
             if (State.isMerging.get() && State.stagedFiles.isEmpty() && State.pendingFiles.isEmpty()) State.isMerging.set(false)
         }
         State.stagedFiles.addListener(listener)
         State.pendingFiles.addListener(listener)
     }
 
-    override fun onRefresh(repository: LocalRepository) {
+    override fun onRefresh(repository: Repository) {
         update(repository)
     }
 
-    override fun onRepositoryChanged(repository: LocalRepository) {
+    override fun onRepositoryChanged(repository: Repository) {
         update(repository)
     }
 
@@ -28,7 +28,7 @@ object MergeService : Refreshable() {
         State.isMerging.set(false)
     }
 
-    private fun update(repository: LocalRepository) {
+    private fun update(repository: Repository) {
         State.isMerging.set(Git.isMerging(repository))
     }
 
