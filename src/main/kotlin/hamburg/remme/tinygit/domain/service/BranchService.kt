@@ -2,7 +2,7 @@ package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.git.gitBranchAll
+import hamburg.remme.tinygit.git.gitBranchList
 
 object BranchService : Refreshable() {
 
@@ -19,7 +19,7 @@ object BranchService : Refreshable() {
     }
 
     private fun update(repository: Repository) {
-        State.branchCount.set(gitBranchAll(repository).size)
+        State.branchCount.set(gitBranchList(repository).size)
     }
 
 }

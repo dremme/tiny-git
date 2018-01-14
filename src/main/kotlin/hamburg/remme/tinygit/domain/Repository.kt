@@ -12,7 +12,7 @@ class Repository(var path: String = "") {
     var proxyHost: String = ""
     var proxyPort: Int = 80
 
-    fun resolve(file: GitFile) = "${path.normalize()}/${file.path}"
+    fun resolve(file: File) = "${path.normalize()}/${file.path}"
 
     override fun toString() = path
 

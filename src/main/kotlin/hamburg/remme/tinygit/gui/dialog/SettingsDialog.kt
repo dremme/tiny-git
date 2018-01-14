@@ -4,8 +4,12 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.decrypt
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.encrypt
-import hamburg.remme.tinygit.git.Git
-import hamburg.remme.tinygit.git.gitGetRemoteUrl
+import hamburg.remme.tinygit.git.gitAddRemote
+import hamburg.remme.tinygit.git.gitGetUrl
+import hamburg.remme.tinygit.git.gitHasRemote
+import hamburg.remme.tinygit.git.gitRemoveRemote
+import hamburg.remme.tinygit.git.gitSetPushUrl
+import hamburg.remme.tinygit.git.gitSetUrl
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.columnSpan
@@ -28,7 +32,7 @@ class SettingsDialog(repository: Repository, window: Window) : Dialog<Unit>(wind
 
         val url = textField {
             isEditable = false
-            text = gitGetRemoteUrl(repository)
+            text = gitGetUrl(repository)
         }
         val urlSet = button {
             columnSpan(2)
@@ -36,11 +40,15 @@ class SettingsDialog(repository: Repository, window: Window) : Dialog<Unit>(wind
             graphic = Icons.link()
             maxWidth = Double.MAX_VALUE
             setOnAction {
-                textInputDialog(dialogWindow, "Enter Remote URL", "Apply", Icons.link(), gitGetRemoteUrl(repository)) {
+                textInputDialog(dialogWindow, "Enter Remote URL", "Apply", Icons.link(), gitGetUrl(repository)) {
                     // TODO: make removal more clear
-                    if (it.isNotBlank()) Git.setRemote(repository, it)
-                    else Git.removeRemote(repository)
-                    url.text = gitGetRemoteUrl(repository)
+                    if (it.isNotBlank()) {
+                        if (gitHasRemote(repository)) {
+                            gitSetUrl(repository, it)
+                            gitSetPushUrl(repository, it)
+                        } else gitAddRemote(repository, it)
+                    } else gitRemoveRemote(repository)
+                    url.text = gitGetUrl(repository)
                 }
             }
         }

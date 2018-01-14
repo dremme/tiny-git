@@ -1,18 +1,18 @@
 package hamburg.remme.tinygit.git
 
 import hamburg.remme.tinygit.domain.Commit
-import hamburg.remme.tinygit.domain.GitFile
-import hamburg.remme.tinygit.domain.GitStatus
+import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.domain.Status
 
 private val status = arrayOf("status", "--porcelain", "--untracked-files=all")
 private val lsTree = arrayOf("ls-tree", "--name-only", "--full-tree", "-r", "HEAD")
 private val diffTree = arrayOf("diff-tree", "--no-commit-id", "--name-status", "--find-copies", "-r")
 private val fileSeparator = " -> "
 
-fun gitStatus(repository: Repository): GitStatus {
-    val staged = mutableListOf<GitFile>()
-    val pending = mutableListOf<GitFile>()
+fun gitStatus(repository: Repository): Status {
+    val staged = mutableListOf<File>()
+    val pending = mutableListOf<File>()
     git(repository, *status) {
         val first = it[0]
         val second = it[1]
@@ -24,35 +24,36 @@ fun gitStatus(repository: Repository): GitStatus {
                 (first == 'D' && second == 'U') ||
                 (first == 'A' && second == 'A') ||
                 (first == 'U' && second == 'U')) {
-            staged += GitFile(it.toStatusFile(), "", GitFile.Status.CONFLICT, true)
-            pending += GitFile(it.toStatusFile(), "", GitFile.Status.CONFLICT, false)
+            staged += File(it.toStatusFile(), "", File.Status.CONFLICT, true)
+            pending += File(it.toStatusFile(), "", File.Status.CONFLICT, false)
         } else {
             when (first) {
-                'M' -> staged += GitFile(it.toStatusFile(), "", GitFile.Status.MODIFIED, true)
-                'A' -> staged += GitFile(it.toStatusFile(), "", GitFile.Status.ADDED, true)
-                'D' -> staged += GitFile(it.toStatusFile(), "", GitFile.Status.REMOVED, true)
-                'R' -> staged += GitFile(it.toStatusFile(), it.toStatusFileOld(), GitFile.Status.RENAMED, true)
-                'C' -> staged += GitFile(it.toStatusFile(), it.toStatusFileOld(), GitFile.Status.COPIED, true)
+                'M' -> staged += File(it.toStatusFile(), "", File.Status.MODIFIED, true)
+                'A' -> staged += File(it.toStatusFile(), "", File.Status.ADDED, true)
+                'D' -> staged += File(it.toStatusFile(), "", File.Status.REMOVED, true)
+                'R' -> staged += File(it.toStatusFile(), it.toStatusFileOld(), File.Status.RENAMED, true)
+                'C' -> staged += File(it.toStatusFile(), it.toStatusFileOld(), File.Status.COPIED, true)
             }
             when (second) {
-                'M' -> pending += GitFile(it.toStatusFile(), "", GitFile.Status.MODIFIED, false)
-                'D' -> pending += GitFile(it.toStatusFile(), "", GitFile.Status.REMOVED, false)
-                '?' -> pending += GitFile(it.toStatusFile(), "", GitFile.Status.ADDED, false)
+                'M' -> pending += File(it.toStatusFile(), "", File.Status.MODIFIED, false)
+                'D' -> pending += File(it.toStatusFile(), "", File.Status.REMOVED, false)
+                '?' -> pending += File(it.toStatusFile(), "", File.Status.ADDED, false)
             }
         }
     }
-    return GitStatus(staged, pending)
+    return Status(staged.toList(), pending.toList())
 }
 
-fun gitDiffTree(repository: Repository, commit: Commit): List<GitFile> {
-    val entries = mutableListOf<GitFile>()
-    git(repository, *diffTree, commit.id) {
+fun gitDiffTree(repository: Repository, commit: Commit): List<File> {
+    if (commit.parents.size > 1) return emptyList()
+    val entries = mutableListOf<File>()
+    git(repository, *diffTree, commit.parentId, commit.id) {
         when (it[0]) {
-            'A' -> entries += GitFile(it.toDiffFile(), "", GitFile.Status.ADDED, true)
-            'R' -> entries += GitFile(it.toDiffFile(), it.toDiffFileOld(), GitFile.Status.RENAMED, true)
-            'C' -> entries += GitFile(it.toDiffFile(), it.toDiffFileOld(), GitFile.Status.COPIED, true)
-            'M' -> entries += GitFile(it.toDiffFile(), "", GitFile.Status.MODIFIED, true)
-            'D' -> entries += GitFile(it.toDiffFile(), "", GitFile.Status.REMOVED, true)
+            'A' -> entries += File(it.toDiffFile(), "", File.Status.ADDED, true)
+            'R' -> entries += File(it.toDiffFile(), it.toDiffFileOld(), File.Status.RENAMED, true)
+            'C' -> entries += File(it.toDiffFile(), it.toDiffFileOld(), File.Status.COPIED, true)
+            'M' -> entries += File(it.toDiffFile(), "", File.Status.MODIFIED, true)
+            'D' -> entries += File(it.toDiffFile(), "", File.Status.REMOVED, true)
         }
     }
     return entries

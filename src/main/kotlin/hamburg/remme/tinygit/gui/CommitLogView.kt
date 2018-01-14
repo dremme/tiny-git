@@ -3,12 +3,15 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Commit
-import hamburg.remme.tinygit.domain.GitGraph
+import hamburg.remme.tinygit.domain.Graph
 import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.git.Git
-import hamburg.remme.tinygit.git.gitBranchAll
+import hamburg.remme.tinygit.git.TimeoutException
+import hamburg.remme.tinygit.git.gitBranchList
+import hamburg.remme.tinygit.git.gitFetch
 import hamburg.remme.tinygit.git.gitHasRemote
 import hamburg.remme.tinygit.git.gitHead
+import hamburg.remme.tinygit.git.gitLog
+import hamburg.remme.tinygit.git.gitUpToDate
 import hamburg.remme.tinygit.gui.builder.ProgressPane
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.errorAlert
@@ -34,7 +37,6 @@ import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Window
 import org.eclipse.jgit.api.errors.NoHeadException
-import org.eclipse.jgit.api.errors.TransportException
 
 class CommitLogView : Tab() {
 
@@ -47,7 +49,7 @@ class CommitLogView : Tab() {
     private val cache: MutableMap<String, List<Branch>> = mutableMapOf()
     private val logSize = 50
     private val skipSize = 50
-    private lateinit var graph: GitGraph
+    private lateinit var graph: Graph
     private lateinit var head: String
     private var skip = 0
 
@@ -121,11 +123,11 @@ class CommitLogView : Tab() {
 
     private fun invalidateCache(repository: Repository) {
         cache.clear()
-        cache.putAll(gitBranchAll(repository).groupBy { it.commitId })
+        cache.putAll(gitBranchList(repository).groupBy { it.commitId })
     }
 
     private fun setContent(commits: List<Commit>) {
-        graph = GitGraph(commits)
+        graph = Graph(commits)
         val selected = localCommits.selectionModel.selectedItem
         localCommits.items.setAll(commits)
         localCommits.items.find { it == selected }?.let { localCommits.selectionModel.select(it) }
@@ -142,7 +144,7 @@ class CommitLogView : Tab() {
         head = gitHead(repository)
         invalidateCache(repository)
         try {
-            setContent(Git.log(repository, 0, logSize + skip))
+            setContent(gitLog(repository, 0, logSize + skip))
         } catch (ex: NoHeadException) {
             clearContent()
         }
@@ -152,9 +154,9 @@ class CommitLogView : Tab() {
     private fun logMore(repository: Repository) {
         if (localCommits.items.size < skipSize) return
 
-        val commits = Git.log(repository, skip + skipSize, logSize)
+        val commits = gitLog(repository, skip + skipSize, logSize)
         if (commits.isNotEmpty()) {
-            graph = GitGraph(localCommits.items + commits) // TODO: add-function on graph
+            graph = Graph(localCommits.items + commits) // TODO: add-function on graph
             skip += skipSize
             localCommits.items.addAll(commits)
             localCommits.scrollTo(skip - 1)
@@ -162,10 +164,13 @@ class CommitLogView : Tab() {
     }
 
     private fun logRemote(repository: Repository) {
-        if (!gitHasRemote(repository) || Git.isUpdated(repository)) return
+        if (!gitHasRemote(repository) || gitUpToDate(repository)) return
 
         task = object : Task<List<Commit>>() {
-            override fun call() = Git.logFetch(repository, 0, logSize + skip)
+            override fun call(): List<Commit> {
+                gitFetch(repository)
+                return gitLog(repository, 0, logSize + skip)
+            }
 
             override fun succeeded() {
                 invalidateCache(repository)
@@ -175,7 +180,7 @@ class CommitLogView : Tab() {
 
             override fun failed() {
                 when (exception) {
-                    is TransportException -> errorAlert(window, "Cannot Fetch Remote",
+                    is TimeoutException -> errorAlert(window, "Cannot Fetch From Remote",
                             "Please check the repository settings.\nCredentials or proxy settings may have changed.")
                     else -> exception.printStackTrace()
                 }

@@ -2,7 +2,7 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Commit
-import hamburg.remme.tinygit.domain.GitFile
+import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitDiff
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
@@ -41,7 +41,7 @@ class FileDiffView : VBoxBuilder() {
     """
     private var repository: Repository? = null
     private var commit: Commit? = null
-    private var file: GitFile? = null
+    private var file: File? = null
 
     init {
         contextLines = comboBox {
@@ -70,7 +70,7 @@ class FileDiffView : VBoxBuilder() {
         State.addRefreshListener(this) { update(contextLines.value) }
     }
 
-    fun update(newRepository: Repository, newFile: GitFile) {
+    fun update(newRepository: Repository, newFile: File) {
         if (newRepository != repository || newFile != file) {
             repository = newRepository
             file = newFile
@@ -80,7 +80,7 @@ class FileDiffView : VBoxBuilder() {
         }
     }
 
-    fun update(newRepository: Repository, newFile: GitFile, newCommit: Commit) {
+    fun update(newRepository: Repository, newFile: File, newCommit: Commit) {
         if (newRepository != repository || newFile != file || newCommit != commit) {
             repository = newRepository
             file = newFile

@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.asResource
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.ChoiceDialog
 import hamburg.remme.tinygit.gui.dialog.TextInputDialog
@@ -50,6 +51,14 @@ fun errorAlert(window: Window, header: String, text: String) {
             Icons.exclamationTriangle().addClass("error"),
             ButtonType.OK)
     State.isModal.set(true)
+    alert.showAndWait()
+}
+
+fun fatalAlert(header: String, text: String) {
+    val alert = Alert(Alert.AlertType.ERROR, text, ButtonType.OK)
+    alert.dialogPane.scene.stylesheets += "default.css".asResource()
+    alert.headerText = header
+    alert.graphic = Icons.exclamationTriangle().addClass("error")
     alert.showAndWait()
 }
 

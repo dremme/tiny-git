@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.domain
 
-class GitGraph(commits: List<Commit>) : Iterable<GitGraph.Node> {
+class Graph(commits: List<Commit>) : Iterable<Graph.Node> {
 
     private val nodes = mutableListOf<Node>()
 

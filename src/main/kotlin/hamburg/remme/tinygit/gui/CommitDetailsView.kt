@@ -3,7 +3,7 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.dateTimeFormat
 import hamburg.remme.tinygit.domain.Commit
-import hamburg.remme.tinygit.domain.GitFile
+import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitDiffTree
 import hamburg.remme.tinygit.gui.builder.SplitPaneBuilder
@@ -71,7 +71,7 @@ class CommitDetailsView : SplitPaneBuilder() {
 
             // TODO: add a process indicator
             task?.cancel()
-            task = object : Task<List<GitFile>>() {
+            task = object : Task<List<File>>() {
                 override fun call() = gitDiffTree(newRepository, newCommit)
 
                 override fun succeeded() {

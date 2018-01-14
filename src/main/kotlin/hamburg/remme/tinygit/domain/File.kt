@@ -1,20 +1,20 @@
 package hamburg.remme.tinygit.domain
 
-class GitFile(val path: String, val oldPath: String, val status: Status, val cached: Boolean) : Comparable<GitFile> {
+class File(val path: String, val oldPath: String, val status: Status, val isCached: Boolean) : Comparable<File> {
 
     override fun toString() = path
 
-    override fun compareTo(other: GitFile) = path.compareTo(other.path)
+    override fun compareTo(other: File) = path.compareTo(other.path)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as GitFile
+        other as File
 
         if (path != other.path) return false
         if (status != other.status) return false
-        if (cached != other.cached) return false
+        if (isCached != other.isCached) return false
 
         return true
     }
@@ -22,7 +22,7 @@ class GitFile(val path: String, val oldPath: String, val status: Status, val cac
     override fun hashCode(): Int {
         var result = path.hashCode()
         result = 31 * result + status.hashCode()
-        result = 31 * result + cached.hashCode()
+        result = 31 * result + isCached.hashCode()
         return result
     }
 
