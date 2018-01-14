@@ -5,7 +5,10 @@ import hamburg.remme.tinygit.domain.service.DivergenceService
 import hamburg.remme.tinygit.domain.service.MergeService
 import hamburg.remme.tinygit.domain.service.RebaseService
 import hamburg.remme.tinygit.domain.service.StashService
+import hamburg.remme.tinygit.git.gitIsInstalled
+import hamburg.remme.tinygit.git.gitVersion
 import hamburg.remme.tinygit.gui.GitView
+import hamburg.remme.tinygit.gui.builder.fatalAlert
 import javafx.application.Application
 import javafx.beans.binding.Bindings
 import javafx.scene.Scene
@@ -21,6 +24,7 @@ import java.util.concurrent.Callable
 // clean-up nested let {} for map {}
 // instead of also {} and apply {}, use onEach {} at the end of a statement chain
 // boolean properties (and parameters) should start with 'is'
+// use type inference with ... : get() = ...
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
     Font.loadFont("font/Roboto-Regular.ttf".asResource(), 13.0)
@@ -47,6 +51,21 @@ class TinyGit : Application() {
 
     override fun start(stage: Stage) {
         tinygit = this
+
+        // We terminate here because technical requirements for TinyGit aren't met
+        if (!gitIsInstalled()) {
+            fatalAlert("Git Error", "Git is not installed or not in PATH.")
+            show("https://git-scm.com/downloads")
+            System.exit(-1)
+            return
+        }
+        if (gitVersion().major < 2) {
+            fatalAlert("Git Error", "The installed Git client is out of date.\nPlease install the newest version.")
+            show("https://git-scm.com/downloads")
+            System.exit(-1)
+            return
+        }
+
         BranchService
         DivergenceService
         MergeService

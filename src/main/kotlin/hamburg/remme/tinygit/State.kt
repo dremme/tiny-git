@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit
 
-import hamburg.remme.tinygit.domain.GitFile
+import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
 import javafx.beans.binding.Bindings
 import javafx.beans.property.IntegerProperty
@@ -81,8 +81,8 @@ object State {
     val isRebasing = SimpleBooleanProperty()
     val rebaseNext = SimpleIntegerProperty()
     val rebaseLast = SimpleIntegerProperty()
-    val stagedFiles = observableList<GitFile>()
-    val pendingFiles = observableList<GitFile>()
+    val stagedFiles = observableList<File>()
+    val pendingFiles = observableList<File>()
     val stagedSelectedCount = SimpleIntegerProperty()
     val pendingSelectedCount = SimpleIntegerProperty()
     val stashSize = SimpleIntegerProperty()
@@ -128,7 +128,7 @@ object State {
     val canSquash = isReady.and(aheadDefault.greater1())!!
 
     val canStageAll = isIdle.and(Bindings.isNotEmpty(pendingFiles))!!
-    val canUpdateAll = isIdle.and(Bindings.isNotEmpty(pendingFiles.filtered { it.status != GitFile.Status.ADDED }))!!
+    val canUpdateAll = isIdle.and(Bindings.isNotEmpty(pendingFiles.filtered { it.status != File.Status.ADDED }))!!
     val canStageSelected = isIdle.and(pendingSelectedCount.greater0())!!
     val canUnstageAll = isIdle.and(Bindings.isNotEmpty(stagedFiles))!!
     val canUnstageSelected = isIdle.and(stagedSelectedCount.greater0())!!

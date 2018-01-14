@@ -12,13 +12,14 @@ import hamburg.remme.tinygit.git.PullException
 import hamburg.remme.tinygit.git.PushException
 import hamburg.remme.tinygit.git.SquashException
 import hamburg.remme.tinygit.git.TimeoutException
-import hamburg.remme.tinygit.git.gitBranchAll
+import hamburg.remme.tinygit.git.gitBranchList
 import hamburg.remme.tinygit.git.gitFetchPrune
 import hamburg.remme.tinygit.git.gitGc
 import hamburg.remme.tinygit.git.gitHasRemote
 import hamburg.remme.tinygit.git.gitHead
 import hamburg.remme.tinygit.git.gitPull
 import hamburg.remme.tinygit.git.gitPush
+import hamburg.remme.tinygit.git.gitResetHard
 import hamburg.remme.tinygit.git.gitStash
 import hamburg.remme.tinygit.git.gitStashPop
 import hamburg.remme.tinygit.gui.builder.Action
@@ -200,7 +201,7 @@ class GitView : VBoxBuilder() {
 
     private fun newRepo() {
         directoryChooser(window, "New Repository") {
-            State.addRepository(Git.init(it))
+            State.addRepository(Git.init(it.absolutePath))
         }
     }
 
@@ -245,7 +246,7 @@ class GitView : VBoxBuilder() {
                 when (exception) {
                     is PullException -> errorAlert(window, "Cannot Pull From Remote Branch", exception.message!!)
                     is TimeoutException -> errorAlert(window, "Connection Timed Out",
-                            "Check internet connection and proxy settings.")
+                            "Please check the repository settings.\nCredentials or proxy settings may have changed.")
                     else -> exception.printStackTrace()
                 }
             }
@@ -272,7 +273,7 @@ class GitView : VBoxBuilder() {
                     is PushException -> errorAlert(window, "Cannot Push to Remote Branch",
                             "Updates were rejected because the tip of the current branch is behind.\nPull before pushing again or force push.")
                     is TimeoutException -> errorAlert(window, "Connection Timed Out",
-                            "Check internet connection and proxy settings.")
+                            "Please check the repository settings.\nCredentials or proxy settings may have changed.")
                     else -> exception.printStackTrace()
                 }
             }
@@ -301,7 +302,7 @@ class GitView : VBoxBuilder() {
 
     private fun merge(repository: Repository) {
         val current = gitHead(repository)
-        val branches = gitBranchAll(repository).map { it.name }.filter { it != current }
+        val branches = gitBranchList(repository).map { it.name }.filter { it != current }
         choiceDialog(window, "Select a Branch to Merge", "Merge", Icons.codeFork().flipY(), branches) { branch ->
             State.startProcess("Merging...", object : Task<Unit>() {
                 override fun call() = Git.merge(repository, branch)
@@ -325,7 +326,7 @@ class GitView : VBoxBuilder() {
 
     private fun rebase(repository: Repository) {
         val current = gitHead(repository)
-        val branches = gitBranchAll(repository).map { it.name }.filter { it != current }
+        val branches = gitBranchList(repository).map { it.name }.filter { it != current }
         choiceDialog(window, "Select a Branch for Rebasing", "Rebase", Icons.levelUp().flipX(), branches) { branch ->
             State.startProcess("Rebasing...", object : Task<Unit>() {
                 override fun call() = Git.rebase(repository, branch)
@@ -398,7 +399,7 @@ class GitView : VBoxBuilder() {
                 "This will automatically reset the current branch to its remote branch.\nUnpushed commits will be lost.")) return
 
         State.startProcess("Resetting branch...", object : Task<Unit>() {
-            override fun call() = Git.resetHard(repository)
+            override fun call() = gitResetHard(repository, gitHead(repository))
 
             override fun succeeded() = State.fireRefresh(this)
 
@@ -409,7 +410,7 @@ class GitView : VBoxBuilder() {
     private fun autoSquash(repository: Repository) {
         val commits = Git.logWithoutDefault(repository)
         val message = commits.joinToString("\n\n") { "# ${it.shortId}\n${it.fullMessage}" }
-        val baseId = commits.last().parents.first()
+        val baseId = commits.last().parents[0]
         val count = commits.size
         textAreaDialog(window, "Auto Squash Branch", "Squash", Icons.gavel(), message,
                 "This will automatically squash all $count commits of the current branch.\n\nNew commit message:") {

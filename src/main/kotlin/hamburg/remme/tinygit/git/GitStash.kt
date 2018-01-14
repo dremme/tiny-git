@@ -5,21 +5,22 @@ import hamburg.remme.tinygit.domain.StashEntry
 
 private val stash = arrayOf("stash")
 private val stashPop = arrayOf("stash", "pop")
-private val stashList = arrayOf("stash", "list")
-private val errorSeparator = "error: "
+//private val stashList = arrayOf("stash", "list")
 
 fun gitStash(repository: Repository) {
-    git(repository, *stash)
+    git(repository, *stash) // TODO: is not stashing untracked paths
 }
 
 fun gitStashPop(repository: Repository) {
     val response = git(repository, *stashPop)
-    println(response)
     if (response.contains(errorSeparator)) throw StashPopException() // TODO
 }
 
 fun gitStashList(repository: Repository): List<StashEntry> {
     val entries = mutableListOf<StashEntry>()
-    git(repository, *stashList) {}
+    // TODO: very slow operation
+//    git(repository, *stashList) {
+//        entries += StashEntry(it.substringBefore(':'), it.substringAfter(':'))
+//    }
     return entries
 }

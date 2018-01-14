@@ -8,7 +8,7 @@ import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
 import hamburg.remme.tinygit.git.CheckoutException
 import hamburg.remme.tinygit.git.Git
-import hamburg.remme.tinygit.git.gitBranchAll
+import hamburg.remme.tinygit.git.gitBranchList
 import hamburg.remme.tinygit.git.gitCheckout
 import hamburg.remme.tinygit.git.gitCheckoutRemote
 import hamburg.remme.tinygit.git.gitHead
@@ -152,7 +152,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun treeUpdate(repository: Repository) {
         root.children.find { it.value.repository == repository }?.let {
             cache[repository] = gitHead(repository)
-            val branchList = gitBranchAll(repository)
+            val branchList = gitBranchList(repository)
             val stashList = gitStashList(repository)
             // TODO: selection might get lost on removed branches (e.g. after pruning)
             updateBranchItems(it.children[0].children, repository, branchList.filter { it.isLocal }, EntryType.LOCAL_BRANCH)

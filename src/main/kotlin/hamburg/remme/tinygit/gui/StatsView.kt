@@ -2,7 +2,7 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.git.gitLsTree
 import hamburg.remme.tinygit.gui.builder.ProgressPane
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -103,7 +103,7 @@ class StatsView : Tab() {
             lateinit var calendar: List<Pair<LocalDate, Int>>
 
             override fun call() {
-                val log = Git.log(repository, year.atDay(1), year.atDay(year.length()))
+                val log = gitLog(repository, year.atDay(1), year.atDay(year.length()))
 
                 contribution = log.groupingBy { it.authorMail }
                         .eachCount()

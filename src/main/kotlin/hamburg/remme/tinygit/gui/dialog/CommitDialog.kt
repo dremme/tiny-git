@@ -2,7 +2,10 @@ package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.gitCommit
+import hamburg.remme.tinygit.git.gitCommitAmend
+import hamburg.remme.tinygit.git.gitHeadMessage
+import hamburg.remme.tinygit.git.gitMergeMessage
 import hamburg.remme.tinygit.git.gitStatus
 import hamburg.remme.tinygit.gui.FileDiffView
 import hamburg.remme.tinygit.gui.FileStatusView
@@ -35,12 +38,12 @@ class CommitDialog(repository: Repository, window: Window)
             textProperty().bindBidirectional(State.commitMessage)
             Platform.runLater { requestFocus() }
         }
-        if (State.isMerging.get() && message.text.isNullOrBlank()) message.text = Git.mergeMessage(repository)
+        if (State.isMerging.get() && message.text.isNullOrBlank()) message.text = gitMergeMessage(repository)
 
         val amend = checkBox {
             text = "Amend last commit."
             selectedProperty().addListener { _, _, it ->
-                if (it && message.text.isNullOrBlank()) message.text = Git.headMessage(repository)
+                if (it && message.text.isNullOrBlank()) message.text = gitHeadMessage(repository)
             }
         }
 
@@ -56,8 +59,8 @@ class CommitDialog(repository: Repository, window: Window)
         }
         okAction = {
             try {
-                if (amend.isSelected) Git.commitAmend(repository, message.text)
-                else Git.commit(repository, message.text)
+                if (amend.isSelected) gitCommitAmend(repository, message.text)
+                else gitCommit(repository, message.text)
             } catch (ex: WrongRepositoryStateException) {
                 errorAlert(dialogWindow, "Cannot Commit", "Cannot commit because there are unmerged changes.")
                 throw ex

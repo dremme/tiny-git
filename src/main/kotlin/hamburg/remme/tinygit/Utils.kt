@@ -2,6 +2,7 @@ package hamburg.remme.tinygit
 
 import javafx.application.Platform
 import javafx.collections.FXCollections
+import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -45,6 +46,8 @@ fun printError(message: String) {
 fun String.asResource() = TinyGit::class.java.getResource(this).toExternalForm()!!
 
 fun String.asPath() = Paths.get(this)!!
+
+fun String.asFile() = File(this)
 
 fun Path.exists() = Files.exists(this)
 
