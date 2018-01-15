@@ -6,19 +6,28 @@ import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.exists
+import hamburg.remme.tinygit.git.BranchAlreadyExistsException
+import hamburg.remme.tinygit.git.BranchNameInvalidException
 import hamburg.remme.tinygit.git.Git
 import hamburg.remme.tinygit.git.PrepareSquashException
 import hamburg.remme.tinygit.git.PullException
 import hamburg.remme.tinygit.git.PushException
 import hamburg.remme.tinygit.git.SquashException
 import hamburg.remme.tinygit.git.TimeoutException
+import hamburg.remme.tinygit.git.UnmergedException
+import hamburg.remme.tinygit.git.gitBranch
 import hamburg.remme.tinygit.git.gitBranchList
 import hamburg.remme.tinygit.git.gitFetchPrune
 import hamburg.remme.tinygit.git.gitGc
 import hamburg.remme.tinygit.git.gitHasRemote
 import hamburg.remme.tinygit.git.gitHead
+import hamburg.remme.tinygit.git.gitMerge
+import hamburg.remme.tinygit.git.gitMergeAbort
 import hamburg.remme.tinygit.git.gitPull
 import hamburg.remme.tinygit.git.gitPush
+import hamburg.remme.tinygit.git.gitRebase
+import hamburg.remme.tinygit.git.gitRebaseAbort
+import hamburg.remme.tinygit.git.gitRebaseContinue
 import hamburg.remme.tinygit.git.gitResetHard
 import hamburg.remme.tinygit.git.gitStash
 import hamburg.remme.tinygit.git.gitStashPop
@@ -57,10 +66,7 @@ import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Window
-import org.eclipse.jgit.api.errors.JGitInternalException
-import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.api.errors.StashApplyFailureException
-import org.eclipse.jgit.api.errors.UnmergedPathsException
 
 class GitView : VBoxBuilder() {
 
@@ -283,15 +289,15 @@ class GitView : VBoxBuilder() {
     private fun createBranch(repository: Repository) {
         textInputDialog(window, "Enter a New Branch Name", "Create", Icons.codeFork()) { name ->
             State.startProcess("Branching...", object : Task<Unit>() {
-                override fun call() = Git.branchCreate(repository, name)
+                override fun call() = gitBranch(repository, name)
 
                 override fun succeeded() = State.fireRefresh(this)
 
                 override fun failed() {
                     when (exception) {
-                        is RefAlreadyExistsException -> errorAlert(window, "Cannot Create Branch",
+                        is BranchAlreadyExistsException -> errorAlert(window, "Cannot Create Branch",
                                 "Branch '$name' does already exist in the working copy.")
-                        is JGitInternalException -> errorAlert(window, "Cannot Create Branch",
+                        is BranchNameInvalidException -> errorAlert(window, "Cannot Create Branch",
                                 "Invalid name '$name'.")
                         else -> exception.printStackTrace()
                     }
@@ -305,7 +311,7 @@ class GitView : VBoxBuilder() {
         val branches = gitBranchList(repository).map { it.name }.filter { it != current }
         choiceDialog(window, "Select a Branch to Merge", "Merge", Icons.codeFork().flipY(), branches) { branch ->
             State.startProcess("Merging...", object : Task<Unit>() {
-                override fun call() = Git.merge(repository, branch)
+                override fun call() = gitMerge(repository, branch)
 
                 override fun succeeded() = State.fireRefresh(this)
 
@@ -316,7 +322,7 @@ class GitView : VBoxBuilder() {
 
     private fun mergeAbort(repository: Repository) {
         State.startProcess("Aborting...", object : Task<Unit>() {
-            override fun call() = Git.mergeAbort(repository)
+            override fun call() = gitMergeAbort(repository)
 
             override fun succeeded() = State.fireRefresh(this)
 
@@ -329,7 +335,7 @@ class GitView : VBoxBuilder() {
         val branches = gitBranchList(repository).map { it.name }.filter { it != current }
         choiceDialog(window, "Select a Branch for Rebasing", "Rebase", Icons.levelUp().flipX(), branches) { branch ->
             State.startProcess("Rebasing...", object : Task<Unit>() {
-                override fun call() = Git.rebase(repository, branch)
+                override fun call() = gitRebase(repository, branch)
 
                 override fun succeeded() = State.fireRefresh(this)
 
@@ -340,15 +346,14 @@ class GitView : VBoxBuilder() {
 
     private fun rebaseContinue(repository: Repository) {
         State.startProcess("Rebasing...", object : Task<Unit>() {
-            override fun call() = Git.rebaseContinue(repository)
+            override fun call() = gitRebaseContinue(repository)
 
             override fun succeeded() = State.fireRefresh(this)
 
             override fun failed() {
                 when (exception) {
-                    is UnmergedPathsException ->
-                        errorAlert(window, "Unresolved Conflicts",
-                                "Cannot continue with rebase because there are unresolved conflicts.")
+                    is UnmergedException -> errorAlert(window, "Unresolved Conflicts",
+                            "Cannot continue with rebase because there are unresolved conflicts.")
                     else -> exception.printStackTrace()
                 }
             }
@@ -357,7 +362,7 @@ class GitView : VBoxBuilder() {
 
     private fun rebaseAbort(repository: Repository) {
         State.startProcess("Aborting...", object : Task<Unit>() {
-            override fun call() = Git.rebaseAbort(repository)
+            override fun call() = gitRebaseAbort(repository)
 
             override fun succeeded() = State.fireRefresh(this)
 

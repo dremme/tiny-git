@@ -11,5 +11,5 @@ fun gitHead(repository: Repository): String {
 }
 
 fun gitMergeMessage(repository: Repository): String {
-    return "${repository.path}/.git/MERGE_MSG".asPath().read()
+    return repository.path.asPath().resolve(".git").resolve("MERGE_MSG").read()
 }

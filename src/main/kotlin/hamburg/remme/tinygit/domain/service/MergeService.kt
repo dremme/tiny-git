@@ -3,7 +3,7 @@ package hamburg.remme.tinygit.domain.service
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.gitIsMerging
 import javafx.collections.ListChangeListener
 
 object MergeService : Refreshable() {
@@ -29,7 +29,7 @@ object MergeService : Refreshable() {
     }
 
     private fun update(repository: Repository) {
-        State.isMerging.set(Git.isMerging(repository))
+        State.isMerging.set(gitIsMerging(repository))
     }
 
 }
