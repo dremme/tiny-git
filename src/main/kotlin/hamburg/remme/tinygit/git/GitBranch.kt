@@ -51,6 +51,7 @@ fun gitCheckout(repository: Repository, branch: String) {
     if (branch == "HEAD") return // cannot checkout HEAD directly
     val response = git(repository, *checkout, branch).trim()
     if (response.startsWith(errorSeparator)) throw CheckoutException()
+    else if (response.startsWith(fatalSeparator)) throw CheckoutException()
 }
 
 fun gitCheckoutRemote(repository: Repository, branch: String) {

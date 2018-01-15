@@ -36,7 +36,6 @@ import javafx.scene.control.TableView
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Window
-import org.eclipse.jgit.api.errors.NoHeadException
 
 class CommitLogView : Tab() {
 
@@ -145,7 +144,7 @@ class CommitLogView : Tab() {
         invalidateCache(repository)
         try {
             setContent(gitLog(repository, 0, logSize + skip))
-        } catch (ex: NoHeadException) {
+        } catch (ex: RuntimeException) { // TODO
             clearContent()
         }
         logRemote(repository)

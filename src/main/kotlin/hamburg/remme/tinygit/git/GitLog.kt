@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.git
 
 import hamburg.remme.tinygit.atEndOfDay
 import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.domain.Divergence
 import hamburg.remme.tinygit.domain.Repository
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -14,8 +15,12 @@ private val mailSeparator = "mail: "
 private val dateSeparator = "date: "
 private val bodySeparator = "body: "
 private val eom = "<eom>"
+private val logFormat = "--pretty=format:$idSeparator%H%n$parentsSeparator%P%n$nameSeparator%an%n$mailSeparator%ae%n$dateSeparator%ad%n$bodySeparator%B%n$eom"
 private val log1 = arrayOf("log", "-1", "--pretty=%B")
-private val logAll = arrayOf("log", "--all", "--date=raw", "--pretty=format:$idSeparator%H%n$parentsSeparator%P%n$nameSeparator%an%n$mailSeparator%ae%n$dateSeparator%ad%n$bodySeparator%B%n$eom")
+private val logAll = arrayOf("log", "--all", "--date=raw", logFormat)
+private val logNot = arrayOf("log", "HEAD", "--date=raw", logFormat, "--not")
+private val revlistCount = arrayOf("rev-list", "--count")
+private val revlistCountNot = arrayOf("rev-list", "--count", "HEAD", "--not")
 
 fun gitHeadMessage(repository: Repository): String {
     return git(repository, *log1)
@@ -33,11 +38,30 @@ fun gitLog(repository: Repository, after: LocalDate, before: LocalDate): List<Co
     return parser.commits
 }
 
-private fun String.abbreviate() = substring(0, 8)
+fun gitLogExclusive(repository: Repository): List<Commit> {
+    val parser = CommitParser()
+    git(repository, *logNot, *excludeDefault(repository)) { parser.parseLine(it) }
+    return parser.commits
+}
 
-private fun String.parseDate(): LocalDateTime {
-    val match = "(\\d+) [-+](\\d{2})(\\d{2})".toRegex().matchEntire(this)!!.groupValues
-    return LocalDateTime.ofEpochSecond(match[1].toLong(), 0, ZoneOffset.ofHoursMinutes(match[2].toInt(), match[3].toInt()))
+fun gitDivergence(repository: Repository): Divergence {
+    val head = gitHead(repository)
+    val response = git(repository, *revlistCount, "origin/$head..$head")
+    if (response.startsWith(fatalSeparator)) {
+        return Divergence(gitDivergenceExclusive(repository), 0)
+    }
+    val ahead = response.lines()[0].toInt()
+    val behind = git(repository, *revlistCount, "$head..origin/$head").lines()[0].toInt()
+    return Divergence(ahead, behind)
+}
+
+fun gitDivergenceExclusive(repository: Repository): Int {
+    return git(repository, *revlistCountNot, *excludeDefault(repository)).lines()[0].toInt()
+}
+
+private fun excludeDefault(repository: Repository): Array<String> {
+    val branches = gitBranchList(repository).map { it.name }
+    return defaultBranches.filter { branches.contains(it) }.toTypedArray()
 }
 
 class CommitParser {
@@ -80,6 +104,13 @@ class CommitParser {
         authorName = ""
         authorMail = ""
         messageBuilder = null
+    }
+
+    private fun String.abbreviate() = substring(0, 8)
+
+    private fun String.parseDate(): LocalDateTime {
+        val match = "(\\d+) [-+](\\d{2})(\\d{2})".toRegex().matchEntire(this)!!.groupValues
+        return LocalDateTime.ofEpochSecond(match[1].toLong(), 0, ZoneOffset.ofHoursMinutes(match[2].toInt(), match[3].toInt()))
     }
 
 }

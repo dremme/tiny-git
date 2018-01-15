@@ -37,7 +37,6 @@ import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Window
-import org.eclipse.jgit.api.errors.JGitInternalException
 import java.util.concurrent.Callable
 
 class WorkingCopyView : Tab() {
@@ -246,7 +245,7 @@ class WorkingCopyView : Tab() {
             try {
                 gitCheckout(repository, files)
                 status(repository)
-            } catch (ex: JGitInternalException) {
+            } catch (ex: RuntimeException) { // TODO
                 errorAlert(window, "Cannot Discard Changes", "${ex.message}")
             }
         }

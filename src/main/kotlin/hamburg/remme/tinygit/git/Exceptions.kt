@@ -1,8 +1,8 @@
 package hamburg.remme.tinygit.git
 
-import org.eclipse.jgit.api.errors.GitAPIException
-
 class TimeoutException : RuntimeException()
+
+class CloneException(message: String) : RuntimeException(message)
 
 class PullException(message: String) : RuntimeException(message)
 
@@ -17,9 +17,5 @@ class BranchUnpushedException : RuntimeException()
 class PushException : RuntimeException()
 
 class UnmergedException : RuntimeException()
-
-class PrepareSquashException(message: String) : GitAPIException(message)
-
-class SquashException(message: String) : GitAPIException(message)
 
 class StashPopException : RuntimeException()
