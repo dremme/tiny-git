@@ -8,11 +8,8 @@ import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.exists
 import hamburg.remme.tinygit.git.BranchAlreadyExistsException
 import hamburg.remme.tinygit.git.BranchNameInvalidException
-import hamburg.remme.tinygit.git.Git
-import hamburg.remme.tinygit.git.PrepareSquashException
 import hamburg.remme.tinygit.git.PullException
 import hamburg.remme.tinygit.git.PushException
-import hamburg.remme.tinygit.git.SquashException
 import hamburg.remme.tinygit.git.TimeoutException
 import hamburg.remme.tinygit.git.UnmergedException
 import hamburg.remme.tinygit.git.gitBranch
@@ -21,6 +18,8 @@ import hamburg.remme.tinygit.git.gitFetchPrune
 import hamburg.remme.tinygit.git.gitGc
 import hamburg.remme.tinygit.git.gitHasRemote
 import hamburg.remme.tinygit.git.gitHead
+import hamburg.remme.tinygit.git.gitInit
+import hamburg.remme.tinygit.git.gitLogExclusive
 import hamburg.remme.tinygit.git.gitMerge
 import hamburg.remme.tinygit.git.gitMergeAbort
 import hamburg.remme.tinygit.git.gitPull
@@ -29,6 +28,7 @@ import hamburg.remme.tinygit.git.gitRebase
 import hamburg.remme.tinygit.git.gitRebaseAbort
 import hamburg.remme.tinygit.git.gitRebaseContinue
 import hamburg.remme.tinygit.git.gitResetHard
+import hamburg.remme.tinygit.git.gitSquash
 import hamburg.remme.tinygit.git.gitStash
 import hamburg.remme.tinygit.git.gitStashPop
 import hamburg.remme.tinygit.gui.builder.Action
@@ -66,7 +66,6 @@ import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Window
-import org.eclipse.jgit.api.errors.StashApplyFailureException
 
 class GitView : VBoxBuilder() {
 
@@ -207,7 +206,8 @@ class GitView : VBoxBuilder() {
 
     private fun newRepo() {
         directoryChooser(window, "New Repository") {
-            State.addRepository(Git.init(it.absolutePath))
+            gitInit(it.absolutePath)
+            State.addRepository(Repository(it.absolutePath))
         }
     }
 
@@ -388,7 +388,7 @@ class GitView : VBoxBuilder() {
 
             override fun failed() {
                 when (exception) {
-                    is StashApplyFailureException -> {
+                    is RuntimeException -> { // TODO
                         State.fireRefresh(this)
                         errorAlert(window, "Cannot Pop Stash",
                                 "Applying stashed changes resulted in a conflict.\nTherefore the stash entry has been preserved.")
@@ -413,25 +413,18 @@ class GitView : VBoxBuilder() {
     }
 
     private fun autoSquash(repository: Repository) {
-        val commits = Git.logWithoutDefault(repository)
-        val message = commits.joinToString("\n\n") { "# ${it.shortId}\n${it.fullMessage}" }
+        val commits = gitLogExclusive(repository)
+        val message = commits.joinToString("\n") { "# ${it.shortId}\n${it.fullMessage}" } // TODO: too many newlines
         val baseId = commits.last().parents[0]
         val count = commits.size
         textAreaDialog(window, "Auto Squash Branch", "Squash", Icons.gavel(), message,
                 "This will automatically squash all $count commits of the current branch.\n\nNew commit message:") {
             State.startProcess("Squashing branch...", object : Task<Unit>() {
-                override fun call() = Git.rebaseSquash(repository, baseId, it)
+                override fun call() = gitSquash(repository, baseId, it)
 
                 override fun succeeded() = State.fireRefresh(this)
 
-                override fun failed() {
-                    when (exception) {
-                        is PrepareSquashException -> errorAlert(window, "Cannot Squash",
-                                "${exception.message}\n\nPlease commit or stash them before squashing.")
-                        is SquashException -> errorAlert(window, "Cannot Squash", exception.message!!)
-                        else -> exception.printStackTrace()
-                    }
-                }
+                override fun failed() = exception.printStackTrace()
             })
         }
     }

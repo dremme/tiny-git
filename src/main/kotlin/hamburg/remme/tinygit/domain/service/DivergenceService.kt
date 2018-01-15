@@ -2,7 +2,8 @@ package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.gitDivergence
+import hamburg.remme.tinygit.git.gitDivergenceExclusive
 
 object DivergenceService : Refreshable() {
 
@@ -21,8 +22,8 @@ object DivergenceService : Refreshable() {
     }
 
     private fun update(repository: Repository) {
-        State.aheadDefault.set(Git.divergenceDefault(repository))
-        val (ahead, behind) = Git.divergence(repository)
+        State.aheadDefault.set(gitDivergenceExclusive(repository))
+        val (ahead, behind) = gitDivergence(repository)
         State.ahead.set(ahead)
         State.behind.set(behind)
     }

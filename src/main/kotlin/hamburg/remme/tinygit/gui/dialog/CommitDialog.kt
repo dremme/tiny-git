@@ -20,7 +20,6 @@ import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.scene.layout.Priority
 import javafx.stage.Window
-import org.eclipse.jgit.api.errors.WrongRepositoryStateException
 
 class CommitDialog(repository: Repository, window: Window)
     : Dialog<Unit>(window, if (State.isMerging.get()) "Merge Commit" else "New Commit", true) {
@@ -61,7 +60,7 @@ class CommitDialog(repository: Repository, window: Window)
             try {
                 if (amend.isSelected) gitCommitAmend(repository, message.text)
                 else gitCommit(repository, message.text)
-            } catch (ex: WrongRepositoryStateException) {
+            } catch (ex: RuntimeException) { // TODO
                 errorAlert(dialogWindow, "Cannot Commit", "Cannot commit because there are unmerged changes.")
                 throw ex
             }

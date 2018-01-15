@@ -13,7 +13,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.version>1.2.10</kotlin.version>
-        <org.eclipse.jgit.version>4.10.0.201712302008-r</org.eclipse.jgit.version>
         <snakeyaml.version>1.18</snakeyaml.version>
     </properties>
 
@@ -22,11 +21,6 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jre8</artifactId>
             <version>${kotlin.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jgit</groupId>
-            <artifactId>org.eclipse.jgit</artifactId>
-            <version>${org.eclipse.jgit.version}</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>

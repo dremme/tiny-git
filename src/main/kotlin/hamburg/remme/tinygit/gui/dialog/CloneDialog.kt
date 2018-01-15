@@ -3,7 +3,7 @@ package hamburg.remme.tinygit.gui.dialog
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.encrypt
-import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.gitClone
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.columnSpan
@@ -60,7 +60,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             repository.proxyHost = host.text
             repository.proxyPort = port.text.toInt()
             State.startProcess("Cloning...", object : Task<Unit>() {
-                override fun call() = Git.clone(repository, url.text)
+                override fun call() = gitClone(repository, url.text)
 
                 override fun succeeded() = State.addRepository(repository)
 
