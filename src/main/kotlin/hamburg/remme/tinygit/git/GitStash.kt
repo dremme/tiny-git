@@ -12,7 +12,7 @@ fun gitStash(repository: Repository) {
 }
 
 fun gitStashPop(repository: Repository) {
-    val response = git(repository, *stashPop)
+    val response = git(repository, *stashPop).trim()
     if (response.contains(errorSeparator)) throw StashPopException() // TODO
 }
 

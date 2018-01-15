@@ -1,27 +1,21 @@
 package hamburg.remme.tinygit.git
 
 import hamburg.remme.tinygit.asFile
-import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.decrypt
 import hamburg.remme.tinygit.domain.ClientVersion
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.Divergence
-import hamburg.remme.tinygit.domain.Rebase
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.measureTime
-import hamburg.remme.tinygit.readFirst
-import hamburg.remme.tinygit.readLines
 import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.RebaseCommand
 import org.eclipse.jgit.api.RebaseResult
-import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.api.TransportCommand
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.RebaseTodoLine
 import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.lib.RepositoryCache
-import org.eclipse.jgit.lib.RepositoryState
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.revwalk.RevWalkUtils
@@ -116,10 +110,6 @@ object Git {
         })
     }
 
-    fun isMerging(repository: Repository) = repository.open { it.repositoryState == RepositoryState.MERGING }
-
-    fun isRebasing(repository: Repository) = repository.open { it.repositoryState.isRebasing }
-
     /**
      * - git log master..
      */
@@ -199,86 +189,6 @@ object Git {
     }
 
     /**
-     * - git checkout -b [name]
-     */
-    fun branchCreate(repository: Repository, name: String) {
-        repository.openGit("create $name") { it.checkout().setCreateBranch(true).setName(name).call() }
-    }
-
-    /**
-     * - git branch --move [oldName] [newName]
-     */
-    fun branchRename(repository: Repository, oldName: String, newName: String) {
-        repository.openGit("rename $oldName -> $newName") { it.branchRename().setOldName(oldName).setNewName(newName).call() }
-    }
-
-    /**
-     * - git branch --delete [name]
-     */
-    fun branchDelete(repository: Repository, name: String) {
-        branchDelete(repository, name, false)
-    }
-
-    /**
-     * - git branch --delete --force [name]
-     */
-    fun branchDeleteForce(repository: Repository, name: String) {
-        branchDelete(repository, name, true)
-    }
-
-    private fun branchDelete(repository: Repository, name: String, force: Boolean) {
-        repository.openGit("delete force=$force $name") {
-            it.branchDelete().setForce(force).setBranchNames(name).call()
-        }
-    }
-
-    /**
-     * - git merge <[branch]>
-     */
-    fun merge(repository: Repository, branch: String) {
-        repository.openGit("merge $branch") {
-            it.merge().include(it.repository.resolve(branch)).setMessage("Merged '$branch' into '${it.repository.branch}'.").call()
-        }
-    }
-
-    /**
-     * - git merge --abort
-     */
-    fun mergeAbort(repository: Repository) {
-        repository.openGit("merge abort") {
-            it.repository.writeMergeHeads(null)
-            it.repository.writeMergeCommitMsg(null)
-            it.reset().setMode(ResetCommand.ResetType.HARD).call()
-        }
-    }
-
-    /**
-     * - git rebase <[branch]>
-     */
-    fun rebase(repository: Repository, branch: String) {
-        repository.openGit("rebase $branch") { it.rebase().setUpstream(branch).call() }
-    }
-
-    /**
-     * - git rebase --continue
-     */
-    fun rebaseContinue(repository: Repository) {
-        repository.openGit("rebase continue") {
-            val result = it.rebase().setOperation(RebaseCommand.Operation.CONTINUE).call()
-            if (result.status == RebaseResult.Status.NOTHING_TO_COMMIT) {
-                it.rebase().setOperation(RebaseCommand.Operation.SKIP).call()
-            }
-        }
-    }
-
-    /**
-     * - git rebase --abort
-     */
-    fun rebaseAbort(repository: Repository) {
-        repository.openGit("rebase abort") { it.rebase().setOperation(RebaseCommand.Operation.ABORT).call() }
-    }
-
-    /**
      * - git rebase --interactive <[baseId]>
      */
     fun rebaseSquash(repository: Repository, baseId: String, message: String) {
@@ -300,35 +210,6 @@ object Git {
             }
         }
     }
-
-    fun rebaseState(repository: Repository): Rebase {
-        val state = repository.open { it.repositoryState }
-        if (state.isRebasing) {
-            return when (state) {
-                RepositoryState.REBASING, RepositoryState.REBASING_REBASING -> rebaseStateApply(repository)
-                RepositoryState.REBASING_MERGE, RepositoryState.REBASING_INTERACTIVE -> rebaseStateMerge(repository)
-                else -> throw IllegalStateException("Unexpected state $state")
-            }
-        } else {
-            return Rebase(0, 0)
-        }
-    }
-
-    private fun rebaseStateApply(repository: Repository): Rebase {
-        val rebasePath = "${repository.path}/.git/rebase-apply".asPath()
-        val next = rebasePath.resolve("next").readFirst().toInt()
-        val last = rebasePath.resolve("last").readFirst().toInt()
-        return Rebase(next, last)
-    }
-
-    private fun rebaseStateMerge(repository: Repository): Rebase {
-        val rebasePath = "${repository.path}/.git/rebase-merge".asPath()
-        val done = rebasePath.resolve("done").readLines().countMeaningful()
-        val todo = rebasePath.resolve("git-rebase-todo").readLines().countMeaningful()
-        return Rebase(done, done + todo)
-    }
-
-    private fun List<String>.countMeaningful() = filterNot { it.isBlank() || it.startsWith("#") }.size
 
     /**
      * - git init

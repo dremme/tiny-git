@@ -6,9 +6,13 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
+import hamburg.remme.tinygit.git.BranchAlreadyExistsException
+import hamburg.remme.tinygit.git.BranchUnpushedException
 import hamburg.remme.tinygit.git.CheckoutException
-import hamburg.remme.tinygit.git.Git
+import hamburg.remme.tinygit.git.gitBranchDelete
+import hamburg.remme.tinygit.git.gitBranchDeleteForce
 import hamburg.remme.tinygit.git.gitBranchList
+import hamburg.remme.tinygit.git.gitBranchMove
 import hamburg.remme.tinygit.git.gitCheckout
 import hamburg.remme.tinygit.git.gitCheckoutRemote
 import hamburg.remme.tinygit.git.gitHead
@@ -38,7 +42,6 @@ import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
 import javafx.stage.Window
-import org.eclipse.jgit.api.errors.NotMergedException
 import java.util.concurrent.Callable
 
 // TODO: create expand/collapse all actions
@@ -199,23 +202,30 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     private fun renameBranch(entry: RepositoryEntry) {
         textInputDialog(window, "Enter a New Branch Name", "Rename", Icons.pencil(), entry.value) { name ->
-            Git.branchRename(entry.repository, entry.value, name)
-            fireRefresh(entry.repository)
-            root.children.flatMap { it.children + it }.flatMap { it.children + it }
-                    .find { it.value.repository == entry.repository && it.value.value == name }
-                    ?.let { selectionModel.select(it) }
+            try {
+                gitBranchMove(entry.repository, entry.value, name)
+                fireRefresh(entry.repository)
+                root.children.flatMap { it.children + it }.flatMap { it.children + it }
+                        .find { it.value.repository == entry.repository && it.value.value == name }
+                        ?.let { selectionModel.select(it) }
+            } catch (ex: BranchAlreadyExistsException) {
+                errorAlert(window, "Cannot Create Branch",
+                        "Branch '$name' does already exist in the working copy.")
+            }
         }
     }
 
     private fun deleteBranch(entry: RepositoryEntry) {
         try {
-            Git.branchDelete(entry.repository, entry.value)
-        } catch (ex: NotMergedException) {
+            gitBranchDelete(entry.repository, entry.value)
+            fireRefresh(entry.repository)
+        } catch (ex: BranchUnpushedException) {
             if (confirmWarningAlert(window, "Delete Branch", "Delete",
-                    "Branch '${entry.value}' was not deleted as it has not been merged yet.\n\nForce deletion?"))
-                Git.branchDeleteForce(entry.repository, entry.value)
+                    "Branch '${entry.value}' was not deleted as it has unpushed commits.\n\nForce deletion?")) {
+                gitBranchDeleteForce(entry.repository, entry.value)
+                fireRefresh(entry.repository)
+            }
         }
-        fireRefresh(entry.repository)
     }
 
     private fun checkout(entry: RepositoryEntry) {

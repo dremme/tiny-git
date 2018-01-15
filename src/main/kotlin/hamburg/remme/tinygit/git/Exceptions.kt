@@ -8,7 +8,15 @@ class PullException(message: String) : RuntimeException(message)
 
 class CheckoutException : RuntimeException()
 
+class BranchAlreadyExistsException : RuntimeException()
+
+class BranchNameInvalidException : RuntimeException()
+
+class BranchUnpushedException : RuntimeException()
+
 class PushException : RuntimeException()
+
+class UnmergedException : RuntimeException()
 
 class PrepareSquashException(message: String) : GitAPIException(message)
 
