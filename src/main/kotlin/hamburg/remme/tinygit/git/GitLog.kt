@@ -10,17 +10,19 @@ import java.time.ZoneOffset
 
 private val idSeparator = "id: "
 private val parentsSeparator = "parents: "
+private val refsSeparator = "refs: "
 private val nameSeparator = "name: "
 private val mailSeparator = "mail: "
 private val dateSeparator = "date: "
 private val bodySeparator = "body: "
 private val eom = "<eom>"
-private val logFormat = "--pretty=format:$idSeparator%H%n$parentsSeparator%P%n$nameSeparator%an%n$mailSeparator%ae%n$dateSeparator%ad%n$bodySeparator%B%n$eom"
+private val logFormat = "--pretty=format:$idSeparator%H%n$parentsSeparator%P%n$refsSeparator%d%n$nameSeparator%an%n$mailSeparator%ae%n$dateSeparator%ad%n$bodySeparator%B%n$eom"
 private val log1 = arrayOf("log", "-1", "--pretty=%B")
 private val logAll = arrayOf("log", "--all", "--date=raw", logFormat)
 private val logNot = arrayOf("log", "HEAD", "--date=raw", logFormat, "--not")
 private val revlistCount = arrayOf("rev-list", "--count")
 private val revlistCountNot = arrayOf("rev-list", "--count", "HEAD", "--not")
+private val headSeparator = " -> "
 
 fun gitHeadMessage(repository: Repository): String {
     return git(repository, *log1)
@@ -69,6 +71,7 @@ class CommitParser {
     val commits = mutableListOf<Commit>()
     private var id = ""
     private val parents = mutableListOf<String>()
+    private val refs = mutableListOf<String>()
     private var fullMessage = ""
     private var date = LocalDateTime.now()!!
     private var authorName = ""
@@ -80,6 +83,7 @@ class CommitParser {
             messageBuilder != null && line != eom -> messageBuilder!!.appendln(line)
             line.startsWith(idSeparator) -> id = line.substringAfter(idSeparator)
             line.startsWith(parentsSeparator) -> parents += line.substringAfter(parentsSeparator).split(' ').filter { it.isNotBlank() }
+            line.startsWith(refsSeparator) -> refs += line.parseRefs()
             line.startsWith(dateSeparator) -> date = line.substringAfter(dateSeparator).parseDate()
             line.startsWith(nameSeparator) -> authorName = line.substringAfterLast(nameSeparator)
             line.startsWith(mailSeparator) -> authorMail = line.substringAfterLast(mailSeparator)
@@ -89,6 +93,7 @@ class CommitParser {
                 commits += Commit(
                         id, id.abbreviate(),
                         parents.toList(), parents.map { it.abbreviate() },
+                        refs.toList(),
                         fullMessage, fullMessage.lines()[0],
                         date, authorName, authorMail)
                 reset()
@@ -99,6 +104,7 @@ class CommitParser {
     private fun reset() {
         id = ""
         parents.clear()
+        refs.clear()
         fullMessage = ""
         date = LocalDateTime.now()
         authorName = ""
@@ -107,6 +113,15 @@ class CommitParser {
     }
 
     private fun String.abbreviate() = substring(0, 8)
+
+    private fun String.parseRefs(): List<String> {
+        return substringAfter(refsSeparator)
+                .trim()
+                .replace("[()]".toRegex(), "")
+                .split(',')
+                .filter { it.isNotBlank() }
+                .map { it.substringAfter(headSeparator).trim() }
+    }
 
     private fun String.parseDate(): LocalDateTime {
         val match = "(\\d+) [-+](\\d{2})(\\d{2})".toRegex().matchEntire(this)!!.groupValues
