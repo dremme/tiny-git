@@ -45,7 +45,6 @@ fun gitRemoveRemote(repository: Repository) {
 }
 
 fun gitPush(repository: Repository, force: Boolean) {
-    gitSetProxy(repository) // TODO: should only be configured once
     val response = git(repository, *if (force) pushForce else push).trim()
     if (response.contains("$fatalSeparator.*no upstream branch".toRegex(setOf(IC, G)))) gitPush(repository, response.parseBranchName(), force)
     else if (response.contains("$errorSeparator.*tip of your current branch is behind".toRegex(setOf(IC, G)))) throw PushException()
@@ -53,7 +52,6 @@ fun gitPush(repository: Repository, force: Boolean) {
 }
 
 fun gitPush(repository: Repository, branch: String, force: Boolean) {
-    gitSetProxy(repository) // TODO: should only be configured once
     val response = git(repository, *if (force) pushForce else push, *upstream, branch).trim()
     if (response.contains("$errorSeparator.*tip of your current branch is behind".toRegex(setOf(IC, G)))) throw PushException()
     else if (response.contains("$fatalSeparator.*timed out".toRegex(setOf(IC, G)))) throw TimeoutException()

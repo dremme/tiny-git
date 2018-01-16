@@ -91,12 +91,33 @@
 }
 
 .text-input {
-    -fx-prompt-text-fill: derive(-fx-text-inner-color, -50%)
+    -fx-prompt-text-fill: derive(-fx-text-inner-color, -50%);
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: derive(-fx-text-inner-color, -50%), transparent;
+    -fx-border-width: 0 0 1 0, 0 0 1 0;
+    -fx-border-insets: 0, 0 0 1 0;
+}
+
+.text-input:focused {
+    -fx-border-color: -fx-focus-color, -fx-focus-color;
 }
 
 .text-input:readonly {
+    -fx-border-color: transparent;
+}
+
+/* TODO: border is just at the bottom */
+.text-area,
+.text-area .content {
+    -fx-background-insets: 0;
     -fx-background-color: transparent;
-    -fx-background-insets: 0, 0;
+}
+
+.text-area:focused,
+.text-area:focused  .content {
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
 }
 
 .menu-bar {
@@ -279,6 +300,10 @@
     -fx-background-color: transparent;
 }
 
+.repository-cell .icon-wrapper {
+    -fx-min-width: 24px;
+}
+
 .repository-cell .settings:hover .icon {
     -fx-fill: -fx-text-base-color;
 }
@@ -347,6 +372,10 @@
 
 .file-status-view .list-cell {
     -fx-graphic-text-gap: 1em;
+}
+
+.file-status-view .list-cell .icon-wrapper {
+    -fx-min-width: 24px;
 }
 
 .commit-details-view > * > .split-pane {

@@ -12,13 +12,11 @@ fun gitUpToDate(repository: Repository): Boolean {
 }
 
 fun gitFetch(repository: Repository) {
-    gitSetProxy(repository) // TODO: should only be configured once
     git(repository, *fetch).trim()
     upToDate.add(repository)
 }
 
 fun gitFetchPrune(repository: Repository) {
-    gitSetProxy(repository) // TODO: should only be configured once
     git(repository, *fetchPrune).trim()
     upToDate.add(repository)
 }
