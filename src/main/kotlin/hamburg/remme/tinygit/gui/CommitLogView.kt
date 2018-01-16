@@ -1,12 +1,10 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.Graph
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.TimeoutException
-import hamburg.remme.tinygit.git.gitBranchList
 import hamburg.remme.tinygit.git.gitFetch
 import hamburg.remme.tinygit.git.gitHasRemote
 import hamburg.remme.tinygit.git.gitHead
@@ -45,7 +43,6 @@ class CommitLogView : Tab() {
     private val commitDetails = CommitDetailsView()
     private var task: Task<*>? = null
 
-    private val cache: MutableMap<String, List<Branch>> = mutableMapOf()
     private val logSize = 50
     private val skipSize = 50
     private lateinit var graph: Graph
@@ -120,11 +117,6 @@ class CommitLogView : Tab() {
         }
     }
 
-    private fun invalidateCache(repository: Repository) {
-        cache.clear()
-        cache.putAll(gitBranchList(repository).groupBy { it.commitId })
-    }
-
     private fun setContent(commits: List<Commit>) {
         graph = Graph(commits)
         val selected = localCommits.selectionModel.selectedItem
@@ -141,7 +133,6 @@ class CommitLogView : Tab() {
     private fun logQuick(repository: Repository) {
         task?.cancel()
         head = gitHead(repository)
-        invalidateCache(repository)
         try {
             setContent(gitLog(repository, 0, logSize + skip))
         } catch (ex: RuntimeException) { // TODO
@@ -172,7 +163,6 @@ class CommitLogView : Tab() {
             }
 
             override fun succeeded() {
-                invalidateCache(repository)
                 setContent(value)
                 State.fireRefresh(this)
             }
@@ -192,18 +182,14 @@ class CommitLogView : Tab() {
         override fun updateItem(item: Commit?, empty: Boolean) {
             super.updateItem(item, empty)
             text = item?.shortMessage
-            graphic = if (empty) null else {
-                cache[item!!.id]?.let {
-                    hbox {
-                        spacing = 4.0
-                        it.forEach {
-                            +label {
-                                addClass("branch-badge")
-                                if (it.name == head) addClass("current")
-                                text = it.name
-                                graphic = Icons.codeFork()
-                            }
-                        }
+            graphic = if (empty || item!!.refs.isEmpty()) null else hbox {
+                spacing = 4.0
+                item.refs.forEach {
+                    +label {
+                        addClass("branch-badge")
+                        if (it == head) addClass("current")
+                        text = it
+                        graphic = Icons.codeFork()
                     }
                 }
             }
