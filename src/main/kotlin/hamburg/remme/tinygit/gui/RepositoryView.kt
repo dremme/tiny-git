@@ -6,6 +6,7 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
+import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.git.BranchAlreadyExistsException
 import hamburg.remme.tinygit.git.BranchUnpushedException
 import hamburg.remme.tinygit.git.CheckoutException
@@ -50,7 +51,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     val actions: Array<ActionGroup> get() = arrayOf(ActionGroup(settings))
     private val settings = Action("Settings", { Icons.cog() }, if (PlatformUtil.isMac()) "Shortcut+Comma" else null,
             disable = State.canSettings.not(),
-            handler = { SettingsDialog(State.getSelectedRepository(), window).show() })
+            handler = { SettingsDialog(RepositoryService.activeRepository.get()!!, window).show() })
 
     private val window: Window get() = scene.window
     private val selectedEntry: RepositoryEntry? get() = selectionModel.selectedItem?.value
@@ -60,7 +61,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         setCellFactory { RepositoryEntryListCell() }
         root = TreeItem()
         isShowRoot = false
-        selectionModel.selectedItemProperty().addListener { _, _, it -> State.setSelectedRepository(it?.value?.repository) }
+        selectionModel.selectedItemProperty().addListener { _, _, it -> RepositoryService.activeRepository.set(it?.value?.repository) }
 
         // TODO: should be menu bar actions as well
         val canCheckout = Bindings.createBooleanBinding(
@@ -104,7 +105,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             }
         }
 
-        State.getRepositories().addListener(ListChangeListener {
+        RepositoryService.existingRepositories.addListener(ListChangeListener {
             while (it.next()) {
                 when {
                     it.wasAdded() -> {
@@ -116,8 +117,8 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             }
             if (it.list.isEmpty()) selectionModel.clearSelection() // forcefully clear selection
         })
-        State.getRepositories().forEach { treeAdd(it) }
-        State.addRefreshListener(this) { treeUpdate(it) }
+        RepositoryService.existingRepositories.forEach { treeAdd(it) }
+        State.addRefreshListener { treeUpdate(it) }
 
         Settings.setTree {
             root.children.flatMap { it.children + it }.map {
@@ -170,7 +171,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     private fun fireRefresh(repository: Repository) {
         treeUpdate(repository)
-        State.fireRefresh(this)
+        State.fireRefresh()
     }
 
     private fun updateBranchItems(branchItems: ObservableList<TreeItem<RepositoryEntry>>,
@@ -195,9 +196,9 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
     private fun List<StashEntry>.indexOf(message: String) = indexOfFirst { it.message == message }
 
     private fun removeRepository(entry: RepositoryEntry) {
-        if (confirmWarningAlert(window, "Remove Repository", "Remove",
-                "Will remove the repository '${entry.repository}' from TinyGit, but keep it on the disk."))
-            State.removeRepository(entry.repository)
+        if (!confirmWarningAlert(window, "Remove Repository", "Remove",
+                "Will remove the repository '${entry.repository}' from TinyGit, but keep it on the disk.")) return
+        RepositoryService.remove(entry.repository)
     }
 
     private fun renameBranch(entry: RepositoryEntry) {

@@ -12,7 +12,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.2.10</kotlin.version>
+        <kotlin.version>1.2.20</kotlin.version>
         <snakeyaml.version>1.18</snakeyaml.version>
     </properties>
 

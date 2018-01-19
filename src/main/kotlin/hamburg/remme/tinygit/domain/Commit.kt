@@ -11,12 +11,14 @@ class Commit(val id: String,
              val shortMessage: String,
              val date: LocalDateTime,
              val authorName: String,
-             val authorMail: String) {
+             val authorMail: String) : Comparable<Commit> {
 
     val author = "$authorName <$authorMail>"
     val parentId = if (parents.isEmpty()) "4b825dc642cb6eb9a060e54bf8d69288fbee4904" else parents[0] // special empty tree id
 
     override fun toString() = id
+
+    override fun compareTo(other: Commit) = -date.compareTo(other.date)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -16,6 +16,7 @@ fun gitStashPop(repository: Repository) {
     if (response.contains(errorSeparator)) throw StashPopException() // TODO
 }
 
+// TODO: re-enable stashing
 fun gitStashList(repository: Repository): List<StashEntry> {
     val entries = mutableListOf<StashEntry>()
     // TODO: very slow operation

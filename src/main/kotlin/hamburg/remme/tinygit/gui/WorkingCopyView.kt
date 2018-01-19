@@ -1,18 +1,8 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.asPath
-import hamburg.remme.tinygit.delete
 import hamburg.remme.tinygit.domain.File
-import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.domain.Status
-import hamburg.remme.tinygit.exists
-import hamburg.remme.tinygit.git.gitAdd
-import hamburg.remme.tinygit.git.gitAddUpdate
-import hamburg.remme.tinygit.git.gitCheckout
-import hamburg.remme.tinygit.git.gitRemove
-import hamburg.remme.tinygit.git.gitReset
-import hamburg.remme.tinygit.git.gitStatus
+import hamburg.remme.tinygit.domain.service.WorkingCopyService
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -27,8 +17,6 @@ import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.component.Icons
 import javafx.beans.binding.Bindings
-import javafx.beans.value.ObservableObjectValue
-import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.scene.control.MultipleSelectionModel
 import javafx.scene.control.SelectionMode
@@ -46,27 +34,21 @@ class WorkingCopyView : Tab() {
                 ActionGroup(updateAll, stageAll, stageSelected),
                 ActionGroup(unstageAll, unstageSelected))
     private val unstageAll = Action("Unstage all", { Icons.arrowCircleDown() }, "Shortcut+Shift+L", State.canUnstageAll.not(),
-            { unstage(State.getSelectedRepository()) })
+            { WorkingCopyService.unstage() })
     private val unstageSelected = Action("Unstage selected", { Icons.arrowCircleDown() }, disable = State.canUnstageSelected.not(),
-            handler = { unstage(State.getSelectedRepository(), stagedFilesSelection.selectedItems) })
+            handler = { unstageSelected() })
     private val updateAll = Action("Update all", { Icons.arrowCircleUp() }, disable = State.canUpdateAll.not(),
-            handler = { update(State.getSelectedRepository()) })
+            handler = { WorkingCopyService.update() })
     private val stageAll = Action("Stage all", { Icons.arrowCircleUp() }, "Shortcut+Shift+K", State.canStageAll.not(),
-            { stage(State.getSelectedRepository()) })
+            { WorkingCopyService.stage() })
     private val stageSelected = Action("Stage selected", { Icons.arrowCircleUp() }, disable = State.canStageSelected.not(),
-            handler = {
-                if (pendingFiles.items.size == pendingFilesSelection.selectedItems.size) stage(State.getSelectedRepository())
-                else stage(State.getSelectedRepository(), pendingFilesSelection.selectedItems)
-            })
+            handler = { stageSelected() })
 
     private val window: Window get() = content.scene.window
-    private val stagedFiles = FileStatusView(State.stagedFiles, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
-    private val pendingFiles = FileStatusView(State.pendingFiles, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
-    private val stagedFilesSelection = stagedFiles.selectionModel
-    private val pendingFilesSelection = pendingFiles.selectionModel
-    private val selectedFile: ObservableObjectValue<File>
-    private val fileDiff = FileDiffView()
-//    private var task: Task<*>? = null
+    private val staged = FileStatusView(WorkingCopyService.staged, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
+    private val pending = FileStatusView(WorkingCopyService.pending, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
+    private val selectedStaged = staged.selectionModel
+    private val selectedPending = pending.selectionModel
 
     init {
         text = "Working Copy"
@@ -74,58 +56,53 @@ class WorkingCopyView : Tab() {
         isClosable = false
 
         val unstageFile = Action("Unstage (L)", { Icons.arrowCircleDown() }, disable = State.canUnstageSelected.not(),
-                handler = { unstage(State.getSelectedRepository(), stagedFilesSelection.selectedItems) })
+                handler = { unstageSelected() })
 
-        stagedFiles.contextMenu = contextMenu {
+        staged.contextMenu = contextMenu {
             isAutoHide = true
             +ActionGroup(unstageFile)
         }
-        stagedFiles.setOnKeyPressed {
+        staged.setOnKeyPressed {
             if (!it.isShortcutDown) when (it.code) {
-                KeyCode.L -> unstage(State.getSelectedRepository(), stagedFilesSelection.selectedItems)
+                KeyCode.L -> unstageSelected()
                 else -> Unit
             }
         }
 
         // TODO: state props?
         val canDelete = Bindings.createBooleanBinding(
-                Callable { !pendingFilesSelection.selectedItems.all { it.status == File.Status.REMOVED } },
-                pendingFilesSelection.selectedIndexProperty())
+                Callable { !selectedPending.selectedItems.all { it.status == File.Status.REMOVED } },
+                selectedPending.selectedIndexProperty())
         val canDiscard = Bindings.createBooleanBinding(
-                Callable { !pendingFilesSelection.selectedItems.all { it.status == File.Status.ADDED } },
-                pendingFilesSelection.selectedIndexProperty())
+                Callable { !selectedPending.selectedItems.all { it.status == File.Status.ADDED } },
+                selectedPending.selectedIndexProperty())
         // TODO: menubar actions?
         val stageFile = Action("Stage (K)", { Icons.arrowCircleUp() }, disable = State.canStageSelected.not(),
-                handler = { stage(State.getSelectedRepository(), pendingFilesSelection.selectedItems) })
+                handler = { stageSelected() })
         val deleteFile = Action("Delete (Del)", { Icons.trash() }, disable = canDelete.not(),
-                handler = { deleteFile(State.getSelectedRepository(), pendingFilesSelection.selectedItems) })
+                handler = { deleteFile() })
         val discardChanges = Action("Discard Changes (D)", { Icons.undo() }, disable = canDiscard.not(),
-                handler = { discardChanges(State.getSelectedRepository(), pendingFilesSelection.selectedItems) })
+                handler = { discardChanges() })
 
-        pendingFiles.contextMenu = contextMenu {
+        pending.contextMenu = contextMenu {
             isAutoHide = true
             +ActionGroup(stageFile)
             +ActionGroup(deleteFile, discardChanges)
         }
-        pendingFiles.setOnKeyPressed {
+        pending.setOnKeyPressed {
             if (!it.isShortcutDown) when (it.code) {
-                KeyCode.K -> stage(State.getSelectedRepository(), pendingFilesSelection.selectedItems)
-                KeyCode.D -> discardChanges(State.getSelectedRepository(), pendingFilesSelection.selectedItems)
-                KeyCode.DELETE -> deleteFile(State.getSelectedRepository(), pendingFilesSelection.selectedItems)
+                KeyCode.K -> stageSelected()
+                KeyCode.D -> discardChanges()
+                KeyCode.DELETE -> deleteFile()
                 else -> Unit
             }
         }
 
-        stagedFilesSelection.selectedItems.addListener(ListChangeListener { State.stagedSelectedCount.set(it.list.size) })
-        stagedFilesSelection.selectedItemProperty().addListener({ _, _, it -> it?.let { pendingFilesSelection.clearSelection() } })
+        selectedStaged.selectedItems.addListener(ListChangeListener { WorkingCopyService.selectedStaged.setAll(it.list) })
+        selectedStaged.selectedItemProperty().addListener({ _, _, it -> it?.let { selectedPending.clearSelection() } })
 
-        pendingFilesSelection.selectedItems.addListener(ListChangeListener { State.pendingSelectedCount.set(it.list.size) })
-        pendingFilesSelection.selectedItemProperty().addListener({ _, _, it -> it?.let { stagedFilesSelection.clearSelection() } })
-
-        selectedFile = Bindings.createObjectBinding(
-                Callable { stagedFilesSelection.selectedItem ?: pendingFilesSelection.selectedItem },
-                stagedFilesSelection.selectedItemProperty(), pendingFilesSelection.selectedItemProperty())
-        selectedFile.addListener { _, _, it -> it?.let { fileDiff.update(State.getSelectedRepository(), it) } ?: fileDiff.clearContent() }
+        selectedPending.selectedItems.addListener(ListChangeListener { WorkingCopyService.selectedPending.setAll(it.list) })
+        selectedPending.selectedItemProperty().addListener({ _, _, it -> it?.let { selectedStaged.clearSelection() } })
 
         content = stackPane {
             +splitPane {
@@ -136,118 +113,61 @@ class WorkingCopyView : Tab() {
 
                     +vbox {
                         +toolBar {
-                            +StatusCountView(stagedFiles)
+                            +StatusCountView(staged)
                             addSpacer()
                             +unstageAll
                             +unstageSelected
                         }
-                        +stagedFiles
+                        +staged
                     }
                     +vbox {
                         +toolBar {
-                            +StatusCountView(pendingFiles)
+                            +StatusCountView(pending)
                             addSpacer()
                             +updateAll
                             +stageAll
                             +stageSelected
                         }
-                        +pendingFiles
+                        +pending
                     }
                 }
-                +fileDiff
+                +FileDiffView(Bindings.createObjectBinding(
+                        Callable { selectedStaged.selectedItem ?: selectedPending.selectedItem },
+                        selectedStaged.selectedItemProperty(), selectedPending.selectedItemProperty()))
             }
             +stackPane {
                 addClass("overlay")
-                visibleWhen(Bindings.isEmpty(stagedFiles.items).and(Bindings.isEmpty(pendingFiles.items)))
+                visibleWhen(Bindings.isEmpty(staged.items).and(Bindings.isEmpty(pending.items)))
                 +Text("There is nothing to commit.")
             }
         }
-
-        State.addRepositoryListener {
-            clearContent()
-            it?.let { status(it) }
-        }
-        State.addRefreshListener(this) { status(it) }
     }
 
-    // TODO: sort by status?
-    private fun setContent(status: Status) {
-        stagedFiles.items.addAll(status.staged.filter { stagedFiles.items.none(it::equals) })
-        stagedFiles.items.removeAll(stagedFiles.items.filter { status.staged.none(it::equals) })
-        pendingFiles.items.addAll(status.pending.filter { pendingFiles.items.none(it::equals) })
-        pendingFiles.items.removeAll(pendingFiles.items.filter { status.pending.none(it::equals) })
-        FXCollections.sort(stagedFiles.items)
-        FXCollections.sort(pendingFiles.items)
+    private fun stageSelected() {
+        val selected = getIndex(selectedPending)
+        WorkingCopyService.stageSelected { setIndex(selectedPending, selected) }
     }
 
-    private fun clearContent() {
-//        task?.cancel()
-        stagedFiles.items.clear()
-        pendingFiles.items.clear()
+    private fun unstageSelected() {
+        val selected = getIndex(selectedStaged)
+        WorkingCopyService.unstageSelected { setIndex(selectedStaged, selected) }
     }
 
-    private fun status(repository: Repository, block: (() -> Unit)? = null) {
-        // TODO: task needed?
-//        task?.cancel()
-//        task = object : Task<GitStatus>() {
-//            override fun call() = gitStatus(repository)
-//
-//            override fun succeeded() {
-//                setContent(value)
-//                block?.invoke()
-//            }
-//        }.also { State.execute(it) }
-        setContent(gitStatus(repository))
-        block?.invoke()
-    }
-
-    private fun stage(repository: Repository) {
-        gitAdd(repository)
-        gitRemove(repository, pendingFiles.items.filter { it.status == File.Status.REMOVED })
-        status(repository)
-    }
-
-    private fun stage(repository: Repository, files: List<File>) {
-        val selected = getIndex(pendingFilesSelection)
-        gitAdd(repository, files.filter { it.status != File.Status.REMOVED })
-        gitRemove(repository, files.filter { it.status == File.Status.REMOVED })
-        status(repository) { setIndex(pendingFilesSelection, selected) }
-    }
-
-    private fun update(repository: Repository) {
-        gitAddUpdate(repository)
-        status(repository)
-    }
-
-    private fun unstage(repository: Repository) {
-        gitReset(repository)
-        status(repository)
-    }
-
-    private fun unstage(repository: Repository, files: List<File>) {
-        val selected = getIndex(stagedFilesSelection)
-        gitReset(repository, files)
-        status(repository) { setIndex(stagedFilesSelection, selected) }
-    }
-
-    private fun deleteFile(repository: Repository, files: List<File>) {
+    private fun deleteFile() {
         if (confirmWarningAlert(window, "Delete Files", "Delete",
                 "This will remove the selected files from the disk.")) {
-            val selected = getIndex(pendingFilesSelection)
-            files.forEach { repository.resolve(it).asPath().takeIf { it.exists() }?.delete() }
-            status(repository) { setIndex(pendingFilesSelection, selected) }
+            val selected = getIndex(selectedPending)
+            WorkingCopyService.delete { setIndex(selectedPending, selected) }
         }
     }
 
-    private fun discardChanges(repository: Repository, files: List<File>) {
+    private fun discardChanges() {
         if (confirmWarningAlert(window, "Discard Changes", "Discard",
                 "This will discard all changes from the selected files.")) {
-            try {
-                gitCheckout(repository, files)
-                status(repository)
-            } catch (ex: RuntimeException) { // TODO
-                errorAlert(window, "Cannot Discard Changes", "${ex.message}")
-            }
+            val selected = getIndex(selectedPending)
+            WorkingCopyService.discardChanges(
+                    { setIndex(selectedPending, selected) },
+                    { errorAlert(window, "Cannot Discard Changes", it) })
         }
     }
 

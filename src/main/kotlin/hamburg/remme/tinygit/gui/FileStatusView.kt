@@ -8,7 +8,7 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
 
-class FileStatusView : ListView<File> {
+class FileStatusView(list: ObservableList<File>, selectionMode: SelectionMode = SelectionMode.SINGLE) : ListView<File>(list) {
 
     companion object {
 
@@ -23,17 +23,10 @@ class FileStatusView : ListView<File> {
 
     }
 
-    constructor() : super() {
-        selectionModel.selectionMode = SelectionMode.SINGLE
-    }
-
-    constructor(list: ObservableList<File>, selectionMode: SelectionMode) : super(list) {
-        selectionModel.selectionMode = selectionMode
-    }
-
     init {
         addClass("file-status-view")
         setCellFactory { LocalFileListCell() }
+        selectionModel.selectionMode = selectionMode
     }
 
     private class LocalFileListCell : ListCell<File>() {
