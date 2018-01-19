@@ -3,34 +3,14 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
-import hamburg.remme.tinygit.asPath
-import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.exists
-import hamburg.remme.tinygit.git.BranchAlreadyExistsException
-import hamburg.remme.tinygit.git.BranchNameInvalidException
-import hamburg.remme.tinygit.git.PullException
-import hamburg.remme.tinygit.git.PushException
-import hamburg.remme.tinygit.git.TimeoutException
-import hamburg.remme.tinygit.git.UnmergedException
-import hamburg.remme.tinygit.git.gitBranch
-import hamburg.remme.tinygit.git.gitBranchList
-import hamburg.remme.tinygit.git.gitFetchPrune
-import hamburg.remme.tinygit.git.gitGc
-import hamburg.remme.tinygit.git.gitHasRemote
-import hamburg.remme.tinygit.git.gitHead
-import hamburg.remme.tinygit.git.gitInit
+import hamburg.remme.tinygit.domain.service.BranchService
+import hamburg.remme.tinygit.domain.service.DivergenceService
+import hamburg.remme.tinygit.domain.service.MergeService
+import hamburg.remme.tinygit.domain.service.RebaseService
+import hamburg.remme.tinygit.domain.service.RemoteService
+import hamburg.remme.tinygit.domain.service.RepositoryService
+import hamburg.remme.tinygit.domain.service.StashService
 import hamburg.remme.tinygit.git.gitLogExclusive
-import hamburg.remme.tinygit.git.gitMerge
-import hamburg.remme.tinygit.git.gitMergeAbort
-import hamburg.remme.tinygit.git.gitPull
-import hamburg.remme.tinygit.git.gitPush
-import hamburg.remme.tinygit.git.gitRebase
-import hamburg.remme.tinygit.git.gitRebaseAbort
-import hamburg.remme.tinygit.git.gitRebaseContinue
-import hamburg.remme.tinygit.git.gitResetHard
-import hamburg.remme.tinygit.git.gitSquash
-import hamburg.remme.tinygit.git.gitStash
-import hamburg.remme.tinygit.git.gitStashPop
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionCollection
 import hamburg.remme.tinygit.gui.builder.ActionGroup
@@ -61,23 +41,23 @@ import hamburg.remme.tinygit.gui.dialog.CloneDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
-import javafx.concurrent.Task
+import javafx.beans.property.ReadOnlyBooleanWrapper
 import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
-import javafx.stage.Window
 
 class GitView : VBoxBuilder() {
 
-    private val window: Window get() = scene.window
-    private val repositoryView = RepositoryView()
-    private val commitLog = CommitLogView()
-    private val workingCopy = WorkingCopyView()
-    private val stats = StatsView()
-    private val tabs = TabPane(commitLog, workingCopy, stats)
+    private val window get() = scene.window
 
     init {
         addClass("git-view")
+
+        val repositoryView = RepositoryView()
+        val commitLog = CommitLogView()
+        val workingCopy = WorkingCopyView()
+        val stats = StatsView()
+        val tabs = TabPane(commitLog, workingCopy, stats)
 
         // File
         val cloneRepo = Action("Clone Repository", { Icons.clone() }, "Shortcut+Shift+O",
@@ -89,53 +69,55 @@ class GitView : VBoxBuilder() {
         val quit = Action("Quit TinyGit", { Icons.signOut() },
                 handler = { Platform.exit() })
         // View
-        val showCommits = Action("Show Commits", { Icons.list() }, "F1", State.selectedRepository.isNull, // TODO: own prop?
+        val showCommits = Action("Show Commits", { Icons.list() }, "F1", RepositoryService.activeRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(commitLog) })
-        val showWorkingCopy = Action("Show Working Copy", { Icons.hdd() }, "F2", State.selectedRepository.isNull, // TODO: own prop?
+        val showWorkingCopy = Action("Show Working Copy", { Icons.hdd() }, "F2", RepositoryService.activeRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(workingCopy) })
-        val showStats = Action("Show Statistics", { Icons.chartPie() }, "F3", State.selectedRepository.isNull, // TODO: own prop?
+        val showStats = Action("Show Statistics", { Icons.chartPie() }, "F3", RepositoryService.activeRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(stats) })
         // TODO: add F5 refresh
         // Repository
         val commit = Action("Commit", { Icons.plus() }, "Shortcut+K", State.canCommit.not(),
-                { CommitDialog(State.getSelectedRepository(), window).show() })
+                { CommitDialog(window).show() })
         val push = Action("Push", { Icons.cloudUpload() }, "Shortcut+P", State.canPush.not(),
-                { push(State.getSelectedRepository(), false) }, State.ahead)
+                { push(false) }, DivergenceService.ahead)
         val pushForce = Action("Force Push", { Icons.cloudUpload() }, "Shortcut+Shift+P", State.canForcePush.not(),
-                { push(State.getSelectedRepository(), true) }, State.ahead)
+                { push(true) }, DivergenceService.ahead)
         val pull = Action("Pull", { Icons.cloudDownload() }, "Shortcut+L", State.canPull.not(),
-                { pull(State.getSelectedRepository()) }, State.behind)
+                { pull() }, DivergenceService.behind)
         val fetch = Action("Fetch", { Icons.refresh() }, "Shortcut+F", State.canFetch.not(),
-                { fetch(State.getSelectedRepository()) })
+                { RemoteService.fetch() })
         val fetchGc = Action("GC", { Icons.eraser() }, "Shortcut+Shift+F", State.canGc.not(),
-                { gc(State.getSelectedRepository()) })
+                { RepositoryService.gc() })
         val branch = Action("Branch", { Icons.codeFork() }, "Shortcut+B", State.canBranch.not(),
-                { createBranch(State.getSelectedRepository()) })
+                { createBranch() })
         val merge = Action("Merge", { Icons.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
-                handler = { merge(State.getSelectedRepository()) })
+                handler = { merge() })
         val mergeContinue = Action("Continue Merge", { Icons.forward() }, "Shortcut+Shift+M", State.canMergeContinue.not(),
-                handler = { CommitDialog(State.getSelectedRepository(), window).show() })
+                handler = { CommitDialog(window).show() })
         val mergeAbort = Action("Abort Merge", { Icons.timesCircle() }, disable = State.canMergeAbort.not(),
-                handler = { mergeAbort(State.getSelectedRepository()) })
+                handler = { MergeService.abort() })
         val rebase = Action("Rebase", { Icons.levelUp().flipX() }, "Shortcut+R", State.canRebase.not(),
-                handler = { rebase(State.getSelectedRepository()) })
+                handler = { rebase() })
         val rebaseContinue = Action("Continue Rebase", { Icons.forward() }, "Shortcut+Shift+R", State.canRebaseContinue.not(),
-                handler = { rebaseContinue(State.getSelectedRepository()) })
+                handler = { rebaseContinue() })
         val rebaseAbort = Action("Abort Rebase", { Icons.timesCircle() }, disable = State.canRebaseAbort.not(),
-                handler = { rebaseAbort(State.getSelectedRepository()) })
+                handler = { RebaseService.abort() })
         val stash = Action("Stash", { Icons.cube() }, "Shortcut+S", State.canStash.not(),
-                { stash(State.getSelectedRepository()) })
+                { StashService.stash() })
         val stashPop = Action("Pop Stash", { Icons.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
-                { stashPop(State.getSelectedRepository()) })
+                { stashPop() })
         val reset = Action("Auto-Reset", { Icons.undo() }, disable = State.canReset.not(),
-                handler = { autoReset(State.getSelectedRepository()) })
+                handler = { autoReset() })
         val squash = Action("Auto-Squash", { Icons.gavel() }, disable = State.canSquash.not(),
-                handler = { autoSquash(State.getSelectedRepository()) }, count = State.aheadDefault)
+                handler = { autoSquash() }, count = DivergenceService.aheadDefault)
         // ?
         val github = Action("Star TinyGit on GitHub", { Icons.github() },
                 handler = { TinyGit.show("https://github.com/deso88/TinyGit") })
         val about = Action("About", { Icons.questionCircle() },
                 handler = { AboutDialog(window).show() })
+        val cmd = Action("Git Command", { Icons.terminal() }, disable = ReadOnlyBooleanWrapper(true),
+                handler = { /* TODO */ })
 
         +menuBar {
             isUseSystemMenuBar = true
@@ -161,18 +143,24 @@ class GitView : VBoxBuilder() {
             +ActionGroup(branch, merge)
             +ActionGroup(stash, stashPop)
             +ActionGroup(reset, squash)
+            addSpacer()
+            +cmd
         }
         +toolBar {
             visibleWhen(State.showMergeBar)
             managedWhen(State.showMergeBar)
             +ActionGroup(addRepo)
             +ActionGroup(mergeContinue, mergeAbort)
+            addSpacer()
+            +cmd
         }
         +toolBar {
             visibleWhen(State.showRebaseBar)
             managedWhen(State.showRebaseBar)
             +ActionGroup(addRepo)
             +ActionGroup(rebaseContinue, rebaseAbort)
+            addSpacer()
+            +cmd
         }
         +stackPane {
             vgrow(Priority.ALWAYS)
@@ -205,227 +193,91 @@ class GitView : VBoxBuilder() {
     }
 
     private fun newRepo() {
-        directoryChooser(window, "New Repository") {
-            gitInit(it.absolutePath)
-            State.addRepository(Repository(it.absolutePath))
-        }
+        directoryChooser(window, "New Repository") { RepositoryService.init(it.absolutePath) }
     }
 
     private fun addRepo() {
         directoryChooser(window, "Add Repository") {
-            if ("${it.absolutePath}/.git".asPath().exists()) {
-                State.addRepository(Repository(it.absolutePath))
-            } else {
-                errorAlert(window, "Invalid Repository",
-                        "'${it.absolutePath}' does not contain a valid '.git' directory.")
-            }
+            RepositoryService.open(
+                    it.absolutePath,
+                    { errorAlert(window, "Invalid Repository", "'${it.absolutePath}' does not contain a valid '.git' directory.") })
         }
     }
 
-    private fun fetch(repository: Repository) {
-        State.startProcess("Fetching...", object : Task<Unit>() {
-            override fun call() = gitFetchPrune(repository)
-
-            override fun succeeded() = State.fireRefresh(this)
-
-            override fun failed() = exception.printStackTrace()
-        })
+    private fun pull() {
+        RemoteService.pull(
+                { errorAlert(window, "Cannot Pull From Remote Branch", it) },
+                { errorAlert(window, "Connection Timed Out", "Please check the repository settings.\nCredentials or proxy settings may have changed.") })
     }
 
-    private fun gc(repository: Repository) {
-        State.startProcess("Cleaning up...", object : Task<Unit>() {
-            override fun call() = gitGc(repository)
-
-            override fun succeeded() = State.fireRefresh(this)
-
-            override fun failed() = exception.printStackTrace()
-        })
-    }
-
-    private fun pull(repository: Repository) {
-        State.startProcess("Pulling commits...", object : Task<Unit>() {
-            override fun call() = gitPull(repository)
-
-            override fun succeeded() = State.fireRefresh(this)
-
-            override fun failed() {
-                when (exception) {
-                    is PullException -> errorAlert(window, "Cannot Pull From Remote Branch", exception.message!!)
-                    is TimeoutException -> errorAlert(window, "Connection Timed Out",
-                            "Please check the repository settings.\nCredentials or proxy settings may have changed.")
-                    else -> exception.printStackTrace()
-                }
-            }
-        })
-    }
-
-    private fun push(repository: Repository, force: Boolean) {
-        if (!gitHasRemote(repository)) {
+    private fun push(force: Boolean) {
+        if (!RepositoryService.hasRemote.get()) {
             errorAlert(window, "Push", "No remote configured.")
-            SettingsDialog(repository, window).show()
+            SettingsDialog(RepositoryService.activeRepository.get()!!, window).show()
+            return
+        } else if (force && !confirmWarningAlert(window, "Force Push", "Push",
+                "This will rewrite the remote branch's history.\nChanges by others will be lost.")) {
             return
         }
-
-        if (force && !confirmWarningAlert(window, "Force Push", "Push",
-                "This will rewrite the remote branch's history.\nChanges by others will be lost.")) return
-
-        State.startProcess("Pushing commits...", object : Task<Unit>() {
-            override fun call() = gitPush(repository, force)
-
-            override fun succeeded() = State.fireRefresh(this)
-
-            override fun failed() {
-                when (exception) {
-                    is PushException -> errorAlert(window, "Cannot Push to Remote Branch",
-                            "Updates were rejected because the tip of the current branch is behind.\nPull before pushing again or force push.")
-                    is TimeoutException -> errorAlert(window, "Connection Timed Out",
-                            "Please check the repository settings.\nCredentials or proxy settings may have changed.")
-                    else -> exception.printStackTrace()
-                }
-            }
-        })
+        RemoteService.push(
+                force,
+                { errorAlert(window, "Cannot Push to Remote Branch", "Updates were rejected because the tip of the current branch is behind.\nPull before pushing again or force push.") },
+                { errorAlert(window, "Connection Timed Out", "Please check the repository settings.\nCredentials or proxy settings may have changed.") })
     }
 
-    private fun createBranch(repository: Repository) {
-        textInputDialog(window, "Enter a New Branch Name", "Create", Icons.codeFork()) { name ->
-            State.startProcess("Branching...", object : Task<Unit>() {
-                override fun call() = gitBranch(repository, name)
-
-                override fun succeeded() = State.fireRefresh(this)
-
-                override fun failed() {
-                    when (exception) {
-                        is BranchAlreadyExistsException -> errorAlert(window, "Cannot Create Branch",
-                                "Branch '$name' does already exist in the working copy.")
-                        is BranchNameInvalidException -> errorAlert(window, "Cannot Create Branch",
-                                "Invalid name '$name'.")
-                        else -> exception.printStackTrace()
-                    }
-                }
-            })
+    private fun createBranch() {
+        textInputDialog(window, "Enter a New Branch Name", "Create", Icons.codeFork()) {
+            BranchService.branch(
+                    it,
+                    { errorAlert(window, "Cannot Create Branch", "Branch '$it' does already exist in the working copy.") },
+                    { errorAlert(window, "Cannot Create Branch", "Invalid name '$it'.") })
         }
     }
 
-    private fun merge(repository: Repository) {
-        val current = gitHead(repository)
-        val branches = gitBranchList(repository).map { it.name }.filter { it != current }
-        choiceDialog(window, "Select a Branch to Merge", "Merge", Icons.codeFork().flipY(), branches) { branch ->
-            State.startProcess("Merging...", object : Task<Unit>() {
-                override fun call() = gitMerge(repository, branch)
-
-                override fun succeeded() = State.fireRefresh(this)
-
-                override fun failed() = exception.printStackTrace()
-            })
+    private fun merge() {
+        val current = BranchService.head.get()
+        val branches = BranchService.branches.map { it.name }.filter { it != current }
+        choiceDialog(window, "Select a Branch to Merge", "Merge", Icons.codeFork().flipY(), branches) {
+            MergeService.merge(it)
         }
     }
 
-    private fun mergeAbort(repository: Repository) {
-        State.startProcess("Aborting...", object : Task<Unit>() {
-            override fun call() = gitMergeAbort(repository)
-
-            override fun succeeded() = State.fireRefresh(this)
-
-            override fun failed() = exception.printStackTrace()
-        })
-    }
-
-    private fun rebase(repository: Repository) {
-        val current = gitHead(repository)
-        val branches = gitBranchList(repository).map { it.name }.filter { it != current }
-        choiceDialog(window, "Select a Branch for Rebasing", "Rebase", Icons.levelUp().flipX(), branches) { branch ->
-            State.startProcess("Rebasing...", object : Task<Unit>() {
-                override fun call() = gitRebase(repository, branch)
-
-                override fun succeeded() = State.fireRefresh(this)
-
-                override fun failed() = exception.printStackTrace()
-            })
+    private fun rebase() {
+        val current = BranchService.head.get()
+        val branches = BranchService.branches.map { it.name }.filter { it != current }
+        choiceDialog(window, "Select a Branch for Rebasing", "Rebase", Icons.levelUp().flipX(), branches) {
+            RebaseService.rebase(it)
         }
     }
 
-    private fun rebaseContinue(repository: Repository) {
-        State.startProcess("Rebasing...", object : Task<Unit>() {
-            override fun call() = gitRebaseContinue(repository)
-
-            override fun succeeded() = State.fireRefresh(this)
-
-            override fun failed() {
-                when (exception) {
-                    is UnmergedException -> errorAlert(window, "Unresolved Conflicts",
-                            "Cannot continue with rebase because there are unresolved conflicts.")
-                    else -> exception.printStackTrace()
-                }
-            }
+    private fun rebaseContinue() {
+        RebaseService.`continue`({
+            errorAlert(window, "Unresolved Conflicts",
+                    "Cannot continue with rebase because there are unresolved conflicts.")
         })
     }
 
-    private fun rebaseAbort(repository: Repository) {
-        State.startProcess("Aborting...", object : Task<Unit>() {
-            override fun call() = gitRebaseAbort(repository)
-
-            override fun succeeded() = State.fireRefresh(this)
-
-            override fun failed() = exception.printStackTrace()
+    private fun stashPop() {
+        StashService.pop({
+            errorAlert(window, "Cannot Pop Stash",
+                    "Applying stashed changes resulted in a conflict.\nTherefore the stash entry has been preserved.")
         })
     }
 
-    private fun stash(repository: Repository) {
-        State.startProcess("Stashing files...", object : Task<Unit>() {
-            override fun call() = gitStash(repository)
-
-            override fun succeeded() = State.fireRefresh(this)
-
-            override fun failed() = exception.printStackTrace()
-        })
-    }
-
-    private fun stashPop(repository: Repository) {
-        State.startProcess("Applying stash...", object : Task<Unit>() {
-            override fun call() = gitStashPop(repository)
-
-            override fun succeeded() = State.fireRefresh(this)
-
-            override fun failed() {
-                when (exception) {
-                    is RuntimeException -> { // TODO
-                        State.fireRefresh(this)
-                        errorAlert(window, "Cannot Pop Stash",
-                                "Applying stashed changes resulted in a conflict.\nTherefore the stash entry has been preserved.")
-                    }
-                    else -> exception.printStackTrace()
-                }
-            }
-        })
-    }
-
-    private fun autoReset(repository: Repository) {
+    private fun autoReset() {
         if (!confirmWarningAlert(window, "Auto Reset Branch", "Reset",
                 "This will automatically reset the current branch to its remote branch.\nUnpushed commits will be lost.")) return
-
-        State.startProcess("Resetting branch...", object : Task<Unit>() {
-            override fun call() = gitResetHard(repository, gitHead(repository))
-
-            override fun succeeded() = State.fireRefresh(this)
-
-            override fun failed() = exception.printStackTrace()
-        })
+        BranchService.autoReset()
     }
 
-    private fun autoSquash(repository: Repository) {
-        val commits = gitLogExclusive(repository)
+    private fun autoSquash() {
+        val commits = gitLogExclusive(RepositoryService.activeRepository.get()!!)
         val message = commits.joinToString("\n") { "# ${it.shortId}\n${it.fullMessage}" } // TODO: too many newlines
         val baseId = commits.last().parents[0]
         val count = commits.size
         textAreaDialog(window, "Auto Squash Branch", "Squash", Icons.gavel(), message,
                 "This will automatically squash all $count commits of the current branch.\n\nNew commit message:") {
-            State.startProcess("Squashing branch...", object : Task<Unit>() {
-                override fun call() = gitSquash(repository, baseId, it)
-
-                override fun succeeded() = State.fireRefresh(this)
-
-                override fun failed() = exception.printStackTrace()
-            })
+            BranchService.autoSquash(baseId, it)
         }
     }
 

@@ -93,7 +93,7 @@ class SettingsDialog(repository: Repository, window: Window) : Dialog<Unit>(wind
                 else gitUnsetProxy(repository)
             }
 
-            State.fireRefresh(this)
+            State.fireRefresh()
         }
         content = grid(4) {
             addClass("settings-view")

@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.git.gitLsTree
 import hamburg.remme.tinygit.gui.builder.ProgressPane
@@ -70,7 +71,7 @@ class StatsView : Tab() {
             value = currentYear
             valueProperty().addListener { _, _, it ->
                 calendar.updateYear(it)
-                update(State.getSelectedRepository(), it)
+                update(RepositoryService.activeRepository.get()!!, it)
             }
         }
         progressPane = progressPane {
@@ -90,8 +91,8 @@ class StatsView : Tab() {
         }
         content = progressPane
 
-        State.addRepositoryListener { it?.let { update(it, period.value) } }
-        State.addRefreshListener(this) { update(it, period.value) }
+        RepositoryService.activeRepository.addListener { _, _, it -> it?.let { update(it, period.value) } }
+        State.addRefreshListener { update(it, period.value) }
     }
 
     private fun update(repository: Repository, year: Year) {

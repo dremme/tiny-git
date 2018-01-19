@@ -6,9 +6,11 @@ private val commit = arrayOf("commit")
 private val commitAmend = arrayOf("commit", "--amend")
 
 fun gitCommit(repository: Repository, message: String) {
-    git(repository, *commit, "-m", message)
+    val response = git(repository, *commit, "-m", message)
+    if (response.lines().any { it.startsWith(errorSeparator) || it.startsWith(fatalSeparator) }) throw RuntimeException()
 }
 
 fun gitCommitAmend(repository: Repository, message: String) {
-    git(repository, *commitAmend, "-m", message)
+    val response = git(repository, *commitAmend, "-m", message)
+    if (response.lines().any { it.startsWith(errorSeparator) || it.startsWith(fatalSeparator) }) throw RuntimeException()
 }

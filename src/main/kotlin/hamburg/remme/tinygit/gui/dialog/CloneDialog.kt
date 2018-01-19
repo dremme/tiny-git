@@ -1,9 +1,8 @@
 package hamburg.remme.tinygit.gui.dialog
 
-import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.encrypt
-import hamburg.remme.tinygit.git.gitClone
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.columnSpan
@@ -15,7 +14,6 @@ import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.passwordField
 import hamburg.remme.tinygit.gui.builder.textField
 import hamburg.remme.tinygit.gui.component.Icons
-import javafx.concurrent.Task
 import javafx.scene.control.Label
 import javafx.stage.Window
 
@@ -59,13 +57,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             repository.password = password.text.encrypt()
             repository.proxyHost = host.text
             repository.proxyPort = port.text.toInt()
-            State.startProcess("Cloning...", object : Task<Unit>() {
-                override fun call() = gitClone(repository, url.text)
-
-                override fun succeeded() = State.addRepository(repository)
-
-                override fun failed() = errorAlert(window, "Cannot Clone Repository", exception.message!!)
-            })
+            RepositoryService.clone(repository, url.text, { errorAlert(window, "Cannot Clone Repository", it) })
         }
         content = grid(4) {
             addClass("settings-view")

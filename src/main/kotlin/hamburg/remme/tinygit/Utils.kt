@@ -29,13 +29,13 @@ fun LocalDate.atEndOfDay() = atTime(LocalTime.MAX)!!
 fun Year.numberOfWeeks(): Int {
     val firstDay = atDay(1)
     val lastDay = atDay(length())
-    if (isLeap) {
-        if (firstDay.dayOfWeek == DayOfWeek.WEDNESDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY) return 53
-        else if (firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.FRIDAY) return 53
-        return 52
-    } else {
-        if (firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY) return 53
-        return 52
+    return if (isLeap) when {
+        firstDay.dayOfWeek == DayOfWeek.WEDNESDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY -> 53
+        firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.FRIDAY -> 53
+        else -> 52
+    } else when {
+        firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY -> 53
+        else -> 52
     }
 }
 

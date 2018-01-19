@@ -4,7 +4,8 @@ import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
 
-private val branchAll = arrayOf("branch", "--verbose", "--no-abbrev", "--all")
+private val revParseHead = arrayOf("rev-parse", "--abbrev-ref", "HEAD")
+private val branchAll = arrayOf("branch", "--no-abbrev", "--all")
 private val branchMove = arrayOf("branch", "--move")
 private val branchDelete = arrayOf("branch", "--delete")
 private val branchDeleteForce = arrayOf("branch", "--delete", "--force")
@@ -12,13 +13,16 @@ private val checkout = arrayOf("checkout")
 private val checkoutCreate = arrayOf("checkout", "-b")
 private val remotes = "remotes/"
 
+fun gitHead(repository: Repository): String {
+    return git(repository, *revParseHead).trim()
+}
+
 fun gitBranchList(repository: Repository): List<Branch> {
     val branches = mutableListOf<Branch>()
     git(repository, *branchAll) {
         val line = it.substring(2)
         val branch = line.split(" +".toRegex())[0]
-        val commitId = line.split(" +".toRegex()).drop(1)[0]
-        if (!branch.startsWith('(')) branches += Branch(branch.substringAfter(remotes), commitId, branch.startsWith(remotes))
+        if (!branch.startsWith('(')) branches += Branch(branch.substringAfter(remotes), branch.startsWith(remotes))
     }
     return branches
 }
