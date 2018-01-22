@@ -21,6 +21,7 @@ object DivergenceService : Refreshable {
     }
 
     override fun onRepositoryChanged(repository: Repository) {
+        onRepositoryDeselected()
         update(repository)
     }
 

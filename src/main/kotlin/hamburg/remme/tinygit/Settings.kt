@@ -64,8 +64,7 @@ object Settings {
                         var window: WindowSettings = WindowSettings(),
                         var tabSelection: Int = 0)
 
-    class TreeItem(var repository: String = "",
-                   var name: String = "",
+    class TreeItem(var value: String = "",
                    var expanded: Boolean = false)
 
     class WindowSettings(var x: Double = 0.0,

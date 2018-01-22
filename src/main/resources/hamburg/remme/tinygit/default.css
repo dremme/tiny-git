@@ -115,7 +115,7 @@
 }
 
 .text-area:focused,
-.text-area:focused  .content {
+.text-area:focused .content {
     -fx-background-insets: 0;
     -fx-background-color: transparent;
 }
@@ -287,6 +287,19 @@
 .about-view .author {
     -fx-font-weight: bold;
     -fx-font-size: 1.1em;
+}
+
+.repository-view {
+    -fx-spacing: 6px;
+}
+
+.repository-view .combo-box {
+    -fx-background-radius: 0;
+}
+
+.repository-view .tree-view {
+    -fx-background-insets: 0, 0;
+    -fx-padding: 0;
 }
 
 .repository-cell {

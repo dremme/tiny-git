@@ -6,35 +6,30 @@ import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
+import hamburg.remme.tinygit.domain.service.BranchService
 import hamburg.remme.tinygit.domain.service.RepositoryService
+import hamburg.remme.tinygit.domain.service.StashService
 import hamburg.remme.tinygit.git.BranchAlreadyExistsException
 import hamburg.remme.tinygit.git.BranchUnpushedException
-import hamburg.remme.tinygit.git.CheckoutException
-import hamburg.remme.tinygit.git.gitBranchDelete
-import hamburg.remme.tinygit.git.gitBranchDeleteForce
-import hamburg.remme.tinygit.git.gitBranchList
-import hamburg.remme.tinygit.git.gitBranchMove
-import hamburg.remme.tinygit.git.gitCheckout
-import hamburg.remme.tinygit.git.gitCheckoutRemote
-import hamburg.remme.tinygit.git.gitHead
-import hamburg.remme.tinygit.git.gitStashList
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
+import hamburg.remme.tinygit.gui.builder.VBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
-import hamburg.remme.tinygit.gui.builder.addStyle
-import hamburg.remme.tinygit.gui.builder.button
+import hamburg.remme.tinygit.gui.builder.comboBox
 import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.contextMenu
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
-import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.textInputDialog
+import hamburg.remme.tinygit.gui.builder.tree
+import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
+import javafx.application.Platform
 import javafx.beans.binding.Bindings
+import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
-import javafx.concurrent.Task
 import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.TreeCell
@@ -42,11 +37,11 @@ import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
+import javafx.scene.layout.Priority
 import javafx.stage.Window
 import java.util.concurrent.Callable
 
-// TODO: create expand/collapse all actions
-class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
+class RepositoryView : VBoxBuilder() {
 
     val actions: Array<ActionGroup> get() = arrayOf(ActionGroup(settings))
     private val settings = Action("Settings", { Icons.cog() }, if (PlatformUtil.isMac()) "Shortcut+Comma" else null,
@@ -54,161 +49,128 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             handler = { SettingsDialog(RepositoryService.activeRepository.get()!!, window).show() })
 
     private val window: Window get() = scene.window
-    private val selectedEntry: RepositoryEntry? get() = selectionModel.selectedItem?.value
-    private val cache: MutableMap<Repository, String> = mutableMapOf()
+    private val tree: TreeView<RepositoryEntry>
+    private val selectedEntry: RepositoryEntry?
+        @Suppress("UNNECESSARY_SAFE_CALL") get() = tree?.selectionModel?.selectedItem?.value
+    private val localBranches: TreeItem<RepositoryEntry>
+    private val remoteBranches: TreeItem<RepositoryEntry>
+    private val stash: TreeItem<RepositoryEntry>
 
     init {
-        setCellFactory { RepositoryEntryListCell() }
-        root = TreeItem()
-        isShowRoot = false
-        selectionModel.selectedItemProperty().addListener { _, _, it -> RepositoryService.activeRepository.set(it?.value?.repository) }
+        addClass("repository-view")
 
-        // TODO: should be menu bar actions as well
-        val canCheckout = Bindings.createBooleanBinding(
-                Callable { selectedEntry.isBranch() },
-                selectionModel.selectedItemProperty())
-        val canRenameBranch = Bindings.createBooleanBinding(
-                Callable { selectedEntry.isLocal() },
-                selectionModel.selectedItemProperty())
-        val canDeleteBranch = Bindings.createBooleanBinding(
-                Callable { selectedEntry.isLocal() && !selectedEntry.isHead() },
-                selectionModel.selectedItemProperty())
-        val removeRepository = Action("Remove Repository (Del)", { Icons.trash() }, disable = State.canRemove.not(),
-                handler = { removeRepository(selectedEntry!!) })
-        val checkoutBranch = Action("Checkout Branch", { Icons.cloudDownload() }, disable = canCheckout.not(),
-                handler = { checkout(selectedEntry!!) })
-        val renameBranch = Action("Rename Branch", { Icons.pencil() }, disable = canRenameBranch.not(),
-                handler = { renameBranch(selectedEntry!!) })
-        val deleteBranch = Action("Delete Branch (Del)", { Icons.trash() }, disable = canDeleteBranch.not(),
-                handler = { deleteBranch(selectedEntry!!) })
-
-        contextMenu = contextMenu {
-            isAutoHide = true
-            +ActionGroup(removeRepository)
-            +ActionGroup(checkoutBranch, renameBranch, deleteBranch)
-            +ActionGroup(settings)
+        +comboBox<Repository>(RepositoryService.existingRepositories) {
+            selectionModel.selectedItemProperty().addListener { _, _, it -> RepositoryService.activeRepository.set(it) }
+            prefWidth = Int.MAX_VALUE.toDouble()
+            Platform.runLater { selectionModel.selectFirst() }
         }
 
-        setOnKeyPressed {
-            when (it.code) {
-                KeyCode.SPACE -> it.consume()
-                KeyCode.DELETE -> selectedEntry?.let {
-                    if (it.isRoot()) removeRepository(it)
-                    else if (it.isLocal() && !it.isHead()) deleteBranch(it)
-                }
-                else -> Unit
+        localBranches = TreeItem(RepositoryEntry("Local Branches", EntryType.LOCAL))
+        remoteBranches = TreeItem(RepositoryEntry("Remote Branches", EntryType.REMOTE))
+        stash = TreeItem(RepositoryEntry("Stash", EntryType.STASH))
+
+        tree = tree {
+            vgrow(Priority.ALWAYS)
+            setCellFactory { RepositoryEntryListCell() }
+
+            +localBranches
+            +remoteBranches
+            +stash
+
+            val canCheckout = Bindings.createBooleanBinding(
+                    Callable { selectedEntry.isBranch() },
+                    selectionModel.selectedItemProperty())
+            val canRenameBranch = Bindings.createBooleanBinding(
+                    Callable { selectedEntry.isLocal() },
+                    selectionModel.selectedItemProperty())
+            val canDeleteBranch = Bindings.createBooleanBinding(
+                    Callable { selectedEntry.isLocal() && !selectedEntry.isHead() },
+                    selectionModel.selectedItemProperty())
+//            val removeRepository = Action("Remove Repository (Del)", { Icons.trash() }, disable = State.canRemove.not(), TODO
+//                    handler = { removeRepository(selectedEntry!!) })
+            val checkoutBranch = Action("Checkout Branch", { Icons.cloudDownload() }, disable = canCheckout.not(),
+                    handler = { checkout(selectedEntry!!) })
+            val renameBranch = Action("Rename Branch", { Icons.pencil() }, disable = canRenameBranch.not(),
+                    handler = { renameBranch(selectedEntry!!) })
+            val deleteBranch = Action("Delete Branch (Del)", { Icons.trash() }, disable = canDeleteBranch.not(),
+                    handler = { deleteBranch(selectedEntry!!) })
+
+            contextMenu = contextMenu {
+                isAutoHide = true
+//                +ActionGroup(removeRepository) TODO
+                +ActionGroup(checkoutBranch, renameBranch, deleteBranch)
+                +ActionGroup(settings)
             }
-        }
-        setOnMouseClicked {
-            if (it.button == MouseButton.PRIMARY && it.clickCount == 2) {
-                checkout(selectedEntry!!)
-            }
-        }
-
-        RepositoryService.existingRepositories.addListener(ListChangeListener {
-            while (it.next()) {
-                when {
-                    it.wasAdded() -> {
-                        it.addedSubList.forEach { treeAdd(it) }
-                        selectionModel.selectLast()
-                    }
-                    it.wasRemoved() -> it.removed.forEach { treeRemove(it) }
+            setOnKeyPressed {
+                when (it.code) {
+                    KeyCode.SPACE -> it.consume()
+                    KeyCode.DELETE -> selectedEntry?.let { if (it.isLocal() && !it.isHead()) deleteBranch(it) }
+                    else -> Unit
                 }
             }
-            if (it.list.isEmpty()) selectionModel.clearSelection() // forcefully clear selection
+            setOnMouseClicked {
+                if (it.button == MouseButton.PRIMARY && it.clickCount == 2) checkout(selectedEntry!!)
+            }
+        }
+        +tree
+
+        BranchService.branches.addListener(ListChangeListener {
+            updateBranches(localBranches.children, it.list.filter { it.isLocal }, EntryType.LOCAL_BRANCH)
+            updateBranches(remoteBranches.children, it.list.filter { it.isRemote }, EntryType.REMOTE_BRANCH)
         })
-        RepositoryService.existingRepositories.forEach { treeAdd(it) }
-        State.addRefreshListener { treeUpdate(it) }
+        StashService.stashEntries.addListener(ListChangeListener { updateStashes(it.list) })
 
         Settings.setTree {
-            root.children.flatMap { it.children + it }.map {
-                Settings.TreeItem(it.value.repository.path, it.value.value, it.isExpanded)
-            }
+            tree.root.children.map { Settings.TreeItem(it.value.value, it.isExpanded) }
         }
         Settings.setTreeSelection {
-            selectedEntry?.let { Settings.TreeItem(it.repository.path, it.value) } ?: Settings.TreeItem()
+            selectedEntry?.let { Settings.TreeItem(it.value) } ?: Settings.TreeItem()
         }
         Settings.load { settings ->
-            root.children.flatMap { it.children + it }
-                    .filter { item -> settings.tree.any { it.repository == item.value.repository.path && it.name == item.value.value && it.expanded } }
+            tree.root.children
+                    .filter { item -> settings.tree.any { it.value == item.value.value && it.expanded } }
                     .forEach { it.isExpanded = true }
 
-            root.children.flatMap { it.children + it }.flatMap { it.children + it }
-                    .find { it.value.repository.path == settings.treeSelection.repository && it.value.value == settings.treeSelection.name }
-                    ?.let { selectionModel.select(it) }
-                    ?: selectionModel.selectFirst()
-            scrollTo(selectionModel.selectedIndex)
+            tree.root.children.flatMap { it.children + it }
+                    .find { it.value.value == settings.treeSelection.value }
+                    ?.let { tree.selectionModel.select(it) }
+                    ?: tree.selectionModel.selectFirst()
+
+            tree.scrollTo(tree.selectionModel.selectedIndex)
         }
     }
 
-    private fun treeAdd(repository: Repository) {
-        val localBranches = TreeItem(RepositoryEntry(repository, "Local Branches", EntryType.LOCAL))
-        val remoteBranches = TreeItem(RepositoryEntry(repository, "Remote Branches", EntryType.REMOTE))
-        val stash = TreeItem(RepositoryEntry(repository, "Stash", EntryType.STASH))
-
-        val repoTree = TreeItem(RepositoryEntry(repository, repository.shortPath, EntryType.REPOSITORY))
-        repoTree.children.addAll(localBranches, remoteBranches, stash)
-        root.children += repoTree
-
-        treeUpdate(repository)
+    private fun updateBranches(branches: ObservableList<TreeItem<RepositoryEntry>>, updatedList: List<Branch>, type: EntryType) {
+        branches.addAll(updatedList.filter { branch -> branches.none { it.value.value == branch.name } }
+                .map { TreeItem(RepositoryEntry(it.name, type)) })
+        branches.removeAll(branches.filter { branch -> updatedList.none { it.name == branch.value.value } })
+        FXCollections.sort(branches, { left, right -> left.value.value.compareTo(right.value.value) })
     }
 
-    private fun treeUpdate(repository: Repository) {
-        root.children.find { it.value.repository == repository }?.let {
-            cache[repository] = gitHead(repository)
-            val branchList = gitBranchList(repository)
-            val stashList = gitStashList(repository)
-            // TODO: selection might get lost on removed branches (e.g. after pruning)
-            updateBranchItems(it.children[0].children, repository, branchList.filter { it.isLocal }, EntryType.LOCAL_BRANCH)
-            updateBranchItems(it.children[1].children, repository, branchList.filter { it.isRemote }, EntryType.REMOTE_BRANCH)
-            updateStashItems(it.children[2].children, repository, stashList)
-        }
-    }
-
-    private fun treeRemove(repository: Repository) {
-        root.children.find { it.value.repository == repository }?.let { root.children -= it }
-    }
-
-    private fun fireRefresh(repository: Repository) {
-        treeUpdate(repository)
-        State.fireRefresh()
-    }
-
-    private fun updateBranchItems(branchItems: ObservableList<TreeItem<RepositoryEntry>>,
-                                  repository: Repository,
-                                  branchList: List<Branch>,
-                                  branchType: EntryType) {
-        branchItems.addAll(branchList.filter { branch -> branchItems.none { it.value.value == branch.name } }
-                .map { TreeItem(RepositoryEntry(repository, it.name, branchType)) })
-        branchItems.removeAll(branchItems.filter { branch -> branchList.none { it.name == branch.value.value } })
-        branchItems.sortWith(Comparator { left, right -> left.value.value.compareTo(right.value.value) })
-    }
-
-    private fun updateStashItems(stashItems: ObservableList<TreeItem<RepositoryEntry>>,
-                                 repository: Repository,
-                                 stashList: List<StashEntry>) {
-        stashItems.addAll(stashList.filter { entry -> stashItems.none { it.value.value == entry.message } }
-                .map { TreeItem(RepositoryEntry(repository, it.message, EntryType.STASH_ENTRY)) })
-        stashItems.removeAll(stashItems.filter { entry -> stashList.none { it.message == entry.value.value } })
-        stashItems.sortWith(Comparator { left, right -> stashList.indexOf(left.value.value) - stashList.indexOf(right.value.value) })
+    private fun updateStashes(updatedList: List<StashEntry>) {
+        stash.children.addAll(updatedList.filter { entry -> stash.children.none { it.value.value == entry.message } }
+                .map { TreeItem(RepositoryEntry(it.message, EntryType.STASH_ENTRY)) })
+        stash.children.removeAll(stash.children.filter { entry -> updatedList.none { it.message == entry.value.value } })
+        FXCollections.sort(stash.children, { left, right ->
+            updatedList.indexOf(left.value.value) - updatedList.indexOf(right.value.value)
+        })
     }
 
     private fun List<StashEntry>.indexOf(message: String) = indexOfFirst { it.message == message }
 
-    private fun removeRepository(entry: RepositoryEntry) {
-        if (!confirmWarningAlert(window, "Remove Repository", "Remove",
-                "Will remove the repository '${entry.repository}' from TinyGit, but keep it on the disk.")) return
-        RepositoryService.remove(entry.repository)
-    }
+//    private fun removeRepository(entry: RepositoryEntry) { TODO
+//        if (!confirmWarningAlert(window, "Remove Repository", "Remove",
+//                "Will remove the repository '${entry.repository}' from TinyGit, but keep it on the disk.")) return
+//        RepositoryService.remove(entry.repository)
+//    }
 
     private fun renameBranch(entry: RepositoryEntry) {
         textInputDialog(window, "Enter a New Branch Name", "Rename", Icons.pencil(), entry.value) { name ->
             try {
-                gitBranchMove(entry.repository, entry.value, name)
-                fireRefresh(entry.repository)
-                root.children.flatMap { it.children + it }.flatMap { it.children + it }
-                        .find { it.value.repository == entry.repository && it.value.value == name }
-                        ?.let { selectionModel.select(it) }
+                BranchService.rename(entry.value, name)
+                tree.root.children.flatMap { it.children + it }.flatMap { it.children + it }
+                        .find { it.value.value == name }
+                        ?.let { tree.selectionModel.select(it) }
             } catch (ex: BranchAlreadyExistsException) {
                 errorAlert(window, "Cannot Create Branch",
                         "Branch '$name' does already exist in the working copy.")
@@ -218,59 +180,34 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     private fun deleteBranch(entry: RepositoryEntry) {
         try {
-            gitBranchDelete(entry.repository, entry.value)
-            fireRefresh(entry.repository)
+            BranchService.delete(entry.value, false)
         } catch (ex: BranchUnpushedException) {
             if (confirmWarningAlert(window, "Delete Branch", "Delete",
                     "Branch '${entry.value}' was not deleted as it has unpushed commits.\n\nForce deletion?")) {
-                gitBranchDeleteForce(entry.repository, entry.value)
-                fireRefresh(entry.repository)
+                BranchService.delete(entry.value, true)
             }
         }
     }
 
     private fun checkout(entry: RepositoryEntry) {
         when (entry.type) {
-            EntryType.LOCAL_BRANCH -> checkoutLocal(entry.repository, entry.value)
-            EntryType.REMOTE_BRANCH -> checkoutRemote(entry.repository, entry.value)
+            EntryType.LOCAL_BRANCH -> checkoutLocal(entry.value)
+            EntryType.REMOTE_BRANCH -> checkoutRemote(entry.value)
             else -> Unit
         }
     }
 
-    private fun checkoutLocal(repository: Repository, branch: String) {
-        if (branch == gitHead(repository)) return
-
-        State.startProcess("Switching branches...", object : Task<Unit>() {
-            override fun call() = gitCheckout(repository, branch)
-
-            override fun succeeded() = fireRefresh(repository)
-
-            override fun failed() {
-                when (exception) {
-                    is CheckoutException -> errorAlert(window, "Cannot Switch Branches",
-                            "There are local changes that would be overwritten by checkout.\nCommit or stash them.")
-                    else -> exception.printStackTrace()
-                }
-            }
-        })
+    private fun checkoutLocal(branch: String) {
+        BranchService.checkoutLocal(
+                branch,
+                { errorAlert(window, "Cannot Switch Branches", "There are local changes that would be overwritten by checkout.\nCommit or stash them.") })
     }
 
-    private fun checkoutRemote(repository: Repository, branch: String) {
-        State.startProcess("Getting remote branch...", object : Task<Unit>() {
-            override fun call() = gitCheckoutRemote(repository, branch)
-
-            override fun succeeded() = fireRefresh(repository)
-
-            override fun failed() {
-                when (exception) {
-                    is CheckoutException -> checkoutLocal(repository, branch.substringAfter('/'))
-                    else -> exception.printStackTrace()
-                }
-            }
-        })
+    private fun checkoutRemote(branch: String) {
+        BranchService.checkoutRemote(
+                branch,
+                { errorAlert(window, "Cannot Switch Branches", "There are local changes that would be overwritten by checkout.\nCommit or stash them.") })
     }
-
-    private fun RepositoryEntry?.isRoot() = this?.type == EntryType.REPOSITORY
 
     private fun RepositoryEntry?.isLocal() = this?.type == EntryType.LOCAL_BRANCH
 
@@ -278,9 +215,9 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         return !this.isHead() && this?.type == EntryType.LOCAL_BRANCH || this?.type == EntryType.REMOTE_BRANCH
     }
 
-    private fun RepositoryEntry?.isHead() = this?.value == cache[this?.repository ?: ""]
+    private fun RepositoryEntry?.isHead() = this?.value == BranchService.head.get()
 
-    inner class RepositoryEntry(val repository: Repository, val value: String, val type: EntryType) {
+    inner class RepositoryEntry(val value: String, val type: EntryType) {
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -288,7 +225,6 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
             other as RepositoryEntry
 
-            if (repository != other.repository) return false
             if (value != other.value) return false
             if (type != other.type) return false
 
@@ -296,8 +232,7 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         }
 
         override fun hashCode(): Int {
-            var result = repository.hashCode()
-            result = 31 * result + value.hashCode()
+            var result = value.hashCode()
             result = 31 * result + type.hashCode()
             return result
         }
@@ -306,7 +241,6 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
 
     enum class EntryType {
 
-        REPOSITORY,
         LOCAL, LOCAL_BRANCH,
         REMOTE, REMOTE_BRANCH,
         STASH, STASH_ENTRY
@@ -319,7 +253,6 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
             super.updateItem(item, empty)
             graphic = if (empty) null else {
                 when (item!!.type) {
-                    EntryType.REPOSITORY -> repoItem(item)
                     EntryType.LOCAL -> item(Icons.hdd(), item.value)
                     EntryType.REMOTE -> item(Icons.cloud(), item.value)
                     EntryType.LOCAL_BRANCH -> branchItem(item)
@@ -333,19 +266,6 @@ class RepositoryView : TreeView<RepositoryView.RepositoryEntry>() {
         private fun item(icon: Node, value: String) = hbox {
             +icon
             +Label(value)
-        }
-
-        private fun repoItem(item: RepositoryEntry) = hbox {
-            +Icons.database()
-            +label {
-                addStyle("-fx-font-weight:bold")
-                text = item.value
-            }
-            +button {
-                addClass("settings")
-                graphic = Icons.cog()
-                setOnAction { SettingsDialog(item.repository, window).show() }
-            }
         }
 
         private fun branchItem(item: RepositoryEntry) = hbox {

@@ -81,6 +81,8 @@ object CommitLogService : Refreshable {
     }
 
     override fun onRepositoryDeselected() {
+        quickTask?.cancel()
+        remoteTask?.cancel()
         commits.clear()
         activeCommit.set(null)
     }
