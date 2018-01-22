@@ -38,13 +38,13 @@ fun gitBranchMove(repository: Repository, branch: String, newName: String) {
     if (response.contains("$fatalSeparator.*already exists".toRegex(IC))) throw BranchAlreadyExistsException()
 }
 
-fun gitBranchDelete(repository: Repository, branch: String) {
-    val response = git(repository, *branchDelete, branch).trim()
-    if (response.startsWith(errorSeparator)) throw BranchUnpushedException()
-}
-
-fun gitBranchDeleteForce(repository: Repository, branch: String) {
-    git(repository, *branchDeleteForce, branch)
+fun gitBranchDelete(repository: Repository, branch: String, force: Boolean) {
+    if (force) {
+        git(repository, *branchDeleteForce, branch)
+    } else {
+        val response = git(repository, *branchDelete, branch).trim()
+        if (response.startsWith(errorSeparator)) throw BranchUnpushedException()
+    }
 }
 
 fun gitCheckout(repository: Repository, files: List<File>) {

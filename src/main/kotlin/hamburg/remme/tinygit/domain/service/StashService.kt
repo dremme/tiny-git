@@ -2,16 +2,20 @@ package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.domain.StashEntry
 import hamburg.remme.tinygit.git.gitStash
 import hamburg.remme.tinygit.git.gitStashList
 import hamburg.remme.tinygit.git.gitStashPop
-import javafx.beans.property.SimpleIntegerProperty
+import hamburg.remme.tinygit.observableList
+import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
 
 object StashService : Refreshable {
 
-    val stashSize = SimpleIntegerProperty()
+    val stashEntries = observableList<StashEntry>()
+    val stashSize = Bindings.size(stashEntries)!!
     private lateinit var repository: Repository
+    private var task: Task<*>? = null
 
     fun stash() {
         State.startProcess("Stashing files...", object : Task<Unit>() {
@@ -46,16 +50,25 @@ object StashService : Refreshable {
     }
 
     override fun onRepositoryChanged(repository: Repository) {
+        onRepositoryDeselected()
         update(repository)
     }
 
     override fun onRepositoryDeselected() {
-        stashSize.set(0)
+        task?.cancel()
+        stashEntries.clear()
     }
 
     private fun update(repository: Repository) {
         this.repository = repository
-        stashSize.set(gitStashList(repository).size)
+        task?.cancel()
+        task = object : Task<List<StashEntry>>() {
+            override fun call() = gitStashList(repository)
+
+            override fun succeeded() {
+                stashEntries.setAll(value)
+            }
+        }.also { State.execute(it) }
     }
 
 }
