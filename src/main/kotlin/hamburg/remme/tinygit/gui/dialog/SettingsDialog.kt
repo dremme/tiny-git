@@ -53,7 +53,7 @@ class SettingsDialog(repository: Repository, window: Window) : Dialog<Unit>(wind
             fillWidth()
             graphic = Icons.search()
             maxWidth = Double.MAX_VALUE
-            setOnAction { fileChooser(dialogWindow, "Choose a SSH Key") { ssh.text = it.absolutePath } }
+            setOnAction { fileChooser(dialogWindow, "Choose a SSH Key") { ssh.text = it.toString() } }
         }
         val username = textField {
             columnSpan(3)

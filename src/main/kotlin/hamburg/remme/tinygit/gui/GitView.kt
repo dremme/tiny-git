@@ -193,14 +193,14 @@ class GitView : VBoxBuilder() {
     }
 
     private fun newRepo() {
-        directoryChooser(window, "New Repository") { RepositoryService.init(it.absolutePath) }
+        directoryChooser(window, "New Repository") { RepositoryService.init(it.toString()) }
     }
 
     private fun addRepo() {
         directoryChooser(window, "Add Repository") {
             RepositoryService.open(
-                    it.absolutePath,
-                    { errorAlert(window, "Invalid Repository", "'${it.absolutePath}' does not contain a valid '.git' directory.") })
+                    it.toString(),
+                    { errorAlert(window, "Invalid Repository", "'$it' does not contain a valid '.git' directory.") })
         }
     }
 

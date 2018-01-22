@@ -2,15 +2,17 @@ package hamburg.remme.tinygit
 
 import javafx.application.Platform
 import javafx.collections.FXCollections
-import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.DayOfWeek
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Year
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
@@ -23,6 +25,10 @@ val shortDateTimeFormat = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
 private val key = SecretKeySpec("FUMN1QLIf8sVkUdv".toByteArray(), "AES")
 private val iv = IvParameterSpec("Ay81aeLRJM5xtx9h".toByteArray())
+
+fun systemOffset() = ZoneId.systemDefault().rules.getOffset(Instant.now())!!
+
+fun localDateTime(epochSecond: Long) = LocalDateTime.ofEpochSecond(epochSecond, 0, systemOffset())!!
 
 fun LocalDate.atEndOfDay() = atTime(LocalTime.MAX)!!
 
@@ -47,7 +53,7 @@ fun String.asResource() = TinyGit::class.java.getResource(this).toExternalForm()
 
 fun String.asPath() = Paths.get(this)!!
 
-fun String.asFile() = File(this)
+fun String.asFile() = asPath().toFile()!!
 
 fun Path.exists() = Files.exists(this)
 
