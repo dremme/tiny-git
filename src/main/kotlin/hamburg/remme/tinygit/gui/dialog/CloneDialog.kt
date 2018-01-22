@@ -28,7 +28,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             fillWidth()
             graphic = Icons.search()
             maxWidth = Double.MAX_VALUE
-            setOnAction { directoryChooser(dialogWindow, "Choose a Directory") { location.text = it.absolutePath } }
+            setOnAction { directoryChooser(dialogWindow, "Choose a Directory") { location.text = it.toString() } }
         }
         val ssh = textField { }
         val sshSearch = button {
@@ -36,7 +36,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             fillWidth()
             graphic = Icons.search()
             maxWidth = Double.MAX_VALUE
-            setOnAction { fileChooser(dialogWindow, "Choose a SSH Key") { ssh.text = it.absolutePath } }
+            setOnAction { fileChooser(dialogWindow, "Choose a SSH Key") { ssh.text = it.toString() } }
         }
         val username = textField { columnSpan(3) }
         val password = passwordField { columnSpan(3) }

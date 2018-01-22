@@ -4,9 +4,9 @@ import hamburg.remme.tinygit.atEndOfDay
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.Divergence
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.localDateTime
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 
 private val idSeparator = "id: "
 private val parentsSeparator = "parents: "
@@ -123,9 +123,10 @@ class CommitParser {
                 .map { it.substringAfter(headSeparator).trim() }
     }
 
+    // TODO: local time is being ignored
     private fun String.parseDate(): LocalDateTime {
         val match = "(\\d+) [-+](\\d{2})(\\d{2})".toRegex().matchEntire(this)!!.groupValues
-        return LocalDateTime.ofEpochSecond(match[1].toLong(), 0, ZoneOffset.ofHoursMinutes(match[2].toInt(), match[3].toInt()))
+        return localDateTime(match[1].toLong())
     }
 
 }
