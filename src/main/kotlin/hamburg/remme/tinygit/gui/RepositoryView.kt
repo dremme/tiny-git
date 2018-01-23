@@ -1,7 +1,9 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.Settings
+import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Branch
+import hamburg.remme.tinygit.domain.Divergence
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
 import hamburg.remme.tinygit.domain.service.BranchService
@@ -9,6 +11,7 @@ import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.domain.service.StashService
 import hamburg.remme.tinygit.git.BranchAlreadyExistsException
 import hamburg.remme.tinygit.git.BranchUnpushedException
+import hamburg.remme.tinygit.git.gitDivergence
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
@@ -27,8 +30,10 @@ import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
+import javafx.concurrent.Task
 import javafx.scene.Node
 import javafx.scene.control.Label
+import javafx.scene.control.ListCell
 import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
@@ -36,6 +41,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
 import javafx.scene.layout.Priority
 import javafx.stage.Window
+import javafx.util.Callback
 import java.util.concurrent.Callable
 
 class RepositoryView : VBoxBuilder() {
@@ -51,7 +57,9 @@ class RepositoryView : VBoxBuilder() {
     init {
         addClass("repository-view")
 
+        // TODO: add a settings button
         +comboBox<Repository>(RepositoryService.existingRepositories) {
+            cellFactory = Callback { RepositoryListCell() }
             selectionModel.selectedItemProperty().addListener { _, _, it -> RepositoryService.activeRepository.set(it) }
             prefWidth = Int.MAX_VALUE.toDouble()
             Platform.runLater { selectionModel.selectFirst() }
@@ -63,7 +71,7 @@ class RepositoryView : VBoxBuilder() {
 
         tree = tree {
             vgrow(Priority.ALWAYS)
-            setCellFactory { RepositoryEntryListCell() }
+            setCellFactory { RepositoryEntryTreeCell() }
 
             +localBranches
             +remoteBranches
@@ -139,9 +147,7 @@ class RepositoryView : VBoxBuilder() {
         stash.children.addAll(updatedList.filter { entry -> stash.children.none { it.value.value == entry.message } }
                 .map { TreeItem(RepositoryEntry(it.message, EntryType.STASH_ENTRY)) })
         stash.children.removeAll(stash.children.filter { entry -> updatedList.none { it.message == entry.value.value } })
-        FXCollections.sort(stash.children, { left, right ->
-            updatedList.indexOf(left.value.value) - updatedList.indexOf(right.value.value)
-        })
+        FXCollections.sort(stash.children, { left, right -> updatedList.indexOf(left.value.value) - updatedList.indexOf(right.value.value) })
     }
 
     private fun List<StashEntry>.indexOf(message: String) = indexOfFirst { it.message == message }
@@ -229,7 +235,36 @@ class RepositoryView : VBoxBuilder() {
 
     }
 
-    private inner class RepositoryEntryListCell : TreeCell<RepositoryEntry>() {
+    private class RepositoryListCell : ListCell<Repository>() {
+
+        private var task: Task<*>? = null
+
+        override fun updateItem(item: Repository?, empty: Boolean) {
+            super.updateItem(item, empty)
+            text = item?.shortPath
+            if (!empty) updateDivergence(item!!)
+        }
+
+        // TODO: maybe too heavy for a list cell
+        private fun updateDivergence(item: Repository) {
+            task?.cancel()
+            task = object : Task<Divergence>() {
+                override fun call() = gitDivergence(item)
+
+                override fun succeeded() {
+                    val divergence = mutableListOf<String>()
+                    if (value.ahead > 0) divergence += "↑ ${value.ahead}"
+                    if (value.behind > 0) divergence += "↓ ${value.behind}"
+                    divergence.takeIf { it.isNotEmpty() }?.let {
+                        text = "${item.shortPath} (${it.joinToString(" ")})"
+                    }
+                }
+            }.also { State.execute(it) }
+        }
+
+    }
+
+    private inner class RepositoryEntryTreeCell : TreeCell<RepositoryEntry>() {
 
         override fun updateItem(item: RepositoryEntry?, empty: Boolean) {
             super.updateItem(item, empty)
