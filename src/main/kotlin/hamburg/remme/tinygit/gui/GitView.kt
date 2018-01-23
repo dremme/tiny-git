@@ -111,6 +111,10 @@ class GitView : VBoxBuilder() {
                 handler = { autoReset() })
         val squash = Action("Auto-Squash", { Icons.gavel() }, disable = State.canSquash.not(),
                 handler = { autoSquash() }, count = DivergenceService.aheadDefault)
+        val settings = Action("Settings", { Icons.cog() }, disable = State.canSettings.not(),
+                handler = { SettingsDialog(window).show() })
+        val removeRepo = Action("Remove Repository", { Icons.trash() }, disable = State.canRemove.not(),
+                handler = { removeRepo() })
         // ?
         val github = Action("Star TinyGit on GitHub", { Icons.github() },
                 handler = { TinyGit.show("https://github.com/deso88/TinyGit") })
@@ -128,7 +132,8 @@ class GitView : VBoxBuilder() {
                     ActionGroup(branch, merge, mergeContinue, mergeAbort),
                     ActionGroup(rebase, rebaseContinue, rebaseAbort),
                     ActionGroup(reset, squash),
-                    *repositoryView.actions)
+                    ActionGroup(settings),
+                    ActionGroup(removeRepo))
             +ActionCollection("Actions",
                     ActionGroup(commit),
                     *workingCopy.actions,
@@ -204,6 +209,13 @@ class GitView : VBoxBuilder() {
         }
     }
 
+    private fun removeRepo() {
+        val repository = RepositoryService.activeRepository.get()!!
+        if (!confirmWarningAlert(window, "Remove Repository", "Remove",
+                "Will remove the repository '$repository' from TinyGit, but keep it on the disk.")) return
+        RepositoryService.remove(repository)
+    }
+
     private fun pull() {
         RemoteService.pull(
                 { errorAlert(window, "Cannot Pull From Remote Branch", it) },
@@ -213,7 +225,7 @@ class GitView : VBoxBuilder() {
     private fun push(force: Boolean) {
         if (!RepositoryService.hasRemote.get()) {
             errorAlert(window, "Push", "No remote configured.")
-            SettingsDialog(RepositoryService.activeRepository.get()!!, window).show()
+            SettingsDialog(window).show()
             return
         } else if (force && !confirmWarningAlert(window, "Force Push", "Push",
                 "This will rewrite the remote branch's history.\nChanges by others will be lost.")) {
