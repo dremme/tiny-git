@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.gui.builder
 
-import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.gui.component.Icons
 import javafx.animation.Interpolator
 import javafx.animation.Transition
@@ -64,7 +64,7 @@ open class ProgressPane : StackPane() {
         task.setOnCancelled { hideProgress() }
         task.setOnFailed { hideProgress() }
         showProgress()
-        State.execute(task)
+        TinyGit.execute(task)
     }
 
     private fun showProgress() {

@@ -16,24 +16,18 @@ import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.concurrent.Task
-import java.util.concurrent.Executors
 
 object State {
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
-     * THREAD POOLS                                                                                                  *
+     * ASYNC                                                                                                         *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val cachedThreadPool = Executors.newCachedThreadPool({
-        Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true }
-    })
     private val runningProcesses = SimpleIntegerProperty(0)
     private val processText = ReadOnlyStringWrapper()
 
     fun processTextProperty() = processText.readOnlyProperty!!
-
-    fun execute(task: Task<*>) = cachedThreadPool.execute(task)
 
     fun startProcess(message: String, task: Task<*>) {
         task.setOnSucceeded { runningProcesses.dec() }
@@ -41,7 +35,7 @@ object State {
         task.setOnFailed { runningProcesses.dec() }
         processText.set(message)
         runningProcesses.inc()
-        cachedThreadPool.execute(task)
+        TinyGit.execute(task)
     }
 
     private fun IntegerProperty.inc() = set(get() + 1)

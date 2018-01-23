@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.delete
 import hamburg.remme.tinygit.domain.File
@@ -43,7 +43,7 @@ object WorkingCopyService : Refreshable {
                 FXCollections.sort(pending)
                 successHandler?.invoke()
             }
-        }.also { State.execute(it) }
+        }.also { TinyGit.execute(it) }
     }
 
     fun stage() {
