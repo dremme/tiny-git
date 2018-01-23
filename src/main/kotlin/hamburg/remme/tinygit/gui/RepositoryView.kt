@@ -1,8 +1,6 @@
 package hamburg.remme.tinygit.gui
 
-import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.Settings
-import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
@@ -24,7 +22,6 @@ import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.builder.tree
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.component.Icons
-import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
@@ -42,11 +39,6 @@ import javafx.stage.Window
 import java.util.concurrent.Callable
 
 class RepositoryView : VBoxBuilder() {
-
-    val actions: Array<ActionGroup> get() = arrayOf(ActionGroup(settings))
-    private val settings = Action("Settings", { Icons.cog() }, if (PlatformUtil.isMac()) "Shortcut+Comma" else null,
-            disable = State.canSettings.not(),
-            handler = { SettingsDialog(RepositoryService.activeRepository.get()!!, window).show() })
 
     private val window: Window get() = scene.window
     private val tree: TreeView<RepositoryEntry>
@@ -86,8 +78,6 @@ class RepositoryView : VBoxBuilder() {
             val canDeleteBranch = Bindings.createBooleanBinding(
                     Callable { selectedEntry.isLocal() && !selectedEntry.isHead() },
                     selectionModel.selectedItemProperty())
-//            val removeRepository = Action("Remove Repository (Del)", { Icons.trash() }, disable = State.canRemove.not(), TODO
-//                    handler = { removeRepository(selectedEntry!!) })
             val checkoutBranch = Action("Checkout Branch", { Icons.cloudDownload() }, disable = canCheckout.not(),
                     handler = { checkout(selectedEntry!!) })
             val renameBranch = Action("Rename Branch", { Icons.pencil() }, disable = canRenameBranch.not(),
@@ -97,9 +87,7 @@ class RepositoryView : VBoxBuilder() {
 
             contextMenu = contextMenu {
                 isAutoHide = true
-//                +ActionGroup(removeRepository) TODO
                 +ActionGroup(checkoutBranch, renameBranch, deleteBranch)
-                +ActionGroup(settings)
             }
             setOnKeyPressed {
                 when (it.code) {
@@ -157,12 +145,6 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun List<StashEntry>.indexOf(message: String) = indexOfFirst { it.message == message }
-
-//    private fun removeRepository(entry: RepositoryEntry) { TODO
-//        if (!confirmWarningAlert(window, "Remove Repository", "Remove",
-//                "Will remove the repository '${entry.repository}' from TinyGit, but keep it on the disk.")) return
-//        RepositoryService.remove(entry.repository)
-//    }
 
     private fun renameBranch(entry: RepositoryEntry) {
         textInputDialog(window, "Enter a New Branch Name", "Rename", Icons.pencil(), entry.value) { name ->

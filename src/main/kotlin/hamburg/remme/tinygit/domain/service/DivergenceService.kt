@@ -13,7 +13,6 @@ object DivergenceService : Refreshable {
     val aheadDefault = SimpleIntegerProperty()
     val ahead = SimpleIntegerProperty()
     val behind = SimpleIntegerProperty()
-    private lateinit var repository: Repository
     private var task: Task<*>? = null
 
     override fun onRefresh(repository: Repository) {
@@ -33,7 +32,6 @@ object DivergenceService : Refreshable {
     }
 
     private fun update(repository: Repository) {
-        this.repository = repository
         task?.cancel()
         task = object : Task<Divergence>() {
             private var value1: Int = 0

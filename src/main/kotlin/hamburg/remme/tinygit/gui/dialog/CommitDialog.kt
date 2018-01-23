@@ -29,6 +29,7 @@ class CommitDialog(window: Window)
         val files = FileStatusView(WorkingCopyService.staged)
         files.prefWidth = 400.0
         files.prefHeight = 500.0
+        Platform.runLater { files.selectionModel.selectFirst() }
 
         val message = textArea {
             promptText = "Enter commit message"

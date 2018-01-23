@@ -23,6 +23,7 @@ import javafx.collections.ListChangeListener
 import javafx.scene.control.Tab
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
+import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 
@@ -30,6 +31,8 @@ class CommitLogView : Tab() {
 
     private val progressPane: ProgressPane
     private val localCommits = TableView<Commit>(CommitLogService.commits)
+    private val selectedCommit: Commit?
+        @Suppress("UNNECESSARY_SAFE_CALL") get() = localCommits?.selectionModel?.selectedItem
     private val commitDetails = CommitDetailsView()
 
     init {
@@ -59,12 +62,22 @@ class CommitLogView : Tab() {
             setCellValueFactory { ReadOnlyStringWrapper(it.value.shortId) }
         }
 
-        localCommits.items.addListener(ListChangeListener { localCommits.selectionModel.selectedItem ?: localCommits.selectionModel.selectFirst() })
+        localCommits.items.addListener(ListChangeListener { selectedCommit ?: localCommits.selectionModel.selectFirst() })
         localCommits.columns.addAll(message, date, author, commit)
         localCommits.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
         localCommits.selectionModel.selectedItemProperty().addListener { _, _, it -> CommitLogService.activeCommit.set(it) }
-        // TODO: you have to scroll further than the end to make this fire
-//        localCommits.setOnScroll { if (it.deltaY < 0) logMore(RepositoryService.activeRepository.get()) }
+        localCommits.setOnScroll {
+            if (it.deltaY < 0) {
+                CommitLogService.logMore()
+                localCommits.scrollTo(selectedCommit)
+            }
+        }
+        localCommits.setOnKeyPressed {
+            if (it.code == KeyCode.DOWN && selectedCommit == localCommits.items.last()) {
+                CommitLogService.logMore()
+                localCommits.scrollTo(selectedCommit)
+            }
+        }
 
         // TODO: progress pane not working atm
         progressPane = progressPane {

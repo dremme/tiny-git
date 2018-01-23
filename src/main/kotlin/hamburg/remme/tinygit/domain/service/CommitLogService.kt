@@ -20,12 +20,13 @@ object CommitLogService : Refreshable {
     private lateinit var repository: Repository
     private var quickTask: Task<*>? = null
     private var remoteTask: Task<*>? = null
+    private var max = 0
 
     fun log() {
         quickTask?.cancel()
         remoteTask?.cancel()
         quickTask = object : Task<List<Commit>>() {
-            override fun call() = gitLog(repository, 0, 50)
+            override fun call() = gitLog(repository, 0, max)
 
             override fun succeeded() {
                 commits.addAll(value.filter { commits.none(it::equals) })
@@ -36,24 +37,22 @@ object CommitLogService : Refreshable {
         }.also { State.execute(it) }
     }
 
-    // TODO: re-enable log more
-//     fun logMore(repository: Repository) {
-//        if (localCommits.items.size < skipSize) return
-//
-//        val commits = gitLog(repository, skip + skipSize, logSize)
-//        if (commits.isNotEmpty()) {
-//            skip += skipSize
-//            localCommits.items.addAll(commits)
-//            localCommits.scrollTo(skip - 1)
-//        }
-//    }
+    // TODO: really synchronous?
+    fun logMore() {
+        val result = gitLog(repository, max, max + 50).filter { commits.none(it::equals) }
+        if (result.isNotEmpty()) {
+            max += 50
+            commits.addAll(result)
+            FXCollections.sort(commits)
+        }
+    }
 
     fun logRemote() {
         if (!RepositoryService.hasRemote.get() || gitUpToDate(repository)) return
         remoteTask = object : Task<List<Commit>>() {
             override fun call(): List<Commit> {
                 gitFetch(repository)
-                return gitLog(repository, 0, 50)
+                return gitLog(repository, 0, max)
             }
 
             override fun succeeded() {
@@ -77,10 +76,12 @@ object CommitLogService : Refreshable {
     }
 
     override fun onRepositoryChanged(repository: Repository) {
+        onRepositoryDeselected()
         update(repository)
     }
 
     override fun onRepositoryDeselected() {
+        max = 50
         quickTask?.cancel()
         remoteTask?.cancel()
         commits.clear()

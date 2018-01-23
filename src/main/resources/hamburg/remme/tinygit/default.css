@@ -107,17 +107,23 @@
     -fx-border-color: transparent;
 }
 
-/* TODO: border is just at the bottom */
+.text-area {
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.text-area .content {
+    -fx-background-radius: 0;
+}
+
 .text-area,
 .text-area .content {
-    -fx-background-insets: 0;
-    -fx-background-color: transparent;
+    -fx-background-color: derive(-fx-background, 5%);
 }
 
 .text-area:focused,
 .text-area:focused .content {
-    -fx-background-insets: 0;
-    -fx-background-color: transparent;
+    -fx-background-color: derive(-fx-background, 10%);
 }
 
 .menu-bar {
