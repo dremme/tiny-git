@@ -2,8 +2,8 @@ package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.git.BranchBehindException
 import hamburg.remme.tinygit.git.PullException
-import hamburg.remme.tinygit.git.PushException
 import hamburg.remme.tinygit.git.TimeoutException
 import hamburg.remme.tinygit.git.gitFetchPrune
 import hamburg.remme.tinygit.git.gitPull
@@ -14,7 +14,7 @@ object RemoteService : Refreshable {
 
     private lateinit var repository: Repository
 
-    fun push(force: Boolean, errorHandler: () -> Unit, timeoutHandler: () -> Unit) {
+    fun push(force: Boolean, behindHandler: () -> Unit, timeoutHandler: () -> Unit) {
         State.startProcess("Pushing commits...", object : Task<Unit>() {
             override fun call() = gitPush(repository, force)
 
@@ -22,7 +22,7 @@ object RemoteService : Refreshable {
 
             override fun failed() {
                 when (exception) {
-                    is PushException -> errorHandler.invoke()
+                    is BranchBehindException -> behindHandler.invoke()
                     is TimeoutException -> timeoutHandler.invoke()
                     else -> exception.printStackTrace()
                 }

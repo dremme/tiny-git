@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
@@ -111,7 +112,8 @@ class GitView : VBoxBuilder() {
                 handler = { autoReset() })
         val squash = Action("Auto-Squash", { Icons.gavel() }, disable = State.canSquash.not(),
                 handler = { autoSquash() }, count = DivergenceService.aheadDefault)
-        val settings = Action("Settings", { Icons.cog() }, disable = State.canSettings.not(),
+        val settings = Action("Settings", { Icons.cog() }, if (PlatformUtil.isMac()) "Shortcut+Comma" else null,
+                disable = State.canSettings.not(),
                 handler = { SettingsDialog(window).show() })
         val removeRepo = Action("Remove Repository", { Icons.trash() }, disable = State.canRemove.not(),
                 handler = { removeRepo() })

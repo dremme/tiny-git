@@ -14,17 +14,12 @@ import java.time.LocalTime
 import java.time.Year
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import javax.crypto.Cipher
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
 import kotlin.streams.toList
 
 val shortDateFormat = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
 val dateFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy")!!
 val shortDateTimeFormat = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
-private val key = SecretKeySpec("FUMN1QLIf8sVkUdv".toByteArray(), "AES")
-private val iv = IvParameterSpec("Ay81aeLRJM5xtx9h".toByteArray())
 
 fun systemOffset() = ZoneId.systemDefault().rules.getOffset(Instant.now())!!
 
@@ -78,16 +73,6 @@ fun String.htmlEncode() = replace("&", "&amp;")
 fun String.htmlEncodeSpaces() = replace(" ", "&nbsp;")
 
 fun String.htmlEncodeAll() = htmlEncode().htmlEncodeSpaces()
-
-fun String.encrypt() = Cipher.ENCRYPT_MODE.getInstance().doFinal(toByteArray())!!
-
-fun ByteArray.decrypt() = Cipher.DECRYPT_MODE.getInstance().doFinal(this).toString(StandardCharsets.UTF_8)
-
-private fun Int.getInstance(): Cipher {
-    val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-    cipher.init(this, key, iv)
-    return cipher
-}
 
 fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*items)!!
 

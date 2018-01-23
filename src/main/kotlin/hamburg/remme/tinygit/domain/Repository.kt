@@ -6,11 +6,8 @@ import hamburg.remme.tinygit.shorten
 class Repository(var path: String = "") {
 
     val shortPath: String get() = path.shorten()
-    var ssh: String = ""
-    var username: String = ""
-    var password: ByteArray = ByteArray(0)
-    var proxyHost: String = ""
-    var proxyPort: Int = 80
+    var proxyHost: String = "" // TODO: needed here?
+    var proxyPort: Int = 80 // TODO: needed here?
 
     fun resolve(file: File) = "${path.normalize()}/${file.path}"
 
