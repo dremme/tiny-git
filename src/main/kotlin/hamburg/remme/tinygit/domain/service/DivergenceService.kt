@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Divergence
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitDivergence
@@ -46,7 +46,7 @@ object DivergenceService : Refreshable {
                 ahead.set(value.ahead)
                 behind.set(value.behind)
             }
-        }.also { State.execute(it) }
+        }.also { TinyGit.execute(it) }
     }
 
 }

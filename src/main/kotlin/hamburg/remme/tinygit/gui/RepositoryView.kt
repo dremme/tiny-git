@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.Settings
-import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Divergence
 import hamburg.remme.tinygit.domain.Repository
@@ -259,7 +259,7 @@ class RepositoryView : VBoxBuilder() {
                         text = "${item.shortPath} (${it.joinToString(" ")})"
                     }
                 }
-            }.also { State.execute(it) }
+            }.also { TinyGit.execute(it) }
         }
 
     }

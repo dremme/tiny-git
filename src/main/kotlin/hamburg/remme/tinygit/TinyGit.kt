@@ -22,12 +22,14 @@ import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.fatalAlert
 import javafx.application.Application
 import javafx.beans.binding.Bindings
+import javafx.concurrent.Task
 import javafx.scene.Scene
 import javafx.scene.image.Image
 import javafx.scene.text.Font
 import javafx.stage.Stage
 import java.util.Locale
 import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 
 // TODO: the great clean-up tbd
 // TODO: clean-up nested collection methods
@@ -50,11 +52,14 @@ class TinyGit : Application() {
 
     companion object {
 
+        private val cachedThreadPool = Executors.newCachedThreadPool({
+            Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true }
+        })
         private lateinit var tinygit: Application
 
-        fun show(uri: String) {
-            tinygit.hostServices.showDocument(uri)
-        }
+        fun execute(task: Task<*>) = cachedThreadPool.execute(task)
+
+        fun show(uri: String) = tinygit.hostServices.showDocument(uri)
 
     }
 

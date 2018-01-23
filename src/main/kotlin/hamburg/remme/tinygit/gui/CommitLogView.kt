@@ -69,7 +69,7 @@ class CommitLogView : Tab() {
         localCommits.setOnScroll {
             if (it.deltaY < 0) {
                 CommitLogService.logMore()
-                localCommits.scrollTo(selectedCommit)
+//                localCommits.scrollTo(selectedCommit) TODO
             }
         }
         localCommits.setOnKeyPressed {

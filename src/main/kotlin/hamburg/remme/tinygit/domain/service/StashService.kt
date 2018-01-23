@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
 import hamburg.remme.tinygit.git.gitStash
@@ -68,7 +69,7 @@ object StashService : Refreshable {
             override fun succeeded() {
                 stashEntries.setAll(value)
             }
-        }.also { State.execute(it) }
+        }.also { TinyGit.execute(it) }
     }
 
 }

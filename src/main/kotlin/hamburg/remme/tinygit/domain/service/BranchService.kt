@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.BranchAlreadyExistsException
@@ -136,7 +137,7 @@ object BranchService : Refreshable {
                 head.set(value1)
                 branches.setAll(value)
             }
-        }.also { State.execute(it) }
+        }.also { TinyGit.execute(it) }
     }
 
 }

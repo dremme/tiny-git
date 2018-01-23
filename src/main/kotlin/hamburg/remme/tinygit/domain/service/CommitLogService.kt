@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.TimeoutException
@@ -34,7 +35,7 @@ object CommitLogService : Refreshable {
                 FXCollections.sort(commits)
                 logRemote()
             }
-        }.also { State.execute(it) }
+        }.also { TinyGit.execute(it) }
     }
 
     // TODO: really synchronous?
@@ -68,7 +69,7 @@ object CommitLogService : Refreshable {
                     else -> exception.printStackTrace()
                 }
             }
-        }.also { State.execute(it) }
+        }.also { TinyGit.execute(it) }
     }
 
     override fun onRefresh(repository: Repository) {
