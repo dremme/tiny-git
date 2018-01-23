@@ -14,7 +14,7 @@ class BranchNameInvalidException : RuntimeException()
 
 class BranchUnpushedException : RuntimeException()
 
-class PushException : RuntimeException()
+class BranchBehindException : RuntimeException()
 
 class UnmergedException : RuntimeException()
 

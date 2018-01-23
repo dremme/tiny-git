@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit
 
+import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.domain.service.BranchService
 import hamburg.remme.tinygit.domain.service.CommitDetailsService
 import hamburg.remme.tinygit.domain.service.CommitLogService
@@ -12,7 +13,9 @@ import hamburg.remme.tinygit.domain.service.RemoteService
 import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.domain.service.StashService
 import hamburg.remme.tinygit.domain.service.WorkingCopyService
+import hamburg.remme.tinygit.git.gitGetCredentialHelper
 import hamburg.remme.tinygit.git.gitIsInstalled
+import hamburg.remme.tinygit.git.gitSetWincred
 import hamburg.remme.tinygit.git.gitVersion
 import hamburg.remme.tinygit.gui.GitView
 import hamburg.remme.tinygit.gui.builder.errorAlert
@@ -72,6 +75,9 @@ class TinyGit : Application() {
             show("https://git-scm.com/downloads")
             System.exit(-1)
             return
+        }
+        if (PlatformUtil.isWindows() && gitGetCredentialHelper().isBlank()) {
+            gitSetWincred()
         }
 
         RepositoryService
