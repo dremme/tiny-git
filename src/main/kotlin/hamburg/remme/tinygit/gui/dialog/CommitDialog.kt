@@ -40,6 +40,7 @@ class CommitDialog(window: Window)
         }
         if (mergeService.isMerging.get() && message.text.isNullOrBlank()) message.text = gitMergeMessage(repoService.activeRepository.get()!!)
 
+        val fileDiff = FileDiffView(files.selectionModel.selectedItemProperty())
         val amend = checkBox {
             text = "Amend last commit."
             selectedProperty().addListener { _, _, it ->
@@ -51,13 +52,7 @@ class CommitDialog(window: Window)
                 message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
         +DialogButton(DialogButton.CANCEL)
 
-        // TODO: no focus refresh
-//        focusAction = {
-//             TODO: ugly
-//            WorkingCopyService.status {
-//                files.selectionModel.selectedItem?.let { fileDiff.update() } ?: files.selectionModel.selectFirst()
-//            }
-//        }
+        focusAction = { fileDiff.refresh() }
         okAction = {
             commitService.commit(
                     message.text,
@@ -70,7 +65,7 @@ class CommitDialog(window: Window)
             +splitPane {
                 vgrow(Priority.ALWAYS)
                 +files
-                +FileDiffView(files.selectionModel.selectedItemProperty())
+                +fileDiff
             }
             +message
             if (!mergeService.isMerging.get()) +amend

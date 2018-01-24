@@ -106,6 +106,10 @@ class WorkingCopyView : Tab() {
         selectedPending.selectedItems.addListener(ListChangeListener { workingService.selectedPending.setAll(it.list) })
         selectedPending.selectedItemProperty().addListener({ _, _, it -> it?.let { selectedStaged.clearSelection() } })
 
+        val fileDiff = FileDiffView(Bindings.createObjectBinding(
+                Callable { selectedStaged.selectedItem ?: selectedPending.selectedItem },
+                selectedStaged.selectedItemProperty(), selectedPending.selectedItemProperty()))
+
         content = stackPane {
             +splitPane {
                 addClass("working-copy-view")
@@ -133,9 +137,7 @@ class WorkingCopyView : Tab() {
                         +pending
                     }
                 }
-                +FileDiffView(Bindings.createObjectBinding(
-                        Callable { selectedStaged.selectedItem ?: selectedPending.selectedItem },
-                        selectedStaged.selectedItemProperty(), selectedPending.selectedItemProperty()))
+                +fileDiff
             }
             +stackPane {
                 addClass("overlay")
@@ -143,6 +145,8 @@ class WorkingCopyView : Tab() {
                 +Text("There is nothing to commit.")
             }
         }
+
+        TinyGit.addListener { fileDiff.refresh() }
     }
 
     private fun stageSelected() {
