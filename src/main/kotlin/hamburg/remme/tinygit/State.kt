@@ -1,160 +1,76 @@
 package hamburg.remme.tinygit
 
-import hamburg.remme.tinygit.git.LocalFile
-import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.domain.service.BranchService
+import hamburg.remme.tinygit.domain.service.DivergenceService
+import hamburg.remme.tinygit.domain.service.MergeService
+import hamburg.remme.tinygit.domain.service.RebaseService
+import hamburg.remme.tinygit.domain.service.RepositoryService
+import hamburg.remme.tinygit.domain.service.StashService
+import hamburg.remme.tinygit.domain.service.WorkingCopyService
 import javafx.beans.binding.Bindings
-import javafx.beans.property.IntegerProperty
-import javafx.beans.property.ReadOnlyStringWrapper
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
-import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
-import javafx.concurrent.Task
-import java.util.concurrent.Executors
 
-object State {
-
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     *                                                                                                               *
-     * THREAD POOLS                                                                                                  *
-     *                                                                                                               *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val cachedThreadPool = Executors.newCachedThreadPool({
-        Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true }
-    })
-    private val runningProcesses = SimpleIntegerProperty(0)
-    private val processText = ReadOnlyStringWrapper()
-
-    fun processTextProperty() = processText.readOnlyProperty!!
-
-    fun execute(task: Task<*>) = cachedThreadPool.execute(task)
-
-    fun startProcess(message: String, task: Task<*>) {
-        task.setOnSucceeded { runningProcesses.dec() }
-        task.setOnCancelled { runningProcesses.dec() }
-        task.setOnFailed { runningProcesses.dec() }
-        processText.set(message)
-        runningProcesses.inc()
-        cachedThreadPool.execute(task)
-    }
-
-    private fun IntegerProperty.inc() = set(get() + 1)
-    private fun IntegerProperty.dec() = set(get() - 1)
+class State(repositoryService: RepositoryService,
+            branchService: BranchService,
+            workingCopyService: WorkingCopyService,
+            divergenceService: DivergenceService,
+            mergeService: MergeService,
+            rebaseService: RebaseService,
+            stashService: StashService) {
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
-     * REPOSITORIES                                                                                                  *
+     * PROCESS                                                                                                       *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val allRepositories = observableList<LocalRepository>()
-    private val repositories = allRepositories.filtered { it.path.asPath().exists() }!!
-    val selectedRepository = SimpleObjectProperty<LocalRepository>()
-    val branchCount = SimpleIntegerProperty()
-    val aheadDefault = SimpleIntegerProperty()
-    val ahead = SimpleIntegerProperty()
-    val behind = SimpleIntegerProperty()
-
-    fun getAllRepositories() = allRepositories
-
-    fun getRepositories() = repositories
-
-    fun setRepositories(repositories: Collection<LocalRepository>) = allRepositories.setAll(repositories)
-
-    fun addRepository(repository: LocalRepository) {
-        if (!allRepositories.contains(repository)) allRepositories.add(repository)
-    }
-
-    fun removeRepository(repository: LocalRepository) = allRepositories.remove(repository)
-
-    fun getSelectedRepository() = selectedRepository.get()!!
-
-    fun setSelectedRepository(repository: LocalRepository?) = selectedRepository.set(repository)
-
-    fun addRepositoryListener(block: (LocalRepository?) -> Unit) = selectedRepository.addListener { _, _, it -> block.invoke(it) }
-
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     *                                                                                                               *
-     * WORKING COPY                                                                                                  *
-     *                                                                                                               *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    val isMerging = SimpleBooleanProperty()
-    val isRebasing = SimpleBooleanProperty()
-    val rebaseNext = SimpleIntegerProperty()
-    val rebaseLast = SimpleIntegerProperty()
-    val stagedFiles = observableList<LocalFile>()
-    val pendingFiles = observableList<LocalFile>()
-    val stagedSelectedCount = SimpleIntegerProperty()
-    val pendingSelectedCount = SimpleIntegerProperty()
-    val stashSize = SimpleIntegerProperty()
-    val commitMessage = SimpleStringProperty()
+    val runningProcesses = SimpleIntegerProperty(0)
+    val processText = SimpleStringProperty()
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
      * VISIBILITY                                                                                                    *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    val showGlobalInfo = Bindings.isEmpty(repositories)!!
-    val showGlobalOverlay = runningProcesses.greater0()!!
-    val showToolBar = isMerging.not().and(isRebasing.not())!!
-    val showMergeBar = isMerging
-    val showRebaseBar = isRebasing
-    val isModal = SimpleBooleanProperty()
+    val showGlobalInfo = Bindings.isEmpty(repositoryService.existingRepositories)!!
+    val showGlobalOverlay = runningProcesses.greater0()
+    val showToolBar = mergeService.isMerging.not().and(rebaseService.isRebasing.not())!!
+    val showMergeBar = mergeService.isMerging
+    val showRebaseBar = rebaseService.isRebasing
+    val isModal = SimpleBooleanProperty(true)
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
      * ACTIONS                                                                                                       *
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val isIdle = selectedRepository.isNotNull.and(runningProcesses.equals0())!!
-    private val isReady = isIdle.and(isMerging.not()).and(isRebasing.not())!!
+    private val isIdle = repositoryService.activeRepository.isNotNull.and(runningProcesses.equals0())!!
+    private val isReady = isIdle.and(mergeService.isMerging.not()).and(rebaseService.isRebasing.not())!!
     val canRemove = isReady
     val canSettings = isReady
-    val canCommit = isReady.and(Bindings.isNotEmpty(stagedFiles))!!
-    val canPush = isReady.and(ahead.unequals0())!!
+    val canPush = isReady.and(divergenceService.ahead.unequals0())!!
     val canForcePush = canPush
-    val canPull = isReady.and(behind.greater0())!!
+    val canPull = isReady.and(divergenceService.behind.greater0())!!
     val canFetch = isReady
     val canGc = canFetch
     val canBranch = isReady
-    val canMerge = isReady.and(branchCount.greater1())!!
-    val canMergeContinue = isIdle.and(isMerging)!!
-    val canMergeAbort = isIdle.and(isMerging)!!
-    val canRebase = isReady.and(branchCount.greater1())!!
-    val canRebaseContinue = isIdle.and(isRebasing)!!
-    val canRebaseAbort = isIdle.and(isRebasing)!!
-    val canStash = isReady.and(Bindings.isNotEmpty(stagedFiles).or(Bindings.isNotEmpty(pendingFiles)))!!
-    val canApplyStash = isReady.and(stashSize.greater0())!!
-    val canReset = isReady.and(behind.greater0())!!
-    val canSquash = isReady.and(aheadDefault.greater1())!!
+    val canMerge = isReady.and(branchService.branchesSize.greater1())!!
+    val canMergeContinue = isIdle.and(mergeService.isMerging)!!
+    val canMergeAbort = isIdle.and(mergeService.isMerging)!!
+    val canRebase = isReady.and(branchService.branchesSize.greater1())!!
+    val canRebaseContinue = isIdle.and(rebaseService.isRebasing)!!
+    val canRebaseAbort = isIdle.and(rebaseService.isRebasing)!!
+    val canStash = isReady.and(Bindings.isNotEmpty(workingCopyService.staged).or(Bindings.isNotEmpty(workingCopyService.pending)))!!
+    val canApplyStash = isReady.and(stashService.stashSize.greater0())!!
+    val canReset = isReady.and(divergenceService.behind.greater0())!!
+    val canSquash = isReady.and(divergenceService.aheadDefault.greater1())!!
 
-    val canStageAll = isIdle.and(Bindings.isNotEmpty(pendingFiles))!!
-    val canUpdateAll = isIdle.and(Bindings.isNotEmpty(pendingFiles.filtered { it.status != LocalFile.Status.ADDED }))!!
-    val canStageSelected = isIdle.and(pendingSelectedCount.greater0())!!
-    val canUnstageAll = isIdle.and(Bindings.isNotEmpty(stagedFiles))!!
-    val canUnstageSelected = isIdle.and(stagedSelectedCount.greater0())!!
-
-    private fun IntegerProperty.equals0() = isEqualTo(0)
-    private fun IntegerProperty.unequals0() = isNotEqualTo(0)
-    private fun IntegerProperty.greater0() = greaterThan(0)
-    private fun IntegerProperty.greater1() = greaterThan(1)
-
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     *                                                                                                               *
-     * REFRESH                                                                                                       *
-     *                                                                                                               *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    private val refreshListeners = mutableMapOf<Any, (LocalRepository) -> Unit>()
-
-    fun addRefreshListener(receiver: Any, block: (LocalRepository) -> Unit) {
-        refreshListeners[receiver] = block
-    }
-
-    fun fireRefresh(source: Any) {
-        selectedRepository.get()?.let { repository ->
-            refreshListeners.forEach { receiver, it ->
-                if (source !== receiver) it.invoke(repository)
-            }
-        }
-    }
+    val canCommit = isReady.and(Bindings.isNotEmpty(workingCopyService.staged))!!
+    val canStageAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.pending))!!
+    val canUpdateAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.modifiedPending))!!
+    val canStageSelected = isIdle.and(Bindings.size(workingCopyService.selectedPending).greater0())!!
+    val canUnstageAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.staged))!!
+    val canUnstageSelected = isIdle.and(Bindings.size(workingCopyService.selectedStaged).greater0())!!
 
 }

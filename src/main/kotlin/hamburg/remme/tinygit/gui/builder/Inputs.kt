@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.builder
 
+import javafx.collections.ObservableList
 import javafx.scene.Node
 import javafx.scene.control.CheckBox
 import javafx.scene.control.ComboBox
@@ -44,6 +45,12 @@ inline fun checkBox(block: CheckBox.() -> Unit): CheckBox {
 
 inline fun <T> comboBox(block: ComboBox<T>.() -> Unit): ComboBox<T> {
     val comboBox = ComboBox<T>()
+    block.invoke(comboBox)
+    return comboBox
+}
+
+inline fun <T> comboBox(items: ObservableList<T>, block: ComboBox<T>.() -> Unit): ComboBox<T> {
+    val comboBox = ComboBox<T>(items)
     block.invoke(comboBox)
     return comboBox
 }

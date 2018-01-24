@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.git.LocalFile
+import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
@@ -74,18 +74,18 @@ class StatusCountView(statusView: FileStatusView) : HBox() {
         statusView.items.addListener(ListChangeListener { update(it.list) })
     }
 
-    private fun update(files: List<LocalFile>) {
-        conflicting.update(files, { it.status == LocalFile.Status.CONFLICT })
-        added.update(files, { it.status == LocalFile.Status.ADDED && it.cached })
-        untracked.update(files, { it.status == LocalFile.Status.ADDED && !it.cached })
-        copied.update(files, { it.status == LocalFile.Status.COPIED })
-        renamed.update(files, { it.status == LocalFile.Status.RENAMED })
-        modified.update(files, { it.status == LocalFile.Status.MODIFIED })
-        removed.update(files, { it.status == LocalFile.Status.REMOVED && it.cached })
-        missing.update(files, { it.status == LocalFile.Status.REMOVED && !it.cached })
+    private fun update(files: List<File>) {
+        conflicting.update(files, { it.status == File.Status.CONFLICT })
+        added.update(files, { it.status == File.Status.ADDED && it.isCached })
+        untracked.update(files, { it.status == File.Status.ADDED && !it.isCached })
+        copied.update(files, { it.status == File.Status.COPIED })
+        renamed.update(files, { it.status == File.Status.RENAMED })
+        modified.update(files, { it.status == File.Status.MODIFIED })
+        removed.update(files, { it.status == File.Status.REMOVED && it.isCached })
+        missing.update(files, { it.status == File.Status.REMOVED && !it.isCached })
     }
 
-    private fun Label.update(files: List<LocalFile>, predicate: (LocalFile) -> Boolean) {
+    private fun Label.update(files: List<File>, predicate: (File) -> Boolean) {
         val count = files.filter(predicate).size
         text = count.toString()
         isVisible = count > 0

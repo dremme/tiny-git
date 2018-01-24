@@ -91,12 +91,39 @@
 }
 
 .text-input {
-    -fx-prompt-text-fill: derive(-fx-text-inner-color, -50%)
+    -fx-prompt-text-fill: derive(-fx-text-inner-color, -50%);
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: derive(-fx-text-inner-color, -50%), transparent;
+    -fx-border-width: 0 0 1 0, 0 0 1 0;
+    -fx-border-insets: 0, 0 0 1 0;
+}
+
+.text-input:focused {
+    -fx-border-color: -fx-focus-color, -fx-focus-color;
 }
 
 .text-input:readonly {
-    -fx-background-color: transparent;
-    -fx-background-insets: 0, 0;
+    -fx-border-color: transparent;
+}
+
+.text-area {
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.text-area .content {
+    -fx-background-radius: 0;
+}
+
+.text-area,
+.text-area .content {
+    -fx-background-color: derive(-fx-background, 5%);
+}
+
+.text-area:focused,
+.text-area:focused .content {
+    -fx-background-color: derive(-fx-background, 10%);
 }
 
 .menu-bar {
@@ -268,6 +295,34 @@
     -fx-font-size: 1.1em;
 }
 
+.repository-view {
+    -fx-spacing: 6px;
+}
+
+.repository-view .button,
+.repository-view .combo-box {
+    -fx-background-radius: 0;
+    -fx-pref-height: 28px;
+}
+
+.repository-view .button:focused,
+.repository-view .combo-box:focused {
+    -fx-background-insets: -0.2, 1, 2, -1.4, 2.6;
+}
+
+.repository-view .button {
+    -fx-background-insets: 0 0 -1 0, 0, 1 0 1 0, 2 0 2 0;
+}
+
+.repository-view .combo-box {
+    -fx-background-insets: 0 0 -1 0, 0, 1 1 1 0, 2 2 2 0;
+}
+
+.repository-view .tree-view {
+    -fx-background-insets: 0, 0;
+    -fx-padding: 0;
+}
+
 .repository-cell {
     -fx-padding: 0 0 0 6px;
     -fx-spacing: 6px;
@@ -277,6 +332,10 @@
 .repository-cell .settings {
     -fx-padding: 0;
     -fx-background-color: transparent;
+}
+
+.repository-cell .icon-wrapper {
+    -fx-min-width: 24px;
 }
 
 .repository-cell .settings:hover .icon {
@@ -347,6 +406,10 @@
 
 .file-status-view .list-cell {
     -fx-graphic-text-gap: 1em;
+}
+
+.file-status-view .list-cell .icon-wrapper {
+    -fx-min-width: 24px;
 }
 
 .commit-details-view > * > .split-pane {

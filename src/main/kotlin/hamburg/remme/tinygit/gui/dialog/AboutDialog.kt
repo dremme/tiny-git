@@ -30,7 +30,7 @@ class AboutDialog(window: Window) : Dialog<Unit>(window, "About") {
             }
             val link = link {
                 text = "remme.hamburg"
-                setOnAction { TinyGit.show("https://remme.hamburg") }
+                setOnAction { TinyGit.showDocument("https://remme.hamburg") }
             }
 
             +listOf(author,

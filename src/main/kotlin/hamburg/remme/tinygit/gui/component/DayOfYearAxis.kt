@@ -25,7 +25,7 @@ class DayOfYearAxis : Axis<LocalDate>() {
     }
 
     override fun invalidateRange(data: List<LocalDate>) {
-        if (data.size == 1) setRange(Year.of(data.map { it.year }.distinct().first()), shouldAnimate())
+        if (data.size == 1) setRange(Year.of(data.map { it.year }.distinct()[0]), shouldAnimate())
     }
 
     override fun autoRange(length: Double): Any {

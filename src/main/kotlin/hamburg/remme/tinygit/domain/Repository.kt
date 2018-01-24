@@ -1,18 +1,15 @@
-package hamburg.remme.tinygit.git
+package hamburg.remme.tinygit.domain
 
 import hamburg.remme.tinygit.normalize
 import hamburg.remme.tinygit.shorten
 
-class LocalRepository(var path: String = "") {
+class Repository(var path: String = "") {
 
     val shortPath: String get() = path.shorten()
-    var ssh: String = ""
-    var username: String = ""
-    var password: ByteArray = ByteArray(0)
-    var proxyHost: String = ""
-    var proxyPort: Int = 80
+    var proxyHost: String = "" // TODO: needed here?
+    var proxyPort: Int = 80 // TODO: needed here?
 
-    fun resolve(file: LocalFile) = "${path.normalize()}/${file.path}"
+    fun resolve(file: File) = "${path.normalize()}/${file.path}"
 
     override fun toString() = path
 
@@ -20,7 +17,7 @@ class LocalRepository(var path: String = "") {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as LocalRepository
+        other as Repository
 
         if (path != other.path) return false
 

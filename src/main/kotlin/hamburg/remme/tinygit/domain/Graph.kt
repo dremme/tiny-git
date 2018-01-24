@@ -1,6 +1,6 @@
-package hamburg.remme.tinygit.git
+package hamburg.remme.tinygit.domain
 
-class LocalGraph(commits: List<LocalCommit>) : Iterable<LocalGraph.Node> {
+class Graph(commits: List<Commit>) : Iterable<Graph.Node> {
 
     private val nodes = mutableListOf<Node>()
 

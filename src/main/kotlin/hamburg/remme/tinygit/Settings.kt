@@ -1,16 +1,16 @@
 package hamburg.remme.tinygit
 
-import hamburg.remme.tinygit.git.LocalRepository
+import hamburg.remme.tinygit.domain.Repository
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.representer.Representer
 
-object Settings {
+class Settings {
 
     private val yaml = Yaml(Representer().apply { propertyUtils.setSkipMissingProperties(true) },
             DumperOptions().apply { defaultFlowStyle = DumperOptions.FlowStyle.BLOCK })
     private val settingsFile = "${System.getProperty("user.home")}/.tinygit".asPath()
-    private val suppliers: MutableMap<Category, () -> Any> = mutableMapOf()
+    private val suppliers: MutableMap<Category, () -> Any?> = mutableMapOf()
     private var settings: LocalSettings? = null
 
     fun load(block: (LocalSettings) -> Unit) {
@@ -27,22 +27,22 @@ object Settings {
     fun save() {
         settingsFile.write(yaml.dump(LocalSettings(
                 getCategory(Category.REPOSITORIES),
+                getCategory(Category.REPO_SELECTION),
                 getCategory(Category.TREE),
-                getCategory(Category.TREE_SELECTION),
                 getCategory(Category.WINDOW),
                 getCategory(Category.TAB_SELECTION))))
     }
 
-    fun setRepositories(supplier: () -> List<LocalRepository>) {
+    fun setRepositories(supplier: () -> List<Repository>) {
         suppliers[Category.REPOSITORIES] = supplier
+    }
+
+    fun setRepositorySelection(supplier: () -> Repository?) {
+        suppliers[Category.REPO_SELECTION] = supplier
     }
 
     fun setTree(supplier: () -> List<TreeItem>) {
         suppliers[Category.TREE] = supplier
-    }
-
-    fun setTreeSelection(supplier: () -> TreeItem) {
-        suppliers[Category.TREE_SELECTION] = supplier
     }
 
     fun setWindow(supplier: () -> WindowSettings) {
@@ -58,14 +58,13 @@ object Settings {
         return suppliers[category]?.invoke() as? T ?: throw RuntimeException("Missing supplier for setting $category")
     }
 
-    class LocalSettings(var repositories: List<LocalRepository> = emptyList(),
+    class LocalSettings(var repositories: List<Repository> = emptyList(),
+                        var repositorySelection: Repository? = null,
                         var tree: List<TreeItem> = emptyList(),
-                        var treeSelection: TreeItem = TreeItem(),
                         var window: WindowSettings = WindowSettings(),
                         var tabSelection: Int = 0)
 
-    class TreeItem(var repository: String = "",
-                   var name: String = "",
+    class TreeItem(var value: String = "",
                    var expanded: Boolean = false)
 
     class WindowSettings(var x: Double = 0.0,
@@ -75,6 +74,6 @@ object Settings {
                          var maximized: Boolean = false,
                          var fullscreen: Boolean = false)
 
-    enum class Category { REPOSITORIES, TREE, TREE_SELECTION, WINDOW, TAB_SELECTION }
+    enum class Category { REPOSITORIES, REPO_SELECTION, TREE, WINDOW, TAB_SELECTION }
 
 }

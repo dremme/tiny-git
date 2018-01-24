@@ -1,11 +1,7 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.git.LocalBranch
-import hamburg.remme.tinygit.git.LocalCommit
-import hamburg.remme.tinygit.git.LocalGraph
-import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.gui.builder.ProgressPane
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.errorAlert
@@ -21,67 +17,72 @@ import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.shortDateTimeFormat
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
-import javafx.beans.property.ReadOnlyObjectWrapper
-import javafx.beans.property.ReadOnlyStringWrapper
-import javafx.concurrent.Task
+import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
+import javafx.collections.ListChangeListener
 import javafx.scene.control.Tab
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
+import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Window
-import org.eclipse.jgit.api.errors.NoHeadException
-import org.eclipse.jgit.api.errors.TransportException
 
 class CommitLogView : Tab() {
 
-    private val window: Window get() = content.scene.window
+    private val logService = TinyGit.commitLogService
+    private val branchService = TinyGit.branchService
     private val progressPane: ProgressPane
-    private val localCommits = TableView<LocalCommit>()
+    private val localCommits = TableView<Commit>(logService.commits)
+    private val selectedCommit: Commit?
+        @Suppress("UNNECESSARY_SAFE_CALL") get() = localCommits?.selectionModel?.selectedItem
     private val commitDetails = CommitDetailsView()
-    private var task: Task<*>? = null
-
-    private val cache: MutableMap<String, List<LocalBranch>> = mutableMapOf()
-    private val logSize = 50
-    private val skipSize = 50
-    private lateinit var graph: LocalGraph
-    private lateinit var head: String
-    private var skip = 0
+    private val window: Window get() = content.scene.window
 
     init {
         text = "Commits"
         graphic = Icons.list()
         isClosable = false
 
-        val message = tableColumn<LocalCommit, LocalCommit> {
+        val message = tableColumn<Commit, Commit> {
             text = "Message"
             isSortable = false
-            setCellValueFactory { ReadOnlyObjectWrapper(it.value) }
+            setCellValueFactory { SimpleObjectProperty(it.value) }
             setCellFactory { LogMessageTableCell() }
         }
-        val date = tableColumn<LocalCommit, String> {
+        val date = tableColumn<Commit, String> {
             text = "Date"
             isSortable = false
-            setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(shortDateTimeFormat)) }
+            setCellValueFactory { SimpleStringProperty(it.value.date.format(shortDateTimeFormat)) }
         }
-        val author = tableColumn<LocalCommit, String> {
+        val author = tableColumn<Commit, String> {
             text = "Author"
             isSortable = false
-            setCellValueFactory { ReadOnlyStringWrapper(it.value.author) }
+            setCellValueFactory { SimpleStringProperty(it.value.author) }
         }
-        val commit = tableColumn<LocalCommit, String> {
+        val commit = tableColumn<Commit, String> {
             text = "Commit"
             isSortable = false
-            setCellValueFactory { ReadOnlyStringWrapper(it.value.shortId) }
+            setCellValueFactory { SimpleStringProperty(it.value.shortId) }
         }
 
+        localCommits.items.addListener(ListChangeListener { selectedCommit ?: localCommits.selectionModel.selectFirst() })
         localCommits.columns.addAll(message, date, author, commit)
         localCommits.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
-        localCommits.selectionModel.selectedItemProperty().addListener { _, _, it ->
-            it?.let { commitDetails.update(State.getSelectedRepository(), it) }
+        localCommits.selectionModel.selectedItemProperty().addListener { _, _, it -> logService.activeCommit.set(it) }
+        localCommits.setOnScroll {
+            if (it.deltaY < 0) {
+                val index = localCommits.items.size - 1
+                logService.logMore()
+                localCommits.scrollTo(index)
+            }
         }
-        // TODO: you have to scroll further than the end to make this fire
-        localCommits.setOnScroll { if (it.deltaY < 0) logMore(State.getSelectedRepository()) }
+        localCommits.setOnKeyPressed {
+            if (it.code == KeyCode.DOWN && selectedCommit == localCommits.items.last()) {
+                logService.logMore()
+                localCommits.scrollTo(selectedCommit)
+            }
+        }
 
         progressPane = progressPane {
             +splitPane {
@@ -98,15 +99,8 @@ class CommitLogView : Tab() {
         }
         content = progressPane
 
-        State.addRepositoryListener {
-            clearContent()
-            it?.let {
-                skip = 0
-                logQuick(it)
-                localCommits.scrollTo(0)
-            }
-        }
-        State.addRefreshListener(this) { logQuick(it) }
+        logService.logExecutor = progressPane
+        logService.timeoutHandler = { errorAlert(window, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }
 
         Platform.runLater {
             localCommits.resizeColumn(message, localCommits.width * 0.6)
@@ -116,87 +110,20 @@ class CommitLogView : Tab() {
         }
     }
 
-    private fun invalidateCache(repository: LocalRepository) {
-        cache.clear()
-        cache.putAll(Git.branchListAll(repository).groupBy { it.commitId })
-    }
+    private inner class LogMessageTableCell : TableCell<Commit, Commit>() {
 
-    private fun setContent(commits: List<LocalCommit>) {
-        graph = LocalGraph(commits)
-        val selected = localCommits.selectionModel.selectedItem
-        localCommits.items.setAll(commits)
-        localCommits.items.find { it == selected }?.let { localCommits.selectionModel.select(it) }
-        localCommits.selectionModel.selectedItem ?: localCommits.selectionModel.selectFirst()
-    }
-
-    private fun clearContent() {
-        task?.cancel()
-        localCommits.items.clear()
-    }
-
-    private fun logQuick(repository: LocalRepository) {
-        task?.cancel()
-        head = Git.head(repository)
-        invalidateCache(repository)
-        try {
-            setContent(Git.log(repository, 0, logSize + skip))
-        } catch (ex: NoHeadException) {
-            clearContent()
-        }
-        logRemote(repository)
-    }
-
-    private fun logMore(repository: LocalRepository) {
-        if (localCommits.items.size < skipSize) return
-
-        val commits = Git.log(repository, skip + skipSize, logSize)
-        if (commits.isNotEmpty()) {
-            graph = LocalGraph(localCommits.items + commits) // TODO: add-function on graph
-            skip += skipSize
-            localCommits.items.addAll(commits)
-            localCommits.scrollTo(skip - 1)
-        }
-    }
-
-    private fun logRemote(repository: LocalRepository) {
-        if (!Git.hasRemote(repository) || Git.isUpdated(repository)) return
-
-        task = object : Task<List<LocalCommit>>() {
-            override fun call() = Git.logFetch(repository, 0, logSize + skip)
-
-            override fun succeeded() {
-                invalidateCache(repository)
-                setContent(value)
-                State.fireRefresh(this)
-            }
-
-            override fun failed() {
-                when (exception) {
-                    is TransportException -> errorAlert(window, "Cannot Fetch Remote",
-                            "Please check the repository settings.\nCredentials or proxy settings may have changed.")
-                    else -> exception.printStackTrace()
-                }
-            }
-        }.also { progressPane.execute(it) }
-    }
-
-    private inner class LogMessageTableCell : TableCell<LocalCommit, LocalCommit>() {
-
-        override fun updateItem(item: LocalCommit?, empty: Boolean) {
+        // TODO: does not refresh when head changes
+        override fun updateItem(item: Commit?, empty: Boolean) {
             super.updateItem(item, empty)
             text = item?.shortMessage
-            graphic = if (empty) null else {
-                cache[item!!.id]?.let {
-                    hbox {
-                        spacing = 4.0
-                        it.forEach {
-                            +label {
-                                addClass("branch-badge")
-                                if (it.shortRef == head) addClass("current")
-                                text = it.shortRef
-                                graphic = Icons.codeFork()
-                            }
-                        }
+            graphic = if (empty || item!!.refs.isEmpty()) null else hbox {
+                spacing = 4.0
+                item.refs.forEach {
+                    +label {
+                        addClass("branch-badge")
+                        if (it == branchService.head.get()) addClass("current")
+                        text = it.substringAfter("tag:").trim()
+                        graphic = if (it.startsWith("tag:")) Icons.tag() else Icons.codeFork()
                     }
                 }
             }

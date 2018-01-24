@@ -1,40 +1,44 @@
 package hamburg.remme.tinygit
 
 import javafx.application.Platform
+import javafx.beans.binding.IntegerExpression
+import javafx.beans.property.IntegerProperty
 import javafx.collections.FXCollections
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.DayOfWeek
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Year
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import javax.crypto.Cipher
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
 import kotlin.streams.toList
 
 val shortDateFormat = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
 val dateFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy")!!
 val shortDateTimeFormat = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
-private val key = SecretKeySpec("FUMN1QLIf8sVkUdv".toByteArray(), "AES")
-private val iv = IvParameterSpec("Ay81aeLRJM5xtx9h".toByteArray())
+
+fun systemOffset() = ZoneId.systemDefault().rules.getOffset(Instant.now())!!
+
+fun localDateTime(epochSecond: Long) = LocalDateTime.ofEpochSecond(epochSecond, 0, systemOffset())!!
 
 fun LocalDate.atEndOfDay() = atTime(LocalTime.MAX)!!
 
 fun Year.numberOfWeeks(): Int {
     val firstDay = atDay(1)
     val lastDay = atDay(length())
-    if (isLeap) {
-        if (firstDay.dayOfWeek == DayOfWeek.WEDNESDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY) return 53
-        else if (firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.FRIDAY) return 53
-        return 52
-    } else {
-        if (firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY) return 53
-        return 52
+    return if (isLeap) when {
+        firstDay.dayOfWeek == DayOfWeek.WEDNESDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY -> 53
+        firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.FRIDAY -> 53
+        else -> 52
+    } else when {
+        firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY -> 53
+        else -> 52
     }
 }
 
@@ -45,6 +49,8 @@ fun printError(message: String) {
 fun String.asResource() = TinyGit::class.java.getResource(this).toExternalForm()!!
 
 fun String.asPath() = Paths.get(this)!!
+
+fun String.asFile() = asPath().toFile()!!
 
 fun Path.exists() = Files.exists(this)
 
@@ -70,28 +76,26 @@ fun String.htmlEncodeSpaces() = replace(" ", "&nbsp;")
 
 fun String.htmlEncodeAll() = htmlEncode().htmlEncodeSpaces()
 
-fun String.encrypt() = Cipher.ENCRYPT_MODE.getInstance().doFinal(toByteArray())!!
-
-fun ByteArray.decrypt() = Cipher.DECRYPT_MODE.getInstance().doFinal(this).toString(StandardCharsets.UTF_8)
-
-private fun Int.getInstance(): Cipher {
-    val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-    cipher.init(this, key, iv)
-    return cipher
-}
-
 fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*items)!!
 
+fun IntegerProperty.inc() = set(get() + 1)
+
+fun IntegerProperty.dec() = set(get() - 1)
+
+fun IntegerExpression.equals0() = isEqualTo(0)!!
+
+fun IntegerExpression.unequals0() = isNotEqualTo(0)!!
+
+fun IntegerExpression.greater0() = greaterThan(0)!!
+
+fun IntegerExpression.greater1() = greaterThan(1)!!
+
 inline fun <T> measureTime(type: String, message: String, block: () -> T): T {
-    if (type.isNotBlank() && message.isNotBlank()) {
-        val startTime = System.currentTimeMillis()
-        val value = block.invoke()
-        val totalTime = (System.currentTimeMillis() - startTime) / 1000.0
-        val async = if (!Platform.isFxApplicationThread()) "[async]" else ""
-        val log = String.format("[%6.3fs] %7s %-18s: %s", totalTime, async, type, message)
-        if (totalTime < 1) println(log) else printError(log)
-        return value
-    } else {
-        return block.invoke()
-    }
+    val startTime = System.currentTimeMillis()
+    val value = block.invoke()
+    val totalTime = (System.currentTimeMillis() - startTime) / 1000.0
+    val async = if (!Platform.isFxApplicationThread()) "[async]" else ""
+    val log = String.format("[%6.3fs] %7s %-18s: %s", totalTime, async, type, message)
+    if (totalTime < 1) println(log) else printError(log)
+    return value
 }

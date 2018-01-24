@@ -1,8 +1,8 @@
 package hamburg.remme.tinygit.gui.dialog
 
-import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.git.gitHeadMessage
+import hamburg.remme.tinygit.git.gitMergeMessage
 import hamburg.remme.tinygit.gui.FileDiffView
 import hamburg.remme.tinygit.gui.FileStatusView
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -16,30 +16,35 @@ import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.scene.layout.Priority
 import javafx.stage.Window
-import org.eclipse.jgit.api.errors.WrongRepositoryStateException
 
-class CommitDialog(repository: LocalRepository, window: Window)
-    : Dialog<Unit>(window, if (State.isMerging.get()) "Merge Commit" else "New Commit", true) {
+class CommitDialog(window: Window)
+    : Dialog<Unit>(window, if (TinyGit.mergeService.isMerging.get()) "Merge Commit" else "New Commit", true) {
+
+    private val repoService = TinyGit.repositoryService
+    private val mergeService = TinyGit.mergeService
+    private val commitService = TinyGit.commitService
+    private val workingService = TinyGit.workingCopyService
 
     init {
-        val fileDiff = FileDiffView()
-        val files = FileStatusView()
+
+        val files = FileStatusView(workingService.staged)
         files.prefWidth = 400.0
         files.prefHeight = 500.0
-        files.selectionModel.selectedItemProperty().addListener { _, _, it -> it?.let { fileDiff.update(repository, it) } }
+        Platform.runLater { files.selectionModel.selectFirst() }
 
         val message = textArea {
             promptText = "Enter commit message"
             prefHeight = 100.0
-            textProperty().bindBidirectional(State.commitMessage)
+            textProperty().bindBidirectional(workingService.message)
             Platform.runLater { requestFocus() }
         }
-        if (State.isMerging.get() && message.text.isNullOrBlank()) message.text = Git.mergeMessage(repository)
+        if (mergeService.isMerging.get() && message.text.isNullOrBlank()) message.text = gitMergeMessage(repoService.activeRepository.get()!!)
 
+        val fileDiff = FileDiffView(files.selectionModel.selectedItemProperty())
         val amend = checkBox {
             text = "Amend last commit."
             selectedProperty().addListener { _, _, it ->
-                if (it && message.text.isNullOrBlank()) message.text = Git.headMessage(repository)
+                if (it && message.text.isNullOrBlank()) message.text = gitHeadMessage(repoService.activeRepository.get()!!)
             }
         }
 
@@ -47,23 +52,12 @@ class CommitDialog(repository: LocalRepository, window: Window)
                 message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
         +DialogButton(DialogButton.CANCEL)
 
-        focusAction = {
-            val selected = files.selectionModel.selectedItem
-            files.items.setAll(Git.status(repository).staged)
-            files.selectionModel.select(files.items.indexOf(selected))
-            files.selectionModel.selectedItem ?: files.selectionModel.selectFirst()
-        }
+        focusAction = { fileDiff.refresh() }
         okAction = {
-            try {
-                if (amend.isSelected) Git.commitAmend(repository, message.text)
-                else Git.commit(repository, message.text)
-            } catch (ex: WrongRepositoryStateException) {
-                errorAlert(dialogWindow, "Cannot Commit", "Cannot commit because there are unmerged changes.")
-                throw ex
-            }
-
-            State.commitMessage.set("")
-            State.fireRefresh(this)
+            commitService.commit(
+                    message.text,
+                    amend.isSelected,
+                    { errorAlert(window, "Cannot Commit", "Cannot commit because there are unmerged changes.") })
         }
         content = vbox {
             addClass("commit-view")
@@ -74,7 +68,7 @@ class CommitDialog(repository: LocalRepository, window: Window)
                 +fileDiff
             }
             +message
-            if (!State.isMerging.get()) +amend
+            if (!mergeService.isMerging.get()) +amend
         }
     }
 

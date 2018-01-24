@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.git.LocalFile
+import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.component.Icons
 import javafx.collections.ObservableList
@@ -8,7 +8,7 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
 
-class FileStatusView : ListView<LocalFile> {
+class FileStatusView(list: ObservableList<File>, selectionMode: SelectionMode = SelectionMode.SINGLE) : ListView<File>(list) {
 
     companion object {
 
@@ -23,33 +23,26 @@ class FileStatusView : ListView<LocalFile> {
 
     }
 
-    constructor() : super() {
-        selectionModel.selectionMode = SelectionMode.SINGLE
-    }
-
-    constructor(list: ObservableList<LocalFile>, selectionMode: SelectionMode) : super(list) {
-        selectionModel.selectionMode = selectionMode
-    }
-
     init {
         addClass("file-status-view")
         setCellFactory { LocalFileListCell() }
+        selectionModel.selectionMode = selectionMode
     }
 
-    private class LocalFileListCell : ListCell<LocalFile>() {
+    private class LocalFileListCell : ListCell<File>() {
 
-        override fun updateItem(item: LocalFile?, empty: Boolean) {
+        override fun updateItem(item: File?, empty: Boolean) {
             super.updateItem(item, empty)
             text = item?.path
             graphic = when {
-                item?.status == LocalFile.Status.CONFLICT -> conflictIcon().addClass("status-conflict")
-                item?.status == LocalFile.Status.ADDED && !item.cached -> untrackedIcon().addClass("status-untracked")
-                item?.status == LocalFile.Status.ADDED -> addedIcon().addClass("status-added")
-                item?.status == LocalFile.Status.COPIED -> copiedIcon().addClass("status-copied")
-                item?.status == LocalFile.Status.RENAMED -> renamedIcon().addClass("status-renamed")
-                item?.status == LocalFile.Status.MODIFIED -> modifiedIcon().addClass("status-modified")
-                item?.status == LocalFile.Status.REMOVED && !item.cached -> missingIcon().addClass("status-missing")
-                item?.status == LocalFile.Status.REMOVED -> removedIcon().addClass("status-removed")
+                item?.status == File.Status.CONFLICT -> conflictIcon().addClass("status-conflict")
+                item?.status == File.Status.ADDED && !item.isCached -> untrackedIcon().addClass("status-untracked")
+                item?.status == File.Status.ADDED -> addedIcon().addClass("status-added")
+                item?.status == File.Status.COPIED -> copiedIcon().addClass("status-copied")
+                item?.status == File.Status.RENAMED -> renamedIcon().addClass("status-renamed")
+                item?.status == File.Status.MODIFIED -> modifiedIcon().addClass("status-modified")
+                item?.status == File.Status.REMOVED && !item.isCached -> missingIcon().addClass("status-missing")
+                item?.status == File.Status.REMOVED -> removedIcon().addClass("status-removed")
                 else -> null
             }
         }

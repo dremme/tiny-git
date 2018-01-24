@@ -1,8 +1,9 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.git.LocalRepository
-import hamburg.remme.tinygit.git.api.Git
+import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.git.gitLog
+import hamburg.remme.tinygit.git.gitLsTree
 import hamburg.remme.tinygit.gui.builder.ProgressPane
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.columnSpan
@@ -34,6 +35,7 @@ import javafx.scene.chart.XYChart.Data as XYData
 
 class StatsView : Tab() {
 
+    private val repoService = TinyGit.repositoryService
     private val progressPane: ProgressPane
     private val period: ComboBox<Year>
     private val contributionData = observableList<PieData>()
@@ -69,7 +71,7 @@ class StatsView : Tab() {
             value = currentYear
             valueProperty().addListener { _, _, it ->
                 calendar.updateYear(it)
-                update(State.getSelectedRepository(), it)
+                update(repoService.activeRepository.get()!!, it)
             }
         }
         progressPane = progressPane {
@@ -89,11 +91,11 @@ class StatsView : Tab() {
         }
         content = progressPane
 
-        State.addRepositoryListener { it?.let { update(it, period.value) } }
-        State.addRefreshListener(this) { update(it, period.value) }
+        repoService.activeRepository.addListener { _, _, it -> it?.let { update(it, period.value) } }
+        TinyGit.addListener { update(it, period.value) }
     }
 
-    private fun update(repository: LocalRepository, year: Year) {
+    private fun update(repository: Repository, year: Year) {
         task?.cancel()
         task = object : Task<Unit>() {
             lateinit var contribution: List<Pair<String, Int>>
@@ -102,7 +104,7 @@ class StatsView : Tab() {
             lateinit var calendar: List<Pair<LocalDate, Int>>
 
             override fun call() {
-                val log = Git.log(repository, year.atDay(1), year.atDay(year.length()))
+                val log = gitLog(repository, year.atDay(1), year.atDay(year.length()))
 
                 contribution = log.groupingBy { it.authorMail }
                         .eachCount()
@@ -110,7 +112,7 @@ class StatsView : Tab() {
                         .sortedBy { (_, value) -> value }
                         .takeLast(8)
 
-                files = Git.tree(repository)
+                files = gitLsTree(repository)
                         .groupingBy { it.substringAfterLast('.', it.substringAfterLast('/')) }
                         .eachCount()
                         .map { (ext, value) -> ext to value }
