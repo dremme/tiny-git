@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.service.TaskExecutor
 import hamburg.remme.tinygit.gui.component.Icons
 import javafx.animation.Interpolator
 import javafx.animation.Transition
@@ -46,7 +47,7 @@ class SpinAnimation(private val node: Node, rate: Double = 1.0) : Transition(spi
 
 }
 
-open class ProgressPane : StackPane() {
+open class ProgressPane : StackPane(), TaskExecutor {
 
     private val progress = progressBar {
         addClass("progress-pane-bar")
@@ -59,7 +60,7 @@ open class ProgressPane : StackPane() {
         children.add(progress)
     }
 
-    fun execute(task: Task<*>) {
+    override fun execute(task: Task<*>) {
         task.setOnSucceeded { hideProgress() }
         task.setOnCancelled { hideProgress() }
         task.setOnFailed { hideProgress() }

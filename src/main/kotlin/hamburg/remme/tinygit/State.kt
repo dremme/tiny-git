@@ -38,7 +38,7 @@ class State(repositoryService: RepositoryService,
     val showToolBar = mergeService.isMerging.not().and(rebaseService.isRebasing.not())!!
     val showMergeBar = mergeService.isMerging
     val showRebaseBar = rebaseService.isRebasing
-    val isModal = SimpleBooleanProperty()
+    val isModal = SimpleBooleanProperty(true)
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
