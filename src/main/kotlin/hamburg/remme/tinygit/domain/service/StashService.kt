@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
@@ -11,7 +10,7 @@ import hamburg.remme.tinygit.observableList
 import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
 
-object StashService : Refreshable {
+class StashService : Refreshable {
 
     val stashEntries = observableList<StashEntry>()
     val stashSize = Bindings.size(stashEntries)!!
@@ -19,25 +18,25 @@ object StashService : Refreshable {
     private var task: Task<*>? = null
 
     fun stash() {
-        State.startProcess("Stashing files...", object : Task<Unit>() {
+        TinyGit.execute("Stashing files...", object : Task<Unit>() {
             override fun call() = gitStash(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() = exception.printStackTrace()
         })
     }
 
     fun pop(cannotPopHandler: () -> Unit) {
-        State.startProcess("Applying stash...", object : Task<Unit>() {
+        TinyGit.execute("Applying stash...", object : Task<Unit>() {
             override fun call() = gitStashPop(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() {
                 when (exception) {
                     is RuntimeException -> { // TODO
-                        State.fireRefresh()
+                        TinyGit.fireEvent()
                         cannotPopHandler.invoke()
                     }
                     else -> exception.printStackTrace()

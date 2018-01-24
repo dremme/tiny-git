@@ -1,8 +1,7 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
-import hamburg.remme.tinygit.domain.service.BranchService
-import hamburg.remme.tinygit.domain.service.CommitLogService
 import hamburg.remme.tinygit.gui.builder.ProgressPane
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.hbox
@@ -17,8 +16,8 @@ import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.shortDateTimeFormat
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
-import javafx.beans.property.ReadOnlyObjectWrapper
-import javafx.beans.property.ReadOnlyStringWrapper
+import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ListChangeListener
 import javafx.scene.control.Tab
 import javafx.scene.control.TableCell
@@ -29,8 +28,10 @@ import javafx.scene.text.Text
 
 class CommitLogView : Tab() {
 
+    private val logService = TinyGit.commitLogService
+    private val branchService = TinyGit.branchService
     private val progressPane: ProgressPane
-    private val localCommits = TableView<Commit>(CommitLogService.commits)
+    private val localCommits = TableView<Commit>(logService.commits)
     private val selectedCommit: Commit?
         @Suppress("UNNECESSARY_SAFE_CALL") get() = localCommits?.selectionModel?.selectedItem
     private val commitDetails = CommitDetailsView()
@@ -43,38 +44,38 @@ class CommitLogView : Tab() {
         val message = tableColumn<Commit, Commit> {
             text = "Message"
             isSortable = false
-            setCellValueFactory { ReadOnlyObjectWrapper(it.value) }
+            setCellValueFactory { SimpleObjectProperty(it.value) }
             setCellFactory { LogMessageTableCell() }
         }
         val date = tableColumn<Commit, String> {
             text = "Date"
             isSortable = false
-            setCellValueFactory { ReadOnlyStringWrapper(it.value.date.format(shortDateTimeFormat)) }
+            setCellValueFactory { SimpleStringProperty(it.value.date.format(shortDateTimeFormat)) }
         }
         val author = tableColumn<Commit, String> {
             text = "Author"
             isSortable = false
-            setCellValueFactory { ReadOnlyStringWrapper(it.value.author) }
+            setCellValueFactory { SimpleStringProperty(it.value.author) }
         }
         val commit = tableColumn<Commit, String> {
             text = "Commit"
             isSortable = false
-            setCellValueFactory { ReadOnlyStringWrapper(it.value.shortId) }
+            setCellValueFactory { SimpleStringProperty(it.value.shortId) }
         }
 
         localCommits.items.addListener(ListChangeListener { selectedCommit ?: localCommits.selectionModel.selectFirst() })
         localCommits.columns.addAll(message, date, author, commit)
         localCommits.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
-        localCommits.selectionModel.selectedItemProperty().addListener { _, _, it -> CommitLogService.activeCommit.set(it) }
+        localCommits.selectionModel.selectedItemProperty().addListener { _, _, it -> logService.activeCommit.set(it) }
         localCommits.setOnScroll {
             if (it.deltaY < 0) {
-                CommitLogService.logMore()
+                logService.logMore()
 //                localCommits.scrollTo(selectedCommit) TODO
             }
         }
         localCommits.setOnKeyPressed {
             if (it.code == KeyCode.DOWN && selectedCommit == localCommits.items.last()) {
-                CommitLogService.logMore()
+                logService.logMore()
                 localCommits.scrollTo(selectedCommit)
             }
         }
@@ -114,7 +115,7 @@ class CommitLogView : Tab() {
                 item.refs.forEach {
                     +label {
                         addClass("branch-badge")
-                        if (it == BranchService.head.get()) addClass("current")
+                        if (it == branchService.head.get()) addClass("current")
                         text = it.substringAfter("tag:").trim()
                         graphic = if (it.startsWith("tag:")) Icons.tag() else Icons.codeFork()
                     }

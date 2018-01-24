@@ -5,7 +5,7 @@ import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitDiff
 
-object DiffService : Refreshable {
+class DiffService : Refreshable {
 
     private val renderer = DiffRenderer()
     private lateinit var repository: Repository

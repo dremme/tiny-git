@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
-import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.disabledWhen
 import hamburg.remme.tinygit.gui.builder.imageView
@@ -67,12 +67,12 @@ abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = fal
     }
 
     fun show() {
-        State.isModal.set(true)
+        TinyGit.state.isModal.set(true)
         dialog.show()
     }
 
     fun showAndWait(): T? {
-        State.isModal.set(true)
+        TinyGit.state.isModal.set(true)
         return dialog.showAndWait().orElse(null)
     }
 

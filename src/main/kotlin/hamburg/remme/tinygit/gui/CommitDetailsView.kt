@@ -1,7 +1,6 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.domain.service.CommitDetailsService
-import hamburg.remme.tinygit.domain.service.CommitLogService
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.gui.builder.SplitPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.splitPane
@@ -17,15 +16,18 @@ import javafx.scene.text.Text
 
 class CommitDetailsView : SplitPaneBuilder() {
 
+    private val logService = TinyGit.commitLogService
+    private val detailsService = TinyGit.commitDetailsService
+
     init {
         addClass("commit-details-view")
 
-        val files = FileStatusView(CommitDetailsService.commitStatus).vgrow(Priority.ALWAYS)
+        val files = FileStatusView(detailsService.commitStatus).vgrow(Priority.ALWAYS)
 
         +splitPane {
             +webView {
                 isContextMenuEnabled = false
-                CommitDetailsService.commitDetails.addListener { _, _, it -> engine.loadContent(it) }
+                detailsService.commitDetails.addListener { _, _, it -> engine.loadContent(it) }
             }
             +stackPane {
                 +vbox {
@@ -39,7 +41,7 @@ class CommitDetailsView : SplitPaneBuilder() {
                 }
             }
         }
-        +FileDiffView(files.selectionModel.selectedItemProperty(), CommitLogService.activeCommit)
+        +FileDiffView(files.selectionModel.selectedItemProperty(), logService.activeCommit)
     }
 
 }

@@ -1,7 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.Settings
-import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.exists
@@ -15,7 +14,7 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.concurrent.Task
 
-object RepositoryService {
+class RepositoryService {
 
     private val allRepositories = observableList<Repository>()
     val existingRepositories = allRepositories.filtered { it.path.asPath().exists() }!!
@@ -24,8 +23,8 @@ object RepositoryService {
 
     init {
         activeRepository.addListener { _, _, it -> it?.let { hasRemote.set(gitHasRemote(it)) } ?: hasRemote.set(false) }
-        Settings.setRepositories { allRepositories }
-        Settings.load { allRepositories.setAll(it.repositories) }
+        TinyGit.settings.setRepositories { allRepositories }
+        TinyGit.settings.load { allRepositories.setAll(it.repositories) }
     }
 
     fun init(path: String) {
@@ -34,7 +33,7 @@ object RepositoryService {
     }
 
     fun clone(repository: Repository, url: String, errorHandler: (String) -> Unit) {
-        State.startProcess("Cloning...", object : Task<Unit>() {
+        TinyGit.execute("Cloning...", object : Task<Unit>() {
             override fun call() = gitClone(repository, url)
 
             override fun succeeded() = add(repository)
@@ -58,10 +57,10 @@ object RepositoryService {
     fun remove(repository: Repository) = allRepositories.remove(repository)
 
     fun gc() {
-        State.startProcess("Cleaning up...", object : Task<Unit>() {
+        TinyGit.execute("Cleaning up...", object : Task<Unit>() {
             override fun call() = gitGc(activeRepository.get()!!)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() = exception.printStackTrace()
         })

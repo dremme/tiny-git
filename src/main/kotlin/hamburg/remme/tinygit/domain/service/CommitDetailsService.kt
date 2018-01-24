@@ -9,7 +9,7 @@ import hamburg.remme.tinygit.observableList
 import javafx.beans.property.SimpleStringProperty
 import javafx.concurrent.Task
 
-object CommitDetailsService : Refreshable {
+class CommitDetailsService(service: CommitLogService) : Refreshable {
 
     val commitStatus = observableList<File>()
     val commitDetails = SimpleStringProperty()
@@ -18,7 +18,7 @@ object CommitDetailsService : Refreshable {
     private var task: Task<*>? = null
 
     init {
-        CommitLogService.activeCommit.addListener { _, _, it -> update(it) }
+        service.activeCommit.addListener { _, _, it -> update(it) }
     }
 
     override fun onRefresh(repository: Repository) {

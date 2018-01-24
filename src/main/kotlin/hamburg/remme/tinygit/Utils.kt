@@ -1,6 +1,8 @@
 package hamburg.remme.tinygit
 
 import javafx.application.Platform
+import javafx.beans.binding.IntegerExpression
+import javafx.beans.property.IntegerProperty
 import javafx.collections.FXCollections
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -75,6 +77,18 @@ fun String.htmlEncodeSpaces() = replace(" ", "&nbsp;")
 fun String.htmlEncodeAll() = htmlEncode().htmlEncodeSpaces()
 
 fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*items)!!
+
+fun IntegerProperty.inc() = set(get() + 1)
+
+fun IntegerProperty.dec() = set(get() - 1)
+
+fun IntegerExpression.equals0() = isEqualTo(0)!!
+
+fun IntegerExpression.unequals0() = isNotEqualTo(0)!!
+
+fun IntegerExpression.greater0() = greaterThan(0)!!
+
+fun IntegerExpression.greater1() = greaterThan(1)!!
 
 inline fun <T> measureTime(type: String, message: String, block: () -> T): T {
     val startTime = System.currentTimeMillis()

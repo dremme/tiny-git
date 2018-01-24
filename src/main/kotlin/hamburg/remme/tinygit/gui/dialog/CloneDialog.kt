@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.gui.dialog
 
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.columnSpan
@@ -16,6 +16,8 @@ import javafx.stage.Window
 
 // TODO: should be wider
 class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
+
+    private val repoService = TinyGit.repositoryService
 
     init {
         val url = textField { columnSpan(3) }
@@ -41,7 +43,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             val repository = Repository(location.text)
             repository.proxyHost = host.text
             repository.proxyPort = port.text.toInt()
-            RepositoryService.clone(repository, url.text, { errorAlert(window, "Cannot Clone Repository", it) })
+            repoService.clone(repository, url.text, { errorAlert(window, "Cannot Clone Repository", it) })
         }
         content = grid(4) {
             addClass("settings-view")

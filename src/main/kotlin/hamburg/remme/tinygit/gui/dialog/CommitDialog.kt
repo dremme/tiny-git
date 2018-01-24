@@ -1,9 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
-import hamburg.remme.tinygit.domain.service.CommitService
-import hamburg.remme.tinygit.domain.service.MergeService
-import hamburg.remme.tinygit.domain.service.RepositoryService
-import hamburg.remme.tinygit.domain.service.WorkingCopyService
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.git.gitHeadMessage
 import hamburg.remme.tinygit.git.gitMergeMessage
 import hamburg.remme.tinygit.gui.FileDiffView
@@ -21,12 +18,16 @@ import javafx.scene.layout.Priority
 import javafx.stage.Window
 
 class CommitDialog(window: Window)
-    : Dialog<Unit>(window, if (MergeService.isMerging.get()) "Merge Commit" else "New Commit", true) {
+    : Dialog<Unit>(window, if (TinyGit.mergeService.isMerging.get()) "Merge Commit" else "New Commit", true) {
+
+    private val repoService = TinyGit.repositoryService
+    private val mergeService = TinyGit.mergeService
+    private val commitService = TinyGit.commitService
+    private val workingService = TinyGit.workingCopyService
 
     init {
-        val repository = RepositoryService.activeRepository.get()!!
 
-        val files = FileStatusView(WorkingCopyService.staged)
+        val files = FileStatusView(workingService.staged)
         files.prefWidth = 400.0
         files.prefHeight = 500.0
         Platform.runLater { files.selectionModel.selectFirst() }
@@ -34,15 +35,15 @@ class CommitDialog(window: Window)
         val message = textArea {
             promptText = "Enter commit message"
             prefHeight = 100.0
-            textProperty().bindBidirectional(WorkingCopyService.message)
+            textProperty().bindBidirectional(workingService.message)
             Platform.runLater { requestFocus() }
         }
-        if (MergeService.isMerging.get() && message.text.isNullOrBlank()) message.text = gitMergeMessage(repository)
+        if (mergeService.isMerging.get() && message.text.isNullOrBlank()) message.text = gitMergeMessage(repoService.activeRepository.get()!!)
 
         val amend = checkBox {
             text = "Amend last commit."
             selectedProperty().addListener { _, _, it ->
-                if (it && message.text.isNullOrBlank()) message.text = gitHeadMessage(repository)
+                if (it && message.text.isNullOrBlank()) message.text = gitHeadMessage(repoService.activeRepository.get()!!)
             }
         }
 
@@ -58,7 +59,7 @@ class CommitDialog(window: Window)
 //            }
 //        }
         okAction = {
-            CommitService.commit(
+            commitService.commit(
                     message.text,
                     amend.isSelected,
                     { errorAlert(window, "Cannot Commit", "Cannot commit because there are unmerged changes.") })
@@ -72,7 +73,7 @@ class CommitDialog(window: Window)
                 +FileDiffView(files.selectionModel.selectedItemProperty())
             }
             +message
-            if (!MergeService.isMerging.get()) +amend
+            if (!mergeService.isMerging.get()) +amend
         }
     }
 

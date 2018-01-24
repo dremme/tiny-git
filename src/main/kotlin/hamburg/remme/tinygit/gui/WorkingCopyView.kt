@@ -1,8 +1,7 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.File
-import hamburg.remme.tinygit.domain.service.WorkingCopyService
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -29,24 +28,27 @@ import java.util.concurrent.Callable
 
 class WorkingCopyView : Tab() {
 
+    private val workingService = TinyGit.workingCopyService
+    private val state = TinyGit.state
+    private val window: Window get() = content.scene.window
+
     val actions: Array<ActionGroup>
         get() = arrayOf(
                 ActionGroup(updateAll, stageAll, stageSelected),
                 ActionGroup(unstageAll, unstageSelected))
-    private val unstageAll = Action("Unstage all", { Icons.arrowCircleDown() }, "Shortcut+Shift+L", State.canUnstageAll.not(),
-            { WorkingCopyService.unstage() })
-    private val unstageSelected = Action("Unstage selected", { Icons.arrowCircleDown() }, disable = State.canUnstageSelected.not(),
+    private val unstageAll = Action("Unstage all", { Icons.arrowCircleDown() }, "Shortcut+Shift+L", state.canUnstageAll.not(),
+            { workingService.unstage() })
+    private val unstageSelected = Action("Unstage selected", { Icons.arrowCircleDown() }, disable = state.canUnstageSelected.not(),
             handler = { unstageSelected() })
-    private val updateAll = Action("Update all", { Icons.arrowCircleUp() }, disable = State.canUpdateAll.not(),
-            handler = { WorkingCopyService.update() })
-    private val stageAll = Action("Stage all", { Icons.arrowCircleUp() }, "Shortcut+Shift+K", State.canStageAll.not(),
-            { WorkingCopyService.stage() })
-    private val stageSelected = Action("Stage selected", { Icons.arrowCircleUp() }, disable = State.canStageSelected.not(),
+    private val updateAll = Action("Update all", { Icons.arrowCircleUp() }, disable = state.canUpdateAll.not(),
+            handler = { workingService.update() })
+    private val stageAll = Action("Stage all", { Icons.arrowCircleUp() }, "Shortcut+Shift+K", state.canStageAll.not(),
+            { workingService.stage() })
+    private val stageSelected = Action("Stage selected", { Icons.arrowCircleUp() }, disable = state.canStageSelected.not(),
             handler = { stageSelected() })
 
-    private val window: Window get() = content.scene.window
-    private val staged = FileStatusView(WorkingCopyService.staged, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
-    private val pending = FileStatusView(WorkingCopyService.pending, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
+    private val staged = FileStatusView(workingService.staged, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
+    private val pending = FileStatusView(workingService.pending, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
     private val selectedStaged = staged.selectionModel
     private val selectedPending = pending.selectionModel
 
@@ -55,7 +57,7 @@ class WorkingCopyView : Tab() {
         graphic = Icons.hdd()
         isClosable = false
 
-        val unstageFile = Action("Unstage (L)", { Icons.arrowCircleDown() }, disable = State.canUnstageSelected.not(),
+        val unstageFile = Action("Unstage (L)", { Icons.arrowCircleDown() }, disable = state.canUnstageSelected.not(),
                 handler = { unstageSelected() })
 
         staged.contextMenu = contextMenu {
@@ -77,7 +79,7 @@ class WorkingCopyView : Tab() {
                 Callable { !selectedPending.selectedItems.all { it.status == File.Status.ADDED } },
                 selectedPending.selectedIndexProperty())
         // TODO: menubar actions?
-        val stageFile = Action("Stage (K)", { Icons.arrowCircleUp() }, disable = State.canStageSelected.not(),
+        val stageFile = Action("Stage (K)", { Icons.arrowCircleUp() }, disable = state.canStageSelected.not(),
                 handler = { stageSelected() })
         val deleteFile = Action("Delete (Del)", { Icons.trash() }, disable = canDelete.not(),
                 handler = { deleteFile() })
@@ -98,10 +100,10 @@ class WorkingCopyView : Tab() {
             }
         }
 
-        selectedStaged.selectedItems.addListener(ListChangeListener { WorkingCopyService.selectedStaged.setAll(it.list) })
+        selectedStaged.selectedItems.addListener(ListChangeListener { workingService.selectedStaged.setAll(it.list) })
         selectedStaged.selectedItemProperty().addListener({ _, _, it -> it?.let { selectedPending.clearSelection() } })
 
-        selectedPending.selectedItems.addListener(ListChangeListener { WorkingCopyService.selectedPending.setAll(it.list) })
+        selectedPending.selectedItems.addListener(ListChangeListener { workingService.selectedPending.setAll(it.list) })
         selectedPending.selectedItemProperty().addListener({ _, _, it -> it?.let { selectedStaged.clearSelection() } })
 
         content = stackPane {
@@ -145,19 +147,19 @@ class WorkingCopyView : Tab() {
 
     private fun stageSelected() {
         val selected = getIndex(selectedPending)
-        WorkingCopyService.stageSelected { setIndex(selectedPending, selected) }
+        workingService.stageSelected { setIndex(selectedPending, selected) }
     }
 
     private fun unstageSelected() {
         val selected = getIndex(selectedStaged)
-        WorkingCopyService.unstageSelected { setIndex(selectedStaged, selected) }
+        workingService.unstageSelected { setIndex(selectedStaged, selected) }
     }
 
     private fun deleteFile() {
         if (confirmWarningAlert(window, "Delete Files", "Delete",
                 "This will remove the selected files from the disk.")) {
             val selected = getIndex(selectedPending)
-            WorkingCopyService.delete { setIndex(selectedPending, selected) }
+            workingService.delete { setIndex(selectedPending, selected) }
         }
     }
 
@@ -165,7 +167,7 @@ class WorkingCopyView : Tab() {
         if (confirmWarningAlert(window, "Discard Changes", "Discard",
                 "This will discard all changes from the selected files.")) {
             val selected = getIndex(selectedPending)
-            WorkingCopyService.discardChanges(
+            workingService.discardChanges(
                     { setIndex(selectedPending, selected) },
                     { errorAlert(window, "Cannot Discard Changes", it) })
         }

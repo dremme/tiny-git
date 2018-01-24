@@ -6,9 +6,6 @@ import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Divergence
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
-import hamburg.remme.tinygit.domain.service.BranchService
-import hamburg.remme.tinygit.domain.service.RepositoryService
-import hamburg.remme.tinygit.domain.service.StashService
 import hamburg.remme.tinygit.git.BranchAlreadyExistsException
 import hamburg.remme.tinygit.git.BranchUnpushedException
 import hamburg.remme.tinygit.git.gitDivergence
@@ -46,6 +43,9 @@ import java.util.concurrent.Callable
 
 class RepositoryView : VBoxBuilder() {
 
+    private val repoService = TinyGit.repositoryService
+    private val branchService = TinyGit.branchService
+    private val stashService = TinyGit.stashService
     private val window: Window get() = scene.window
     private val tree: TreeView<RepositoryEntry>
     private val selectedEntry: RepositoryEntry?
@@ -58,9 +58,9 @@ class RepositoryView : VBoxBuilder() {
         addClass("repository-view")
 
         // TODO: add a settings button
-        +comboBox<Repository>(RepositoryService.existingRepositories) {
+        +comboBox<Repository>(repoService.existingRepositories) {
             cellFactory = Callback { RepositoryListCell() }
-            selectionModel.selectedItemProperty().addListener { _, _, it -> RepositoryService.activeRepository.set(it) }
+            selectionModel.selectedItemProperty().addListener { _, _, it -> repoService.activeRepository.set(it) }
             prefWidth = Int.MAX_VALUE.toDouble()
             Platform.runLater { selectionModel.selectFirst() }
         }
@@ -110,19 +110,19 @@ class RepositoryView : VBoxBuilder() {
         }
         +tree
 
-        BranchService.branches.addListener(ListChangeListener {
+        branchService.branches.addListener(ListChangeListener {
             updateBranches(localBranches.children, it.list.filter { it.isLocal }, EntryType.LOCAL_BRANCH)
             updateBranches(remoteBranches.children, it.list.filter { it.isRemote }, EntryType.REMOTE_BRANCH)
         })
-        StashService.stashEntries.addListener(ListChangeListener { updateStashes(it.list) })
+        stashService.stashEntries.addListener(ListChangeListener { updateStashes(it.list) })
 
-        Settings.setTree {
+        TinyGit.settings.setTree {
             tree.root.children.map { Settings.TreeItem(it.value.value, it.isExpanded) }
         }
-        Settings.setTreeSelection {
+        TinyGit.settings.setTreeSelection {
             selectedEntry?.let { Settings.TreeItem(it.value) } ?: Settings.TreeItem()
         }
-        Settings.load { settings ->
+        TinyGit.settings.load { settings ->
             tree.root.children
                     .filter { item -> settings.tree.any { it.value == item.value.value && it.expanded } }
                     .forEach { it.isExpanded = true }
@@ -155,7 +155,7 @@ class RepositoryView : VBoxBuilder() {
     private fun renameBranch(entry: RepositoryEntry) {
         textInputDialog(window, "Enter a New Branch Name", "Rename", Icons.pencil(), entry.value) { name ->
             try {
-                BranchService.rename(entry.value, name)
+                branchService.rename(entry.value, name)
                 tree.root.children.flatMap { it.children + it }.flatMap { it.children + it }
                         .find { it.value.value == name }
                         ?.let { tree.selectionModel.select(it) }
@@ -168,11 +168,11 @@ class RepositoryView : VBoxBuilder() {
 
     private fun deleteBranch(entry: RepositoryEntry) {
         try {
-            BranchService.delete(entry.value, false)
+            branchService.delete(entry.value, false)
         } catch (ex: BranchUnpushedException) {
             if (confirmWarningAlert(window, "Delete Branch", "Delete",
                     "Branch '${entry.value}' was not deleted as it has unpushed commits.\n\nForce deletion?")) {
-                BranchService.delete(entry.value, true)
+                branchService.delete(entry.value, true)
             }
         }
     }
@@ -186,13 +186,13 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun checkoutLocal(branch: String) {
-        BranchService.checkoutLocal(
+        branchService.checkoutLocal(
                 branch,
                 { errorAlert(window, "Cannot Switch Branches", "There are local changes that would be overwritten by checkout.\nCommit or stash them.") })
     }
 
     private fun checkoutRemote(branch: String) {
-        BranchService.checkoutRemote(
+        branchService.checkoutRemote(
                 branch,
                 { errorAlert(window, "Cannot Switch Branches", "There are local changes that would be overwritten by checkout.\nCommit or stash them.") })
     }
@@ -203,7 +203,7 @@ class RepositoryView : VBoxBuilder() {
         return !this.isHead() && this?.type == EntryType.LOCAL_BRANCH || this?.type == EntryType.REMOTE_BRANCH
     }
 
-    private fun RepositoryEntry?.isHead() = this?.value == BranchService.head.get()
+    private fun RepositoryEntry?.isHead() = this?.value == branchService.head.get()
 
     inner class RepositoryEntry(val value: String, val type: EntryType) {
 

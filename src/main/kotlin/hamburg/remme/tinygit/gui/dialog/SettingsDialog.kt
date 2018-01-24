@@ -1,7 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
-import hamburg.remme.tinygit.State
-import hamburg.remme.tinygit.domain.service.RepositoryService
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.git.gitAddRemote
 import hamburg.remme.tinygit.git.gitGetUrl
 import hamburg.remme.tinygit.git.gitHasRemote
@@ -20,7 +19,7 @@ import javafx.stage.Window
 // TODO: should be wider
 class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings") {
 
-    private val repository = RepositoryService.activeRepository.get()!!
+    private val repository = TinyGit.repositoryService.activeRepository.get()!!
     private val originalUrl = gitGetUrl(repository)
     private val originalHost = repository.proxyHost
     private val originalPort = repository.proxyPort
@@ -65,7 +64,7 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings
                 else gitUnsetProxy(repository)
             }
 
-            State.fireRefresh()
+            TinyGit.fireEvent()
         }
         content = grid(4) {
             addClass("settings-view")
