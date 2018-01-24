@@ -13,7 +13,7 @@ fun gitStash(repository: Repository) {
 
 fun gitStashPop(repository: Repository) {
     val response = git(repository, *stashPop).trim()
-    if (response.contains(errorSeparator)) throw StashPopException() // TODO
+    if (response.lines().any { it.toLowerCase().startsWith("conflict") }) throw StashPopException()
 }
 
 fun gitStashList(repository: Repository): List<StashEntry> {

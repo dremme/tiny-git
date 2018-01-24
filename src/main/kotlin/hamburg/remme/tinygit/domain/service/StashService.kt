@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.domain.service
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
+import hamburg.remme.tinygit.git.StashPopException
 import hamburg.remme.tinygit.git.gitStash
 import hamburg.remme.tinygit.git.gitStashList
 import hamburg.remme.tinygit.git.gitStashPop
@@ -35,7 +36,7 @@ class StashService : Refreshable {
 
             override fun failed() {
                 when (exception) {
-                    is RuntimeException -> { // TODO
+                    is StashPopException -> {
                         TinyGit.fireEvent()
                         cannotPopHandler.invoke()
                     }
