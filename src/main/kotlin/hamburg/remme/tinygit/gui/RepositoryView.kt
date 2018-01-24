@@ -13,6 +13,7 @@ import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.comboBox
 import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.contextMenu
@@ -22,6 +23,7 @@ import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.builder.tree
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.component.Icons
+import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
@@ -58,13 +60,18 @@ class RepositoryView : VBoxBuilder() {
     init {
         addClass("repository-view")
 
-        // TODO: add a settings button
         repository = comboBox<Repository>(repoService.existingRepositories) {
             cellFactory = Callback { RepositoryListCell() }
             selectionModel.selectedItemProperty().addListener { _, _, it -> repoService.activeRepository.set(it) }
             prefWidth = Int.MAX_VALUE.toDouble()
         }
-        +repository
+        +hbox {
+            +repository
+            +button {
+                graphic = Icons.cog()
+                setOnAction { SettingsDialog(window).show() }
+            }
+        }
 
         localBranches = TreeItem(RepositoryEntry("Local Branches", EntryType.LOCAL))
         remoteBranches = TreeItem(RepositoryEntry("Remote Branches", EntryType.REMOTE))
