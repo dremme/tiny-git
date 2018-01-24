@@ -20,7 +20,6 @@ import hamburg.remme.tinygit.git.gitIsInstalled
 import hamburg.remme.tinygit.git.gitSetWincred
 import hamburg.remme.tinygit.git.gitVersion
 import hamburg.remme.tinygit.gui.GitView
-import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.fatalAlert
 import javafx.application.Application
 import javafx.beans.binding.Bindings
@@ -49,21 +48,6 @@ fun main(args: Array<String>) {
     Font.loadFont("font/fa-brands-400.ttf".asResource(), 14.0)
     Font.loadFont("font/fa-solid-900.ttf".asResource(), 14.0)
 
-    // We terminate here because technical requirements for TinyGit aren't met
-    if (!gitIsInstalled()) {
-        fatalAlert("Git Error", "Git is not installed or not in PATH.")
-//        showDocument("https://git-scm.com/downloads") // TODO
-        System.exit(-1)
-        return
-    }
-    if (gitVersion().major < 2) {
-        fatalAlert("Git Error", "The installed Git client is out of date.\nPlease install the newest version.")
-//        showDocument("https://git-scm.com/downloads") // TODO
-        System.exit(-1)
-        return
-    }
-    if (PlatformUtil.isWindows() && gitGetCredentialHelper().isBlank()) gitSetWincred()
-
     Application.launch(TinyGit::class.java, *args)
 }
 
@@ -82,7 +66,7 @@ class TinyGit : Application() {
         val mergeService = MergeService(workingCopyService).addListeners()
         val rebaseService = RebaseService().addListeners()
         val stashService = StashService().addListeners()
-        val commitLogService = CommitLogService(repositoryService, { errorAlert(stage, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }).addListeners()
+        val commitLogService = CommitLogService(repositoryService).addListeners()
         val commitDetailsService = CommitDetailsService(commitLogService).addListeners()
         val commitService = CommitService(workingCopyService).addListeners()
         val diffService = DiffService().addListeners()
@@ -131,6 +115,21 @@ class TinyGit : Application() {
     override fun start(stage: Stage) {
         TinyGit.application = this
         TinyGit.stage = stage
+
+        // We terminate here because technical requirements for TinyGit aren't met
+        if (!gitIsInstalled()) {
+            fatalAlert("Git Error", "Git is not installed or not in PATH.")
+            showDocument("https://git-scm.com/downloads")
+            System.exit(-1)
+            return
+        }
+        if (gitVersion().major < 2) {
+            fatalAlert("Git Error", "The installed Git client is out of date.\nPlease install the newest version.")
+            showDocument("https://git-scm.com/downloads")
+            System.exit(-1)
+            return
+        }
+        if (PlatformUtil.isWindows() && gitGetCredentialHelper().isBlank()) gitSetWincred()
 
         settings.setWindow { Settings.WindowSettings(stage.x, stage.y, stage.width, stage.height, stage.isMaximized, stage.isFullScreen) }
         settings.load {

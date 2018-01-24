@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.gui.builder.ProgressPane
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.progressPane
@@ -25,6 +26,7 @@ import javafx.scene.control.TableView
 import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
+import javafx.stage.Window
 
 class CommitLogView : Tab() {
 
@@ -35,6 +37,7 @@ class CommitLogView : Tab() {
     private val selectedCommit: Commit?
         @Suppress("UNNECESSARY_SAFE_CALL") get() = localCommits?.selectionModel?.selectedItem
     private val commitDetails = CommitDetailsView()
+    private val window: Window get() = content.scene.window
 
     init {
         text = "Commits"
@@ -69,8 +72,9 @@ class CommitLogView : Tab() {
         localCommits.selectionModel.selectedItemProperty().addListener { _, _, it -> logService.activeCommit.set(it) }
         localCommits.setOnScroll {
             if (it.deltaY < 0) {
+                val index = localCommits.items.size - 1
                 logService.logMore()
-//                localCommits.scrollTo(selectedCommit) TODO
+                localCommits.scrollTo(index)
             }
         }
         localCommits.setOnKeyPressed {
@@ -80,7 +84,6 @@ class CommitLogView : Tab() {
             }
         }
 
-        // TODO: progress pane not working atm
         progressPane = progressPane {
             +splitPane {
                 addClass("log-view")
@@ -95,6 +98,9 @@ class CommitLogView : Tab() {
             }
         }
         content = progressPane
+
+        logService.logExecutor = progressPane
+        logService.timeoutHandler = { errorAlert(window, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }
 
         Platform.runLater {
             localCommits.resizeColumn(message, localCommits.width * 0.6)

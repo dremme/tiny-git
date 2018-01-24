@@ -12,11 +12,12 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
 import javafx.concurrent.Task
 
-class CommitLogService(private val service: RepositoryService,
-                       private val timeoutHandler: () -> Unit) : Refreshable {
+class CommitLogService(private val service: RepositoryService) : Refreshable {
 
     val commits = observableList<Commit>()
     val activeCommit = SimpleObjectProperty<Commit?>()
+    lateinit var logExecutor: TaskExecutor
+    lateinit var timeoutHandler: () -> Unit
     private lateinit var repository: Repository
     private var quickTask: Task<*>? = null
     private var remoteTask: Task<*>? = null
@@ -90,7 +91,7 @@ class CommitLogService(private val service: RepositoryService,
                     else -> exception.printStackTrace()
                 }
             }
-        }.also { TinyGit.execute(it) }
+        }.also { logExecutor.execute(it) }
     }
 
 }

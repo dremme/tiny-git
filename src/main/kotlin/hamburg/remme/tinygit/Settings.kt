@@ -10,7 +10,7 @@ class Settings {
     private val yaml = Yaml(Representer().apply { propertyUtils.setSkipMissingProperties(true) },
             DumperOptions().apply { defaultFlowStyle = DumperOptions.FlowStyle.BLOCK })
     private val settingsFile = "${System.getProperty("user.home")}/.tinygit".asPath()
-    private val suppliers: MutableMap<Category, () -> Any> = mutableMapOf()
+    private val suppliers: MutableMap<Category, () -> Any?> = mutableMapOf()
     private var settings: LocalSettings? = null
 
     fun load(block: (LocalSettings) -> Unit) {
@@ -27,8 +27,8 @@ class Settings {
     fun save() {
         settingsFile.write(yaml.dump(LocalSettings(
                 getCategory(Category.REPOSITORIES),
+                getCategory(Category.REPO_SELECTION),
                 getCategory(Category.TREE),
-                getCategory(Category.TREE_SELECTION),
                 getCategory(Category.WINDOW),
                 getCategory(Category.TAB_SELECTION))))
     }
@@ -37,12 +37,12 @@ class Settings {
         suppliers[Category.REPOSITORIES] = supplier
     }
 
-    fun setTree(supplier: () -> List<TreeItem>) {
-        suppliers[Category.TREE] = supplier
+    fun setRepositorySelection(supplier: () -> Repository?) {
+        suppliers[Category.REPO_SELECTION] = supplier
     }
 
-    fun setTreeSelection(supplier: () -> TreeItem) {
-        suppliers[Category.TREE_SELECTION] = supplier
+    fun setTree(supplier: () -> List<TreeItem>) {
+        suppliers[Category.TREE] = supplier
     }
 
     fun setWindow(supplier: () -> WindowSettings) {
@@ -59,8 +59,8 @@ class Settings {
     }
 
     class LocalSettings(var repositories: List<Repository> = emptyList(),
+                        var repositorySelection: Repository? = null,
                         var tree: List<TreeItem> = emptyList(),
-                        var treeSelection: TreeItem = TreeItem(),
                         var window: WindowSettings = WindowSettings(),
                         var tabSelection: Int = 0)
 
@@ -74,6 +74,6 @@ class Settings {
                          var maximized: Boolean = false,
                          var fullscreen: Boolean = false)
 
-    enum class Category { REPOSITORIES, TREE, TREE_SELECTION, WINDOW, TAB_SELECTION }
+    enum class Category { REPOSITORIES, REPO_SELECTION, TREE, WINDOW, TAB_SELECTION }
 
 }

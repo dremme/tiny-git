@@ -22,13 +22,13 @@ import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.builder.tree
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.component.Icons
-import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
 import javafx.scene.Node
+import javafx.scene.control.ComboBox
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
 import javafx.scene.control.TreeCell
@@ -47,6 +47,7 @@ class RepositoryView : VBoxBuilder() {
     private val branchService = TinyGit.branchService
     private val stashService = TinyGit.stashService
     private val window: Window get() = scene.window
+    private val repository: ComboBox<Repository>
     private val tree: TreeView<RepositoryEntry>
     private val selectedEntry: RepositoryEntry?
         @Suppress("UNNECESSARY_SAFE_CALL") get() = tree?.selectionModel?.selectedItem?.value
@@ -58,12 +59,12 @@ class RepositoryView : VBoxBuilder() {
         addClass("repository-view")
 
         // TODO: add a settings button
-        +comboBox<Repository>(repoService.existingRepositories) {
+        repository = comboBox<Repository>(repoService.existingRepositories) {
             cellFactory = Callback { RepositoryListCell() }
             selectionModel.selectedItemProperty().addListener { _, _, it -> repoService.activeRepository.set(it) }
             prefWidth = Int.MAX_VALUE.toDouble()
-            Platform.runLater { selectionModel.selectFirst() }
         }
+        +repository
 
         localBranches = TreeItem(RepositoryEntry("Local Branches", EntryType.LOCAL))
         remoteBranches = TreeItem(RepositoryEntry("Remote Branches", EntryType.REMOTE))
@@ -116,23 +117,13 @@ class RepositoryView : VBoxBuilder() {
         })
         stashService.stashEntries.addListener(ListChangeListener { updateStashes(it.list) })
 
-        TinyGit.settings.setTree {
-            tree.root.children.map { Settings.TreeItem(it.value.value, it.isExpanded) }
-        }
-        TinyGit.settings.setTreeSelection {
-            selectedEntry?.let { Settings.TreeItem(it.value) } ?: Settings.TreeItem()
-        }
+        TinyGit.settings.setTree { tree.root.children.map { Settings.TreeItem(it.value.value, it.isExpanded) } }
+        TinyGit.settings.setRepositorySelection { repository.value }
         TinyGit.settings.load { settings ->
-            tree.root.children
-                    .filter { item -> settings.tree.any { it.value == item.value.value && it.expanded } }
+            settings.tree.filter { it.expanded }
+                    .mapNotNull { item -> tree.root.children.find { it.value.value == item.value } }
                     .forEach { it.isExpanded = true }
-
-            tree.root.children.flatMap { it.children + it }
-                    .find { it.value.value == settings.treeSelection.value }
-                    ?.let { tree.selectionModel.select(it) }
-                    ?: tree.selectionModel.selectFirst()
-
-            tree.scrollTo(tree.selectionModel.selectedIndex)
+            settings.repositorySelection?.let { repository.selectionModel.select(it) } ?: repository.selectionModel.selectFirst()
         }
     }
 

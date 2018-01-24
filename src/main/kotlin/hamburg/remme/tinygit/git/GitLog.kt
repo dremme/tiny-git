@@ -16,7 +16,7 @@ private val mailSeparator = "mail: "
 private val dateSeparator = "date: "
 private val bodySeparator = "body: "
 private val eom = "<eom>"
-private val logFormat = "--pretty=format:$idSeparator%H%n$parentsSeparator%P%n$refsSeparator%d%n$nameSeparator%an%n$mailSeparator%ae%n$dateSeparator%ad%n$bodySeparator%B%n$eom"
+private val logFormat = "--pretty=format:$idSeparator%H%n$parentsSeparator%P%n$refsSeparator%d%n$nameSeparator%cn%n$mailSeparator%ce%n$dateSeparator%cd%n$bodySeparator%B%n$eom"
 private val log1 = arrayOf("log", "-1", "--pretty=%B")
 private val logAll = arrayOf("log", "--branches", "--remotes", "--tags", "--date=raw", logFormat)
 private val logNot = arrayOf("log", "HEAD", "--date=raw", logFormat, "--not")
