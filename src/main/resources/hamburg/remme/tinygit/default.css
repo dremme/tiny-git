@@ -299,8 +299,23 @@
     -fx-spacing: 6px;
 }
 
+.repository-view .button,
 .repository-view .combo-box {
     -fx-background-radius: 0;
+    -fx-pref-height: 28px;
+}
+
+.repository-view .button:focused,
+.repository-view .combo-box:focused {
+    -fx-background-insets: -0.2, 1, 2, -1.4, 2.6;
+}
+
+.repository-view .button {
+    -fx-background-insets: 0 0 -1 0, 0, 1 0 1 0, 2 0 2 0;
+}
+
+.repository-view .combo-box {
+    -fx-background-insets: 0 0 -1 0, 0, 1 1 1 0, 2 2 2 0;
 }
 
 .repository-view .tree-view {
