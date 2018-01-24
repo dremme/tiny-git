@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.UnmergedException
 import hamburg.remme.tinygit.git.gitIsRebasing
@@ -12,7 +12,7 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.concurrent.Task
 
-object RebaseService : Refreshable {
+class RebaseService : Refreshable {
 
     val isRebasing = SimpleBooleanProperty()
     val rebaseNext = SimpleIntegerProperty()
@@ -20,20 +20,20 @@ object RebaseService : Refreshable {
     private lateinit var repository: Repository
 
     fun rebase(rebaseBase: String) {
-        State.startProcess("Rebasing...", object : Task<Unit>() {
+        TinyGit.execute("Rebasing...", object : Task<Unit>() {
             override fun call() = gitRebase(repository, rebaseBase)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() = exception.printStackTrace()
         })
     }
 
     fun `continue`(unresolvedHandler: () -> Unit) {
-        State.startProcess("Rebasing...", object : Task<Unit>() {
+        TinyGit.execute("Rebasing...", object : Task<Unit>() {
             override fun call() = gitRebaseContinue(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() {
                 when (exception) {
@@ -45,10 +45,10 @@ object RebaseService : Refreshable {
     }
 
     fun abort() {
-        State.startProcess("Aborting...", object : Task<Unit>() {
+        TinyGit.execute("Aborting...", object : Task<Unit>() {
             override fun call() = gitRebaseAbort(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() = exception.printStackTrace()
         })

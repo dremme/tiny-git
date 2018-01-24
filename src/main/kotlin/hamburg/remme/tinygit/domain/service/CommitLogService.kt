@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.Repository
@@ -13,30 +12,15 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
 import javafx.concurrent.Task
 
-object CommitLogService : Refreshable {
+class CommitLogService(private val service: RepositoryService,
+                       private val timeoutHandler: () -> Unit) : Refreshable {
 
     val commits = observableList<Commit>()
     val activeCommit = SimpleObjectProperty<Commit?>()
-    lateinit var timeoutHandler: () -> Unit
     private lateinit var repository: Repository
     private var quickTask: Task<*>? = null
     private var remoteTask: Task<*>? = null
     private var max = 0
-
-    fun log() {
-        quickTask?.cancel()
-        remoteTask?.cancel()
-        quickTask = object : Task<List<Commit>>() {
-            override fun call() = gitLog(repository, 0, max)
-
-            override fun succeeded() {
-                commits.addAll(value.filter { commits.none(it::equals) })
-                commits.removeAll(commits.filter { value.none(it::equals) })
-                FXCollections.sort(commits)
-                logRemote()
-            }
-        }.also { TinyGit.execute(it) }
-    }
 
     // TODO: really synchronous?
     fun logMore() {
@@ -46,30 +30,6 @@ object CommitLogService : Refreshable {
             commits.addAll(result)
             FXCollections.sort(commits)
         }
-    }
-
-    fun logRemote() {
-        if (!RepositoryService.hasRemote.get() || gitUpToDate(repository)) return
-        remoteTask = object : Task<List<Commit>>() {
-            override fun call(): List<Commit> {
-                gitFetch(repository)
-                return gitLog(repository, 0, max)
-            }
-
-            override fun succeeded() {
-                commits.addAll(value.filter { commits.none(it::equals) })
-                commits.removeAll(commits.filter { value.none(it::equals) })
-                FXCollections.sort(commits)
-                State.fireRefresh()
-            }
-
-            override fun failed() {
-                when (exception) {
-                    is TimeoutException -> timeoutHandler.invoke()
-                    else -> exception.printStackTrace()
-                }
-            }
-        }.also { TinyGit.execute(it) }
     }
 
     override fun onRefresh(repository: Repository) {
@@ -92,6 +52,45 @@ object CommitLogService : Refreshable {
     private fun update(repository: Repository) {
         this.repository = repository
         log()
+    }
+
+    private fun log() {
+        quickTask?.cancel()
+        remoteTask?.cancel()
+        quickTask = object : Task<List<Commit>>() {
+            override fun call() = gitLog(repository, 0, max)
+
+            override fun succeeded() {
+                commits.addAll(value.filter { commits.none(it::equals) })
+                commits.removeAll(commits.filter { value.none(it::equals) })
+                FXCollections.sort(commits)
+                logRemote()
+            }
+        }.also { TinyGit.execute(it) }
+    }
+
+    private fun logRemote() {
+        if (!service.hasRemote.get() || gitUpToDate(repository)) return
+        remoteTask = object : Task<List<Commit>>() {
+            override fun call(): List<Commit> {
+                gitFetch(repository)
+                return gitLog(repository, 0, max)
+            }
+
+            override fun succeeded() {
+                commits.addAll(value.filter { commits.none(it::equals) })
+                commits.removeAll(commits.filter { value.none(it::equals) })
+                FXCollections.sort(commits)
+                TinyGit.fireEvent()
+            }
+
+            override fun failed() {
+                when (exception) {
+                    is TimeoutException -> timeoutHandler.invoke()
+                    else -> exception.printStackTrace()
+                }
+            }
+        }.also { TinyGit.execute(it) }
     }
 
 }

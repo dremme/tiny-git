@@ -18,7 +18,7 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.concurrent.Task
 
-object WorkingCopyService : Refreshable {
+class WorkingCopyService : Refreshable {
 
     val staged = observableList<File>()
     val pending = observableList<File>()

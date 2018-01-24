@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.gui.builder
 
-import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asFile
 import hamburg.remme.tinygit.asResource
 import hamburg.remme.tinygit.gui.component.Icons
@@ -28,7 +28,7 @@ fun confirmAlert(window: Window, header: String, ok: String, text: String): Bool
             Icons.questionCircle().addClass("info"),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
             ButtonType.CANCEL)
-    State.isModal.set(true)
+    TinyGit.state.isModal.set(true)
     return alert.showAndWait().get().isOk()
 }
 
@@ -40,7 +40,7 @@ fun confirmWarningAlert(window: Window, header: String, ok: String, text: String
             Icons.exclamationTriangle().addClass("warning"),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
             ButtonType.CANCEL)
-    State.isModal.set(true)
+    TinyGit.state.isModal.set(true)
     return alert.showAndWait().get().isOk()
 }
 
@@ -51,7 +51,7 @@ fun errorAlert(window: Window, header: String, text: String) {
             text,
             Icons.exclamationTriangle().addClass("error"),
             ButtonType.OK)
-    State.isModal.set(true)
+    TinyGit.state.isModal.set(true)
     alert.showAndWait()
 }
 
@@ -124,7 +124,7 @@ inline fun fileChooser(window: Window, title: String, block: (Path) -> Unit) {
     val chooser = FileChooser()
     chooser.title = title
     chooser.initialDirectory = System.getProperty("user.home").asFile()
-    State.isModal.set(true)
+    TinyGit.state.isModal.set(true)
     chooser.showOpenDialog(window)?.let { block.invoke(it.toPath()) }
 }
 
@@ -132,6 +132,6 @@ inline fun directoryChooser(window: Window, title: String, block: (Path) -> Unit
     val chooser = DirectoryChooser()
     chooser.title = title
     chooser.initialDirectory = System.getProperty("user.home").asFile()
-    State.isModal.set(true)
+    TinyGit.state.isModal.set(true)
     chooser.showDialog(window)?.let { block.invoke(it.toPath()) }
 }

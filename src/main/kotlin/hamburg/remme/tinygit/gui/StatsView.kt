@@ -1,8 +1,7 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.git.gitLsTree
 import hamburg.remme.tinygit.gui.builder.ProgressPane
@@ -36,6 +35,7 @@ import javafx.scene.chart.XYChart.Data as XYData
 
 class StatsView : Tab() {
 
+    private val repoService = TinyGit.repositoryService
     private val progressPane: ProgressPane
     private val period: ComboBox<Year>
     private val contributionData = observableList<PieData>()
@@ -71,7 +71,7 @@ class StatsView : Tab() {
             value = currentYear
             valueProperty().addListener { _, _, it ->
                 calendar.updateYear(it)
-                update(RepositoryService.activeRepository.get()!!, it)
+                update(repoService.activeRepository.get()!!, it)
             }
         }
         progressPane = progressPane {
@@ -91,8 +91,8 @@ class StatsView : Tab() {
         }
         content = progressPane
 
-        RepositoryService.activeRepository.addListener { _, _, it -> it?.let { update(it, period.value) } }
-        State.addRefreshListener { update(it, period.value) }
+        repoService.activeRepository.addListener { _, _, it -> it?.let { update(it, period.value) } }
+        TinyGit.addListener { update(it, period.value) }
     }
 
     private fun update(repository: Repository, year: Year) {

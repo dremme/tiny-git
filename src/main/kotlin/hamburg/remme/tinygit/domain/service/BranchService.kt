@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
@@ -21,7 +20,7 @@ import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleStringProperty
 import javafx.concurrent.Task
 
-object BranchService : Refreshable {
+class BranchService : Refreshable {
 
     val head = SimpleStringProperty("")
     val branches = observableList<Branch>()
@@ -31,10 +30,10 @@ object BranchService : Refreshable {
 
     fun checkoutLocal(branch: String, errorHandler: () -> Unit) {
         if (branch != head.get()) {
-            State.startProcess("Switching branches...", object : Task<Unit>() {
+            TinyGit.execute("Switching branches...", object : Task<Unit>() {
                 override fun call() = gitCheckout(repository, branch)
 
-                override fun succeeded() = State.fireRefresh()
+                override fun succeeded() = TinyGit.fireEvent()
 
                 override fun failed() {
                     when (exception) {
@@ -47,10 +46,10 @@ object BranchService : Refreshable {
     }
 
     fun checkoutRemote(branch: String, errorHandler: () -> Unit) {
-        State.startProcess("Getting remote branch...", object : Task<Unit>() {
+        TinyGit.execute("Getting remote branch...", object : Task<Unit>() {
             override fun call() = gitCheckoutRemote(repository, branch)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() {
                 when (exception) {
@@ -63,14 +62,14 @@ object BranchService : Refreshable {
 
     fun rename(branch: String, newName: String) {
         gitBranchMove(repository, branch, newName)
-        State.fireRefresh()
+        TinyGit.fireEvent()
     }
 
     fun branch(name: String, branchExistsHandler: () -> Unit, nameInvalidHandler: () -> Unit) {
-        State.startProcess("Branching...", object : Task<Unit>() {
+        TinyGit.execute("Branching...", object : Task<Unit>() {
             override fun call() = gitBranch(repository, name)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() {
                 when (exception) {
@@ -84,24 +83,24 @@ object BranchService : Refreshable {
 
     fun delete(branch: String, force: Boolean) {
         gitBranchDelete(repository, branch, force)
-        State.fireRefresh()
+        TinyGit.fireEvent()
     }
 
     fun autoReset() {
-        State.startProcess("Resetting branch...", object : Task<Unit>() {
+        TinyGit.execute("Resetting branch...", object : Task<Unit>() {
             override fun call() = gitResetHard(repository, head.get())
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() = exception.printStackTrace()
         })
     }
 
     fun autoSquash(baseId: String, message: String) {
-        State.startProcess("Squashing branch...", object : Task<Unit>() {
+        TinyGit.execute("Squashing branch...", object : Task<Unit>() {
             override fun call() = gitSquash(repository, baseId, message)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() = exception.printStackTrace()
         })

@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit
 
 import com.sun.javafx.PlatformUtil
+import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.service.BranchService
 import hamburg.remme.tinygit.domain.service.CommitDetailsService
 import hamburg.remme.tinygit.domain.service.CommitLogService
@@ -9,6 +10,7 @@ import hamburg.remme.tinygit.domain.service.DiffService
 import hamburg.remme.tinygit.domain.service.DivergenceService
 import hamburg.remme.tinygit.domain.service.MergeService
 import hamburg.remme.tinygit.domain.service.RebaseService
+import hamburg.remme.tinygit.domain.service.Refreshable
 import hamburg.remme.tinygit.domain.service.RemoteService
 import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.domain.service.StashService
@@ -40,11 +42,28 @@ import java.util.concurrent.Executors
 // TODO: use type inference with ... : get() = ...
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
+
     Font.loadFont("font/Roboto-Regular.ttf".asResource(), 13.0)
     Font.loadFont("font/Roboto-Bold.ttf".asResource(), 13.0)
     Font.loadFont("font/LiberationMono-Regular.ttf".asResource(), 12.0)
     Font.loadFont("font/fa-brands-400.ttf".asResource(), 14.0)
     Font.loadFont("font/fa-solid-900.ttf".asResource(), 14.0)
+
+    // We terminate here because technical requirements for TinyGit aren't met
+    if (!gitIsInstalled()) {
+        fatalAlert("Git Error", "Git is not installed or not in PATH.")
+//        showDocument("https://git-scm.com/downloads") // TODO
+        System.exit(-1)
+        return
+    }
+    if (gitVersion().major < 2) {
+        fatalAlert("Git Error", "The installed Git client is out of date.\nPlease install the newest version.")
+//        showDocument("https://git-scm.com/downloads") // TODO
+        System.exit(-1)
+        return
+    }
+    if (PlatformUtil.isWindows() && gitGetCredentialHelper().isBlank()) gitSetWincred()
+
     Application.launch(TinyGit::class.java, *args)
 }
 
@@ -52,58 +71,69 @@ class TinyGit : Application() {
 
     companion object {
 
-        private val cachedThreadPool = Executors.newCachedThreadPool({
-            Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true }
-        })
-        private lateinit var tinygit: Application
+        private val refreshListeners = mutableListOf<(Repository) -> Unit>()
+        private val pool = Executors.newCachedThreadPool({ Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } })
+        val settings: Settings = Settings()
+        val repositoryService: RepositoryService = RepositoryService()
+        val remoteService = RemoteService().addListeners()
+        val branchService = BranchService().addListeners()
+        val workingCopyService = WorkingCopyService().addListeners()
+        val divergenceService = DivergenceService().addListeners()
+        val mergeService = MergeService(workingCopyService).addListeners()
+        val rebaseService = RebaseService().addListeners()
+        val stashService = StashService().addListeners()
+        val commitLogService = CommitLogService(repositoryService, { errorAlert(stage, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }).addListeners()
+        val commitDetailsService = CommitDetailsService(commitLogService).addListeners()
+        val commitService = CommitService(workingCopyService).addListeners()
+        val diffService = DiffService().addListeners()
+        val state = State(
+                repositoryService,
+                branchService,
+                workingCopyService,
+                divergenceService,
+                mergeService,
+                rebaseService,
+                stashService)
+        private lateinit var application: Application
+        private lateinit var stage: Stage
 
-        fun execute(task: Task<*>) = cachedThreadPool.execute(task)
+        fun <T : Refreshable> T.addListeners(): T {
+            repositoryService.activeRepository.addListener { _, _, it -> it?.let { onRepositoryChanged(it) } ?: onRepositoryDeselected() }
+            addListener { onRefresh(it) }
+            return this
+        }
 
-        fun show(uri: String) = tinygit.hostServices.showDocument(uri)
+        fun addListener(block: (Repository) -> Unit) {
+            refreshListeners += block
+        }
+
+        fun fireEvent() {
+            repositoryService.activeRepository.get()?.let { repository -> refreshListeners.forEach { it.invoke(repository) } }
+        }
+
+        fun execute(task: Task<*>) = pool.execute(task)
+
+        fun execute(message: String, task: Task<*>) {
+            task.setOnSucceeded { state.runningProcesses.dec() }
+            task.setOnCancelled { state.runningProcesses.dec() }
+            task.setOnFailed { state.runningProcesses.dec() }
+            state.processText.set(message)
+            state.runningProcesses.inc()
+            execute(task)
+        }
+
+        fun showDocument(uri: String) = application.hostServices.showDocument(uri)
 
     }
 
     private val title = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
 
     override fun start(stage: Stage) {
-        tinygit = this
+        TinyGit.application = this
+        TinyGit.stage = stage
 
-        // We terminate here because technical requirements for TinyGit aren't met
-        if (!gitIsInstalled()) {
-            fatalAlert("Git Error", "Git is not installed or not in PATH.")
-            show("https://git-scm.com/downloads")
-            System.exit(-1)
-            return
-        }
-        if (gitVersion().major < 2) {
-            fatalAlert("Git Error", "The installed Git client is out of date.\nPlease install the newest version.")
-            show("https://git-scm.com/downloads")
-            System.exit(-1)
-            return
-        }
-        if (PlatformUtil.isWindows() && gitGetCredentialHelper().isBlank()) {
-            gitSetWincred()
-        }
-
-        RepositoryService
-        CommitLogService.timeoutHandler = {
-            errorAlert(stage, "Cannot Fetch From Remote",
-                    "Please check the repository settings.\nCredentials or proxy settings may have changed.")
-        }
-        State.addListeners(RemoteService)
-        State.addListeners(BranchService)
-        State.addListeners(CommitLogService)
-        State.addListeners(WorkingCopyService)
-        State.addListeners(DivergenceService)
-        State.addListeners(MergeService)
-        State.addListeners(RebaseService)
-        State.addListeners(StashService)
-        State.addListeners(DiffService)
-        State.addListeners(CommitDetailsService)
-        State.addListeners(CommitService)
-
-        Settings.setWindow { Settings.WindowSettings(stage.x, stage.y, stage.width, stage.height, stage.isMaximized, stage.isFullScreen) }
-        Settings.load {
+        settings.setWindow { Settings.WindowSettings(stage.x, stage.y, stage.width, stage.height, stage.isMaximized, stage.isFullScreen) }
+        settings.load {
             stage.x = it.window.x
             stage.y = it.window.y
             stage.width = it.window.width.takeIf { it > 1.0 } ?: 1280.0
@@ -114,27 +144,31 @@ class TinyGit : Application() {
 
         stage.focusedProperty().addListener { _, _, it ->
             if (it) {
-                if (State.isModal.get()) State.isModal.set(false)
-                else State.fireRefresh()
+                if (state.isModal.get()) state.isModal.set(false)
+                else fireEvent()
             }
         }
         stage.scene = Scene(GitView())
         stage.scene.stylesheets += "default.css".asResource()
         stage.icons += Image("icon.png".asResource())
         stage.titleProperty().bind(Bindings.createStringBinding(Callable { updateTitle() },
-                RepositoryService.activeRepository, MergeService.isMerging, RebaseService.isRebasing, RebaseService.rebaseNext, RebaseService.rebaseLast))
+                repositoryService.activeRepository,
+                mergeService.isMerging,
+                rebaseService.isRebasing,
+                rebaseService.rebaseNext,
+                rebaseService.rebaseLast))
         stage.show()
     }
 
-    override fun stop() = Settings.save()
+    override fun stop() = settings.save()
 
     private fun updateTitle(): String {
-        val repository = RepositoryService.activeRepository.get()?.let {
-            val rebase = if (RebaseService.isRebasing.get()) "REBASING ${RebaseService.rebaseNext.get()}/${RebaseService.rebaseLast.get()} " else ""
-            val merge = if (MergeService.isMerging.get()) "MERGING " else ""
+        val repository = repositoryService.activeRepository.get()?.let {
+            val rebase = if (rebaseService.isRebasing.get()) "REBASING ${rebaseService.rebaseNext.get()}/${rebaseService.rebaseLast.get()} " else ""
+            val merge = if (mergeService.isMerging.get()) "MERGING " else ""
             "${it.shortPath} [$it] $merge$rebase\u2012 "
-        } ?: ""
-        return "$repository$title"
+        }
+        return "${repository ?: ""}$title"
     }
 
 }

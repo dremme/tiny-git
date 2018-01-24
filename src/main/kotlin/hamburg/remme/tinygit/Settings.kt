@@ -5,7 +5,7 @@ import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.representer.Representer
 
-object Settings {
+class Settings {
 
     private val yaml = Yaml(Representer().apply { propertyUtils.setSkipMissingProperties(true) },
             DumperOptions().apply { defaultFlowStyle = DumperOptions.FlowStyle.BLOCK })

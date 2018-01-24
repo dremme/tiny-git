@@ -8,7 +8,7 @@ import hamburg.remme.tinygit.git.gitDivergenceExclusive
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.concurrent.Task
 
-object DivergenceService : Refreshable {
+class DivergenceService : Refreshable {
 
     val aheadDefault = SimpleIntegerProperty()
     val ahead = SimpleIntegerProperty()

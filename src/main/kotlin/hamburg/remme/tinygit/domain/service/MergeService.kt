@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitIsMerging
@@ -10,34 +10,34 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
 
-object MergeService : Refreshable {
+class MergeService(service: WorkingCopyService) : Refreshable {
 
     val isMerging = SimpleBooleanProperty(false)
     private lateinit var repository: Repository
 
     init {
         val listener = ListChangeListener<File> {
-            if (isMerging.get() && WorkingCopyService.staged.isEmpty() && WorkingCopyService.pending.isEmpty()) isMerging.set(false)
+            if (isMerging.get() && service.staged.isEmpty() && service.pending.isEmpty()) isMerging.set(false)
         }
-        WorkingCopyService.staged.addListener(listener)
-        WorkingCopyService.pending.addListener(listener)
+        service.staged.addListener(listener)
+        service.pending.addListener(listener)
     }
 
     fun merge(mergeBase: String) {
-        State.startProcess("Merging...", object : Task<Unit>() {
+        TinyGit.execute("Merging...", object : Task<Unit>() {
             override fun call() = gitMerge(repository, mergeBase)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() = exception.printStackTrace()
         })
     }
 
     fun abort() {
-        State.startProcess("Aborting...", object : Task<Unit>() {
+        TinyGit.execute("Aborting...", object : Task<Unit>() {
             override fun call() = gitMergeAbort(repository)
 
-            override fun succeeded() = State.fireRefresh()
+            override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() = exception.printStackTrace()
         })

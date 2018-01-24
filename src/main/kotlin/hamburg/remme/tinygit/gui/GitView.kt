@@ -1,16 +1,7 @@
 package hamburg.remme.tinygit.gui
 
 import com.sun.javafx.PlatformUtil
-import hamburg.remme.tinygit.Settings
-import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
-import hamburg.remme.tinygit.domain.service.BranchService
-import hamburg.remme.tinygit.domain.service.DivergenceService
-import hamburg.remme.tinygit.domain.service.MergeService
-import hamburg.remme.tinygit.domain.service.RebaseService
-import hamburg.remme.tinygit.domain.service.RemoteService
-import hamburg.remme.tinygit.domain.service.RepositoryService
-import hamburg.remme.tinygit.domain.service.StashService
 import hamburg.remme.tinygit.git.gitLogExclusive
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionCollection
@@ -42,13 +33,21 @@ import hamburg.remme.tinygit.gui.dialog.CloneDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
-import javafx.beans.property.ReadOnlyBooleanWrapper
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 
 class GitView : VBoxBuilder() {
 
+    private val repoService = TinyGit.repositoryService
+    private val branchService = TinyGit.branchService
+    private val divergenceService = TinyGit.divergenceService
+    private val mergeService = TinyGit.mergeService
+    private val rebaseService = TinyGit.rebaseService
+    private val remoteService = TinyGit.remoteService
+    private val stashService = TinyGit.stashService
+    private val state = TinyGit.state
     private val window get() = scene.window
 
     init {
@@ -70,59 +69,59 @@ class GitView : VBoxBuilder() {
         val quit = Action("Quit TinyGit", { Icons.signOut() },
                 handler = { Platform.exit() })
         // View
-        val showCommits = Action("Show Commits", { Icons.list() }, "F1", RepositoryService.activeRepository.isNull, // TODO: own prop?
+        val showCommits = Action("Show Commits", { Icons.list() }, "F1", repoService.activeRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(commitLog) })
-        val showWorkingCopy = Action("Show Working Copy", { Icons.hdd() }, "F2", RepositoryService.activeRepository.isNull, // TODO: own prop?
+        val showWorkingCopy = Action("Show Working Copy", { Icons.hdd() }, "F2", repoService.activeRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(workingCopy) })
-        val showStats = Action("Show Statistics", { Icons.chartPie() }, "F3", RepositoryService.activeRepository.isNull, // TODO: own prop?
+        val showStats = Action("Show Statistics", { Icons.chartPie() }, "F3", repoService.activeRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(stats) })
         // TODO: add F5 refresh
         // Repository
-        val commit = Action("Commit", { Icons.plus() }, "Shortcut+K", State.canCommit.not(),
+        val commit = Action("Commit", { Icons.plus() }, "Shortcut+K", state.canCommit.not(),
                 { CommitDialog(window).show() })
-        val push = Action("Push", { Icons.cloudUpload() }, "Shortcut+P", State.canPush.not(),
-                { push(false) }, DivergenceService.ahead)
-        val pushForce = Action("Force Push", { Icons.cloudUpload() }, "Shortcut+Shift+P", State.canForcePush.not(),
-                { push(true) }, DivergenceService.ahead)
-        val pull = Action("Pull", { Icons.cloudDownload() }, "Shortcut+L", State.canPull.not(),
-                { pull() }, DivergenceService.behind)
-        val fetch = Action("Fetch", { Icons.refresh() }, "Shortcut+F", State.canFetch.not(),
-                { RemoteService.fetch() })
-        val fetchGc = Action("GC", { Icons.eraser() }, "Shortcut+Shift+F", State.canGc.not(),
-                { RepositoryService.gc() })
-        val branch = Action("Branch", { Icons.codeFork() }, "Shortcut+B", State.canBranch.not(),
+        val push = Action("Push", { Icons.cloudUpload() }, "Shortcut+P", state.canPush.not(),
+                { push(false) }, divergenceService.ahead)
+        val pushForce = Action("Force Push", { Icons.cloudUpload() }, "Shortcut+Shift+P", state.canForcePush.not(),
+                { push(true) }, divergenceService.ahead)
+        val pull = Action("Pull", { Icons.cloudDownload() }, "Shortcut+L", state.canPull.not(),
+                { pull() }, divergenceService.behind)
+        val fetch = Action("Fetch", { Icons.refresh() }, "Shortcut+F", state.canFetch.not(),
+                { remoteService.fetch() })
+        val fetchGc = Action("GC", { Icons.eraser() }, "Shortcut+Shift+F", state.canGc.not(),
+                { repoService.gc() })
+        val branch = Action("Branch", { Icons.codeFork() }, "Shortcut+B", state.canBranch.not(),
                 { createBranch() })
-        val merge = Action("Merge", { Icons.codeFork().flipY() }, "Shortcut+M", State.canMerge.not(),
+        val merge = Action("Merge", { Icons.codeFork().flipY() }, "Shortcut+M", state.canMerge.not(),
                 handler = { merge() })
-        val mergeContinue = Action("Continue Merge", { Icons.forward() }, "Shortcut+Shift+M", State.canMergeContinue.not(),
+        val mergeContinue = Action("Continue Merge", { Icons.forward() }, "Shortcut+Shift+M", state.canMergeContinue.not(),
                 handler = { CommitDialog(window).show() })
-        val mergeAbort = Action("Abort Merge", { Icons.timesCircle() }, disable = State.canMergeAbort.not(),
-                handler = { MergeService.abort() })
-        val rebase = Action("Rebase", { Icons.levelUp().flipX() }, "Shortcut+R", State.canRebase.not(),
+        val mergeAbort = Action("Abort Merge", { Icons.timesCircle() }, disable = state.canMergeAbort.not(),
+                handler = { mergeService.abort() })
+        val rebase = Action("Rebase", { Icons.levelUp().flipX() }, "Shortcut+R", state.canRebase.not(),
                 handler = { rebase() })
-        val rebaseContinue = Action("Continue Rebase", { Icons.forward() }, "Shortcut+Shift+R", State.canRebaseContinue.not(),
+        val rebaseContinue = Action("Continue Rebase", { Icons.forward() }, "Shortcut+Shift+R", state.canRebaseContinue.not(),
                 handler = { rebaseContinue() })
-        val rebaseAbort = Action("Abort Rebase", { Icons.timesCircle() }, disable = State.canRebaseAbort.not(),
-                handler = { RebaseService.abort() })
-        val stash = Action("Stash", { Icons.cube() }, "Shortcut+S", State.canStash.not(),
-                { StashService.stash() })
-        val stashPop = Action("Pop Stash", { Icons.cube().flipXY() }, "Shortcut+Shift+S", State.canApplyStash.not(),
+        val rebaseAbort = Action("Abort Rebase", { Icons.timesCircle() }, disable = state.canRebaseAbort.not(),
+                handler = { rebaseService.abort() })
+        val stash = Action("Stash", { Icons.cube() }, "Shortcut+S", state.canStash.not(),
+                { stashService.stash() })
+        val stashPop = Action("Pop Stash", { Icons.cube().flipXY() }, "Shortcut+Shift+S", state.canApplyStash.not(),
                 { stashPop() })
-        val reset = Action("Auto-Reset", { Icons.undo() }, disable = State.canReset.not(),
+        val reset = Action("Auto-Reset", { Icons.undo() }, disable = state.canReset.not(),
                 handler = { autoReset() })
-        val squash = Action("Auto-Squash", { Icons.gavel() }, disable = State.canSquash.not(),
-                handler = { autoSquash() }, count = DivergenceService.aheadDefault)
+        val squash = Action("Auto-Squash", { Icons.gavel() }, disable = state.canSquash.not(),
+                handler = { autoSquash() }, count = divergenceService.aheadDefault)
         val settings = Action("Settings", { Icons.cog() }, if (PlatformUtil.isMac()) "Shortcut+Comma" else null,
-                disable = State.canSettings.not(),
+                disable = state.canSettings.not(),
                 handler = { SettingsDialog(window).show() })
-        val removeRepo = Action("Remove Repository", { Icons.trash() }, disable = State.canRemove.not(),
+        val removeRepo = Action("Remove Repository", { Icons.trash() }, disable = state.canRemove.not(),
                 handler = { removeRepo() })
         // ?
         val github = Action("Star TinyGit on GitHub", { Icons.github() },
-                handler = { TinyGit.show("https://github.com/deso88/TinyGit") })
+                handler = { TinyGit.showDocument("https://github.com/deso88/TinyGit") })
         val about = Action("About", { Icons.questionCircle() },
                 handler = { AboutDialog(window).show() })
-        val cmd = Action("Git Command", { Icons.terminal() }, disable = ReadOnlyBooleanWrapper(true),
+        val cmd = Action("Git Command", { Icons.terminal() }, disable = SimpleBooleanProperty(true),
                 handler = { /* TODO */ })
 
         +menuBar {
@@ -143,8 +142,8 @@ class GitView : VBoxBuilder() {
             +ActionCollection("?", ActionGroup(github, about))
         }
         +toolBar {
-            visibleWhen(State.showToolBar)
-            managedWhen(State.showToolBar)
+            visibleWhen(state.showToolBar)
+            managedWhen(state.showToolBar)
             +ActionGroup(addRepo)
             +ActionGroup(commit, push, pull, fetch)
             +ActionGroup(branch, merge)
@@ -154,16 +153,16 @@ class GitView : VBoxBuilder() {
             +cmd
         }
         +toolBar {
-            visibleWhen(State.showMergeBar)
-            managedWhen(State.showMergeBar)
+            visibleWhen(state.showMergeBar)
+            managedWhen(state.showMergeBar)
             +ActionGroup(addRepo)
             +ActionGroup(mergeContinue, mergeAbort)
             addSpacer()
             +cmd
         }
         +toolBar {
-            visibleWhen(State.showRebaseBar)
-            managedWhen(State.showRebaseBar)
+            visibleWhen(state.showRebaseBar)
+            managedWhen(state.showRebaseBar)
             +ActionGroup(addRepo)
             +ActionGroup(rebaseContinue, rebaseAbort)
             addSpacer()
@@ -179,7 +178,7 @@ class GitView : VBoxBuilder() {
             }
             +stackPane {
                 addClass("overlay")
-                visibleWhen(State.showGlobalInfo)
+                visibleWhen(state.showGlobalInfo)
                 +hbox {
                     addClass("box")
                     +Text("Click ")
@@ -189,43 +188,43 @@ class GitView : VBoxBuilder() {
             }
             +stackPane {
                 addClass("progress-overlay")
-                visibleWhen(State.showGlobalOverlay)
+                visibleWhen(state.showGlobalOverlay)
                 +progressSpinner {}
-                +label { textProperty().bind(State.processTextProperty()) }
+                +label { textProperty().bind(state.processText) }
             }
         }
 
-        Settings.setTabSelection { tabs.selectionModel.selectedIndex }
-        Settings.load { tabs.selectionModel.select(it.tabSelection) }
+        TinyGit.settings.setTabSelection { tabs.selectionModel.selectedIndex }
+        TinyGit.settings.load { tabs.selectionModel.select(it.tabSelection) }
     }
 
     private fun newRepo() {
-        directoryChooser(window, "New Repository") { RepositoryService.init(it.toString()) }
+        directoryChooser(window, "New Repository") { repoService.init(it.toString()) }
     }
 
     private fun addRepo() {
         directoryChooser(window, "Add Repository") {
-            RepositoryService.open(
+            repoService.open(
                     it.toString(),
                     { errorAlert(window, "Invalid Repository", "'$it' does not contain a valid '.git' directory.") })
         }
     }
 
     private fun removeRepo() {
-        val repository = RepositoryService.activeRepository.get()!!
+        val repository = repoService.activeRepository.get()!!
         if (!confirmWarningAlert(window, "Remove Repository", "Remove",
                 "Will remove the repository '$repository' from TinyGit, but keep it on the disk.")) return
-        RepositoryService.remove(repository)
+        repoService.remove(repository)
     }
 
     private fun pull() {
-        RemoteService.pull(
+        remoteService.pull(
                 { errorAlert(window, "Cannot Pull From Remote Branch", it) },
                 { errorAlert(window, "Connection Timed Out", "Please check the repository settings.\nCredentials or proxy settings may have changed.") })
     }
 
     private fun push(force: Boolean) {
-        if (!RepositoryService.hasRemote.get()) {
+        if (!repoService.hasRemote.get()) {
             errorAlert(window, "Push", "No remote configured.")
             SettingsDialog(window).show()
             return
@@ -233,7 +232,7 @@ class GitView : VBoxBuilder() {
                 "This will rewrite the remote branch's history.\nChanges by others will be lost.")) {
             return
         }
-        RemoteService.push(
+        remoteService.push(
                 force,
                 { errorAlert(window, "Cannot Push to Remote Branch", "Updates were rejected because the tip of the current branch is behind.\nPull before pushing again or force push.") },
                 { errorAlert(window, "Connection Timed Out", "Please check the repository settings.\nCredentials or proxy settings may have changed.") })
@@ -241,7 +240,7 @@ class GitView : VBoxBuilder() {
 
     private fun createBranch() {
         textInputDialog(window, "Enter a New Branch Name", "Create", Icons.codeFork()) {
-            BranchService.branch(
+            branchService.branch(
                     it,
                     { errorAlert(window, "Cannot Create Branch", "Branch '$it' does already exist in the working copy.") },
                     { errorAlert(window, "Cannot Create Branch", "Invalid name '$it'.") })
@@ -249,30 +248,30 @@ class GitView : VBoxBuilder() {
     }
 
     private fun merge() {
-        val current = BranchService.head.get()
-        val branches = BranchService.branches.map { it.name }.filter { it != current }
+        val current = branchService.head.get()
+        val branches = branchService.branches.map { it.name }.filter { it != current }
         choiceDialog(window, "Select a Branch to Merge", "Merge", Icons.codeFork().flipY(), branches) {
-            MergeService.merge(it)
+            mergeService.merge(it)
         }
     }
 
     private fun rebase() {
-        val current = BranchService.head.get()
-        val branches = BranchService.branches.map { it.name }.filter { it != current }
+        val current = branchService.head.get()
+        val branches = branchService.branches.map { it.name }.filter { it != current }
         choiceDialog(window, "Select a Branch for Rebasing", "Rebase", Icons.levelUp().flipX(), branches) {
-            RebaseService.rebase(it)
+            rebaseService.rebase(it)
         }
     }
 
     private fun rebaseContinue() {
-        RebaseService.`continue`({
+        rebaseService.`continue`({
             errorAlert(window, "Unresolved Conflicts",
                     "Cannot continue with rebase because there are unresolved conflicts.")
         })
     }
 
     private fun stashPop() {
-        StashService.pop({
+        stashService.pop({
             errorAlert(window, "Cannot Pop Stash",
                     "Applying stashed changes resulted in a conflict.\nTherefore the stash entry has been preserved.")
         })
@@ -281,17 +280,17 @@ class GitView : VBoxBuilder() {
     private fun autoReset() {
         if (!confirmWarningAlert(window, "Auto Reset Branch", "Reset",
                 "This will automatically reset the current branch to its remote branch.\nUnpushed commits will be lost.")) return
-        BranchService.autoReset()
+        branchService.autoReset()
     }
 
     private fun autoSquash() {
-        val commits = gitLogExclusive(RepositoryService.activeRepository.get()!!)
+        val commits = gitLogExclusive(repoService.activeRepository.get()!!)
         val message = commits.joinToString("\n") { "# ${it.shortId}\n${it.fullMessage}" } // TODO: too many newlines
         val baseId = commits.last().parents[0]
         val count = commits.size
         textAreaDialog(window, "Auto Squash Branch", "Squash", Icons.gavel(), message,
                 "This will automatically squash all $count commits of the current branch.\n\nNew commit message:") {
-            BranchService.autoSquash(baseId, it)
+            branchService.autoSquash(baseId, it)
         }
     }
 
