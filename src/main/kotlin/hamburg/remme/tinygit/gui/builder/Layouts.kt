@@ -7,6 +7,7 @@ import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
+import javafx.scene.layout.Region
 import javafx.scene.layout.RowConstraints
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
@@ -27,6 +28,7 @@ fun <T : Node> T.vgrow(priority: Priority): T {
 }
 
 fun <T : Node> T.fillWidth(): T {
+    if (this is Region) maxWidth = Int.MAX_VALUE.toDouble()
     GridPane.setFillWidth(this, true)
     return this
 }

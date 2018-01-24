@@ -10,6 +10,7 @@ import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.webView
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableObjectValue
+import javafx.scene.control.ComboBox
 import javafx.scene.control.ListCell
 import javafx.scene.layout.Priority
 import javafx.scene.web.WebEngine
@@ -31,15 +32,16 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
         </head>
         </html>
     """
+    private val contextLines: ComboBox<Int>
     private val fileDiff: WebEngine
 
     init {
-        val contextLines = comboBox<Int> {
+        contextLines = comboBox {
             items.addAll(0, 1, 3, 6, 12, 25, 50, 100)
             buttonCell = ContextLinesListCell()
             cellFactory = Callback { ContextLinesListCell() }
             value = 3
-            valueProperty().addListener { _, _, it -> update(it) }
+            valueProperty().addListener { _, _, _ -> update() }
         }
         +toolBar {
             addSpacer()
@@ -56,14 +58,15 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
         fileDiff = webView.engine
         +webView
 
-        file.addListener { _, _, _ -> update(contextLines.value) }
-        TinyGit.addListener { update(contextLines.value) }
+        file.addListener { _, _, _ -> update() }
     }
 
-    private fun update(contextLines: Int) {
+    fun refresh() = update()
+
+    private fun update() {
         if (file.get() != null) {
-            if (commit.get() != null) fileDiff.loadContent(diffService.diff(file.get()!!, commit.get()!!, contextLines))
-            else fileDiff.loadContent(diffService.diff(file.get()!!, contextLines))
+            if (commit.get() != null) fileDiff.loadContent(diffService.diff(file.get()!!, commit.get()!!, contextLines.value))
+            else fileDiff.loadContent(diffService.diff(file.get()!!, contextLines.value))
         } else {
             fileDiff.loadContent(empty)
         }

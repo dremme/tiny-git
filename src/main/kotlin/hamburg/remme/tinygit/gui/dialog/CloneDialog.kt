@@ -14,14 +14,16 @@ import hamburg.remme.tinygit.gui.component.Icons
 import javafx.scene.control.Label
 import javafx.stage.Window
 
-// TODO: should be wider
 class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
 
     private val repoService = TinyGit.repositoryService
 
     init {
-        val url = textField { columnSpan(3) }
-        val location = textField { }
+        val url = textField {
+            columnSpan(3)
+            prefWidth = 300.0
+        }
+        val location = textField { prefWidth = 300.0 }
         val locationSet = button {
             columnSpan(2)
             fillWidth()
@@ -29,7 +31,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             maxWidth = Double.MAX_VALUE
             setOnAction { directoryChooser(dialogWindow, "Choose a Directory") { location.text = it.toString() } }
         }
-        val host = textField { }
+        val host = textField { prefWidth = 300.0 }
         val port = textField {
             prefColumnCount = 4
             intFormatter(80)

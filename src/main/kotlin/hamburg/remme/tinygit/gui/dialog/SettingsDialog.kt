@@ -16,7 +16,6 @@ import hamburg.remme.tinygit.gui.builder.textField
 import javafx.scene.control.Label
 import javafx.stage.Window
 
-// TODO: should be wider
 class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings") {
 
     private val repository = TinyGit.repositoryService.activeRepository.get()!!
@@ -30,15 +29,20 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings
 
         val remote = textField {
             columnSpan(3)
+            prefWidth = 300.0
             isEditable = true
             text = originalUrl
         }
         val location = textField {
             columnSpan(3)
+            prefWidth = 300.0
             isEditable = false
             text = repository.path
         }
-        val proxyHost = textField { text = originalHost }
+        val proxyHost = textField {
+            prefWidth = 300.0
+            text = originalHost
+        }
         val proxyPort = textField {
             prefColumnCount = 4
             intFormatter(originalPort)

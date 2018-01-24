@@ -75,7 +75,8 @@ class GitView : VBoxBuilder() {
                 handler = { tabs.selectionModel.select(workingCopy) })
         val showStats = Action("Show Statistics", { Icons.chartPie() }, "F3", repoService.activeRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(stats) })
-        // TODO: add F5 refresh
+        val refresh = Action("Refresh", { Icons.refresh() }, "F5", repoService.activeRepository.isNull, // TODO: own prop?
+                handler = { TinyGit.fireEvent() })
         // Repository
         val commit = Action("Commit", { Icons.plus() }, "Shortcut+K", state.canCommit.not(),
                 { CommitDialog(window).show() })
@@ -118,7 +119,7 @@ class GitView : VBoxBuilder() {
                 handler = { removeRepo() })
         // ?
         val github = Action("Star TinyGit on GitHub", { Icons.github() },
-                handler = { TinyGit.showDocument("https://github.com/deso88/TinyGit") })
+                handler = { TinyGit.showDocument("https://github.com/dremme/tiny-git") })
         val about = Action("About", { Icons.questionCircle() },
                 handler = { AboutDialog(window).show() })
         val cmd = Action("Git Command", { Icons.terminal() }, disable = SimpleBooleanProperty(true),
@@ -127,7 +128,9 @@ class GitView : VBoxBuilder() {
         +menuBar {
             isUseSystemMenuBar = true
             +ActionCollection("File", ActionGroup(cloneRepo, newRepo, addRepo), ActionGroup(quit))
-            +ActionCollection("View", ActionGroup(showCommits, showWorkingCopy, showStats))
+            +ActionCollection("View",
+                    ActionGroup(showCommits, showWorkingCopy, showStats),
+                    ActionGroup(refresh))
             +ActionCollection("Repository",
                     ActionGroup(push, pushForce, pull, fetch, fetchGc),
                     ActionGroup(branch, merge, mergeContinue, mergeAbort),
