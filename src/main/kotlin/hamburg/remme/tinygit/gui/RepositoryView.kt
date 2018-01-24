@@ -64,6 +64,7 @@ class RepositoryView : VBoxBuilder() {
             cellFactory = Callback { RepositoryListCell() }
             selectionModel.selectedItemProperty().addListener { _, _, it -> repoService.activeRepository.set(it) }
             prefWidth = Int.MAX_VALUE.toDouble()
+            items.addListener(ListChangeListener { while (it.next()) if (it.wasAdded()) selectionModel.selectLast() })
         }
         +hbox {
             +repository
