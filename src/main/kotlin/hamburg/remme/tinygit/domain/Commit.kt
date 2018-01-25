@@ -18,7 +18,7 @@ class Commit(val id: String,
 
     override fun toString() = id
 
-    override fun compareTo(other: Commit) = -date.compareTo(other.date)
+    override fun compareTo(other: Commit) = date.compareTo(other.date)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

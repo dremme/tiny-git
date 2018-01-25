@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Divergence
 import hamburg.remme.tinygit.domain.Repository
@@ -25,7 +26,6 @@ import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.beans.binding.Bindings
-import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
@@ -136,17 +136,17 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun updateBranches(branches: ObservableList<TreeItem<RepositoryEntry>>, updatedList: List<Branch>, type: EntryType) {
-        branches.addAll(updatedList.filter { branch -> branches.none { it.value.value == branch.name } }
-                .map { TreeItem(RepositoryEntry(it.name, type)) })
+        branches.addSorted(updatedList.filter { branch -> branches.none { it.value.value == branch.name } }
+                .map { TreeItem(RepositoryEntry(it.name, type)) },
+                { b1, b2 -> b1.value.value.compareTo(b2.value.value) })
         branches.removeAll(branches.filter { branch -> updatedList.none { it.name == branch.value.value } })
-        FXCollections.sort(branches, { left, right -> left.value.value.compareTo(right.value.value) })
     }
 
     private fun updateStashes(updatedList: List<StashEntry>) {
-        stash.children.addAll(updatedList.filter { entry -> stash.children.none { it.value.value == entry.message } }
-                .map { TreeItem(RepositoryEntry(it.message, EntryType.STASH_ENTRY)) })
+        stash.children.addSorted(updatedList.filter { entry -> stash.children.none { it.value.value == entry.message } }
+                .map { TreeItem(RepositoryEntry(it.message, EntryType.STASH_ENTRY)) },
+                { s1, s2 -> updatedList.indexOf(s1.value.value) - updatedList.indexOf(s2.value.value) })
         stash.children.removeAll(stash.children.filter { entry -> updatedList.none { it.message == entry.value.value } })
-        FXCollections.sort(stash.children, { left, right -> updatedList.indexOf(left.value.value) - updatedList.indexOf(right.value.value) })
     }
 
     private fun List<StashEntry>.indexOf(message: String) = indexOfFirst { it.message == message }

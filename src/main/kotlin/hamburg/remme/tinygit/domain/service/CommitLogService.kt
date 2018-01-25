@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.TimeoutException
@@ -9,7 +10,6 @@ import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.git.gitUpToDate
 import hamburg.remme.tinygit.observableList
 import javafx.beans.property.SimpleObjectProperty
-import javafx.collections.FXCollections
 import javafx.concurrent.Task
 
 class CommitLogService(private val service: RepositoryService) : Refreshable {
@@ -28,8 +28,7 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
         val result = gitLog(repository, max, max + 50).filter { commits.none(it::equals) }
         if (result.isNotEmpty()) {
             max += 50
-            commits.addAll(result)
-            FXCollections.sort(commits)
+            commits.addSorted(result)
         }
     }
 
@@ -62,9 +61,8 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
             override fun call() = gitLog(repository, 0, max)
 
             override fun succeeded() {
-                commits.addAll(value.filter { commits.none(it::equals) })
+                commits.addSorted(value.filter { commits.none(it::equals) })
                 commits.removeAll(commits.filter { value.none(it::equals) })
-                FXCollections.sort(commits)
                 logRemote()
             }
         }.also { TinyGit.execute(it) }
@@ -79,9 +77,8 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
             }
 
             override fun succeeded() {
-                commits.addAll(value.filter { commits.none(it::equals) })
+                commits.addSorted(value.filter { commits.none(it::equals) })
                 commits.removeAll(commits.filter { value.none(it::equals) })
-                FXCollections.sort(commits)
                 TinyGit.fireEvent()
             }
 

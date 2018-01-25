@@ -33,7 +33,8 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
         </html>
     """
     private val contextLines: ComboBox<Int>
-    private val fileDiff: WebEngine
+    private val engine: WebEngine
+    private var diff = empty
 
     init {
         contextLines = comboBox {
@@ -53,9 +54,9 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
             isContextMenuEnabled = false
             prefWidth = 400.0
             prefHeight = 300.0
-            engine.loadContent(empty)
+            engine.loadContent(diff)
         }
-        fileDiff = webView.engine
+        engine = webView.engine
         +webView
 
         file.addListener { _, _, _ -> update() }
@@ -65,10 +66,18 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
 
     private fun update() {
         if (file.get() != null) {
-            if (commit.get() != null) fileDiff.loadContent(diffService.diff(file.get()!!, commit.get()!!, contextLines.value))
-            else fileDiff.loadContent(diffService.diff(file.get()!!, contextLines.value))
+            val newDiff = if (commit.get() != null) {
+                diffService.diff(file.get()!!, commit.get()!!, contextLines.value)
+            } else {
+                diffService.diff(file.get()!!, contextLines.value)
+            }
+            if (diff != newDiff) {
+                diff = newDiff
+                engine.loadContent(diff)
+            }
         } else {
-            fileDiff.loadContent(empty)
+            diff = empty
+            engine.loadContent(diff)
         }
     }
 

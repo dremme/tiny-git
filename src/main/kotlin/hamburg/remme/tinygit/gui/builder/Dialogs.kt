@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.TinyGit
-import hamburg.remme.tinygit.asFile
+import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.asResource
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.ChoiceDialog
@@ -15,6 +15,8 @@ import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Window
 import java.nio.file.Path
+
+var chooserDirectory = System.getProperty("user.home").asPath() // TODO: persist?
 
 fun ButtonType.isOk() = buttonData == ButtonBar.ButtonData.OK_DONE
 
@@ -123,15 +125,21 @@ inline fun choiceDialog(window: Window,
 inline fun fileChooser(window: Window, title: String, block: (Path) -> Unit) {
     val chooser = FileChooser()
     chooser.title = title
-    chooser.initialDirectory = System.getProperty("user.home").asFile()
+    chooser.initialDirectory = chooserDirectory.toFile()
     TinyGit.state.isModal.set(true)
-    chooser.showOpenDialog(window)?.let { block.invoke(it.toPath()) }
+    chooser.showOpenDialog(window)?.toPath()?.let {
+        chooserDirectory = it
+        block.invoke(it)
+    }
 }
 
 inline fun directoryChooser(window: Window, title: String, block: (Path) -> Unit) {
     val chooser = DirectoryChooser()
     chooser.title = title
-    chooser.initialDirectory = System.getProperty("user.home").asFile()
+    chooser.initialDirectory = chooserDirectory.toFile()
     TinyGit.state.isModal.set(true)
-    chooser.showDialog(window)?.let { block.invoke(it.toPath()) }
+    chooser.showDialog(window)?.toPath()?.let {
+        chooserDirectory = it
+        block.invoke(it)
+    }
 }

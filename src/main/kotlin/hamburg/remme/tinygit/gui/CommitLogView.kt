@@ -34,8 +34,7 @@ class CommitLogView : Tab() {
     private val branchService = TinyGit.branchService
     private val progressPane: ProgressPane
     private val localCommits = TableView<Commit>(logService.commits)
-    private val selectedCommit: Commit?
-        @Suppress("UNNECESSARY_SAFE_CALL") get() = localCommits?.selectionModel?.selectedItem
+    private val selectedCommit: Commit? get() = localCommits.selectionModel.selectedItem
     private val commitDetails = CommitDetailsView()
     private val window: Window get() = content.scene.window
 

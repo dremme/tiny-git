@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.delete
 import hamburg.remme.tinygit.domain.File
@@ -15,7 +16,6 @@ import hamburg.remme.tinygit.git.gitReset
 import hamburg.remme.tinygit.git.gitStatus
 import hamburg.remme.tinygit.observableList
 import javafx.beans.property.SimpleStringProperty
-import javafx.collections.FXCollections
 import javafx.concurrent.Task
 
 class WorkingCopyService : Refreshable {
@@ -28,23 +28,6 @@ class WorkingCopyService : Refreshable {
     val message = SimpleStringProperty()
     private lateinit var repository: Repository
     private var task: Task<*>? = null // TODO: needed?
-
-    fun status(successHandler: (() -> Unit)? = null) {
-        task?.cancel()
-        task = object : Task<Status>() {
-            override fun call() = gitStatus(repository)
-
-            override fun succeeded() {
-                staged.addAll(value.staged.filter { staged.none(it::equals) })
-                staged.removeAll(staged.filter { value.staged.none(it::equals) })
-                pending.addAll(value.pending.filter { pending.none(it::equals) })
-                pending.removeAll(pending.filter { value.pending.none(it::equals) })
-                FXCollections.sort(staged)
-                FXCollections.sort(pending)
-                successHandler?.invoke()
-            }
-        }.also { TinyGit.execute(it) }
-    }
 
     fun stage() {
         gitAdd(repository)
@@ -115,6 +98,21 @@ class WorkingCopyService : Refreshable {
     private fun update(repository: Repository) {
         this.repository = repository
         status()
+    }
+
+    private fun status(successHandler: (() -> Unit)? = null) {
+        task?.cancel()
+        task = object : Task<Status>() {
+            override fun call() = gitStatus(repository)
+
+            override fun succeeded() {
+                staged.addSorted(value.staged.filter { staged.none(it::equals) })
+                staged.removeAll(staged.filter { value.staged.none(it::equals) })
+                pending.addSorted(value.pending.filter { pending.none(it::equals) })
+                pending.removeAll(pending.filter { value.pending.none(it::equals) })
+                successHandler?.invoke()
+            }
+        }.also { TinyGit.execute(it) }
     }
 
 }
