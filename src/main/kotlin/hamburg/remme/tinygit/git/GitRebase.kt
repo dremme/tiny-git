@@ -17,6 +17,7 @@ private val nextFile = "next"
 private val lastFile = "last"
 private val doneFile = "done"
 private val todoFile = "git-rebase-todo"
+private val rebaseMarker = "Cannot rebase: "
 
 fun gitIsRebasing(repository: Repository): Boolean {
     val gitDir = repository.path.asPath().resolve(".git")
@@ -35,7 +36,8 @@ fun gitRebaseStatus(repository: Repository): Rebase {
 }
 
 fun gitRebase(repository: Repository, branch: String) {
-    git(repository, *rebase, branch)
+    val response = git(repository, *rebase, branch).trim()
+    if (response.startsWith(rebaseMarker)) throw RebaseException(response.substringAfter(rebaseMarker))
 }
 
 fun gitRebaseContinue(repository: Repository) {

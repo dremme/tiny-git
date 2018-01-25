@@ -16,6 +16,8 @@ class BranchUnpushedException : RuntimeException()
 
 class BranchBehindException : RuntimeException()
 
+class RebaseException(message: String) : RuntimeException(message)
+
 class UnmergedException : RuntimeException()
 
 class StashPopException : RuntimeException()

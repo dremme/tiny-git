@@ -262,27 +262,20 @@ class GitView : VBoxBuilder() {
         val current = branchService.head.get()
         val branches = branchService.branches.map { it.name }.filter { it != current }
         choiceDialog(window, "Select a Branch for Rebasing", "Rebase", Icons.levelUp().flipX(), branches) {
-            rebaseService.rebase(it)
+            rebaseService.rebase(it, { errorAlert(window, "Cannot Rebase", it) })
         }
     }
 
     private fun rebaseContinue() {
-        rebaseService.`continue`({
-            errorAlert(window, "Unresolved Conflicts",
-                    "Cannot continue with rebase because there are unresolved conflicts.")
-        })
+        rebaseService.`continue`({ errorAlert(window, "Unresolved Conflicts", "Cannot continue with rebase because there are unresolved conflicts.") })
     }
 
     private fun stashPop() {
-        stashService.pop({
-            errorAlert(window, "Cannot Pop Stash",
-                    "Applying stashed changes resulted in a conflict.\nTherefore the stash entry has been preserved.")
-        })
+        stashService.pop({ errorAlert(window, "Cannot Pop Stash", "Applying stashed changes resulted in a conflict.\nTherefore the stash entry has been preserved.") })
     }
 
     private fun autoReset() {
-        if (!confirmWarningAlert(window, "Auto Reset Branch", "Reset",
-                "This will automatically reset the current branch to its remote branch.\nUnpushed commits will be lost.")) return
+        if (!confirmWarningAlert(window, "Auto Reset Branch", "Reset", "This will automatically reset the current branch to its remote branch.\nUnpushed commits will be lost.")) return
         branchService.autoReset()
     }
 
