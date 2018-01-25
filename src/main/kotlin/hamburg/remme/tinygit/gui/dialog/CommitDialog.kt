@@ -52,7 +52,10 @@ class CommitDialog(window: Window)
                 message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
         +DialogButton(DialogButton.CANCEL)
 
-        focusAction = { fileDiff.refresh() }
+        focusAction = {
+            workingService.status()
+            fileDiff.refresh()
+        }
         okAction = {
             commitService.commit(
                     message.text,

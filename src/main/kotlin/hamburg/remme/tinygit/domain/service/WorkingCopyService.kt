@@ -29,6 +29,21 @@ class WorkingCopyService : Refreshable {
     private lateinit var repository: Repository
     private var task: Task<*>? = null // TODO: needed?
 
+    fun status(successHandler: (() -> Unit)? = null) {
+        task?.cancel()
+        task = object : Task<Status>() {
+            override fun call() = gitStatus(repository)
+
+            override fun succeeded() {
+                staged.addSorted(value.staged.filter { staged.none(it::equals) })
+                staged.removeAll(staged.filter { value.staged.none(it::equals) })
+                pending.addSorted(value.pending.filter { pending.none(it::equals) })
+                pending.removeAll(pending.filter { value.pending.none(it::equals) })
+                successHandler?.invoke()
+            }
+        }.also { TinyGit.execute(it) }
+    }
+
     fun stage() {
         gitAdd(repository)
         gitRemove(repository, pending.filter { it.status == File.Status.REMOVED })
@@ -98,21 +113,6 @@ class WorkingCopyService : Refreshable {
     private fun update(repository: Repository) {
         this.repository = repository
         status()
-    }
-
-    private fun status(successHandler: (() -> Unit)? = null) {
-        task?.cancel()
-        task = object : Task<Status>() {
-            override fun call() = gitStatus(repository)
-
-            override fun succeeded() {
-                staged.addSorted(value.staged.filter { staged.none(it::equals) })
-                staged.removeAll(staged.filter { value.staged.none(it::equals) })
-                pending.addSorted(value.pending.filter { pending.none(it::equals) })
-                pending.removeAll(pending.filter { value.pending.none(it::equals) })
-                successHandler?.invoke()
-            }
-        }.also { TinyGit.execute(it) }
     }
 
 }

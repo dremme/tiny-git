@@ -22,6 +22,7 @@ import hamburg.remme.tinygit.git.gitVersion
 import hamburg.remme.tinygit.gui.GitView
 import hamburg.remme.tinygit.gui.builder.fatalAlert
 import javafx.application.Application
+import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
 import javafx.scene.Scene
@@ -31,6 +32,8 @@ import javafx.stage.Stage
 import java.util.Locale
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.TimeUnit
 
 // TODO: the great clean-up tbd
 // TODO: clean-up nested collection methods
@@ -55,8 +58,11 @@ class TinyGit : Application() {
 
     companion object {
 
-        private val refreshListeners = mutableListOf<(Repository) -> Unit>()
-        private val pool = Executors.newCachedThreadPool({ Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } })
+        private val cpuCount = (Runtime.getRuntime().availableProcessors() - 1).takeIf { it > 0 } ?: 1
+        private val daemonFactory = ThreadFactory { Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } }
+        private val pool = Executors.newFixedThreadPool(cpuCount, daemonFactory)
+        private val scheduler = Executors.newScheduledThreadPool(1, daemonFactory)
+        private val listeners = mutableListOf<(Repository) -> Unit>()
         val settings: Settings = Settings()
         val repositoryService: RepositoryService = RepositoryService()
         val remoteService = RemoteService().addListeners()
@@ -88,11 +94,11 @@ class TinyGit : Application() {
         }
 
         fun addListener(block: (Repository) -> Unit) {
-            refreshListeners += block
+            listeners += block
         }
 
         fun fireEvent() {
-            repositoryService.activeRepository.get()?.let { repository -> refreshListeners.forEach { it.invoke(repository) } }
+            repositoryService.activeRepository.get()?.let { repository -> listeners.forEach { it.invoke(repository) } }
         }
 
         fun execute(task: Task<*>) = pool.execute(task)
@@ -157,6 +163,8 @@ class TinyGit : Application() {
                 rebaseService.rebaseNext,
                 rebaseService.rebaseLast))
         stage.show()
+
+        scheduler.scheduleAtFixedRate({ if (!stage.isFocused && !state.isModal.get()) Platform.runLater { fireEvent() } }, 0, 10, TimeUnit.SECONDS)
     }
 
     override fun stop() = settings.save()

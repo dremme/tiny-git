@@ -80,12 +80,12 @@ fun String.htmlEncodeAll() = htmlEncode().htmlEncodeSpaces()
 fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*items)!!
 
 fun <T : Comparable<T>> ObservableList<T>.addSorted(items: Collection<T>) = items.forEach { item ->
-    val index = indexOfFirst { it < item }
+    val index = indexOfFirst { it > item }
     if (index < 0) add(item) else add(index, item)
 }
 
 fun <T> ObservableList<T>.addSorted(items: Collection<T>, comparator: (T, T) -> Int) = items.forEach { item ->
-    val index = indexOfFirst { comparator.invoke(it, item) < 0 }
+    val index = indexOfFirst { comparator.invoke(it, item) > 0 }
     if (index < 0) add(item) else add(index, item)
 }
 
