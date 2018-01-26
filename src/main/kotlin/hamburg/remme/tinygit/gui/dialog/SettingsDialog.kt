@@ -35,8 +35,13 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings
         +DialogButton(DialogButton.CANCEL)
 
         val originalProxy = gitGetProxy(repository)
-        originalHost = originalProxy.substringBeforeLast(':')
-        originalPort = originalProxy.substringAfterLast(':').toInt()
+        if (originalProxy.isNotEmpty()) {
+            originalHost = originalProxy.substringBeforeLast(':')
+            originalPort = originalProxy.substringAfterLast(':').toInt()
+        } else {
+            originalHost = ""
+            originalPort = 80
+        }
 
         val remote = textField {
             columnSpan(3)

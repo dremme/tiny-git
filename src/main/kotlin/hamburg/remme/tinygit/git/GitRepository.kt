@@ -6,6 +6,8 @@ import hamburg.remme.tinygit.read
 
 private val init = arrayOf("init")
 private val clone = arrayOf("clone")
+private val notFound = "$fatalSeparator.*repository.*not found".toRegex(IC)
+private val notExist = "$fatalSeparator.*repository.*does not exist".toRegex(IC)
 
 fun gitInit(path: String) {
     git(*init, path)
@@ -19,8 +21,7 @@ fun gitClone(repository: Repository, proxyHost: String, proxyPort: Int, url: Str
     }.trim()
     if (response.contains("$fatalSeparator.*already exists".toRegex(setOf(IC, G)))) {
         throw CloneException("Destination '${repository.path}' already exists and is not empty.")
-    } else if (response.lines().any { it.contains("$fatalSeparator.*repository.*not found".toRegex(IC)) } ||
-            response.lines().any { it.contains("$fatalSeparator.*repository.*does not exist".toRegex(IC)) }) {
+    } else if (response.lines().any { it.contains(notFound) || it.contains(notExist) }) {
         throw CloneException("Repository '$url' not found.")
     }
 }

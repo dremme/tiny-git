@@ -99,7 +99,7 @@ class CommitLogView : Tab() {
         content = progressPane
 
         logService.logExecutor = progressPane
-        logService.timeoutHandler = { errorAlert(window, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }
+        logService.logErrorHandler = { errorAlert(window, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }
 
         Platform.runLater {
             localCommits.resizeColumn(message, localCommits.width * 0.6)

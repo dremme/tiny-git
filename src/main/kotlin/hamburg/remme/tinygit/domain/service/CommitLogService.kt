@@ -4,7 +4,7 @@ import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.git.TimeoutException
+import hamburg.remme.tinygit.git.FetchException
 import hamburg.remme.tinygit.git.gitFetch
 import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.git.gitUpToDate
@@ -17,17 +17,17 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
     val commits = observableList<Commit>()
     val activeCommit = SimpleObjectProperty<Commit?>()
     lateinit var logExecutor: TaskExecutor
-    lateinit var timeoutHandler: () -> Unit
+    lateinit var logErrorHandler: (String) -> Unit
     private lateinit var repository: Repository
     private var quickTask: Task<*>? = null
     private var remoteTask: Task<*>? = null
+    private val maxIncrement = 30
     private var max = 0
 
-    // TODO: really synchronous?
     fun logMore() {
-        val result = gitLog(repository, max, max + 50).filter { commits.none(it::equals) }
+        val result = gitLog(repository, max, max + maxIncrement).filter { commits.none(it::equals) }
         if (result.isNotEmpty()) {
-            max += 50
+            max += maxIncrement
             commits.addSorted(result)
         }
     }
@@ -42,7 +42,7 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
     }
 
     override fun onRepositoryDeselected() {
-        max = 50
+        max = maxIncrement
         quickTask?.cancel()
         remoteTask?.cancel()
         commits.clear()
@@ -84,7 +84,7 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
 
             override fun failed() {
                 when (exception) {
-                    is TimeoutException -> timeoutHandler.invoke()
+                    is FetchException -> logErrorHandler.invoke(exception.message!!)
                     else -> exception.printStackTrace()
                 }
             }

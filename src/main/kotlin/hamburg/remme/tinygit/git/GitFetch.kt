@@ -12,24 +12,22 @@ fun gitUpToDate(repository: Repository): Boolean {
 }
 
 fun gitFetch(repository: Repository) {
-    git(repository, *fetch).trim()
+    val response = git(repository, *fetch).trim()
+    if (response.lines().any { it.startsWith(errorSeparator) || it.startsWith(fatalSeparator) }) throw FetchException(response.parseError())
     upToDate.add(repository)
 }
 
 fun gitFetchPrune(repository: Repository) {
-    git(repository, *fetchPrune).trim()
+    val response = git(repository, *fetchPrune).trim()
+    if (response.lines().any { it.startsWith(errorSeparator) || it.startsWith(fatalSeparator) }) throw FetchException(response.parseError())
     upToDate.add(repository)
 }
 
 fun gitPull(repository: Repository) {
     val response = git(repository, *pull).trim()
-    if (response.lines().any { it.startsWith(errorSeparator) }) throw PullException(response.parseError())
+    if (response.lines().any { it.startsWith(errorSeparator) || it.startsWith(fatalSeparator) }) throw PullException(response.parseError())
 }
 
 private fun String.parseError(): String {
-    return lines()
-            .dropWhile { !it.startsWith(errorSeparator) }
-            .dropLast(1)
-            .joinToString("\n")
-            .substringAfter(errorSeparator)
+    return lines().joinToString("\n") { it.substringAfter(errorSeparator).substringAfter(fatalSeparator) }
 }
