@@ -6,7 +6,6 @@ import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.exists
 import hamburg.remme.tinygit.git.gitClone
 import hamburg.remme.tinygit.git.gitGc
-import hamburg.remme.tinygit.git.gitGetProxy
 import hamburg.remme.tinygit.git.gitHasRemote
 import hamburg.remme.tinygit.git.gitInit
 import hamburg.remme.tinygit.observableList
@@ -32,11 +31,15 @@ class RepositoryService {
         add(Repository(path))
     }
 
-    fun clone(repository: Repository, url: String, errorHandler: (String) -> Unit) {
+    fun clone(repository: Repository, url: String, proxyHost: String, proxyPort: Int,
+              successHandler: () -> Unit, errorHandler: (String) -> Unit) {
         TinyGit.execute("Cloning...", object : Task<Unit>() {
-            override fun call() = gitClone(repository, url)
+            override fun call() = gitClone(repository, proxyHost, proxyPort, url)
 
-            override fun succeeded() = add(repository)
+            override fun succeeded() {
+                add(repository)
+                successHandler.invoke()
+            }
 
             override fun failed() = errorHandler.invoke(exception.message!!)
         })
@@ -44,11 +47,7 @@ class RepositoryService {
 
     fun open(path: String, invalidHandler: () -> Unit) {
         if (path.asPath().resolve(".git").exists()) {
-            val repository = Repository(path)
-            val match = "(.+):(\\d+)".toRegex().matchEntire(gitGetProxy(repository).trim())!!.groups
-            repository.proxyHost = match[1]?.value ?: ""
-            repository.proxyPort = match[2]?.value?.toInt() ?: 80
-            add(repository)
+            add(Repository(path))
         } else {
             invalidHandler.invoke()
         }

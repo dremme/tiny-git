@@ -10,6 +10,7 @@ import javafx.scene.control.TextField
 import javafx.scene.control.TextFormatter
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
+import javafx.util.StringConverter
 import javafx.util.converter.IntegerStringConverter
 
 inline fun textField(block: TextFieldBuilder.() -> Unit): TextField {
@@ -59,6 +60,13 @@ class TextFieldBuilder : TextField() {
 
     fun intFormatter(value: Int) {
         textFormatter = TextFormatter<Int>(IntegerStringConverter(), value)
+    }
+
+    fun emailFormatter(value: String = "") {
+        textFormatter = TextFormatter<String>(object : StringConverter<String>() {
+            override fun toString(`object`: String?) = `object`.toString()
+            override fun fromString(string: String?) = string?.takeIf { it.matches(".+@.+\\..+".toRegex()) } ?: ""
+        }, value)
     }
 
 }
