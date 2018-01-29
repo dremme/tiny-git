@@ -31,7 +31,7 @@ class CommitDetailsView : SplitPaneBuilder() {
             }
             +stackPane {
                 +vbox {
-                    +toolBar { +StatusCountView(files) }
+                    +toolBar { +StatusCountView(files.items) }
                     +files
                 }
                 +stackPane {

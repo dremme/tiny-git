@@ -5,11 +5,12 @@ import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
 import javafx.collections.ListChangeListener
+import javafx.collections.ObservableList
 import javafx.scene.control.Label
 import javafx.scene.control.Tooltip
 import javafx.scene.layout.HBox
 
-class StatusCountView(statusView: FileStatusView) : HBox() {
+class StatusCountView(items: ObservableList<File>) : HBox() {
 
     private val conflicting = label {
         addClass("status-conflict")
@@ -71,7 +72,7 @@ class StatusCountView(statusView: FileStatusView) : HBox() {
     init {
         addClass("status-count-view")
         children.addAll(conflicting, added, copied, renamed, modified, removed, missing, untracked)
-        statusView.items.addListener(ListChangeListener { update(it.list) })
+        items.addListener(ListChangeListener { update(it.list) })
     }
 
     private fun update(files: List<File>) {

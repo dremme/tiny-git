@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit
 // TODO: clean-up nested let {} for map {}
 // TODO: instead of also {} and apply {}, use onEach {} at the end of a statement chain
 // TODO: boolean properties (and parameters) should start with 'is'
-// TODO: use type inference with ... : get() = ...
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
 
@@ -76,14 +75,7 @@ class TinyGit : Application() {
         val commitDetailsService = CommitDetailsService(commitLogService).addListeners()
         val commitService = CommitService(workingCopyService).addListeners()
         val diffService = DiffService().addListeners()
-        val state = State(
-                repositoryService,
-                branchService,
-                workingCopyService,
-                divergenceService,
-                mergeService,
-                rebaseService,
-                stashService)
+        val state = State(repositoryService, branchService, workingCopyService, divergenceService, mergeService, rebaseService, stashService)
         private lateinit var application: Application
         private lateinit var stage: Stage
 

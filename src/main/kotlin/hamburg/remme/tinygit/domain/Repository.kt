@@ -5,7 +5,7 @@ import hamburg.remme.tinygit.shorten
 
 class Repository(var path: String = "") {
 
-    val shortPath: String get() = path.shorten()
+    val shortPath get() = path.shorten()
 
     fun resolve(file: File) = "${path.normalize()}/${file.path}"
 

@@ -23,19 +23,15 @@ import javafx.scene.control.Tab
 import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
-import javafx.stage.Window
 import java.util.concurrent.Callable
 
 class WorkingCopyView : Tab() {
 
     private val workingService = TinyGit.workingCopyService
     private val state = TinyGit.state
-    private val window: Window get() = content.scene.window
+    private val window get() = content.scene.window
 
-    val actions: Array<ActionGroup>
-        get() = arrayOf(
-                ActionGroup(updateAll, stageAll, stageSelected),
-                ActionGroup(unstageAll, unstageSelected))
+    val actions get() = arrayOf(ActionGroup(updateAll, stageAll, stageSelected), ActionGroup(unstageAll, unstageSelected))
     private val unstageAll = Action("Unstage all", { Icons.arrowCircleDown() }, "Shortcut+Shift+L", state.canUnstageAll.not(),
             { workingService.unstage() })
     private val unstageSelected = Action("Unstage selected", { Icons.arrowCircleDown() }, disable = state.canUnstageSelected.not(),
@@ -119,7 +115,7 @@ class WorkingCopyView : Tab() {
 
                     +vbox {
                         +toolBar {
-                            +StatusCountView(staged)
+                            +StatusCountView(staged.items)
                             addSpacer()
                             +unstageAll
                             +unstageSelected
@@ -128,7 +124,7 @@ class WorkingCopyView : Tab() {
                     }
                     +vbox {
                         +toolBar {
-                            +StatusCountView(pending)
+                            +StatusCountView(pending.items)
                             addSpacer()
                             +updateAll
                             +stageAll

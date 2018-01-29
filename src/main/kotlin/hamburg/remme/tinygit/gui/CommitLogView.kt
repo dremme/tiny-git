@@ -2,7 +2,6 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
-import hamburg.remme.tinygit.gui.builder.ProgressPane
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
@@ -26,17 +25,12 @@ import javafx.scene.control.TableView
 import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
-import javafx.stage.Window
 
 class CommitLogView : Tab() {
 
     private val logService = TinyGit.commitLogService
     private val branchService = TinyGit.branchService
-    private val progressPane: ProgressPane
-    private val localCommits = TableView<Commit>(logService.commits)
-    private val selectedCommit: Commit? get() = localCommits.selectionModel.selectedItem
-    private val commitDetails = CommitDetailsView()
-    private val window: Window get() = content.scene.window
+    private val window get() = content.scene.window
 
     init {
         text = "Commits"
@@ -65,7 +59,8 @@ class CommitLogView : Tab() {
             setCellValueFactory { SimpleStringProperty(it.value.shortId) }
         }
 
-        localCommits.items.addListener(ListChangeListener { selectedCommit ?: localCommits.selectionModel.selectFirst() })
+        val localCommits = TableView<Commit>(logService.commits)
+        localCommits.items.addListener(ListChangeListener { localCommits.selectionModel.selectedItem ?: localCommits.selectionModel.selectFirst() })
         localCommits.columns.addAll(message, date, author, commit)
         localCommits.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
         localCommits.selectionModel.selectedItemProperty().addListener { _, _, it -> logService.activeCommit.set(it) }
@@ -77,18 +72,18 @@ class CommitLogView : Tab() {
             }
         }
         localCommits.setOnKeyPressed {
-            if (it.code == KeyCode.DOWN && selectedCommit == localCommits.items.last()) {
+            if (it.code == KeyCode.DOWN && localCommits.selectionModel.selectedItem == localCommits.items.last()) {
                 logService.logMore()
-                localCommits.scrollTo(selectedCommit)
+                localCommits.scrollTo(localCommits.selectionModel.selectedItem)
             }
         }
 
-        progressPane = progressPane {
+        val progressPane = progressPane {
             +splitPane {
                 addClass("log-view")
                 vgrow(Priority.ALWAYS)
                 +localCommits
-                +commitDetails
+                +CommitDetailsView()
             }
             +stackPane {
                 addClass("overlay")
@@ -121,12 +116,14 @@ class CommitLogView : Tab() {
                     +label {
                         addClass("branch-badge")
                         if (it == branchService.head.get()) addClass("current")
-                        text = it.substringAfter("tag:").trim()
+                        text = it.substringAfter("tag:").trim().abbrev()
                         graphic = if (it.startsWith("tag:")) Icons.tag() else Icons.codeFork()
                     }
                 }
             }
         }
+
+        private fun String.abbrev() = if (length > 35) "${substring(0, 35)}..." else this
 
     }
 

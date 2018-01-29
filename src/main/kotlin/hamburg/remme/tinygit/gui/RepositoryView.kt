@@ -39,7 +39,6 @@ import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
 import javafx.scene.layout.Priority
-import javafx.stage.Window
 import javafx.util.Callback
 import java.util.concurrent.Callable
 
@@ -48,11 +47,10 @@ class RepositoryView : VBoxBuilder() {
     private val repoService = TinyGit.repositoryService
     private val branchService = TinyGit.branchService
     private val stashService = TinyGit.stashService
-    private val window: Window get() = scene.window
+    private val window get() = scene.window
     private val repository: ComboBox<Repository>
     private val tree: TreeView<RepositoryEntry>
-    private val selectedEntry: RepositoryEntry?
-        @Suppress("UNNECESSARY_SAFE_CALL") get() = tree?.selectionModel?.selectedItem?.value
+    private val selectedEntry @Suppress("UNNECESSARY_SAFE_CALL") get() = tree?.selectionModel?.selectedItem?.value
     private val localBranches: TreeItem<RepositoryEntry>
     private val remoteBranches: TreeItem<RepositoryEntry>
     private val stash: TreeItem<RepositoryEntry>

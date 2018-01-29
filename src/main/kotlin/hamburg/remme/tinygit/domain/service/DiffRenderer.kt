@@ -54,10 +54,12 @@ class DiffRenderer {
         when {
             raw.startsWith("+++") || raw.startsWith("---") -> return this
             raw.isBlank() -> appendln(div(" ".htmlEncodeAll(), ""))
+            raw.startsWith("* Unmerged path") -> appendln(divH("@@ Unmerged path @@"))
+            raw.startsWith("Binary files ") -> appendln(divH("@@ Binary file @@"))
             raw.startsWith('@') -> appendln(divH(raw.substring(0, raw.indexOfLast { it == '@' } + 1).htmlEncodeAll()))
-            raw.startsWith('+') -> appendln(divP(raw.substringAfter('+').sanitize()))
-            raw.startsWith('-') -> appendln(divM(raw.substringAfter('-').sanitize()))
-            raw.startsWith(' ') -> appendln(div(raw.substringAfter(' ').sanitize(), ""))
+            raw.startsWith('+') -> appendln(divP(raw.sanitize()))
+            raw.startsWith('-') -> appendln(divM(raw.sanitize()))
+            raw.startsWith(' ') -> appendln(div(raw.sanitize(), ""))
         }
         return this
     }

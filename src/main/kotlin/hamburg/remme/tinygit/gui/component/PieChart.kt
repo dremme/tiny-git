@@ -1,10 +1,10 @@
 package hamburg.remme.tinygit.gui.component
 
 import javafx.collections.ObservableList
-import javafx.scene.chart.PieChart
 import javafx.scene.control.Tooltip
+import javafx.scene.chart.PieChart as FXPieChart
 
-class PieChart(data: ObservableList<PieChart.Data>, private val labelSuffix: String) : PieChart(data) {
+class PieChart(data: ObservableList<FXPieChart.Data>, private val labelSuffix: String) : FXPieChart(data) {
 
     init {
         labelsVisible = false

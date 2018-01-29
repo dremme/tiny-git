@@ -14,7 +14,6 @@ import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.textField
 import hamburg.remme.tinygit.gui.component.Icons
 import javafx.scene.control.Label
-import javafx.scene.control.TextFormatter
 import javafx.stage.Window
 
 class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
