@@ -19,7 +19,6 @@ import javafx.util.Callback
 class FileDiffView(private val file: ObservableObjectValue<File?>,
                    private val commit: ObservableObjectValue<Commit?> = SimpleObjectProperty()) : VBoxBuilder() {
 
-    private val diffService = TinyGit.diffService
     //language=HTML
     private val empty = """
         <html>
@@ -32,6 +31,7 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
         </head>
         </html>
     """
+    private val diffService = TinyGit.diffService
     private val contextLines: ComboBox<Int>
     private val engine: WebEngine
     private var diff = empty
