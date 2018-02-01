@@ -11,7 +11,7 @@ val G = RegexOption.DOT_MATCHES_ALL
 val errorSeparator = "error: "
 val fatalSeparator = "fatal: "
 val defaultBranches = arrayOf("master", "origin/master", "develop", "origin/develop", "trunk", "origin/trunk")
-private val gitVersion = arrayOf("--version")
+private val gitVersion = arrayOf("version")
 private val versionPattern = "git version (\\d+)\\.(\\d+)\\.(\\d+).*".toRegex(setOf(IC, G))
 
 fun gitIsInstalled(): Boolean {

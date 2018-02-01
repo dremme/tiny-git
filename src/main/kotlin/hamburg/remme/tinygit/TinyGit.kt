@@ -115,6 +115,7 @@ class TinyGit : Application() {
         TinyGit.stage = stage
 
         // We terminate here because technical requirements for TinyGit aren't met
+        if (PlatformUtil.isMac()) gitIsInstalled() // Mac workaround
         if (!gitIsInstalled()) {
             fatalAlert("Git Error", "Git is not installed or not in PATH.")
             showDocument("https://git-scm.com/downloads")

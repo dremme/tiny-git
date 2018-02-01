@@ -46,8 +46,8 @@ class DiffRenderer {
                     }
                     .l-num,
                     .r-num {
-                        padding: 0 2px;
-                        width: ${lineBuilder.numWidth * 15}px;
+                        padding: 0 4px;
+                        width: ${lineBuilder.numWidth * 15 + 8}px;
                         text-align: right;
                     }
                 </style>
