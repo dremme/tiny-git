@@ -16,6 +16,10 @@ fun gitSetWincred() {
     git(*credentialHelper, "wincred")
 }
 
+fun gitSetKeychain() {
+    git(*credentialHelper, "osxkeychain")
+}
+
 fun gitGetUserName(repository: Repository): String {
     return git(repository, *userName).trim()
 }

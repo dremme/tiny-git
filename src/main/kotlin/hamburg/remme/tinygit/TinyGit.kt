@@ -17,6 +17,7 @@ import hamburg.remme.tinygit.domain.service.StashService
 import hamburg.remme.tinygit.domain.service.WorkingCopyService
 import hamburg.remme.tinygit.git.gitGetCredentialHelper
 import hamburg.remme.tinygit.git.gitIsInstalled
+import hamburg.remme.tinygit.git.gitSetKeychain
 import hamburg.remme.tinygit.git.gitSetWincred
 import hamburg.remme.tinygit.git.gitVersion
 import hamburg.remme.tinygit.gui.GitView
@@ -80,7 +81,9 @@ class TinyGit : Application() {
         private lateinit var stage: Stage
 
         fun <T : Refreshable> T.addListeners(): T {
-            repositoryService.activeRepository.addListener { _, _, it -> it?.let { onRepositoryChanged(it) } ?: onRepositoryDeselected() }
+            repositoryService.activeRepository.addListener { _, _, it ->
+                it?.let { onRepositoryChanged(it) } ?: onRepositoryDeselected()
+            }
             addListener { onRefresh(it) }
             return this
         }
@@ -129,6 +132,7 @@ class TinyGit : Application() {
             return
         }
         if (PlatformUtil.isWindows() && gitGetCredentialHelper().isBlank()) gitSetWincred()
+        if (PlatformUtil.isMac() && gitGetCredentialHelper().isBlank()) gitSetKeychain()
 
         settings.setWindow { Settings.WindowSettings(stage.x, stage.y, stage.width, stage.height, stage.isMaximized, stage.isFullScreen) }
         settings.load {
