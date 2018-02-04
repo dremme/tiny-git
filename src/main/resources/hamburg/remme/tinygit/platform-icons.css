@@ -1,0 +1,17 @@
+.platform-parent {
+    -fx-background-color: transparent;
+}
+
+.icon-wrapper {
+    -fx-min-width: 24px;
+}
+
+
+.icon {
+    -fx-font: normal 16px "Font Awesome 5 Free", sans-serif;
+    -fx-fill: #333;
+}
+
+.icon.brand {
+    -fx-font-family: "Font Awesome 5 Brands", sans-serif;
+}

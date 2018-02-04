@@ -127,7 +127,9 @@ class GitView : VBoxBuilder() {
 
         +menuBar {
             isUseSystemMenuBar = true
-            +ActionCollection("File", ActionGroup(cloneRepo, newRepo, addRepo), ActionGroup(quit))
+            val file = mutableListOf(ActionGroup(cloneRepo, newRepo, addRepo))
+            if (!PlatformUtil.isMac()) file += ActionGroup(quit)
+            +ActionCollection("File", *file.toTypedArray())
             +ActionCollection("View",
                     ActionGroup(showCommits, showWorkingCopy, showStats),
                     ActionGroup(refresh))
@@ -216,7 +218,7 @@ class GitView : VBoxBuilder() {
     private fun removeRepo() {
         val repository = repoService.activeRepository.get()!!
         if (!confirmWarningAlert(window, "Remove Repository", "Remove",
-                "Will remove the repository '$repository' from TinyGit, but keep it on the disk.")) return
+                        "Will remove the repository '$repository' from TinyGit, but keep it on the disk.")) return
         repoService.remove(repository)
     }
 
@@ -232,7 +234,7 @@ class GitView : VBoxBuilder() {
             SettingsDialog(window).show()
             return
         } else if (force && !confirmWarningAlert(window, "Force Push", "Push",
-                "This will rewrite the remote branch's history.\nChanges by others will be lost.")) {
+                        "This will rewrite the remote branch's history.\nChanges by others will be lost.")) {
             return
         }
         remoteService.push(

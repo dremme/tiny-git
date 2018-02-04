@@ -14,7 +14,7 @@ import javafx.scene.layout.Priority
 
 fun button(action: Action) = button {
     text = action.text
-    graphic = action.icon.invoke()
+    graphic = action.icon?.invoke()
     action.shortcut?.let { KeyCombination.valueOf(it).displayText }?.let { tooltip = Tooltip(it) }
     action.disable?.let { disabledWhen(it) }
     setOnAction { action.handler.invoke() }
