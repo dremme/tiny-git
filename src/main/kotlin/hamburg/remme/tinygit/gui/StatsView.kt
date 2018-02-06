@@ -154,11 +154,13 @@ class StatsView : Tab() {
         }.also { progressPane.execute(it) }
     }
 
-    private class PeriodListCell : ListCell<Year>() {
+    private inner class PeriodListCell : ListCell<Year>() {
+
         override fun updateItem(item: Year?, empty: Boolean) {
             super.updateItem(item, empty)
             text = item?.value?.toString()
         }
+
     }
 
 }

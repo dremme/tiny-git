@@ -156,16 +156,14 @@ class WorkingCopyView : Tab() {
     }
 
     private fun deleteFile() {
-        if (confirmWarningAlert(window, "Delete Files", "Delete",
-                "This will remove the selected files from the disk.")) {
+        if (confirmWarningAlert(window, "Delete Files", "Delete", "This will remove the selected files from the disk.")) {
             val selected = getIndex(selectedPending)
             workingService.delete { setIndex(selectedPending, selected) }
         }
     }
 
     private fun discardChanges() {
-        if (confirmWarningAlert(window, "Discard Changes", "Discard",
-                "This will discard all changes from the selected files.")) {
+        if (confirmWarningAlert(window, "Discard Changes", "Discard", "This will discard all changes from the selected files.")) {
             val selected = getIndex(selectedPending)
             workingService.discardChanges(
                     { setIndex(selectedPending, selected) },

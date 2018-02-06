@@ -9,6 +9,8 @@ object Icons {
 
     fun arrowCircleDown() = icon('\uf0ab')
     fun arrowCircleUp() = icon('\uf0aa')
+    fun arrowDown() = icon('\uf063')
+    fun arrowUp() = icon('\uf062')
     fun chartPie() = icon('\uf200')
     fun check() = icon('\uf00c')
     fun clone() = icon('\uf24d')
@@ -19,7 +21,6 @@ object Icons {
     fun cog() = icon('\uf013')
     fun cube() = icon('\uf1b2')
     fun cubes() = icon('\uf1b3')
-    fun database() = icon('\uf1c0')
     fun envelope() = icon('\uf0e0')
     fun eraser() = icon('\uf12d')
     fun exclamationTriangle() = icon('\uf071')

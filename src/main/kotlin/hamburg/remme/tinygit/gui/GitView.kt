@@ -256,7 +256,7 @@ class GitView : VBoxBuilder() {
         val current = branchService.head.get()
         val branches = branchService.branches.map { it.name }.filter { it != current }
         choiceDialog(window, "Select a Branch to Merge", "Merge", Icons.codeFork().flipY(), branches) {
-            mergeService.merge(it)
+            mergeService.merge(it, { errorAlert(window, "Cannot Merge", "The merge resulted in a conflict.") })
         }
     }
 
@@ -273,7 +273,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun stashPop() {
-        stashService.pop({ errorAlert(window, "Cannot Pop Stash", "Applying stashed changes resulted in a conflict.\nTherefore the stash entry has been preserved.") })
+        stashService.pop({ errorAlert(window, "Cannot Pop Stash", "Applying stashed changes resulted in a conflict.\nThe stash entry has been preserved.") })
     }
 
     private fun autoReset() {

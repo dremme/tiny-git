@@ -354,6 +354,27 @@
     -fx-fill: #409fff;
 }
 
+.repository-list-cell {
+}
+
+.repository-path {
+    -fx-font-size: 0.9em;
+    -fx-text-fill: derive(-fx-text-inner-color, -30%);
+}
+
+.repository-divergence {
+    -fx-spacing: 6;
+}
+
+.repository-divergence .label {
+    -fx-text-fill: #409fff;
+}
+
+.repository-divergence .icon {
+    -fx-font-size: 12px;
+    -fx-fill: #409fff;
+}
+
 .log-view {
     -fx-orientation: vertical;
     -fx-background-insets: 0, 0;

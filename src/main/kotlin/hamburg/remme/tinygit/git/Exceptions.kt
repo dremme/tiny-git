@@ -18,6 +18,8 @@ class BranchUnpushedException : RuntimeException()
 
 class BranchBehindException : RuntimeException()
 
+class MergeException : RuntimeException()
+
 class RebaseException(message: String) : RuntimeException(message)
 
 class UnmergedException : RuntimeException()

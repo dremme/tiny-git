@@ -13,7 +13,8 @@ fun gitIsMerging(repository: Repository): Boolean {
 }
 
 fun gitMerge(repository: Repository, branch: String) {
-    git(repository, *merge, branch)
+    val response = git(repository, *merge, branch).trim()
+    if (response.lines().any { it.startsWith("CONFLICT") }) throw MergeException()
 }
 
 fun gitMergeContinue(repository: Repository) {

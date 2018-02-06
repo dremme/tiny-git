@@ -58,7 +58,7 @@ class TinyGit : Application() {
 
     companion object {
 
-        private val cpuCount = (Runtime.getRuntime().availableProcessors() - 1).takeIf { it > 0 } ?: 1
+        private val cpuCount = Math.max(1, Runtime.getRuntime().availableProcessors() - 1)
         private val daemonFactory = ThreadFactory { Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } }
         private val pool = Executors.newFixedThreadPool(cpuCount, daemonFactory)
         private val scheduler = Executors.newScheduledThreadPool(1, daemonFactory)
@@ -81,9 +81,7 @@ class TinyGit : Application() {
         private lateinit var stage: Stage
 
         fun <T : Refreshable> T.addListeners(): T {
-            repositoryService.activeRepository.addListener { _, _, it ->
-                it?.let { onRepositoryChanged(it) } ?: onRepositoryDeselected()
-            }
+            repositoryService.activeRepository.addListener { _, _, it -> it?.let { onRepositoryChanged(it) } ?: onRepositoryDeselected() }
             addListener { onRefresh(it) }
             return this
         }
@@ -144,12 +142,7 @@ class TinyGit : Application() {
             stage.isFullScreen = it.window.fullscreen
         }
 
-        stage.focusedProperty().addListener { _, _, it ->
-            if (it) {
-                if (state.isModal.get()) state.isModal.set(false)
-                else fireEvent()
-            }
-        }
+        stage.focusedProperty().addListener { _, _, it -> if (it) state.isModal.takeIf { it.get() }?.set(false) ?: fireEvent() }
         stage.scene = Scene(GitView())
         stage.scene.stylesheets += "default.css".asResource()
         stage.icons += Image("icon.png".asResource())

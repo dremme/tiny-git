@@ -10,6 +10,7 @@ import hamburg.remme.tinygit.domain.StashEntry
 import hamburg.remme.tinygit.git.BranchAlreadyExistsException
 import hamburg.remme.tinygit.git.BranchUnpushedException
 import hamburg.remme.tinygit.git.gitDivergence
+import hamburg.remme.tinygit.greater0
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
@@ -20,12 +21,17 @@ import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.contextMenu
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
+import hamburg.remme.tinygit.gui.builder.label
+import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.builder.tree
+import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
+import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.beans.binding.Bindings
+import javafx.beans.property.SimpleIntegerProperty
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
@@ -59,6 +65,7 @@ class RepositoryView : VBoxBuilder() {
         addClass("repository-view")
 
         repository = comboBox<Repository>(repoService.existingRepositories) {
+            buttonCell = RepositoryValueCell()
             cellFactory = Callback { RepositoryListCell() }
             selectionModel.selectedItemProperty().addListener { _, _, it -> repoService.activeRepository.set(it) }
             prefWidth = Int.MAX_VALUE.toDouble()
@@ -84,15 +91,9 @@ class RepositoryView : VBoxBuilder() {
             +remoteBranches
             +stash
 
-            val canCheckout = Bindings.createBooleanBinding(
-                    Callable { selectedEntry.isBranch() },
-                    selectionModel.selectedItemProperty())
-            val canRenameBranch = Bindings.createBooleanBinding(
-                    Callable { selectedEntry.isLocal() },
-                    selectionModel.selectedItemProperty())
-            val canDeleteBranch = Bindings.createBooleanBinding(
-                    Callable { selectedEntry.isLocal() && !selectedEntry.isHead() },
-                    selectionModel.selectedItemProperty())
+            val canCheckout = Bindings.createBooleanBinding(Callable { selectedEntry.isBranch() }, selectionModel.selectedItemProperty())
+            val canRenameBranch = Bindings.createBooleanBinding(Callable { selectedEntry.isLocal() }, selectionModel.selectedItemProperty())
+            val canDeleteBranch = Bindings.createBooleanBinding(Callable { selectedEntry.isLocal() && !selectedEntry.isHead() }, selectionModel.selectedItemProperty())
             val checkoutBranch = Action("Checkout Branch", { Icons.cloudDownload() }, disable = canCheckout.not(),
                     handler = { checkout(selectedEntry!!) })
             val renameBranch = Action("Rename Branch", { Icons.pencil() }, disable = canRenameBranch.not(),
@@ -167,8 +168,7 @@ class RepositoryView : VBoxBuilder() {
         try {
             branchService.delete(entry.value, false)
         } catch (ex: BranchUnpushedException) {
-            if (confirmWarningAlert(window, "Delete Branch", "Delete",
-                    "Branch '${entry.value}' was not deleted as it has unpushed commits.\n\nForce deletion?")) {
+            if (confirmWarningAlert(window, "Delete Branch", "Delete", "Branch '${entry.value}' was not deleted as it has unpushed commits.\n\nForce deletion?")) {
                 branchService.delete(entry.value, true)
             }
         }
@@ -202,7 +202,7 @@ class RepositoryView : VBoxBuilder() {
 
     private fun RepositoryEntry?.isHead() = this?.value == branchService.head.get()
 
-    inner class RepositoryEntry(val value: String, val type: EntryType) {
+    class RepositoryEntry(val value: String, val type: EntryType) {
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -232,13 +232,54 @@ class RepositoryView : VBoxBuilder() {
 
     }
 
-    private class RepositoryListCell : ListCell<Repository>() {
-
-        private var task: Task<*>? = null
+    private inner class RepositoryValueCell : ListCell<Repository>() {
 
         override fun updateItem(item: Repository?, empty: Boolean) {
             super.updateItem(item, empty)
             text = item?.shortPath
+        }
+
+    }
+
+    private inner class RepositoryListCell : ListCell<Repository>() {
+
+        private val name = Label()
+        private val path = Label().addClass("repository-path")
+        private val ahead = SimpleIntegerProperty()
+        private val behind = SimpleIntegerProperty()
+        private var task: Task<*>? = null
+
+        init {
+            addClass("repository-list-cell")
+            graphic = vbox {
+                spacing = 2.0 // TODO: CSS?
+                +hbox {
+                    spacing = 6.0 // TODO: CSS?
+                    +name
+                    +hbox {
+                        addClass("repository-divergence")
+                        +label {
+                            graphic = Icons.arrowUp()
+                            visibleWhen(ahead.greater0())
+                            managedWhen(visibleProperty())
+                            textProperty().bind(ahead.asString())
+                        }
+                        +label {
+                            graphic = Icons.arrowDown()
+                            visibleWhen(behind.greater0())
+                            managedWhen(visibleProperty())
+                            textProperty().bind(behind.asString())
+                        }
+                    }
+                }
+                +path
+            }
+        }
+
+        override fun updateItem(item: Repository?, empty: Boolean) {
+            super.updateItem(item, empty)
+            name.text = item?.shortPath
+            path.text = item?.path
             if (!empty) updateDivergence(item!!)
         }
 
@@ -249,12 +290,8 @@ class RepositoryView : VBoxBuilder() {
                 override fun call() = gitDivergence(item)
 
                 override fun succeeded() {
-                    val divergence = mutableListOf<String>()
-                    if (value.ahead > 0) divergence += "↑ ${value.ahead}"
-                    if (value.behind > 0) divergence += "↓ ${value.behind}"
-                    divergence.takeIf { it.isNotEmpty() }?.let {
-                        text = "${item.shortPath} (${it.joinToString(" ")})"
-                    }
+                    ahead.set(value.ahead)
+                    behind.set(value.behind)
                 }
             }.also { TinyGit.execute(it) }
         }
@@ -285,6 +322,7 @@ class RepositoryView : VBoxBuilder() {
         private fun branchItem(item: RepositoryEntry) = hbox {
             +Icons.codeFork()
             +Label(item.value)
+            // TODO: does not refresh
             if (item.isHead()) {
                 addClass("current")
                 +Icons.check()

@@ -81,11 +81,13 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
         }
     }
 
-    private class ContextLinesListCell : ListCell<Int>() {
+    private inner class ContextLinesListCell : ListCell<Int>() {
+
         override fun updateItem(item: Int?, empty: Boolean) {
             super.updateItem(item, empty)
             text = item?.let { "$it lines" }
         }
+
     }
 
 }
