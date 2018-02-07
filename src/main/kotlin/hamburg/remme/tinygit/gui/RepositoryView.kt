@@ -60,6 +60,8 @@ class RepositoryView : VBoxBuilder() {
     private val localBranches: TreeItem<RepositoryEntry>
     private val remoteBranches: TreeItem<RepositoryEntry>
     private val stash: TreeItem<RepositoryEntry>
+    private val branchComparator = { b1: TreeItem<RepositoryEntry>, b2: TreeItem<RepositoryEntry> -> b1.value.value.compareTo(b2.value.value) }
+    private val stashComparator = { b1: TreeItem<RepositoryEntry>, b2: TreeItem<RepositoryEntry> -> b1.value.userData.compareTo(b2.value.userData) }
 
     init {
         addClass("repository-view")
@@ -119,10 +121,10 @@ class RepositoryView : VBoxBuilder() {
         +tree
 
         branchService.branches.addListener(ListChangeListener {
-            updateBranches(localBranches.children, it.list.filter { it.isLocal }, EntryType.LOCAL_BRANCH)
-            updateBranches(remoteBranches.children, it.list.filter { it.isRemote }, EntryType.REMOTE_BRANCH)
+            localBranches.children.updateEntries(it.list.filter { it.isLocal }.map { it.toLocalEntry() }, branchComparator)
+            remoteBranches.children.updateEntries(it.list.filter { it.isRemote }.map { it.toRemoteEntry() }, branchComparator)
         })
-        stashService.stashEntries.addListener(ListChangeListener { updateStashes(it.list) })
+        stashService.stashEntries.addListener(ListChangeListener { stash.children.updateEntries(it.list.map { it.toEntry() }, stashComparator) })
 
         TinyGit.settings.setTree { tree.root.children.map { Settings.TreeItem(it.value.value, it.isExpanded) } }
         TinyGit.settings.setRepositorySelection { repository.value }
@@ -134,21 +136,16 @@ class RepositoryView : VBoxBuilder() {
         }
     }
 
-    private fun updateBranches(branches: ObservableList<TreeItem<RepositoryEntry>>, updatedList: List<Branch>, type: EntryType) {
-        branches.addSorted(updatedList.filter { branch -> branches.none { it.value.value == branch.name } }
-                .map { TreeItem(RepositoryEntry(it.name, type)) },
-                { b1, b2 -> b1.value.value.compareTo(b2.value.value) })
-        branches.removeAll(branches.filter { branch -> updatedList.none { it.name == branch.value.value } })
-    }
+    private fun Branch.toLocalEntry() = RepositoryEntry(name, EntryType.LOCAL_BRANCH, (name == branchService.head.get()).toString())
 
-    private fun updateStashes(updatedList: List<StashEntry>) {
-        stash.children.addSorted(updatedList.filter { entry -> stash.children.none { it.value.value == entry.message } }
-                .map { TreeItem(RepositoryEntry(it.message, EntryType.STASH_ENTRY)) },
-                { s1, s2 -> updatedList.indexOf(s1.value.value) - updatedList.indexOf(s2.value.value) })
-        stash.children.removeAll(stash.children.filter { entry -> updatedList.none { it.message == entry.value.value } })
-    }
+    private fun Branch.toRemoteEntry() = RepositoryEntry(name, EntryType.LOCAL_BRANCH, (name == branchService.head.get()).toString())
 
-    private fun List<StashEntry>.indexOf(message: String) = indexOfFirst { it.message == message }
+    private fun StashEntry.toEntry() = RepositoryEntry(message, EntryType.STASH_ENTRY, id)
+
+    private fun ObservableList<TreeItem<RepositoryEntry>>.updateEntries(updatedList: List<RepositoryEntry>, comparator: (TreeItem<RepositoryEntry>, TreeItem<RepositoryEntry>) -> Int) {
+        addSorted(updatedList.filter { entry -> none { it.value == entry } }.map { TreeItem(it) }, comparator)
+        removeAll(filter { entry -> updatedList.none { it == entry.value } })
+    }
 
     private fun renameBranch(entry: RepositoryEntry) {
         textInputDialog(window, "Enter a New Branch Name", "Rename", Icons.pencil(), entry.value) { name ->
@@ -196,13 +193,11 @@ class RepositoryView : VBoxBuilder() {
 
     private fun RepositoryEntry?.isLocal() = this?.type == EntryType.LOCAL_BRANCH
 
-    private fun RepositoryEntry?.isBranch(): Boolean {
-        return !this.isHead() && this?.type == EntryType.LOCAL_BRANCH || this?.type == EntryType.REMOTE_BRANCH
-    }
+    private fun RepositoryEntry?.isBranch() = !this.isHead() && this?.type == EntryType.LOCAL_BRANCH || this?.type == EntryType.REMOTE_BRANCH
 
-    private fun RepositoryEntry?.isHead() = this?.value == branchService.head.get()
+    private fun RepositoryEntry?.isHead() = this?.userData == "true"
 
-    class RepositoryEntry(val value: String, val type: EntryType) {
+    class RepositoryEntry(val value: String, val type: EntryType, val userData: String = "") {
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -211,14 +206,14 @@ class RepositoryView : VBoxBuilder() {
             other as RepositoryEntry
 
             if (value != other.value) return false
-            if (type != other.type) return false
+            if (userData != other.userData) return false
 
             return true
         }
 
         override fun hashCode(): Int {
             var result = value.hashCode()
-            result = 31 * result + type.hashCode()
+            result = 31 * result + userData.hashCode()
             return result
         }
 

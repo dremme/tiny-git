@@ -13,7 +13,7 @@ class PieChart(data: ObservableList<FXPieChart.Data>, private val labelSuffix: S
     override fun layoutChartChildren(top: Double, left: Double, width: Double, height: Double) {
         data.forEach { data ->
             Tooltip.uninstall(data.node, null)
-            Tooltip.install(data.node, Tooltip("${data.pieValue.toInt()} $labelSuffix"))
+            Tooltip.install(data.node, Tooltip("${data.name} (${data.pieValue.toInt()} $labelSuffix)"))
         }
         super.layoutChartChildren(top, left, width, height)
     }

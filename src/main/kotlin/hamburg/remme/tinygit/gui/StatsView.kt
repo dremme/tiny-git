@@ -84,8 +84,8 @@ class StatsView : Tab() {
                     addClass("stats-view")
                     vgrow(Priority.ALWAYS)
                     columns(33.333, 33.333, 33.333)
-                    rows(65.0, 35.0)
-                    +listOf(contributions, commits, files, calendar)
+                    rows(35.0, 65.0)
+                    +listOf(calendar, contributions, commits, files)
                 }
             }
         }

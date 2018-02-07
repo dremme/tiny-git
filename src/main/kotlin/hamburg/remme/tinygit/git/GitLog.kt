@@ -8,21 +8,21 @@ import hamburg.remme.tinygit.localDateTime
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-private val idSeparator = "id: "
-private val parentsSeparator = "parents: "
-private val refsSeparator = "refs: "
-private val nameSeparator = "name: "
-private val mailSeparator = "mail: "
-private val dateSeparator = "date: "
-private val bodySeparator = "body: "
-private val eom = "<eom>"
-private val logFormat = "--pretty=format:$idSeparator%H%n$parentsSeparator%P%n$refsSeparator%d%n$nameSeparator%cn%n$mailSeparator%ce%n$dateSeparator%cd%n$bodySeparator%B%n$eom"
+private const val idSeparator = "id: "
+private const val parentsSeparator = "parents: "
+private const val refsSeparator = "refs: "
+private const val nameSeparator = "name: "
+private const val mailSeparator = "mail: "
+private const val dateSeparator = "date: "
+private const val bodySeparator = "body: "
+private const val eom = "<eom>"
+private const val logFormat = "--pretty=format:$idSeparator%H%n$parentsSeparator%P%n$refsSeparator%d%n$nameSeparator%cn%n$mailSeparator%ce%n$dateSeparator%cd%n$bodySeparator%B%n$eom"
 private val log1 = arrayOf("log", "-1", "--pretty=%B")
 private val logAll = arrayOf("log", "--branches", "--remotes", "--tags", "--date=raw", logFormat)
 private val logNot = arrayOf("log", "HEAD", "--date=raw", logFormat, "--not")
 private val revlistCount = arrayOf("rev-list", "--count")
 private val revlistCountNot = arrayOf("rev-list", "--count", "HEAD", "--not")
-private val headSeparator = " -> "
+private const val headSeparator = " -> "
 
 fun gitHeadMessage(repository: Repository): String {
     return git(repository, *log1)

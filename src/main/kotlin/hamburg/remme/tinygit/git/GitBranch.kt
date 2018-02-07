@@ -11,7 +11,7 @@ private val branchDelete = arrayOf("branch", "--delete")
 private val branchDeleteForce = arrayOf("branch", "--delete", "--force")
 private val checkout = arrayOf("checkout")
 private val checkoutCreate = arrayOf("checkout", "-b")
-private val remotes = "remotes/"
+private const val remotes = "remotes/"
 
 fun gitHead(repository: Repository): String {
     return git(repository, *revParseHead).trim()

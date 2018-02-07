@@ -15,9 +15,8 @@ class DayOfWeekAxis : Axis<DayOfWeek>() {
         isAutoRanging = false
     }
 
-    override fun autoRange(length: Double): Any {
+    override fun autoRange(length: Double) {
         step = length / 7
-        return Unit
     }
 
     override fun getRange() = Unit

@@ -11,13 +11,13 @@ import java.nio.file.Path
 private val rebase = arrayOf("rebase")
 private val rebaseContinue = arrayOf("rebase", "--continue")
 private val rebaseAbort = arrayOf("rebase", "--abort")
-private val applyDir = "rebase-apply"
-private val mergeDir = "rebase-merge"
-private val nextFile = "next"
-private val lastFile = "last"
-private val doneFile = "done"
-private val todoFile = "git-rebase-todo"
-private val rebaseMarker = "Cannot rebase: "
+private const val applyDir = "rebase-apply"
+private const val mergeDir = "rebase-merge"
+private const val nextFile = "next"
+private const val lastFile = "last"
+private const val doneFile = "done"
+private const val todoFile = "git-rebase-todo"
+private const val rebaseMarker = "Cannot rebase: "
 
 fun gitIsRebasing(repository: Repository): Boolean {
     val gitDir = repository.path.asPath().resolve(".git")

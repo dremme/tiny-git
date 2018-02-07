@@ -8,7 +8,7 @@ import hamburg.remme.tinygit.domain.Status
 private val status = arrayOf("status", "--porcelain", "--untracked-files=all")
 private val lsTree = arrayOf("ls-tree", "--name-only", "--full-tree", "-r", "HEAD")
 private val diffTree = arrayOf("diff-tree", "--no-commit-id", "--name-status", "--find-copies", "-r")
-private val fileSeparator = " -> "
+private const val fileSeparator = " -> "
 
 fun gitStatus(repository: Repository): Status {
     val staged = mutableListOf<File>()

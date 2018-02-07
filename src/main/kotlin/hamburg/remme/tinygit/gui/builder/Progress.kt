@@ -12,7 +12,7 @@ import javafx.scene.control.ProgressBar
 import javafx.scene.layout.StackPane
 import javafx.util.Duration
 
-private val spinAnimationStep = 8.0
+private const val spinAnimationStep = 8.0
 
 inline fun progressBar(block: ProgressBar.() -> Unit): ProgressBar {
     val bar = ProgressBar(-1.0)
