@@ -4,7 +4,6 @@ import java.time.LocalDateTime
 
 class Commit(val id: String,
              val parents: List<String>,
-             val refs: List<String>,
              val fullMessage: String,
              val date: LocalDateTime,
              val authorName: String,
