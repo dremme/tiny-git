@@ -42,7 +42,6 @@ object Icons {
     fun search() = icon('\uf002')
     fun share() = icon('\uf064')
     fun signOut() = icon('\uf2f5')
-    fun spinner() = icon('\uf110')
     fun tag() = icon('\uf02b')
     fun terminal() = icon('\uf120')
     fun timesCircle() = icon('\uf057')

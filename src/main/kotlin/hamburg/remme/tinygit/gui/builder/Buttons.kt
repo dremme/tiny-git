@@ -1,7 +1,6 @@
 package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.greater0
-import javafx.beans.binding.Bindings
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Button
@@ -62,9 +61,9 @@ class ToolBarBuilder : ToolBar() {
                     +label {
                         addClass("count-badge")
                         alignment(Pos.TOP_RIGHT)
-                        visibleWhen(it.greater0().run { action.disable?.let { and(Bindings.not(it)) } ?: this })
+                        visibleWhen(it.greater0().run { action.disable?.let { and(it.not()) } ?: this })
                         isMouseTransparent = true
-                        textProperty().bind(Bindings.convert(it))
+                        textProperty().bind(it.asString())
                     }
                 }
             }

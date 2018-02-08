@@ -90,12 +90,7 @@ class CommitParser {
             line.startsWith(bodySeparator) -> messageBuilder = StringBuilder(line.substringAfterLast(bodySeparator)).appendln()
             line == eom -> {
                 fullMessage = messageBuilder.toString()
-                commits += Commit(
-                        id, id.abbreviate(),
-                        parents.toList(), parents.map { it.abbreviate() },
-                        refs.toList(),
-                        fullMessage, fullMessage.lines()[0],
-                        date, authorName, authorMail)
+                commits += Commit(id, parents.toList(), refs.toList(), fullMessage, date, authorName, authorMail)
                 reset()
             }
         }
@@ -111,8 +106,6 @@ class CommitParser {
         authorMail = ""
         messageBuilder = null
     }
-
-    private fun String.abbreviate() = substring(0, 8)
 
     private fun String.parseRefs(): List<String> {
         return substringAfter(refsSeparator)

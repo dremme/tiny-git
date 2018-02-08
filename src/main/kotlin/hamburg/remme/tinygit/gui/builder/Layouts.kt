@@ -6,6 +6,7 @@ import javafx.scene.control.SplitPane
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
+import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
 import javafx.scene.layout.RowConstraints
@@ -38,6 +39,12 @@ fun <T : Node> T.columnSpan(value: Int): T {
     return this
 }
 
+inline fun pane(block: PaneBuilder.() -> Unit): Pane {
+    val pane = PaneBuilder()
+    block.invoke(pane)
+    return pane
+}
+
 inline fun stackPane(block: StackPaneBuilder.() -> Unit): StackPane {
     val pane = StackPaneBuilder()
     block.invoke(pane)
@@ -66,6 +73,14 @@ inline fun grid(numberOfColumns: Int, block: GridPaneBuilder.() -> Unit): GridPa
     val grid = GridPaneBuilder(numberOfColumns)
     block.invoke(grid)
     return grid
+}
+
+open class PaneBuilder : Pane() {
+
+    operator fun Node.unaryPlus() {
+        children.add(this)
+    }
+
 }
 
 open class StackPaneBuilder : StackPane() {

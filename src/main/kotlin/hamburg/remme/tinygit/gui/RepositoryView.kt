@@ -138,7 +138,7 @@ class RepositoryView : VBoxBuilder() {
 
     private fun Branch.toLocalEntry() = RepositoryEntry(name, EntryType.LOCAL_BRANCH, (name == branchService.head.get()).toString())
 
-    private fun Branch.toRemoteEntry() = RepositoryEntry(name, EntryType.LOCAL_BRANCH, (name == branchService.head.get()).toString())
+    private fun Branch.toRemoteEntry() = RepositoryEntry(name, EntryType.REMOTE_BRANCH, (name == branchService.head.get()).toString())
 
     private fun StashEntry.toEntry() = RepositoryEntry(message, EntryType.STASH_ENTRY, id)
 

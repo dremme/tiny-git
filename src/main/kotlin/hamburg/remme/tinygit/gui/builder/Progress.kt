@@ -2,29 +2,20 @@ package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.service.TaskExecutor
-import hamburg.remme.tinygit.gui.component.Icons
 import javafx.animation.Interpolator
-import javafx.animation.Transition
+import javafx.animation.ScaleTransition
 import javafx.concurrent.Task
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.ProgressBar
 import javafx.scene.layout.StackPane
+import javafx.scene.shape.Circle
 import javafx.util.Duration
-
-private const val spinAnimationStep = 8.0
 
 inline fun progressBar(block: ProgressBar.() -> Unit): ProgressBar {
     val bar = ProgressBar(-1.0)
     block.invoke(bar)
     return bar
-}
-
-inline fun progressSpinner(block: Node.() -> Unit): Node {
-    val indicator = Icons.spinner()
-    block.invoke(indicator)
-    SpinAnimation(indicator, 2.0).play()
-    return indicator
 }
 
 inline fun progressPane(block: ProgressPaneBuilder.() -> Unit): ProgressPane {
@@ -33,18 +24,26 @@ inline fun progressPane(block: ProgressPaneBuilder.() -> Unit): ProgressPane {
     return pane
 }
 
-class SpinAnimation(private val node: Node, rate: Double = 1.0) : Transition(spinAnimationStep / rate) {
-
-    init {
-        cycleCount = -1
-        cycleDuration = Duration(spinAnimationStep * rate * 1000.0)
-        interpolator = Interpolator.DISCRETE
+fun progressIndicator(): Node {
+    return hbox {
+        spacing = 16.0
+        alignment = Pos.CENTER
+        +Circle(48.0).addClass("progress-circle").attachAnimation(0.0)
+        +Circle(48.0).addClass("progress-circle").attachAnimation(500.0)
+        +Circle(48.0).addClass("progress-circle").attachAnimation(1000.0)
     }
+}
 
-    override fun interpolate(frac: Double) {
-        node.rotate += 360.0 / spinAnimationStep
-    }
-
+private fun Node.attachAnimation(delay: Double): Node {
+    val transition = ScaleTransition(Duration(1000.0), this)
+    transition.delay = Duration.millis(delay)
+    transition.toX = 0.0
+    transition.toY = 0.0
+    transition.isAutoReverse = true
+    transition.cycleCount = -1
+    transition.interpolator = Interpolator.EASE_BOTH
+    transition.play()
+    return this
 }
 
 open class ProgressPane : StackPane(), TaskExecutor {

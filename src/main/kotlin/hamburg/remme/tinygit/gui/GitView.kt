@@ -19,7 +19,7 @@ import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.menuBar
-import hamburg.remme.tinygit.gui.builder.progressSpinner
+import hamburg.remme.tinygit.gui.builder.progressIndicator
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.textAreaDialog
@@ -69,7 +69,7 @@ class GitView : VBoxBuilder() {
         val quit = Action("Quit TinyGit", { Icons.signOut() },
                 handler = { Platform.exit() })
         // View
-        val showCommits = Action("Show Commits", { Icons.list() }, "F1", repoService.activeRepository.isNull, // TODO: own prop?
+        val showCommits = Action("Show Commit Log", { Icons.list() }, "F1", repoService.activeRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(commitLog) })
         val showWorkingCopy = Action("Show Working Copy", { Icons.hdd() }, "F2", repoService.activeRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(workingCopy) })
@@ -194,7 +194,7 @@ class GitView : VBoxBuilder() {
             +stackPane {
                 addClass("progress-overlay")
                 visibleWhen(state.showGlobalOverlay)
-                +progressSpinner {}
+                +progressIndicator()
                 +label { textProperty().bind(state.processText) }
             }
         }

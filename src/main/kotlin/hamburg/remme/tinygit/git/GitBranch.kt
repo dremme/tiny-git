@@ -5,7 +5,7 @@ import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
 
 private val revParseHead = arrayOf("rev-parse", "--abbrev-ref", "HEAD")
-private val branchAll = arrayOf("branch", "--no-abbrev", "--all")
+private val branchAll = arrayOf("branch", "--no-abbrev", "--all", "--verbose")
 private val branchMove = arrayOf("branch", "--move")
 private val branchDelete = arrayOf("branch", "--delete")
 private val branchDeleteForce = arrayOf("branch", "--delete", "--force")
@@ -20,9 +20,12 @@ fun gitHead(repository: Repository): String {
 fun gitBranchList(repository: Repository): List<Branch> {
     val branches = mutableListOf<Branch>()
     git(repository, *branchAll) {
-        val line = it.substring(2)
-        val branch = line.split(" +".toRegex())[0]
-        if (!branch.startsWith('(')) branches += Branch(branch.substringAfter(remotes), branch.startsWith(remotes))
+        val line = it.substring(2).split(" +".toRegex())
+        val branch = line[0]
+        val commitId = line[1]
+        if (branch != "HEAD" && branch != "${remotes}origin/HEAD") {
+            branches += Branch(commitId, branch.substringAfter(remotes), branch.startsWith(remotes))
+        }
     }
     return branches
 }

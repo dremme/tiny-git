@@ -225,6 +225,24 @@
     -fx-text-fill: derive(-fx-focus-color, 15%);
 }
 
+.list-cell:filled:hover,
+.tree-cell:filled:hover {
+    -fx-background-color: #297acc16;
+}
+
+.list-cell:filled:selected,
+.list-cell:filled:selected:hover,
+.tree-cell:filled:selected,
+.tree-cell:filled:selected:hover {
+    -fx-background: -fx-accent;
+    -fx-background-color: -fx-background, -fx-cell-focus-inner-border, -fx-background;
+}
+
+.combo-box > .list-cell {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+}
+
 .axis {
     AXIS_COLOR: -fx-chart-grid-color;
 }
@@ -251,6 +269,51 @@
 
 .chart-calendar-day.day-4 {
     -fx-background-color: #297acc;
+}
+
+.graph-view {
+}
+
+.graph-view .commit-node {
+    -fx-fill: #409fff;
+}
+
+.graph-view .commit-path {
+    -fx-stroke: #409fff;
+    -fx-stroke-width: 3px;
+}
+
+.graph-view-cell {
+    -fx-spacing: 2px;
+}
+
+.graph-view-cell > * {
+    -fx-spacing: 6px;
+}
+
+.graph-view-cell .commitId {
+    -fx-fill: -fx-text-base-color;
+    -fx-font-weight: bold;
+}
+
+.graph-view-cell .date {
+    -fx-fill: -git-yellow;
+}
+
+.graph-view-cell .branches {
+    -fx-spacing: 6px;
+}
+
+.graph-view-cell .message {
+    -fx-fill: -fx-text-base-color;
+}
+
+.graph-view-cell .author {
+    -fx-fill: derive(-fx-text-base-color, -30%);
+}
+
+.progress-circle {
+    -fx-fill: -fx-focus-color;
 }
 
 .git-view > .tool-bar .button {
@@ -381,7 +444,7 @@
     -fx-padding: 0;
 }
 
-.log-view .table-view {
+.log-view .list-view {
     -fx-background-insets: 0, 0;
     -fx-padding: 0;
 }
@@ -507,11 +570,7 @@
 
 .progress-overlay .label {
     -fx-font-size: 2em;
-}
-
-.progress-overlay .icon {
-    -fx-font-size: 400px;
-    -fx-fill: -fx-focus-color;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 2, 0, 2, 2);
 }
 
 .status-count-view {

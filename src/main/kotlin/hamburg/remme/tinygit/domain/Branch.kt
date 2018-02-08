@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.domain
 
-class Branch(val name: String, val isRemote: Boolean) {
+class Branch(val id: String, val name: String, val isRemote: Boolean) {
 
     val isLocal = !isRemote
 
@@ -12,6 +12,7 @@ class Branch(val name: String, val isRemote: Boolean) {
 
         other as Branch
 
+        if (id != other.id) return false
         if (name != other.name) return false
         if (isRemote != other.isRemote) return false
 
@@ -19,9 +20,11 @@ class Branch(val name: String, val isRemote: Boolean) {
     }
 
     override fun hashCode(): Int {
-        var result = name.hashCode()
+        var result = id.hashCode()
+        result = 31 * result + name.hashCode()
         result = 31 * result + isRemote.hashCode()
         return result
     }
+
 
 }
