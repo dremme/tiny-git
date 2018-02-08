@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.gui
 
 import com.sun.javafx.PlatformUtil
+import de.codecentric.centerdevice.MenuToolkit
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.git.gitLogExclusive
 import hamburg.remme.tinygit.gui.builder.Action
@@ -18,7 +19,9 @@ import hamburg.remme.tinygit.gui.builder.flipY
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
+import hamburg.remme.tinygit.gui.builder.menu
 import hamburg.remme.tinygit.gui.builder.menuBar
+import hamburg.remme.tinygit.gui.builder.menuItem
 import hamburg.remme.tinygit.gui.builder.progressIndicator
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
@@ -34,6 +37,7 @@ import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
+import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
@@ -112,8 +116,9 @@ class GitView : VBoxBuilder() {
                 handler = { autoReset() })
         val squash = Action("Auto-Squash", { Icons.gavel() }, disable = state.canSquash.not(),
                 handler = { autoSquash() }, count = divergenceService.aheadDefault)
-        val settings = Action("Settings", { Icons.cog() }, if (PlatformUtil.isMac()) "Shortcut+Comma" else null,
-                disable = state.canSettings.not(),
+        val settings = Action("Settings", { Icons.cog() }, disable = state.canSettings.not(),
+                handler = { SettingsDialog(window).show() })
+        val preferences = Action("Preferences", shortcut = "Shortcut+Comma", disable = state.canSettings.not(),
                 handler = { SettingsDialog(window).show() })
         val removeRepo = Action("Remove Repository", { Icons.trash() }, disable = state.canRemove.not(),
                 handler = { removeRepo() })
@@ -125,21 +130,37 @@ class GitView : VBoxBuilder() {
         val cmd = Action("Git Command", { Icons.terminal() }, disable = SimpleBooleanProperty(true),
                 handler = { /* TODO */ })
 
+        if (PlatformUtil.isMac()) {
+            val toolkit = MenuToolkit.toolkit()
+            val macMenu = menu {
+                text = "TinyGit"
+                +menuItem(preferences)
+                +SeparatorMenuItem()
+                +toolkit.createHideMenuItem("TinyGit")
+                +toolkit.createHideOthersMenuItem()
+                +toolkit.createUnhideAllMenuItem()
+                +SeparatorMenuItem()
+                +toolkit.createQuitMenuItem("TinyGit")
+            }
+            toolkit.setApplicationMenu(macMenu)
+        }
         +menuBar {
             isUseSystemMenuBar = true
             val file = mutableListOf(ActionGroup(cloneRepo, newRepo, addRepo))
-            if (!PlatformUtil.isMac()) file += ActionGroup(quit)
+            val repository = mutableListOf(ActionGroup(push, pushForce, pull, fetch, fetchGc),
+                    ActionGroup(branch, merge, mergeContinue, mergeAbort),
+                    ActionGroup(rebase, rebaseContinue, rebaseAbort),
+                    ActionGroup(reset, squash),
+                    ActionGroup(removeRepo))
+            if (!PlatformUtil.isMac()) {
+                file += ActionGroup(quit)
+                repository += ActionGroup(settings)
+            }
             +ActionCollection("File", *file.toTypedArray())
             +ActionCollection("View",
                     ActionGroup(showCommits, showWorkingCopy, showStats),
                     ActionGroup(refresh))
-            +ActionCollection("Repository",
-                    ActionGroup(push, pushForce, pull, fetch, fetchGc),
-                    ActionGroup(branch, merge, mergeContinue, mergeAbort),
-                    ActionGroup(rebase, rebaseContinue, rebaseAbort),
-                    ActionGroup(reset, squash),
-                    ActionGroup(settings),
-                    ActionGroup(removeRepo))
+            +ActionCollection("Repository", *repository.toTypedArray())
             +ActionCollection("Actions",
                     ActionGroup(commit),
                     *workingCopy.actions,
