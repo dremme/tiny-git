@@ -43,7 +43,7 @@ class GraphView(entries: ObservableList<Commit>, val head: ObservableStringValue
 
     private inner class CommitLogListCell : ListCell<Commit>() {
 
-        private val MAX_LENGTH = 40
+        private val MAX_LENGTH = 60
         private val commitId = Text().addClass("commitId")
         private val date = Text().addClass("date")
         private val badges = HBox().addClass("branches")
@@ -53,7 +53,7 @@ class GraphView(entries: ObservableList<Commit>, val head: ObservableStringValue
         init {
             graphic = vbox {
                 addClass("graph-view-cell")
-                paddingProperty().bind(this@GraphView.skinPadding)
+                paddingProperty().bind(skinPadding)
                 +hbox {
                     alignment = Pos.CENTER_LEFT
                     +commitId
@@ -85,8 +85,8 @@ class GraphView(entries: ObservableList<Commit>, val head: ObservableStringValue
                 label {
                     addClass("branch-badge")
                     if (it == head.get()) addClass("current")
-                    text = it.substringAfter("tag:").trim().abbrev()
-                    graphic = if (it.startsWith("tag:")) Icons.tag() else Icons.codeFork()
+                    text = it.abbrev()
+                    graphic = Icons.codeFork()
                 }
             }
         }
