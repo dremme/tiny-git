@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit
 
+import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.service.BranchService
 import hamburg.remme.tinygit.domain.service.DivergenceService
 import hamburg.remme.tinygit.domain.service.MergeService
@@ -70,6 +71,8 @@ class State(repositoryService: RepositoryService,
     val canStageAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.pending))!!
     val canUpdateAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.modifiedPending))!!
     val canStageSelected = isIdle.and(Bindings.size(workingCopyService.selectedPending).greater0())!!
+    val canDeleteSelected = isIdle.and(Bindings.size(workingCopyService.selectedPending.filtered { it.status != File.Status.REMOVED }).greater0())!!
+    val canDiscardSelected = isIdle.and(Bindings.size(workingCopyService.selectedPending.filtered { it.status != File.Status.ADDED }).greater0())!!
     val canUnstageAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.staged))!!
     val canUnstageSelected = isIdle.and(Bindings.size(workingCopyService.selectedStaged).greater0())!!
 

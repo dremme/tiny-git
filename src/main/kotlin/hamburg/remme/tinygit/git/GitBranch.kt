@@ -51,7 +51,7 @@ fun gitBranchDelete(repository: Repository, branch: String, force: Boolean) {
 }
 
 fun gitCheckout(repository: Repository, files: List<File>) {
-    git(repository, *checkout, "HEAD", "--", *files.map { it.path }.toTypedArray())
+    git(repository, *checkout, "--", *files.map { it.path }.toTypedArray())
 }
 
 fun gitCheckout(repository: Repository, branch: String) {

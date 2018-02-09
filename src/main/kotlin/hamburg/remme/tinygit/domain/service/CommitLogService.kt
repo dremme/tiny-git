@@ -16,6 +16,12 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
 
     val commits = observableList<Commit>()
     val activeCommit = SimpleObjectProperty<Commit?>()
+    val scope = object : SimpleObjectProperty<Scope>(Scope.ALL) {
+        override fun invalidated() = log()
+    }
+    val commitType = object : SimpleObjectProperty<CommitType>(CommitType.ALL) {
+        override fun invalidated() = log()
+    }
     lateinit var logExecutor: TaskExecutor
     lateinit var logErrorHandler: (String) -> Unit
     private lateinit var repository: Repository
@@ -25,7 +31,8 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
     private var max = 0
 
     fun logMore() {
-        val result = gitLog(repository, max, max + maxIncrement).filter { commits.none(it::equals) }
+        val result = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, max, max + maxIncrement)
+                .filter { commits.none(it::equals) }
         if (result.isNotEmpty()) {
             max += maxIncrement
             commits.addSorted(result)
@@ -58,7 +65,7 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
         quickTask?.cancel()
         remoteTask?.cancel()
         quickTask = object : Task<List<Commit>>() {
-            override fun call() = gitLog(repository, 0, max)
+            override fun call() = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, 0, max)
 
             override fun succeeded() {
                 commits.addSorted(value.filter { commits.none(it::equals) })
@@ -73,7 +80,7 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
         remoteTask = object : Task<List<Commit>>() {
             override fun call(): List<Commit> {
                 gitFetch(repository)
-                return gitLog(repository, 0, max)
+                return gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, 0, max)
             }
 
             override fun succeeded() {
@@ -89,6 +96,22 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
                 }
             }
         }.also { logExecutor.execute(it) }
+    }
+
+    enum class Scope(val isAll: Boolean, private val description: String) {
+
+        ALL(true, "All Branches"), CURRENT(false, "Current Branch Only");
+
+        override fun toString() = description
+
+    }
+
+    enum class CommitType(val isNoMerges: Boolean, private val description: String) {
+
+        ALL(false, "All Commits"), NO_MERGE_COMMITS(true, "No Merges");
+
+        override fun toString() = description
+
     }
 
 }

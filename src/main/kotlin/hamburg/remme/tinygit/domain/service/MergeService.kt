@@ -17,11 +17,10 @@ class MergeService(service: WorkingCopyService) : Refreshable {
     private lateinit var repository: Repository
 
     init {
-        val listener = ListChangeListener<File> {
-            if (isMerging.get() && service.staged.isEmpty() && service.pending.isEmpty()) isMerging.set(false)
+        ListChangeListener<File> { if (isMerging.get() && service.staged.isEmpty() && service.pending.isEmpty()) isMerging.set(false) }.let {
+            service.staged.addListener(it)
+            service.pending.addListener(it)
         }
-        service.staged.addListener(listener)
-        service.pending.addListener(listener)
     }
 
     fun merge(mergeBase: String, errorHandler: () -> Unit) {
@@ -32,7 +31,10 @@ class MergeService(service: WorkingCopyService) : Refreshable {
 
             override fun failed() {
                 when (exception) {
-                    is MergeException -> errorHandler.invoke()
+                    is MergeException -> {
+                        TinyGit.fireEvent()
+                        errorHandler.invoke()
+                    }
                     else -> exception.printStackTrace()
                 }
             }

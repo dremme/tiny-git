@@ -1,43 +1,30 @@
 package hamburg.remme.tinygit.gui.component.skin
 
-import com.sun.javafx.scene.control.skin.ListViewSkin
-import com.sun.javafx.scene.control.skin.VirtualFlow
-import com.sun.javafx.scene.control.skin.VirtualScrollBar
-import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.component.GraphView
-import javafx.application.Platform
-import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.ReadOnlyDoubleWrapper
 import javafx.scene.Group
 import javafx.scene.shape.Circle
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
 
-class GraphViewSkin(control: GraphView) : ListViewSkin<Commit>(control) {
+class GraphViewSkin(control: GraphView) : GraphViewSkinBase(control) {
 
-    val padding = SimpleDoubleProperty(32.0)
     private val graph = Group()
-    private val vbar: VirtualScrollBar
+    private val graphWidth = ReadOnlyDoubleWrapper(32.0)
 
     init {
         graph.isManaged = false
         children += graph
-
-        // Yuck
-        val vbarField = VirtualFlow::class.java.getDeclaredField("vbar")
-        vbarField.isAccessible = true
-        vbar = vbarField.get(flow) as VirtualScrollBar
-        vbar.valueProperty().addListener { _ -> Platform.runLater { layoutGraph() } }
     }
 
-    override fun layoutChildren(x: Double, y: Double, w: Double, h: Double) {
-        super.layoutChildren(x, y, w, h)
-        Platform.runLater { layoutGraph() }
-    }
+    override fun graphWidthProperty() = graphWidth.readOnlyProperty!!
+
+    override fun getGraphWidth() = graphWidthProperty().get()
 
     // TODO: inefficient and buggy; needs to be fully implemented
-    private fun layoutGraph() {
+    override fun layoutGraphChildren() {
         graph.children.clear()
         if (flow.firstVisibleCell != null && flow.lastVisibleCell != null) {
             val graphPath = Path().addClass("commit-path")
@@ -50,7 +37,7 @@ class GraphViewSkin(control: GraphView) : ListViewSkin<Commit>(control) {
                         }
                         graph.children += Circle(16.0, it.layoutY + it.height / 2, 6.0).addClass("commit-node")
                     }
-            padding.set(32.0)
+            graphWidth.set(32.0)
         }
     }
 

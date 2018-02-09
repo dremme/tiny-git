@@ -17,11 +17,14 @@ class RepositoryService {
 
     private val allRepositories = observableList<Repository>()
     val existingRepositories = allRepositories.filtered { it.path.asPath().exists() }!!
-    val activeRepository = SimpleObjectProperty<Repository?>()
+    val activeRepository = object : SimpleObjectProperty<Repository?>() {
+        override fun invalidated() {
+            get()?.let { hasRemote.set(gitHasRemote(it)) } ?: hasRemote.set(false)
+        }
+    }
     val hasRemote = SimpleBooleanProperty()
 
     init {
-        activeRepository.addListener { _, _, it -> it?.let { hasRemote.set(gitHasRemote(it)) } ?: hasRemote.set(false) }
         TinyGit.settings.setRepositories { allRepositories }
         TinyGit.settings.load { allRepositories.setAll(it.repositories) }
     }

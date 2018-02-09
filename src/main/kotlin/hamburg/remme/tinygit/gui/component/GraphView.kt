@@ -7,6 +7,7 @@ import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.component.skin.GraphViewSkin
+import hamburg.remme.tinygit.gui.component.skin.GraphViewSkinBase
 import hamburg.remme.tinygit.shortDateTimeFormat
 import javafx.beans.binding.Bindings
 import javafx.beans.binding.ObjectBinding
@@ -25,8 +26,8 @@ import java.util.concurrent.Callable
 class GraphView(entries: ObservableList<Commit>, val head: ObservableStringValue, val branches: ObservableList<Branch>)
     : ListView<Commit>(entries) {
 
-    private lateinit var skin: GraphViewSkin
-    private lateinit var skinPadding: ObjectBinding<Insets>
+    private lateinit var skin: GraphViewSkinBase
+    private lateinit var graphPadding: ObjectBinding<Insets>
 
     init {
         addClass("graph-view")
@@ -35,9 +36,9 @@ class GraphView(entries: ObservableList<Commit>, val head: ObservableStringValue
         branches.addListener(ListChangeListener { refresh() })
     }
 
-    override fun createDefaultSkin(): GraphViewSkin {
+    override fun createDefaultSkin(): GraphViewSkinBase {
         skin = GraphViewSkin(this)
-        skinPadding = Bindings.createObjectBinding(Callable { Insets(0.0, 0.0, 0.0, skin.padding.get()) }, skin.padding)
+        graphPadding = Bindings.createObjectBinding(Callable { Insets(0.0, 0.0, 0.0, skin.getGraphWidth()) }, skin.graphWidthProperty())
         return skin
     }
 
@@ -53,7 +54,7 @@ class GraphView(entries: ObservableList<Commit>, val head: ObservableStringValue
         init {
             graphic = vbox {
                 addClass("graph-view-cell")
-                paddingProperty().bind(skinPadding)
+                paddingProperty().bind(graphPadding)
                 +hbox {
                     alignment = Pos.CENTER_LEFT
                     +commitId

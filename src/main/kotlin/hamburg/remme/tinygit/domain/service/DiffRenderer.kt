@@ -84,6 +84,7 @@ class DiffRenderer {
                 line.startsWith('+') -> parseLineAdded(line)
                 line.startsWith('-') -> parseLineRemoved(line)
                 line.startsWith(' ') -> parseLine(line)
+                line.startsWith('\\') -> parseEof(line)
             }
             maxNum = Math.max(maxNum, Math.max(leftNum, rightNum))
             return this
@@ -109,6 +110,11 @@ class DiffRenderer {
             builder.appendln("<div class=\"c\">${left()}${right()}<div>${line.sanitize()}</div></div>")
             leftNum++
             rightNum++
+        }
+
+        private fun parseEof(line: String) {
+            //language=HTML
+            builder.appendln("<div class=\"c\">$emptyLeft$emptyRight<div>${line.sanitize()}</div></div>")
         }
 
         private fun parseLineAdded(line: String) {

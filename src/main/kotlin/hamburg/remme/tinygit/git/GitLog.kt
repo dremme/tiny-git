@@ -17,6 +17,7 @@ private const val bodySeparator = "body: "
 private const val eom = "<eom>"
 private const val logFormat = "--pretty=format:$idSeparator%H%n$parentsSeparator%P%n$nameSeparator%cn%n$mailSeparator%ce%n$dateSeparator%cd%n$bodySeparator%B%n$eom"
 private val log1 = arrayOf("log", "-1", "--pretty=%B")
+private val log = arrayOf("log", "--first-parent", "--date=raw", logFormat)
 private val logAll = arrayOf("log", "--branches", "--remotes", "--tags", "--date=raw", logFormat)
 private val logNot = arrayOf("log", "HEAD", "--date=raw", logFormat, "--not")
 private val revlistCount = arrayOf("rev-list", "--count")
@@ -26,9 +27,9 @@ fun gitHeadMessage(repository: Repository): String {
     return git(repository, *log1)
 }
 
-fun gitLog(repository: Repository, skip: Int, maxCount: Int): List<Commit> {
+fun gitLog(repository: Repository, all: Boolean, noMerges: Boolean, skip: Int, maxCount: Int): List<Commit> {
     val parser = CommitParser()
-    git(repository, *logAll, "--skip=$skip", "--max-count=$maxCount") { parser.parseLine(it) }
+    git(repository, *if (all) logAll else log, if (noMerges) "--no-merges" else "", "--skip=$skip", "--max-count=$maxCount") { parser.parseLine(it) }
     return parser.commits
 }
 

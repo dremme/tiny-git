@@ -67,19 +67,12 @@ class WorkingCopyView : Tab() {
             }
         }
 
-        // TODO: state props?
-        val canDelete = Bindings.createBooleanBinding(
-                Callable { !selectedPending.selectedItems.all { it.status == File.Status.REMOVED } },
-                selectedPending.selectedIndexProperty())
-        val canDiscard = Bindings.createBooleanBinding(
-                Callable { !selectedPending.selectedItems.all { it.status == File.Status.ADDED } },
-                selectedPending.selectedIndexProperty())
         // TODO: menubar actions?
         val stageFile = Action("Stage (K)", { Icons.arrowCircleUp() }, disable = state.canStageSelected.not(),
                 handler = { stageSelected() })
-        val deleteFile = Action("Delete (Del)", { Icons.trash() }, disable = canDelete.not(),
+        val deleteFile = Action("Delete (Del)", { Icons.trash() }, disable = state.canDeleteSelected.not(),
                 handler = { deleteFile() })
-        val discardChanges = Action("Discard Changes (D)", { Icons.undo() }, disable = canDiscard.not(),
+        val discardChanges = Action("Discard Changes (D)", { Icons.undo() }, disable = state.canDiscardSelected.not(),
                 handler = { discardChanges() })
 
         pending.contextMenu = contextMenu {

@@ -1,11 +1,15 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.service.CommitLogService
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.comboBox
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.progressPane
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
+import hamburg.remme.tinygit.gui.builder.toolBar
+import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.component.GraphView
@@ -46,6 +50,7 @@ class CommitLogView : Tab() {
         }
 
         val progressPane = progressPane {
+            vgrow(Priority.ALWAYS)
             +splitPane {
                 addClass("log-view")
                 vgrow(Priority.ALWAYS)
@@ -58,7 +63,20 @@ class CommitLogView : Tab() {
                 +Text("There are no commits.")
             }
         }
-        content = progressPane
+        content = vbox {
+            +toolBar {
+                addSpacer()
+                +comboBox<CommitLogService.CommitType> {
+                    items.addAll(CommitLogService.CommitType.values())
+                    valueProperty().bindBidirectional(logService.commitType)
+                }
+                +comboBox<CommitLogService.Scope> {
+                    items.addAll(CommitLogService.Scope.values())
+                    valueProperty().bindBidirectional(logService.scope)
+                }
+            }
+            +progressPane
+        }
 
         logService.logExecutor = progressPane
         logService.logErrorHandler = { errorAlert(window, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }

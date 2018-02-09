@@ -26,21 +26,21 @@ fun gitVersion(): ClientVersion {
 
 fun git(vararg args: String, block: (String) -> Unit) {
     measureTime("", args.joinToString(" ")) {
-        val process = exec(args = *args)
+        val process = exec(args = arrayOf(*args))
         Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) block.invoke(it.nextLine()) }
     }
 }
 
 fun git(repository: Repository, vararg args: String, block: (String) -> Unit) {
     measureTime(repository.shortPath, args.joinToString(" ")) {
-        val process = exec(repository.path, *args)
+        val process = exec(repository.path, arrayOf(*args))
         Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) block.invoke(it.nextLine()) }
     }
 }
 
 fun git(vararg args: String): String {
     return measureTime("", args.joinToString(" ")) {
-        val process = exec(args = *args)
+        val process = exec(args = arrayOf(*args))
         val output = StringBuilder()
         Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) output.appendln(it.nextLine()) }
         output.toString()
@@ -48,15 +48,16 @@ fun git(vararg args: String): String {
 }
 
 fun git(repository: Repository, vararg args: String): String {
-    return measureTime(repository.shortPath, args.joinToString(" ")) {
-        val process = exec(repository.path, *args)
+    val clrargs = args.filter { it.isNotBlank() }.toTypedArray()
+    return measureTime(repository.shortPath, clrargs.joinToString(" ")) {
+        val process = exec(repository.path, clrargs)
         val output = StringBuilder()
         Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) output.appendln(it.nextLine()) }
         output.toString()
     }
 }
 
-private fun exec(path: String? = null, vararg args: String): Process {
+private fun exec(path: String? = null, args: Array<String>): Process {
     val processBuilder = ProcessBuilder("git", *args)
     path?.let { processBuilder.directory(it.asFile()) }
     processBuilder.redirectErrorStream(true)
