@@ -64,42 +64,28 @@ private fun excludeDefault(repository: Repository): Array<String> {
     return defaultBranches.filter { branches.contains(it) }.toTypedArray()
 }
 
-class CommitParser {
+private class CommitParser {
 
     val commits = mutableListOf<Commit>()
-    private var id = ""
-    private val parents = mutableListOf<String>()
-    private var fullMessage = ""
-    private var date = LocalDateTime.now()!!
-    private var authorName = ""
-    private var authorMail = ""
+    private var builder = CommitBuilder()
     private var messageBuilder: StringBuilder? = null
 
     fun parseLine(line: String) {
         when {
             messageBuilder != null && line != eom -> messageBuilder!!.appendln(line)
-            line.startsWith(idSeparator) -> id = line.substringAfter(idSeparator)
-            line.startsWith(parentsSeparator) -> parents += line.substringAfter(parentsSeparator).split(' ').filter { it.isNotBlank() }
-            line.startsWith(dateSeparator) -> date = line.substringAfter(dateSeparator).parseDate()
-            line.startsWith(nameSeparator) -> authorName = line.substringAfterLast(nameSeparator)
-            line.startsWith(mailSeparator) -> authorMail = line.substringAfterLast(mailSeparator)
+            line.startsWith(idSeparator) -> builder.id = line.substringAfter(idSeparator)
+            line.startsWith(parentsSeparator) -> builder.parents += line.substringAfter(parentsSeparator).split(' ').filter { it.isNotBlank() }
+            line.startsWith(dateSeparator) -> builder.date = line.substringAfter(dateSeparator).parseDate()
+            line.startsWith(nameSeparator) -> builder.authorName = line.substringAfterLast(nameSeparator)
+            line.startsWith(mailSeparator) -> builder.authorMail = line.substringAfterLast(mailSeparator)
             line.startsWith(bodySeparator) -> messageBuilder = StringBuilder(line.substringAfterLast(bodySeparator)).appendln()
             line == eom -> {
-                fullMessage = messageBuilder.toString()
-                commits += Commit(id, parents.toList(), fullMessage, date, authorName, authorMail)
-                reset()
+                builder.fullMessage = messageBuilder.toString()
+                commits += builder.build()
+                builder = CommitBuilder()
+                messageBuilder = null
             }
         }
-    }
-
-    private fun reset() {
-        id = ""
-        parents.clear()
-        fullMessage = ""
-        date = LocalDateTime.now()
-        authorName = ""
-        authorMail = ""
-        messageBuilder = null
     }
 
     // TODO: local time is being ignored
@@ -107,5 +93,18 @@ class CommitParser {
         val match = "(\\d+) [-+](\\d{2})(\\d{2})".toRegex().matchEntire(this)!!.groupValues
         return localDateTime(match[1].toLong())
     }
+
+}
+
+private class CommitBuilder {
+
+    lateinit var id: String
+    val parents = mutableListOf<String>()
+    lateinit var fullMessage: String
+    lateinit var date: LocalDateTime
+    lateinit var authorName: String
+    lateinit var authorMail: String
+
+    fun build() = Commit(id, parents, fullMessage, date, authorName, authorMail)
 
 }
