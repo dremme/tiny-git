@@ -215,7 +215,7 @@ class GitView : VBoxBuilder() {
             +stackPane {
                 addClass("progress-overlay")
                 visibleWhen(state.showGlobalOverlay)
-                +progressIndicator()
+                +progressIndicator(48.0)
                 +label { textProperty().bind(state.processText) }
             }
         }

@@ -29,7 +29,7 @@ class FileStatusView(list: ObservableList<File>, selectionMode: SelectionMode = 
         selectionModel.selectionMode = selectionMode
     }
 
-    private inner class LocalFileListCell : ListCell<File>() {
+    private class LocalFileListCell : ListCell<File>() {
 
         override fun updateItem(item: File?, empty: Boolean) {
             super.updateItem(item, empty)

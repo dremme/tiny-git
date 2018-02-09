@@ -31,7 +31,7 @@ class GraphView(entries: ObservableList<Commit>, val head: ObservableStringValue
 
     init {
         addClass("graph-view")
-        setCellFactory { CommitLogListCell() }
+        setCellFactory { CommitLogListCell(head, branches, graphPadding) }
         head.addListener { _ -> refresh() }
         branches.addListener(ListChangeListener { refresh() })
     }
@@ -42,7 +42,9 @@ class GraphView(entries: ObservableList<Commit>, val head: ObservableStringValue
         return skin
     }
 
-    private inner class CommitLogListCell : ListCell<Commit>() {
+    private class CommitLogListCell(private val head: ObservableStringValue,
+                                    private val branches: ObservableList<Branch>,
+                                    private val graphPadding: ObjectBinding<Insets>) : ListCell<Commit>() {
 
         private val MAX_LENGTH = 60
         private val commitId = Text().addClass("commitId")

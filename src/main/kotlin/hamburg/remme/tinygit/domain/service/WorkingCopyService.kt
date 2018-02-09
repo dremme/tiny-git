@@ -46,7 +46,9 @@ class WorkingCopyService : Refreshable {
 
     fun stage() {
         gitAdd(repository)
-        gitRemove(repository, pending.filter { it.status == File.Status.REMOVED })
+        pending.filter { it.status == File.Status.REMOVED }
+                .takeIf { it.isNotEmpty() }
+                ?.let { gitRemove(repository, it) }
         status()
     }
 
@@ -55,7 +57,9 @@ class WorkingCopyService : Refreshable {
             stage()
         } else {
             gitAdd(repository, selectedPending.filter { it.status != File.Status.REMOVED })
-            gitRemove(repository, selectedPending.filter { it.status == File.Status.REMOVED })
+            selectedPending.filter { it.status == File.Status.REMOVED }
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { gitRemove(repository, it) }
             status(successHandler)
         }
     }
@@ -86,8 +90,12 @@ class WorkingCopyService : Refreshable {
 
     fun discardChanges(successHandler: () -> Unit, errorHandler: (String) -> Unit) {
         try {
-            gitCheckout(repository, selectedPending.filter { it.status != File.Status.ADDED })
-            status(successHandler)
+            selectedPending.filter { it.status != File.Status.ADDED }
+                    .takeIf { it.isNotEmpty() }
+                    ?.let {
+                        gitCheckout(repository, it)
+                        status(successHandler)
+                    }
         } catch (ex: RuntimeException) { // TODO
             errorHandler.invoke(ex.message ?: "")
         }

@@ -42,7 +42,7 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
             buttonCell = ContextLinesListCell()
             cellFactory = Callback { ContextLinesListCell() }
             value = 3
-            valueProperty().addListener { _, _, _ -> update() }
+            valueProperty().addListener { _ -> update() }
         }
         +toolBar {
             addSpacer()
@@ -59,7 +59,7 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
         engine = webView.engine
         +webView
 
-        file.addListener { _, _, _ -> update() }
+        file.addListener { _ -> update() }
     }
 
     fun refresh() = update()
@@ -81,7 +81,7 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
         }
     }
 
-    private inner class ContextLinesListCell : ListCell<Int>() {
+    private class ContextLinesListCell : ListCell<Int>() {
 
         override fun updateItem(item: Int?, empty: Boolean) {
             super.updateItem(item, empty)

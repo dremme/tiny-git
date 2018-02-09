@@ -59,7 +59,7 @@ class DiffRenderer {
         """
     }
 
-    private inner class LineBuilder {
+    private class LineBuilder {
 
         val numWidth get() = Math.log10(maxNum.toDouble()).toInt()
         private val builder = StringBuilder()

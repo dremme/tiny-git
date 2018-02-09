@@ -24,6 +24,7 @@
     -fx-chart-grid-color: rgba(255, 255, 255, 0.2);
     -fx-chart-label-color: rgba(255, 255, 255, 0.5);
 
+    -git-active-blue: #409fff;
     -git-red: #d25252;
     -git-yellow: #ffc66d;
     -git-green: #7dbf5c;
@@ -275,11 +276,11 @@
 }
 
 .graph-view .commit-node {
-    -fx-fill: #409fff;
+    -fx-fill: -git-active-blue;
 }
 
 .graph-view .commit-path {
-    -fx-stroke: #409fff;
+    -fx-stroke: -git-active-blue;
     -fx-stroke-width: 3px;
 }
 
@@ -313,7 +314,8 @@
 }
 
 .progress-circle {
-    -fx-fill: -fx-focus-color;
+    -fx-fill: -git-active-blue;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
 }
 
 .git-view > .tool-bar .button {
@@ -410,11 +412,11 @@
 }
 
 .repository-cell.current .label {
-    -fx-text-fill: #409fff;
+    -fx-text-fill: -git-active-blue;
 }
 
 .repository-cell.current .icon {
-    -fx-fill: #409fff;
+    -fx-fill: -git-active-blue;
 }
 
 .repository-list-cell {
@@ -430,12 +432,12 @@
 }
 
 .repository-divergence .label {
-    -fx-text-fill: #409fff;
+    -fx-text-fill: -git-active-blue;
 }
 
 .repository-divergence .icon {
     -fx-font-size: 12px;
-    -fx-fill: #409fff;
+    -fx-fill: -git-active-blue;
 }
 
 .log-view {

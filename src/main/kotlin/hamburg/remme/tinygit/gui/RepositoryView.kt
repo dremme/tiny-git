@@ -227,7 +227,7 @@ class RepositoryView : VBoxBuilder() {
 
     }
 
-    private inner class RepositoryValueCell : ListCell<Repository>() {
+    private class RepositoryValueCell : ListCell<Repository>() {
 
         override fun updateItem(item: Repository?, empty: Boolean) {
             super.updateItem(item, empty)
@@ -236,7 +236,7 @@ class RepositoryView : VBoxBuilder() {
 
     }
 
-    private inner class RepositoryListCell : ListCell<Repository>() {
+    private class RepositoryListCell : ListCell<Repository>() {
 
         private val name = Label()
         private val path = Label().addClass("repository-path")
@@ -293,7 +293,7 @@ class RepositoryView : VBoxBuilder() {
 
     }
 
-    private inner class RepositoryEntryTreeCell : TreeCell<RepositoryEntry>() {
+    private class RepositoryEntryTreeCell : TreeCell<RepositoryEntry>() {
 
         override fun updateItem(item: RepositoryEntry?, empty: Boolean) {
             super.updateItem(item, empty)
@@ -317,12 +317,13 @@ class RepositoryView : VBoxBuilder() {
         private fun branchItem(item: RepositoryEntry) = hbox {
             +Icons.codeFork()
             +Label(item.value)
-            // TODO: does not refresh
             if (item.isHead()) {
                 addClass("current")
                 +Icons.check()
             }
         }
+
+        private fun RepositoryEntry?.isHead() = this?.userData == "true" // TODO: duplicated
 
     }
 
