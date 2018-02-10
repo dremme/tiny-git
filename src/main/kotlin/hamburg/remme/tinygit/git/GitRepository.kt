@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.git
 
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.exists
 import hamburg.remme.tinygit.read
 
 private val init = arrayOf("init")
@@ -23,6 +24,8 @@ fun gitClone(repository: Repository, proxyHost: String, proxyPort: Int, url: Str
         throw CloneException("Destination '${repository.path}' already exists and is not empty.")
     } else if (response.lines().any { it.contains(notFound) || it.contains(notExist) }) {
         throw CloneException("Repository '$url' not found.")
+    } else if (!repository.path.asPath().exists()) {
+        throw CloneException("Repository '$url' could not be cloned. Unknown error.")
     }
 }
 
