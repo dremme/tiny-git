@@ -93,6 +93,7 @@
 
 .text-input {
     -fx-prompt-text-fill: derive(-fx-text-inner-color, -50%);
+    -fx-highlight-fill: -fx-focus-color;
     -fx-background-insets: 0;
     -fx-background-color: transparent;
     -fx-border-color: derive(-fx-text-inner-color, -50%), transparent;
@@ -521,6 +522,7 @@
     -fx-background-color: derive(-git-badge, -25%), derive(-git-badge, -35%);
     -fx-background-insets: 0, 1;
     -fx-background-radius: 2;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 1, 0, 1, 1);
 }
 
 .branch-badge .icon {

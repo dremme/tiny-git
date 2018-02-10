@@ -13,6 +13,7 @@ import hamburg.remme.tinygit.gui.builder.fillWidth
 import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.textField
 import hamburg.remme.tinygit.gui.component.Icons
+import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.stage.Window
 
@@ -25,6 +26,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             columnSpan(3)
             prefWidth = 300.0
             promptText = "https://github.com/..."
+            Platform.runLater { requestFocus() }
         }
         val location = textField {
             prefWidth = 300.0

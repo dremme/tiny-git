@@ -26,7 +26,6 @@ class CommitDialog(window: Window)
     private val workingService = TinyGit.workingCopyService
 
     init {
-
         val files = FileStatusView(workingService.staged)
         files.prefWidth = 400.0
         files.prefHeight = 500.0
