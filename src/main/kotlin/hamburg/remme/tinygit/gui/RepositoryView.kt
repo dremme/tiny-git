@@ -269,6 +269,7 @@ class RepositoryView : VBoxBuilder() {
                 }
                 +path
             }
+            TinyGit.addListener { updateItem(item, emptyProperty().get()) } // TODO: maybe too heavy for a list cell
         }
 
         override fun updateItem(item: Repository?, empty: Boolean) {
