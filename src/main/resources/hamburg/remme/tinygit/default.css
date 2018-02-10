@@ -569,7 +569,7 @@
 }
 
 .progress-overlay {
-    -fx-background-color: rgba(0, 0, 0, 0.5);
+    -fx-background-color: radial-gradient(center 50% 50%, radius 100%, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4));
 }
 
 .progress-overlay .label {

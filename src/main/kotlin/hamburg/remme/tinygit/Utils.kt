@@ -9,20 +9,20 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.Year
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import kotlin.streams.toList
 
 val shortDateFormat = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
 val dateFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy")!!
 val shortDateTimeFormat = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
+private val origin = LocalDate.of(1900, 1, 1)
 
 fun systemOffset() = ZoneId.systemDefault().rules.getOffset(Instant.now())!!
 
@@ -30,18 +30,10 @@ fun localDateTime(epochSecond: Long) = LocalDateTime.ofEpochSecond(epochSecond, 
 
 fun LocalDate.atEndOfDay() = atTime(LocalTime.MAX)!!
 
-fun Year.numberOfWeeks(): Int {
-    val firstDay = atDay(1)
-    val lastDay = atDay(length())
-    return if (isLeap) when {
-        firstDay.dayOfWeek == DayOfWeek.WEDNESDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY -> 53
-        firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.FRIDAY -> 53
-        else -> 52
-    } else when {
-        firstDay.dayOfWeek == DayOfWeek.THURSDAY && lastDay.dayOfWeek == DayOfWeek.THURSDAY -> 53
-        else -> 52
-    }
-}
+fun LocalDate.atNoon() = atTime(LocalTime.NOON)!!
+
+fun LocalDate.weeksBetween(date: LocalDate) = Math.abs(ChronoUnit.WEEKS.between(origin, date)
+        - ChronoUnit.WEEKS.between(origin, this))
 
 fun printError(message: String) {
     System.err.println(message)

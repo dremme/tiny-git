@@ -25,10 +25,8 @@ import javafx.collections.ObservableList
 import javafx.concurrent.Task
 import javafx.scene.Node
 import javafx.scene.control.ComboBox
-import javafx.scene.control.ListCell
 import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
-import javafx.util.Callback
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Month
@@ -41,7 +39,7 @@ import javafx.scene.chart.XYChart.Data as XYData
 class StatsView : Tab() {
 
     private val repoService = TinyGit.repositoryService
-    private val period: ComboBox<Year>
+    private val period: ComboBox<CalendarChart.Period>
     private lateinit var log: List<Commit>
 
     private val contributionData = observableList<PieData>()
@@ -76,25 +74,18 @@ class StatsView : Tab() {
         commits.title = "Commits by Month"
         commitsIndicator = ProgressIndicator(commits)
 
-        val currentYear = Year.now()
         val activity = CalendarChart(activityData)
         activity.title = "Activity"
-        activity.updateYear(currentYear)
         activityIndicator = ProgressIndicator(activity).columnSpan(3)
 
         period = comboBox {
-            items.addAll(currentYear,
-                    currentYear.minusYears(1),
-                    currentYear.minusYears(2),
-                    currentYear.minusYears(3),
-                    currentYear.minusYears(4))
-            buttonCell = PeriodListCell()
-            cellFactory = Callback { PeriodListCell() }
-            value = currentYear
+            isDisable = true // TODO: implement changing periods
+            items.addAll(CalendarChart.Period.values())
             valueProperty().addListener { _, _, it ->
                 activity.updateYear(it)
-                update(repoService.activeRepository.get()!!, it)
+                update(repoService.activeRepository.get()!!)
             }
+            value = CalendarChart.Period.LAST_YEAR
         }
         content = vbox {
             +toolBar {
@@ -113,9 +104,8 @@ class StatsView : Tab() {
             }
         }
 
-        repoService.activeRepository.addListener { _, _, it -> it?.let { update(it, period.value) } }
-        selectedProperty().addListener { _ -> repoService.activeRepository.get()?.let { update(it, period.value) } }
-//        TinyGit.addListener { update(it, period.value) } TODO
+        repoService.activeRepository.addListener { _, _, it -> it?.let { update(it) } }
+        selectedProperty().addListener { _ -> repoService.activeRepository.get()?.let { update(it) } }
     }
 
     private fun ObservableList<PieData>.upsert(data: List<PieData>) {
@@ -131,9 +121,11 @@ class StatsView : Tab() {
         }
     }
 
-    private fun update(repository: Repository, year: Year) {
+    private fun update(repository: Repository) {
         if (isSelected) TinyGit.execute(object : Task<List<Commit>>() {
-            override fun call() = gitLog(repository, year.atDay(1), year.atDay(year.length()))
+            private val lastDay = LocalDate.now()
+            private val firstDay = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)
+            override fun call() = gitLog(repository, firstDay, lastDay)
             override fun succeeded() {
                 log = value
                 updateActivity()
@@ -211,15 +203,6 @@ class StatsView : Tab() {
 
             override fun failed() = exception.printStackTrace()
         }.also { filesIndicator.execute(it) }
-    }
-
-    private class PeriodListCell : ListCell<Year>() {
-
-        override fun updateItem(item: Year?, empty: Boolean) {
-            super.updateItem(item, empty)
-            text = item?.value?.toString()
-        }
-
     }
 
     private class ProgressIndicator(content: Node) : StackPaneBuilder(), TaskExecutor {

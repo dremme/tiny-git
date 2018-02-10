@@ -12,6 +12,7 @@ import javafx.util.Duration
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Year
+import java.time.temporal.ChronoUnit
 import java.util.Arrays
 import java.util.Objects
 
@@ -31,11 +32,14 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
         this.data = observableList(Series(data))
     }
 
-    fun updateYear(year: Year) {
-        xAxis.invalidateRange(listOf(year.atDay(1)))
+    // TODO: implement changes periods
+    fun updateYear(period: Period) {
+        val lastDay = LocalDate.now()
+        val firstDay = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)
+
         plotChildren.removeAll(placeholders.map { it.node })
-        placeholders = (1..year.length())
-                .map { year.atDay(it) }
+        placeholders = (0..ChronoUnit.DAYS.between(firstDay, lastDay))
+                .map { firstDay.plusDays(it) }
                 .map { Data(it, it.dayOfWeek) }
                 .onEach { it.node = StackPane().addClass("chart-calendar-day", "day-0") }
         plotChildren.addAll(0, placeholders.map { it.node })
@@ -119,6 +123,14 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
         } else {
             data.node.resizeRelocate(0.0, 0.0, 0.0, 0.0)
         }
+    }
+
+    enum class Period(private val description: String) {
+
+        LAST_YEAR("Last Year"), LAST_2_YEARS("Last Two Years");
+
+        override fun toString() = description
+
     }
 
 }

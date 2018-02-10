@@ -149,7 +149,7 @@ class WorkingCopyView : Tab() {
     }
 
     private fun deleteFile() {
-        if (confirmWarningAlert(window, "Delete Files", "Delete", "This will remove the selected files from the disk.")) {
+        if (confirmWarningAlert(window, "Delete Files", "Delete", "This will remove ${selectedPending.selectedItems.size} selected files from the disk.")) {
             val selected = getIndex(selectedPending)
             workingService.delete { setIndex(selectedPending, selected) }
         }
