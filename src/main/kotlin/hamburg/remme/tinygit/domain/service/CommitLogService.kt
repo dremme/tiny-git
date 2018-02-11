@@ -12,7 +12,8 @@ import hamburg.remme.tinygit.observableList
 import javafx.beans.property.SimpleObjectProperty
 import javafx.concurrent.Task
 
-class CommitLogService(private val service: RepositoryService) : Refreshable {
+class CommitLogService(private val repositoryService: RepositoryService,
+                       private val credentialService: CredentialService) : Refreshable {
 
     val commits = observableList<Commit>()
     val activeCommit = SimpleObjectProperty<Commit?>()
@@ -76,7 +77,8 @@ class CommitLogService(private val service: RepositoryService) : Refreshable {
     }
 
     private fun logRemote() {
-        if (!service.hasRemote.get() || gitUpToDate(repository)) return
+        if (!repositoryService.hasRemote.get() || gitUpToDate(repository)) return
+        credentialService.applyCredentials(repositoryService.remote.get())
         remoteTask = object : Task<List<Commit>>() {
             override fun call(): List<Commit> {
                 gitFetch(repository)

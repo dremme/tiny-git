@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.git
 
 import hamburg.remme.tinygit.domain.Repository
 
+// TODO: maybe do not configure globally?
 private val credentialHelper = arrayOf("config", "--global", "credential.helper")
 private val userName = arrayOf("config", "user.name")
 private val userEmail = arrayOf("config", "user.email")

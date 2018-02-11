@@ -31,6 +31,14 @@ fun git(vararg args: String, block: (String) -> Unit) {
     }
 }
 
+fun git(input: Array<String>, vararg args: String, block: (String) -> Unit) {
+    measureTime("", args.joinToString(" ")) {
+        val process = exec(args = *args)
+        process.outputStream.bufferedWriter().use { it.write(input.joinToString("\n")) }
+        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) block.invoke(it.nextLine()) }
+    }
+}
+
 fun git(repository: Repository, vararg args: String, block: (String) -> Unit) {
     measureTime(repository.shortPath, args.joinToString(" ")) {
         val process = exec(repository.path, *args)
@@ -41,6 +49,16 @@ fun git(repository: Repository, vararg args: String, block: (String) -> Unit) {
 fun git(vararg args: String): String {
     return measureTime("", args.joinToString(" ")) {
         val process = exec(args = *args)
+        val output = StringBuilder()
+        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) output.appendln(it.nextLine()) }
+        output.toString()
+    }
+}
+
+fun git(input: Array<String>, vararg args: String): String {
+    return measureTime("", args.joinToString(" ")) {
+        val process = exec(args = *args)
+        process.outputStream.bufferedWriter().use { it.write(input.joinToString("\n")) }
         val output = StringBuilder()
         Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) output.appendln(it.nextLine()) }
         output.toString()

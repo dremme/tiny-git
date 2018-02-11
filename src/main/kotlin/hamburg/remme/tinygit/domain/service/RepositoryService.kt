@@ -6,23 +6,22 @@ import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.exists
 import hamburg.remme.tinygit.git.gitClone
 import hamburg.remme.tinygit.git.gitGc
-import hamburg.remme.tinygit.git.gitHasRemote
+import hamburg.remme.tinygit.git.gitGetUrl
 import hamburg.remme.tinygit.git.gitInit
 import hamburg.remme.tinygit.observableList
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.concurrent.Task
 
-class RepositoryService {
+class RepositoryService(private val service: CredentialService) {
 
     private val allRepositories = observableList<Repository>()
     val existingRepositories = allRepositories.filtered { it.path.asPath().exists() }!!
     val activeRepository = object : SimpleObjectProperty<Repository?>() {
-        override fun invalidated() {
-            get()?.let { hasRemote.set(gitHasRemote(it)) } ?: hasRemote.set(false)
-        }
+        override fun invalidated() = get()?.let { remote.set(gitGetUrl(it)) } ?: remote.set("")
     }
-    val hasRemote = SimpleBooleanProperty()
+    val remote = SimpleStringProperty()
+    val hasRemote = remote.isNotEmpty!!
 
     init {
         TinyGit.settings.setRepositories { allRepositories }
@@ -35,7 +34,9 @@ class RepositoryService {
     }
 
     fun clone(repository: Repository, url: String, proxyHost: String, proxyPort: Int,
-              successHandler: () -> Unit, errorHandler: (String) -> Unit) {
+              successHandler: () -> Unit,
+              errorHandler: (String) -> Unit) {
+        service.applyCredentials(remote.get())
         TinyGit.execute("Cloning...", object : Task<Unit>() {
             override fun call() = gitClone(repository, proxyHost, proxyPort, url)
 

@@ -19,8 +19,6 @@ import javafx.stage.Window
 
 class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
 
-    private val repoService = TinyGit.repositoryService
-
     init {
         val url = textField {
             columnSpan(3)
@@ -59,20 +57,6 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             intFormatter(80)
         }
 
-        +DialogButton(DialogButton.ok("Clone"), location.textProperty().isEmpty.or(url.textProperty().isEmpty))
-        +DialogButton(DialogButton.CANCEL)
-
-        okAction = {
-            val repository = Repository(location.text)
-            repoService.clone(repository, url.text, proxyHost.text, proxyPort.text.toInt(),
-                    {
-                        val name = authorName.text
-                        val email = authorEmail.text
-                        if (name.isNotBlank()) gitSetUserName(repository, name)
-                        if (email.isNotBlank()) gitSetUserEmail(repository, email)
-                    },
-                    { errorAlert(window, "Cannot Clone Repository", it) })
-        }
         content = grid(4) {
             addClass("settings-view")
             +listOf(Label("Remote:"), url,
@@ -80,6 +64,21 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
                     Label("Author Name:"), authorName,
                     Label("Author Email:"), authorEmail,
                     Label("Proxy:"), proxyHost, Label(":"), proxyPort)
+        }
+
+        +DialogButton(DialogButton.ok("Clone"), location.textProperty().isEmpty.or(url.textProperty().isEmpty))
+        +DialogButton(DialogButton.CANCEL)
+
+        okAction = {
+            val repository = Repository(location.text)
+            TinyGit.repositoryService.clone(repository, url.text, proxyHost.text, proxyPort.text.toInt(),
+                    {
+                        val name = authorName.text
+                        val email = authorEmail.text
+                        if (name.isNotBlank()) gitSetUserName(repository, name)
+                        if (email.isNotBlank()) gitSetUserEmail(repository, email)
+                    },
+                    { errorAlert(window, "Cannot Clone Repository", it) })
         }
     }
 
