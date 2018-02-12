@@ -3,7 +3,6 @@ package hamburg.remme.tinygit.gui.component
 import hamburg.remme.tinygit.atEndOfDay
 import hamburg.remme.tinygit.atNoon
 import hamburg.remme.tinygit.weeksBetween
-import javafx.geometry.Side
 import javafx.scene.chart.Axis
 import java.time.LocalDate
 import java.time.Year
@@ -17,10 +16,6 @@ class DayOfYearAxis : Axis<LocalDate>() {
     private lateinit var firstDay: LocalDate
     private lateinit var lastDay: LocalDate
     private var length: Double = 0.0
-
-    init {
-        side = Side.TOP
-    }
 
     override fun autoRange(length: Double): Any {
         this.length = length

@@ -1,90 +1,100 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.TinyGit
-import hamburg.remme.tinygit.domain.Commit
-import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.domain.service.TaskExecutor
-import hamburg.remme.tinygit.git.gitLog
-import hamburg.remme.tinygit.git.gitLsTree
+import hamburg.remme.tinygit.domain.NumStat
+import hamburg.remme.tinygit.domain.service.TaskMonitor
 import hamburg.remme.tinygit.gui.builder.StackPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.columnSpan
 import hamburg.remme.tinygit.gui.builder.comboBox
 import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.progressIndicator
+import hamburg.remme.tinygit.gui.builder.scrollPane
 import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.component.CalendarChart
+import hamburg.remme.tinygit.gui.component.DayOfYearAxis
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.component.PieChart
 import hamburg.remme.tinygit.observableList
 import javafx.beans.property.SimpleBooleanProperty
+import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
-import javafx.concurrent.Task
 import javafx.scene.Node
+import javafx.scene.chart.AreaChart
+import javafx.scene.chart.NumberAxis
+import javafx.scene.chart.XYChart
 import javafx.scene.control.ComboBox
 import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Month
-import java.time.Year
 import java.time.format.TextStyle
 import java.util.Locale
 import javafx.scene.chart.PieChart.Data as PieData
 import javafx.scene.chart.XYChart.Data as XYData
+import javafx.scene.chart.XYChart.Series as XYSeries
 
 class StatsView : Tab() {
 
     private val repoService = TinyGit.repositoryService
+    private val statsService = TinyGit.statsService
     private val period: ComboBox<CalendarChart.Period>
-    private lateinit var log: List<Commit>
-
     private val contributionData = observableList<PieData>()
     private val filesData = observableList<PieData>()
     private val commitsData = observableList<PieData>()
     private val activityData = observableList<XYData<LocalDate, DayOfWeek>>()
-
-    private val contributionIndicator: ProgressIndicator
-    private val filesIndicator: ProgressIndicator
-    private val commitsIndicator: ProgressIndicator
-    private val activityIndicator: ProgressIndicator
-
-    private var contributionTask: Task<*>? = null
-    private var filesTask: Task<*>? = null
-    private var commitsTask: Task<*>? = null
-    private var activityTask: Task<*>? = null
+    private val addedLinesData = observableList<XYData<LocalDate, Number>>()
+    private val removedLinesData = observableList<XYData<LocalDate, Number>>()
 
     init {
         text = "Statistics (beta)"
         graphic = Icons.chartPie()
         isClosable = false
 
+        statsService.contributionData.addListener(ListChangeListener { updateContributions(it.list) })
+        statsService.filesData.addListener(ListChangeListener { updateFiles(it.list) })
+        statsService.commitsData.addListener(ListChangeListener { updateCommits(it.list) })
+        statsService.activityData.addListener(ListChangeListener { updateActivity(it.list) })
+        statsService.linesData.addListener(ListChangeListener { updateLines(it.list) })
+
         val contributions = PieChart(contributionData, "commits")
         contributions.title = "Contributions"
-        contributionIndicator = ProgressIndicator(contributions)
+        val contributionIndicator = ProgressIndicator(contributions)
+        statsService.contributionMonitor = contributionIndicator
 
         val files = PieChart(filesData, "files")
         files.title = "Files"
-        filesIndicator = ProgressIndicator(files)
+        val filesIndicator = ProgressIndicator(files)
+        statsService.filesMonitor = filesIndicator
 
         val commits = PieChart(commitsData, "commits")
         commits.title = "Commits by Month"
-        commitsIndicator = ProgressIndicator(commits)
+        val commitsIndicator = ProgressIndicator(commits)
+        statsService.commitsMonitor = commitsIndicator
 
         val activity = CalendarChart(activityData)
+        activity.prefHeight = 250.0
         activity.title = "Activity"
-        activityIndicator = ProgressIndicator(activity).columnSpan(3)
+        val activityIndicator = ProgressIndicator(activity).columnSpan(3)
+        statsService.activityMonitor = activityIndicator
+
+        val lines = AreaChart<LocalDate, Number>(DayOfYearAxis(), NumberAxis(),
+                observableList(XYChart.Series("Added", addedLinesData), XYChart.Series("Removed", removedLinesData)))
+        lines.prefHeight = 250.0
+        lines.title = "Lines of Code by Month"
+        lines.isHorizontalZeroLineVisible = false
+        lines.isVerticalZeroLineVisible = false
+        val linesIndicator = ProgressIndicator(lines).columnSpan(3)
+        statsService.linesMonitor = linesIndicator
 
         period = comboBox {
             isDisable = true // TODO: implement changing periods
             items.addAll(CalendarChart.Period.values())
-            valueProperty().addListener { _, _, it ->
-                activity.updateYear(it)
-                update(repoService.activeRepository.get()!!)
-            }
+            valueProperty().addListener { _, _, it -> activity.updateYear(it) } // TODO: implement changing periods
             value = CalendarChart.Period.LAST_YEAR
         }
         content = vbox {
@@ -92,20 +102,44 @@ class StatsView : Tab() {
                 addSpacer()
                 +period
             }
-            +grid(3) {
+            +scrollPane {
                 addClass("stats-view")
                 vgrow(Priority.ALWAYS)
-                columns(33.333, 33.333, 33.333)
-                rows(35.0, 65.0)
-                +listOf(activityIndicator,
-                        contributionIndicator,
-                        commitsIndicator,
-                        filesIndicator)
+                isFitToWidth = true
+                +grid(3) {
+                    columns(33.333, 33.333, 33.333)
+                    +listOf(activityIndicator,
+                            linesIndicator,
+                            contributionIndicator,
+                            commitsIndicator,
+                            filesIndicator)
+                }
             }
         }
 
-        repoService.activeRepository.addListener { _, _, it -> it?.let { update(it) } }
-        selectedProperty().addListener { _ -> repoService.activeRepository.get()?.let { update(it) } }
+        repoService.activeRepository.addListener { _, _, it -> it?.let { statsService.update(it) } }
+        selectedProperty().addListener { _, _, it -> if (it) statsService.update(repoService.activeRepository.get()!!) }
+    }
+
+    private fun updateActivity(data: List<Pair<LocalDate, Int>>) {
+        activityData.setAll(data.map { (date, value) -> XYData(date, date.dayOfWeek, value) })
+    }
+
+    private fun updateContributions(data: List<Pair<String, Int>>) {
+        contributionData.upsert(data.map { (author, value) -> PieData(author, value.toDouble()) })
+    }
+
+    private fun updateCommits(data: List<Pair<Month, Int>>) {
+        commitsData.upsert(data.map { (month, value) -> PieData(month.getDisplayName(TextStyle.FULL, Locale.ROOT), value.toDouble()) })
+    }
+
+    private fun updateFiles(data: List<Pair<String, Int>>) {
+        filesData.upsert(data.map { (ext, value) -> PieData(ext, value.toDouble()) })
+    }
+
+    private fun updateLines(data: List<Pair<LocalDate, NumStat>>) {
+        addedLinesData.setAll(data.map { (date, value) -> XYData<LocalDate, Number>(date, value.added) })
+        removedLinesData.setAll(data.map { (date, value) -> XYData<LocalDate, Number>(date, value.removed) })
     }
 
     private fun ObservableList<PieData>.upsert(data: List<PieData>) {
@@ -121,91 +155,7 @@ class StatsView : Tab() {
         }
     }
 
-    private fun update(repository: Repository) {
-        if (isSelected) TinyGit.execute(object : Task<List<Commit>>() {
-            private val lastDay = LocalDate.now()
-            private val firstDay = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)
-            override fun call() = gitLog(repository, firstDay, lastDay)
-            override fun succeeded() {
-                log = value
-                updateActivity()
-                updateCommits()
-                updateContributions()
-                updateFiles(repository)
-            }
-        })
-    }
-
-    private fun updateActivity() {
-        activityTask?.cancel()
-        activityTask = object : Task<List<Pair<LocalDate, Int>>>() {
-            override fun call() = log
-                    .groupingBy { it.date.toLocalDate() }
-                    .eachCount()
-                    .map { (date, value) -> date to value }
-
-            override fun succeeded() {
-                activityData.setAll(value.map { (date, value) -> XYData(date, date.dayOfWeek, value) })
-            }
-
-            override fun failed() = exception.printStackTrace()
-        }.also { activityIndicator.execute(it) }
-    }
-
-    private fun updateContributions() {
-        contributionTask?.cancel()
-        contributionTask = object : Task<List<Pair<String, Int>>>() {
-            override fun call() = log
-                    .groupingBy { it.authorMail }
-                    .eachCount()
-                    .map { (author, value) -> author to value }
-                    .sortedBy { (_, value) -> value }
-                    .takeLast(8)
-
-            override fun succeeded() {
-                contributionData.upsert(value.map { (author, value) -> PieData(author, value.toDouble()) })
-            }
-
-            override fun failed() = exception.printStackTrace()
-        }.also { contributionIndicator.execute(it) }
-    }
-
-    private fun updateCommits() {
-        commitsTask?.cancel()
-        commitsTask = object : Task<List<Pair<Month, Int>>>() {
-            override fun call() = log
-                    .groupingBy { it.date.month }
-                    .eachCount()
-                    .map { (month, value) -> month to value }
-                    .sortedBy { (month, _) -> month.value }
-
-            override fun succeeded() {
-                commitsData.upsert(value.map { (month, value) -> PieData(month.getDisplayName(TextStyle.FULL, Locale.ROOT), value.toDouble()) })
-            }
-
-            override fun failed() = exception.printStackTrace()
-        }.also { commitsIndicator.execute(it) }
-    }
-
-    private fun updateFiles(repository: Repository) {
-        filesTask?.cancel()
-        filesTask = object : Task<List<Pair<String, Int>>>() {
-            override fun call() = gitLsTree(repository)
-                    .groupingBy { it.substringAfterLast('.', it.substringAfterLast('/')) }
-                    .eachCount()
-                    .map { (ext, value) -> ext to value }
-                    .sortedBy { (_, value) -> value }
-                    .takeLast(8)
-
-            override fun succeeded() {
-                filesData.upsert(value.map { (ext, value) -> PieData(ext, value.toDouble()) })
-            }
-
-            override fun failed() = exception.printStackTrace()
-        }.also { filesIndicator.execute(it) }
-    }
-
-    private class ProgressIndicator(content: Node) : StackPaneBuilder(), TaskExecutor {
+    private class ProgressIndicator(content: Node) : StackPaneBuilder(), TaskMonitor {
 
         private val visible = SimpleBooleanProperty()
 
@@ -214,13 +164,9 @@ class StatsView : Tab() {
             +progressIndicator(16.0).visibleWhen(visible)
         }
 
-        override fun execute(task: Task<*>) {
-            task.setOnSucceeded { visible.set(false) }
-            task.setOnCancelled { visible.set(false) }
-            task.setOnFailed { visible.set(false) }
-            visible.set(true)
-            TinyGit.execute(task)
-        }
+        override fun started() = visible.set(true)
+
+        override fun done() = visible.set(false)
 
     }
 

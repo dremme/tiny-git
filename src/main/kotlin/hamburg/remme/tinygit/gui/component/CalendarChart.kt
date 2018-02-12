@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.observableList
 import hamburg.remme.tinygit.shortDateFormat
 import javafx.animation.FadeTransition
 import javafx.collections.ObservableList
+import javafx.geometry.Side
 import javafx.scene.chart.XYChart
 import javafx.scene.control.Tooltip
 import javafx.scene.layout.StackPane
@@ -29,6 +30,7 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
         isHorizontalZeroLineVisible = false
         verticalGridLinesVisible = false
         isVerticalZeroLineVisible = false
+        xAxis.side = Side.TOP
         this.data = observableList(Series(data))
     }
 

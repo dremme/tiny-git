@@ -15,58 +15,58 @@ class StatusCountView(items: ObservableList<File>) : HBox() {
     private val conflicting = label {
         addClass("status-conflict")
         managedWhen(visibleProperty())
-        graphic = FileStatusView.conflictIcon()
         tooltip = Tooltip("Conflicting")
         isVisible = false
+        +FileStatusView.conflictIcon()
     }
     private val added = label {
         addClass("status-added")
         managedWhen(visibleProperty())
-        graphic = FileStatusView.addedIcon()
         tooltip = Tooltip("Added")
         isVisible = false
+        +FileStatusView.addedIcon()
     }
     private val copied = label {
         addClass("status-copied")
         managedWhen(visibleProperty())
-        graphic = FileStatusView.copiedIcon()
         tooltip = Tooltip("Copied")
         isVisible = false
+        +FileStatusView.copiedIcon()
     }
     private val renamed = label {
         addClass("status-renamed")
         managedWhen(visibleProperty())
-        graphic = FileStatusView.renamedIcon()
         tooltip = Tooltip("Renamed")
         isVisible = false
+        +FileStatusView.renamedIcon()
     }
     private val modified = label {
         addClass("status-modified")
         managedWhen(visibleProperty())
-        graphic = FileStatusView.modifiedIcon()
         tooltip = Tooltip("Modified")
         isVisible = false
+        +FileStatusView.modifiedIcon()
     }
     private val removed = label {
         addClass("status-removed")
         managedWhen(visibleProperty())
-        graphic = FileStatusView.removedIcon()
         tooltip = Tooltip("Removed")
         isVisible = false
+        +FileStatusView.removedIcon()
     }
     private val missing = label {
         addClass("status-missing")
         managedWhen(visibleProperty())
-        graphic = FileStatusView.missingIcon()
         tooltip = Tooltip("Missing")
         isVisible = false
+        +FileStatusView.missingIcon()
     }
     private val untracked = label {
         addClass("status-untracked")
         managedWhen(visibleProperty())
-        graphic = FileStatusView.untrackedIcon()
         tooltip = Tooltip("Untracked")
         isVisible = false
+        +FileStatusView.untrackedIcon()
     }
 
     init {

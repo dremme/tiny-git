@@ -26,7 +26,7 @@ class AboutDialog(window: Window) : Dialog<Unit>(window, "About") {
             val author = label {
                 addClass("author")
                 columnSpan(2)
-                text = "Dennis Remme"
+                +"Dennis Remme"
             }
             val link = link {
                 text = "remme.hamburg"

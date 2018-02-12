@@ -88,8 +88,8 @@ class GraphView(entries: ObservableList<Commit>, val head: ObservableStringValue
                 label {
                     addClass("branch-badge")
                     if (it == head.get()) addClass("current")
-                    text = it.abbrev()
-                    graphic = Icons.codeFork()
+                    +it.abbrev()
+                    +Icons.codeFork()
                 }
             }
         }

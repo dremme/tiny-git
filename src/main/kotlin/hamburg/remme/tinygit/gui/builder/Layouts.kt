@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui.builder
 
 import javafx.geometry.Pos
 import javafx.scene.Node
+import javafx.scene.control.ScrollPane
 import javafx.scene.control.SplitPane
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
@@ -57,6 +58,12 @@ inline fun splitPane(block: SplitPaneBuilder.() -> Unit): SplitPane {
     return pane
 }
 
+inline fun scrollPane(block: ScrollPaneBuilder.() -> Unit): ScrollPane {
+    val pane = ScrollPaneBuilder()
+    block.invoke(pane)
+    return pane
+}
+
 inline fun hbox(block: HBoxBuilder.() -> Unit): HBox {
     val box = HBoxBuilder()
     block.invoke(box)
@@ -95,6 +102,14 @@ open class SplitPaneBuilder : SplitPane() {
 
     operator fun Node.unaryPlus() {
         items.add(this)
+    }
+
+}
+
+open class ScrollPaneBuilder : ScrollPane() {
+
+    operator fun Node.unaryPlus() {
+        content = this
     }
 
 }

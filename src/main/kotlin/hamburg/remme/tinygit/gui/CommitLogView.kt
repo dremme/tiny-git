@@ -100,7 +100,7 @@ class CommitLogView : Tab() {
             spacing = 6.0
             alignment = Pos.CENTER
             +progressIndicator(6.0)
-            +label { text = "Fetching..." }
+            +label { +"Fetching..." }
         }
 
         override fun execute(task: Task<*>) {

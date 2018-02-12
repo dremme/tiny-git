@@ -14,6 +14,7 @@ import hamburg.remme.tinygit.domain.service.Refreshable
 import hamburg.remme.tinygit.domain.service.RemoteService
 import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.domain.service.StashService
+import hamburg.remme.tinygit.domain.service.StatsService
 import hamburg.remme.tinygit.domain.service.WorkingCopyService
 import hamburg.remme.tinygit.git.gitGetCredentialHelper
 import hamburg.remme.tinygit.git.gitIsInstalled
@@ -58,13 +59,13 @@ class TinyGit : Application() {
 
     companion object {
 
-        private val cpuCount = Math.max(1, Runtime.getRuntime().availableProcessors() - 1)
         private val daemonFactory = ThreadFactory { Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } }
-        private val pool = Executors.newFixedThreadPool(cpuCount, daemonFactory)
+        private val pool = Executors.newCachedThreadPool(daemonFactory)
         private val scheduler = Executors.newScheduledThreadPool(1, daemonFactory)
         private val listeners = mutableListOf<(Repository) -> Unit>()
-        val settings: Settings = Settings()
-        val repositoryService: RepositoryService = RepositoryService()
+        val settings = Settings()
+        val repositoryService = RepositoryService()
+        val statsService = StatsService()
         val remoteService = RemoteService().addListeners()
         val branchService = BranchService().addListeners()
         val workingCopyService = WorkingCopyService().addListeners()

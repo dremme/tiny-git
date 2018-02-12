@@ -36,7 +36,6 @@ import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
 import javafx.scene.Node
-import javafx.scene.control.ComboBox
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
 import javafx.scene.control.TreeCell
@@ -54,19 +53,15 @@ class RepositoryView : VBoxBuilder() {
     private val branchService = TinyGit.branchService
     private val stashService = TinyGit.stashService
     private val window get() = scene.window
-    private val repository: ComboBox<Repository>
     private val tree: TreeView<RepositoryEntry>
     private val selectedEntry @Suppress("UNNECESSARY_SAFE_CALL") get() = tree?.selectionModel?.selectedItem?.value
-    private val localBranches: TreeItem<RepositoryEntry>
-    private val remoteBranches: TreeItem<RepositoryEntry>
-    private val stash: TreeItem<RepositoryEntry>
     private val branchComparator = { b1: TreeItem<RepositoryEntry>, b2: TreeItem<RepositoryEntry> -> b1.value.value.compareTo(b2.value.value) }
     private val stashComparator = { b1: TreeItem<RepositoryEntry>, b2: TreeItem<RepositoryEntry> -> b1.value.userData.compareTo(b2.value.userData) }
 
     init {
         addClass("repository-view")
 
-        repository = comboBox<Repository>(repoService.existingRepositories) {
+        val repository = comboBox<Repository>(repoService.existingRepositories) {
             buttonCell = RepositoryValueCell()
             cellFactory = Callback { RepositoryListCell() }
             selectionModel.selectedItemProperty().addListener { _, _, it -> repoService.activeRepository.set(it) }
@@ -81,9 +76,9 @@ class RepositoryView : VBoxBuilder() {
             }
         }
 
-        localBranches = TreeItem(RepositoryEntry("Local Branches", EntryType.LOCAL))
-        remoteBranches = TreeItem(RepositoryEntry("Remote Branches", EntryType.REMOTE))
-        stash = TreeItem(RepositoryEntry("Stash", EntryType.STASH))
+        val localBranches = TreeItem(RepositoryEntry("Local Branches", EntryType.LOCAL))
+        val remoteBranches = TreeItem(RepositoryEntry("Remote Branches", EntryType.REMOTE))
+        val stash = TreeItem(RepositoryEntry("Stash", EntryType.STASH))
 
         tree = tree {
             vgrow(Priority.ALWAYS)
@@ -254,16 +249,16 @@ class RepositoryView : VBoxBuilder() {
                     +hbox {
                         addClass("repository-divergence")
                         +label {
-                            graphic = Icons.arrowUp()
                             visibleWhen(ahead.greater0())
                             managedWhen(visibleProperty())
                             textProperty().bind(ahead.asString())
+                            +Icons.arrowUp()
                         }
                         +label {
-                            graphic = Icons.arrowDown()
                             visibleWhen(behind.greater0())
                             managedWhen(visibleProperty())
                             textProperty().bind(behind.asString())
+                            +Icons.arrowDown()
                         }
                     }
                 }
@@ -282,6 +277,8 @@ class RepositoryView : VBoxBuilder() {
         // TODO: maybe too heavy for a list cell
         private fun updateDivergence(item: Repository) {
             task?.cancel()
+            ahead.set(0)
+            behind.set(0)
             task = object : Task<Divergence>() {
                 override fun call() = gitDivergence(item)
 
