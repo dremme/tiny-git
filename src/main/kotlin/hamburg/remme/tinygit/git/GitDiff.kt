@@ -7,7 +7,7 @@ import hamburg.remme.tinygit.domain.Repository
 
 private val diff = arrayOf("diff", "--find-copies")
 private val diffNoIndex = arrayOf("diff", "--no-index", "/dev/null")
-private val diffNumstat = arrayOf("diff", "--numstat")
+private val diffNumstat = arrayOf("diff", "--numstat", "--no-renames")
 
 fun gitDiff(repository: Repository, file: File, lines: Int): String {
     if (!file.isCached && file.status == File.Status.ADDED) return git(repository, *diffNoIndex, file.path)
@@ -22,7 +22,7 @@ fun gitDiff(repository: Repository, file: File, commit: Commit, lines: Int): Str
 
 fun gitDiffNumstat(repository: Repository, from: Commit, to: Commit): List<NumStat> {
     val numStat = mutableListOf<NumStat>()
-    git(repository, *diffNumstat, from.id, to.id) { if (!it.startsWith("warning: ")) numStat += it.parseStat() }
+    git(repository, *diffNumstat, from.id, to.id) { numStat += it.parseStat() }
     return numStat
 }
 
