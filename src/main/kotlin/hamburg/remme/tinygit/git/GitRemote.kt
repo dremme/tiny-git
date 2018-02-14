@@ -32,10 +32,6 @@ fun gitSetPushUrl(repository: Repository, url: String) {
     git(repository, *remoteSetPushUrl, url)
 }
 
-fun gitHasRemote(repository: Repository): Boolean {
-    return gitGetUrl(repository).isNotBlank()
-}
-
 fun gitAddRemote(repository: Repository, url: String) {
     git(repository, *remoteAdd, url)
 }

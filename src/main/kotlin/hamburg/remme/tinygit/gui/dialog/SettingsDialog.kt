@@ -3,10 +3,8 @@ package hamburg.remme.tinygit.gui.dialog
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.git.gitAddRemote
 import hamburg.remme.tinygit.git.gitGetProxy
-import hamburg.remme.tinygit.git.gitGetUrl
 import hamburg.remme.tinygit.git.gitGetUserEmail
 import hamburg.remme.tinygit.git.gitGetUserName
-import hamburg.remme.tinygit.git.gitHasRemote
 import hamburg.remme.tinygit.git.gitRemoveRemote
 import hamburg.remme.tinygit.git.gitSetProxy
 import hamburg.remme.tinygit.git.gitSetPushUrl
@@ -23,17 +21,15 @@ import javafx.stage.Window
 
 class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings") {
 
-    private val repository = TinyGit.repositoryService.activeRepository.get()!!
-    private val originalUrl = gitGetUrl(repository)
+    private val service = TinyGit.repositoryService
+    private val repository = service.activeRepository.get()!!
+    private val originalUrl = service.remote.get()!!
     private val originalName = gitGetUserName(repository)
     private val originalEmail = gitGetUserEmail(repository)
     private val originalHost: String
     private val originalPort: Int
 
     init {
-        +DialogButton(DialogButton.OK)
-        +DialogButton(DialogButton.CANCEL)
-
         val originalProxy = gitGetProxy(repository)
         if (originalProxy.isNotEmpty()) {
             originalHost = originalProxy.substringBeforeLast(':')
@@ -78,11 +74,23 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings
             intFormatter(originalPort)
         }
 
+        content = grid(4) {
+            addClass("settings-view")
+            +listOf(Label("Remote:"), remote,
+                    Label("Location:"), location,
+                    Label("Author Name:"), authorName,
+                    Label("Author Email:"), authorEmail,
+                    Label("Proxy:"), proxyHost, Label(":"), proxyPort)
+        }
+
+        +DialogButton(DialogButton.OK)
+        +DialogButton(DialogButton.CANCEL)
+
         okAction = {
             val url = remote.text
             if (url != originalUrl) {
                 if (url.isNotBlank()) {
-                    if (gitHasRemote(repository)) {
+                    if (service.hasRemote.get()) {
                         gitSetUrl(repository, url)
                         gitSetPushUrl(repository, url)
                     } else gitAddRemote(repository, url)
@@ -102,14 +110,6 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings
             }
 
             TinyGit.fireEvent()
-        }
-        content = grid(4) {
-            addClass("settings-view")
-            +listOf(Label("Remote:"), remote,
-                    Label("Location:"), location,
-                    Label("Author Name:"), authorName,
-                    Label("Author Email:"), authorEmail,
-                    Label("Proxy:"), proxyHost, Label(":"), proxyPort)
         }
     }
 

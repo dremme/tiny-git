@@ -47,6 +47,18 @@ class CommitDialog(window: Window)
             }
         }
 
+        content = vbox {
+            addClass("commit-view")
+
+            +splitPane {
+                vgrow(Priority.ALWAYS)
+                +files
+                +fileDiff
+            }
+            +message
+            if (!mergeService.isMerging.get()) +amend
+        }
+
         +DialogButton(DialogButton.ok("Commit"),
                 message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
         +DialogButton(DialogButton.CANCEL)
@@ -60,17 +72,6 @@ class CommitDialog(window: Window)
                     message.text,
                     amend.isSelected,
                     { errorAlert(window, "Cannot Commit", "Cannot commit because there are unmerged changes.") })
-        }
-        content = vbox {
-            addClass("commit-view")
-
-            +splitPane {
-                vgrow(Priority.ALWAYS)
-                +files
-                +fileDiff
-            }
-            +message
-            if (!mergeService.isMerging.get()) +amend
         }
     }
 

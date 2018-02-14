@@ -10,11 +10,13 @@ import hamburg.remme.tinygit.git.gitPull
 import hamburg.remme.tinygit.git.gitPush
 import javafx.concurrent.Task
 
-class RemoteService : Refreshable {
+class RemoteService(private val repositoryService: RepositoryService,
+                    private val credentialService: CredentialService) : Refreshable {
 
     private lateinit var repository: Repository
 
     fun push(force: Boolean, behindHandler: () -> Unit, timeoutHandler: () -> Unit) {
+        credentialService.applyCredentials(repositoryService.remote.get())
         TinyGit.execute("Pushing commits...", object : Task<Unit>() {
             override fun call() = gitPush(repository, force)
 
@@ -31,6 +33,7 @@ class RemoteService : Refreshable {
     }
 
     fun fetch() {
+        credentialService.applyCredentials(repositoryService.remote.get())
         TinyGit.execute("Fetching...", object : Task<Unit>() {
             override fun call() = gitFetchPrune(repository)
 
@@ -41,6 +44,7 @@ class RemoteService : Refreshable {
     }
 
     fun pull(errorHandler: (String) -> Unit, timeoutHandler: () -> Unit) {
+        credentialService.applyCredentials(repositoryService.remote.get())
         TinyGit.execute("Pulling commits...", object : Task<Unit>() {
             override fun call() = gitPull(repository)
 

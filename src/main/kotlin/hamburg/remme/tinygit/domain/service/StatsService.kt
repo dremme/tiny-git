@@ -129,6 +129,7 @@ class StatsService {
         }.also { TinyGit.execute(it) }
     }
 
+    // TODO: really?
     fun update(repository: Repository) {
         taskPool.forEach { _, it -> it.cancel() }
         log.clear()

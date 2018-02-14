@@ -6,6 +6,7 @@ import hamburg.remme.tinygit.domain.service.BranchService
 import hamburg.remme.tinygit.domain.service.CommitDetailsService
 import hamburg.remme.tinygit.domain.service.CommitLogService
 import hamburg.remme.tinygit.domain.service.CommitService
+import hamburg.remme.tinygit.domain.service.CredentialService
 import hamburg.remme.tinygit.domain.service.DiffService
 import hamburg.remme.tinygit.domain.service.DivergenceService
 import hamburg.remme.tinygit.domain.service.MergeService
@@ -23,6 +24,7 @@ import hamburg.remme.tinygit.git.gitSetWincred
 import hamburg.remme.tinygit.git.gitVersion
 import hamburg.remme.tinygit.gui.GitView
 import hamburg.remme.tinygit.gui.builder.fatalAlert
+import hamburg.remme.tinygit.gui.dialog.CredentialsDialog
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
@@ -64,16 +66,17 @@ class TinyGit : Application() {
         private val scheduler = Executors.newScheduledThreadPool(1, daemonFactory)
         private val listeners = mutableListOf<(Repository) -> Unit>()
         val settings = Settings()
-        val repositoryService = RepositoryService()
         val statsService = StatsService()
-        val remoteService = RemoteService().addListeners()
+        val credentialService = CredentialService()
+        val repositoryService: RepositoryService = RepositoryService(credentialService)
+        val remoteService = RemoteService(repositoryService, credentialService).addListeners()
         val branchService = BranchService().addListeners()
         val workingCopyService = WorkingCopyService().addListeners()
         val divergenceService = DivergenceService().addListeners()
         val mergeService = MergeService(workingCopyService).addListeners()
         val rebaseService = RebaseService().addListeners()
         val stashService = StashService().addListeners()
-        val commitLogService = CommitLogService(repositoryService).addListeners()
+        val commitLogService = CommitLogService(repositoryService, credentialService).addListeners()
         val commitDetailsService = CommitDetailsService(commitLogService).addListeners()
         val commitService = CommitService(workingCopyService).addListeners()
         val diffService = DiffService().addListeners()
@@ -142,6 +145,9 @@ class TinyGit : Application() {
             stage.isMaximized = it.window.maximized
             stage.isFullScreen = it.window.fullscreen
         }
+
+        // TODO: move this?
+        credentialService.credentialHandler = { CredentialsDialog(it, stage).showAndWait() }
 
         stage.focusedProperty().addListener { _, _, it -> if (it) state.isModal.takeIf { it.get() }?.set(false) ?: fireEvent() }
         stage.scene = Scene(GitView())
