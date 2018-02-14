@@ -35,8 +35,6 @@ import javafx.scene.text.Font
 import javafx.stage.Stage
 import java.util.Locale
 import java.util.concurrent.Callable
-import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
 
 // TODO: the great clean-up tbd
@@ -61,9 +59,6 @@ class TinyGit : Application() {
 
     companion object {
 
-        private val daemonFactory = ThreadFactory { Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } }
-        private val pool = Executors.newCachedThreadPool(daemonFactory)
-        private val scheduler = Executors.newScheduledThreadPool(1, daemonFactory)
         private val listeners = mutableListOf<(Repository) -> Unit>()
         val settings = Settings()
         val statsService = StatsService()
@@ -98,7 +93,7 @@ class TinyGit : Application() {
             repositoryService.activeRepository.get()?.let { repository -> listeners.forEach { it.invoke(repository) } }
         }
 
-        fun execute(task: Task<*>) = pool.execute(task)
+        fun execute(task: Task<*>) = cachedPool.execute(task)
 
         fun execute(message: String, task: Task<*>) {
             task.setOnSucceeded { state.runningProcesses.dec() }
@@ -161,7 +156,7 @@ class TinyGit : Application() {
                 rebaseService.rebaseLast))
         stage.show()
 
-        scheduler.scheduleAtFixedRate({ if (!stage.isFocused && !state.isModal.get()) Platform.runLater { fireEvent() } }, 0, 10, TimeUnit.SECONDS)
+        scheduledPool.scheduleAtFixedRate({ if (!stage.isFocused && !state.isModal.get()) Platform.runLater { fireEvent() } }, 0, 10, TimeUnit.SECONDS)
     }
 
     override fun stop() = settings.save()

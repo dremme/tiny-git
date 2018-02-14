@@ -26,7 +26,6 @@ import javafx.scene.Node
 import javafx.scene.chart.AreaChart
 import javafx.scene.chart.NumberAxis
 import javafx.scene.chart.XYChart
-import javafx.scene.control.ComboBox
 import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
 import java.time.DayOfWeek
@@ -42,7 +41,6 @@ class StatsView : Tab() {
 
     private val repoService = TinyGit.repositoryService
     private val statsService = TinyGit.statsService
-    private val period: ComboBox<CalendarChart.Period>
     private val contributionData = observableList<PieData>()
     private val filesData = observableList<PieData>()
     private val commitsData = observableList<PieData>()
@@ -61,7 +59,7 @@ class StatsView : Tab() {
         statsService.activityData.addListener(ListChangeListener { updateActivity(it.list) })
         statsService.linesData.addListener(ListChangeListener { updateLines(it.list) })
 
-        val contributions = PieChart(contributionData, "commits")
+        val contributions = PieChart(contributionData, "lines")
         contributions.title = "Contributions"
         val contributionIndicator = ProgressIndicator(contributions)
         statsService.contributionMonitor = contributionIndicator
@@ -91,16 +89,15 @@ class StatsView : Tab() {
         val linesIndicator = ProgressIndicator(lines).columnSpan(3)
         statsService.linesMonitor = linesIndicator
 
-        period = comboBox {
-            isDisable = true // TODO: implement changing periods
-            items.addAll(CalendarChart.Period.values())
-            valueProperty().addListener { _, _, it -> activity.updateYear(it) } // TODO: implement changing periods
-            value = CalendarChart.Period.LAST_YEAR
-        }
         content = vbox {
             +toolBar {
                 addSpacer()
-                +period
+                +comboBox<CalendarChart.Period> {
+                    isDisable = true // TODO: implement changing periods
+                    items.addAll(CalendarChart.Period.values())
+                    valueProperty().addListener { _, _, it -> activity.updateYear(it) } // TODO: implement changing periods
+                    value = CalendarChart.Period.LAST_YEAR
+                }
             }
             +scrollPane {
                 addClass("stats-view")
@@ -118,7 +115,10 @@ class StatsView : Tab() {
         }
 
         repoService.activeRepository.addListener { _, _, it -> it?.let { statsService.update(it) } }
-        selectedProperty().addListener { _, _, it -> if (it) statsService.update(repoService.activeRepository.get()!!) }
+        selectedProperty().addListener { _, _, it ->
+            if (it) statsService.update(repoService.activeRepository.get()!!)
+            else statsService.cancel()
+        }
     }
 
     private fun updateActivity(data: List<Pair<LocalDate, Int>>) {

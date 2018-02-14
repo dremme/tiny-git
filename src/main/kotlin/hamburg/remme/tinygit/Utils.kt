@@ -16,7 +16,17 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 import kotlin.streams.toList
+
+val daemonFactory = ThreadFactory { Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } }
+val cachedPool = Executors.newCachedThreadPool(daemonFactory)!!
+val scheduledPool = Executors.newScheduledThreadPool(1, daemonFactory)!!
+val fixedPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() - 1, daemonFactory)!!
+val splitSize = Math.min(1, Runtime.getRuntime().availableProcessors() - 1)
 
 val shortDateFormat = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
 val dateFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy")!!
@@ -79,6 +89,26 @@ fun <T : Comparable<T>> ObservableList<T>.addSorted(items: Collection<T>) = item
 fun <T> ObservableList<T>.addSorted(items: Collection<T>, comparator: (T, T) -> Int) = items.forEach { item ->
     val index = indexOfFirst { comparator.invoke(it, item) > 0 }
     if (index < 0) add(item) else add(index, item)
+}
+
+fun <K, V> List<Map<K, V>>.flatten(reduce: (V, V) -> V): Map<K, V> {
+    return fold(mutableMapOf()) { acc, it ->
+        it.forEach { key, value -> acc.merge(key, value, reduce) }
+        acc
+    }
+}
+
+fun <T, R> List<T>.mapAsync(block: (T) -> R): List<R> {
+    val mappedList = CopyOnWriteArrayList<R>()
+    val latch = CountDownLatch(splitSize)
+    (0 until (size + splitSize - 1) / splitSize).forEach {
+        fixedPool.execute {
+            mappedList += subList(it * splitSize, Math.min(it * splitSize + splitSize, size)).map(block)
+            latch.countDown()
+        }
+    }
+    latch.await()
+    return mappedList
 }
 
 fun IntegerProperty.inc() = set(get() + 1)

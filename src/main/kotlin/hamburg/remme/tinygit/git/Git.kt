@@ -24,59 +24,37 @@ fun gitVersion(): ClientVersion {
     return ClientVersion(match[1].toInt(), match[2].toInt(), match[3].toInt())
 }
 
-fun git(vararg args: String, block: (String) -> Unit) {
-    measureTime("", args.joinToString(" ")) {
-        val process = exec(args = *args)
-        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) block.invoke(it.nextLine()) }
-    }
-}
+fun git(vararg args: String, block: (String) -> Unit) = exec(args = *args) { block.invoke(it) }
 
-fun git(input: Array<String>, vararg args: String, block: (String) -> Unit) {
-    measureTime("", args.joinToString(" ")) {
-        val process = exec(args = *args)
-        process.outputStream.bufferedWriter().use { it.write(input.joinToString("\n")) }
-        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) block.invoke(it.nextLine()) }
-    }
-}
+fun git(input: Array<String>, vararg args: String, block: (String) -> Unit) = exec(input = input, args = *args) { block.invoke(it) }
 
-fun git(repository: Repository, vararg args: String, block: (String) -> Unit) {
-    measureTime(repository.shortPath, args.joinToString(" ")) {
-        val process = exec(repository.path, *args)
-        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) block.invoke(it.nextLine()) }
-    }
-}
+fun git(repository: Repository, vararg args: String, block: (String) -> Unit) = exec(repository, args = *args) { block.invoke(it) }
 
 fun git(vararg args: String): String {
-    return measureTime("", args.joinToString(" ")) {
-        val process = exec(args = *args)
-        val output = StringBuilder()
-        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) output.appendln(it.nextLine()) }
-        output.toString()
-    }
+    val output = StringBuilder()
+    exec(args = *args) { output.appendln(it) }
+    return output.toString()
 }
 
 fun git(input: Array<String>, vararg args: String): String {
-    return measureTime("", args.joinToString(" ")) {
-        val process = exec(args = *args)
-        process.outputStream.bufferedWriter().use { it.write(input.joinToString("\n")) }
-        val output = StringBuilder()
-        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) output.appendln(it.nextLine()) }
-        output.toString()
-    }
+    val output = StringBuilder()
+    exec(input = input, args = *args) { output.appendln(it) }
+    return output.toString()
 }
 
 fun git(repository: Repository, vararg args: String): String {
-    return measureTime(repository.shortPath, args.joinToString(" ")) {
-        val process = exec(repository.path, *args)
-        val output = StringBuilder()
-        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) output.appendln(it.nextLine()) }
-        output.toString()
-    }
+    val output = StringBuilder()
+    exec(repository, args = *args) { output.appendln(it) }
+    return output.toString()
 }
 
-private fun exec(path: String? = null, vararg args: String): Process {
-    val processBuilder = ProcessBuilder("git", *args.filter { it.isNotBlank() }.toTypedArray())
-    path?.let { processBuilder.directory(it.asFile()) }
-    processBuilder.redirectErrorStream(true)
-    return processBuilder.start()
+private fun exec(repository: Repository? = null, input: Array<String>? = null, vararg args: String, block: (String) -> Unit) {
+    measureTime(repository?.shortPath ?: "", args.joinToString(" ")) {
+        val builder = ProcessBuilder("git", *args.filter { it.isNotBlank() }.toTypedArray())
+        builder.redirectErrorStream(true)
+        builder.directory(repository?.path?.asFile())
+        val process = builder.start()
+        process.outputStream.bufferedWriter().use { it.write(input?.joinToString("\n") ?: "") }
+        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) block.invoke(it.nextLine()) }
+    }
 }

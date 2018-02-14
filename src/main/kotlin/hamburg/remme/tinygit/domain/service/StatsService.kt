@@ -4,9 +4,12 @@ import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.NumStat
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.flatten
+import hamburg.remme.tinygit.git.gitBlame
 import hamburg.remme.tinygit.git.gitDiffNumstat
 import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.git.gitLsTree
+import hamburg.remme.tinygit.mapAsync
 import hamburg.remme.tinygit.observableList
 import javafx.concurrent.Task
 import java.time.LocalDate
@@ -31,7 +34,6 @@ class StatsService {
     private val taskPool = mutableMapOf<String, Task<*>>()
 
     fun updateActivity() {
-        taskPool["activity"]?.cancel()
         taskPool["activity"] = object : Task<List<Pair<LocalDate, Int>>>() {
             override fun call() = log
                     .groupingBy { it.date.toLocalDate() }
@@ -47,12 +49,12 @@ class StatsService {
         }.also { TinyGit.execute(it) }
     }
 
-    fun updateContributions() {
-        taskPool["contributions"]?.cancel()
+    fun updateContributions(repository: Repository) {
         taskPool["contributions"] = object : Task<List<Pair<String, Int>>>() {
-            override fun call() = log
-                    .groupingBy { it.authorMail }
-                    .eachCount()
+            override fun call() = gitDiffNumstat(repository, log.last(), log[0])
+                    .mapAsync { if (!isCancelled) gitBlame(repository, it.path, firstDay) else null }
+                    .filterNotNull()
+                    .flatten(Integer::sum)
                     .map { (author, value) -> author to value }
                     .sortedBy { (_, value) -> value }
                     .takeLast(8)
@@ -67,7 +69,6 @@ class StatsService {
     }
 
     fun updateCommits() {
-        taskPool["commits"]?.cancel()
         taskPool["commits"] = object : Task<List<Pair<Month, Int>>>() {
             override fun call() = log
                     .groupingBy { it.date.month }
@@ -85,7 +86,6 @@ class StatsService {
     }
 
     fun updateFiles(repository: Repository) {
-        taskPool["files"]?.cancel()
         taskPool["files"] = object : Task<List<Pair<String, Int>>>() {
             override fun call() = gitLsTree(repository)
                     .groupingBy { it.substringAfterLast('.', it.substringAfterLast('/')) }
@@ -104,7 +104,6 @@ class StatsService {
     }
 
     fun updateLines(repository: Repository) {
-        taskPool["lines"]?.cancel()
         taskPool["lines"] = object : Task<List<Pair<LocalDate, NumStat>>>() {
             override fun call() = (0..12).map { firstDay.plusMonths(it.toLong()) }
                     .map { date -> log.filter { it.date.month == date.month && it.date.year == date.year } }
@@ -113,8 +112,8 @@ class StatsService {
                         val max = it.maxBy { it.date }
                         min to max
                     }
-                    .map {
-                        if (it.first != null && it.second != null) gitDiffNumstat(repository, it.first as Commit, it.second as Commit)
+                    .mapAsync {
+                        if (!isCancelled && it.first != null && it.second != null) gitDiffNumstat(repository, it.first as Commit, it.second as Commit)
                         else emptyList()
                     }
                     .mapIndexed { i, it -> NumStat(it.sumBy { it.added }, it.sumBy { it.removed }, firstDay.plusMonths(i.toLong()).month.name) }
@@ -131,7 +130,7 @@ class StatsService {
 
     // TODO: really?
     fun update(repository: Repository) {
-        taskPool.forEach { _, it -> it.cancel() }
+        cancel()
         log.clear()
         taskPool["main"] = object : Task<List<Commit>>() {
             override fun call() = gitLog(repository, firstDay, lastDay)
@@ -140,7 +139,7 @@ class StatsService {
                 log.addAll(value)
                 updateActivity()
                 updateCommits()
-                updateContributions()
+                updateContributions(repository)
                 updateFiles(repository)
                 updateLines(repository)
             }
@@ -152,6 +151,10 @@ class StatsService {
             linesMonitor.started()
             TinyGit.execute(it)
         }
+    }
+
+    fun cancel() {
+        taskPool.forEach { _, it -> it.cancel() }
     }
 
 }

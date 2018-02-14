@@ -4,10 +4,12 @@ import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.NumStat
 import hamburg.remme.tinygit.domain.Repository
+import java.time.LocalDate
 
 private val diff = arrayOf("diff", "--find-copies")
 private val diffNoIndex = arrayOf("diff", "--no-index", "/dev/null")
 private val diffNumstat = arrayOf("diff", "--numstat", "--no-renames")
+private val blame = arrayOf("blame", "--show-email")
 
 fun gitDiff(repository: Repository, file: File, lines: Int): String {
     if (!file.isCached && file.status == File.Status.ADDED) return git(repository, *diffNoIndex, file.path)
@@ -24,6 +26,14 @@ fun gitDiffNumstat(repository: Repository, from: Commit, to: Commit): List<NumSt
     val numStat = mutableListOf<NumStat>()
     git(repository, *diffNumstat, from.id, to.id) { numStat += it.parseStat() }
     return numStat
+}
+
+fun gitBlame(repository: Repository, path: String, after: LocalDate): Map<String, Int> {
+    val lines = mutableListOf<String>()
+    git(repository, *blame, "--after=\"${after.atStartOfDay()}\"", path) {
+        ".+?<(.+@.+?)>.+".toRegex().matchEntire(it)?.let { lines += it.groupValues[1] }
+    }
+    return lines.groupingBy { it }.eachCount()
 }
 
 private fun String.parseStat(): NumStat {
