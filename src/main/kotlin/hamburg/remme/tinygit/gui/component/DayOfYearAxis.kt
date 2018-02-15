@@ -2,12 +2,11 @@ package hamburg.remme.tinygit.gui.component
 
 import hamburg.remme.tinygit.atEndOfDay
 import hamburg.remme.tinygit.atNoon
+import hamburg.remme.tinygit.monthOfYearFormat
 import hamburg.remme.tinygit.weeksBetween
 import javafx.scene.chart.Axis
 import java.time.LocalDate
 import java.time.Year
-import java.time.format.TextStyle
-import java.util.Locale
 
 class DayOfYearAxis : Axis<LocalDate>() {
 
@@ -35,7 +34,7 @@ class DayOfYearAxis : Axis<LocalDate>() {
         step = length / firstDay.weeksBetween(lastDay)
     }
 
-    override fun getTickMarkLabel(date: LocalDate) = "${date.month.getDisplayName(TextStyle.SHORT, Locale.ROOT)} '${date.year.toString().substring(2)}"
+    override fun getTickMarkLabel(date: LocalDate) = date.format(monthOfYearFormat)!!
 
     override fun calculateTickValues(length: Double, range: Any) = (0..12).map { firstDay.plusMonths(it.toLong()) }
 

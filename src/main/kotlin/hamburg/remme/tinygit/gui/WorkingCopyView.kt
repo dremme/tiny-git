@@ -156,7 +156,7 @@ class WorkingCopyView : Tab() {
     }
 
     private fun discardChanges() {
-        if (confirmWarningAlert(window, "Discard Changes", "Discard", "This will discard all changes from the selected files.")) {
+        if (confirmWarningAlert(window, "Discard Changes", "Discard", "This will discard unstaged changes from ${selectedPending.selectedItems.size} selected files.")) {
             val selected = getIndex(selectedPending)
             workingService.discardChanges(
                     { setIndex(selectedPending, selected) },

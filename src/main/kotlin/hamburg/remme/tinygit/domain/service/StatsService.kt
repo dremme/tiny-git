@@ -9,18 +9,17 @@ import hamburg.remme.tinygit.git.gitBlame
 import hamburg.remme.tinygit.git.gitDiffNumstat
 import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.git.gitLsTree
-import hamburg.remme.tinygit.mapAsync
+import hamburg.remme.tinygit.mapParallel
 import hamburg.remme.tinygit.observableList
 import javafx.concurrent.Task
 import java.time.LocalDate
-import java.time.Month
 import java.time.Year
 
 class StatsService {
 
     val contributionData = observableList<Pair<String, Int>>()
     val filesData = observableList<Pair<String, Int>>()
-    val commitsData = observableList<Pair<Month, Int>>()
+    val commitsData = observableList<Pair<LocalDate, Int>>()
     val activityData = observableList<Pair<LocalDate, Int>>()
     val linesData = observableList<Pair<LocalDate, NumStat>>()
     lateinit var contributionMonitor: TaskMonitor
@@ -52,9 +51,11 @@ class StatsService {
     fun updateContributions(repository: Repository) {
         taskPool["contributions"] = object : Task<List<Pair<String, Int>>>() {
             override fun call() = gitDiffNumstat(repository, log.last(), log[0])
-                    .mapAsync { if (!isCancelled) gitBlame(repository, it.path, firstDay) else null }
+                    .filter { it.added + it.removed > 0 }
+                    .mapParallel { if (!isCancelled) gitBlame(repository, it.path, firstDay) else null }
                     .filterNotNull()
-                    .flatten(Integer::sum)
+                    .flatten { i1, i2 -> i1 + i2 }
+                    .filter { it.key != "not.committed.yet" }
                     .map { (author, value) -> author to value }
                     .sortedBy { (_, value) -> value }
                     .takeLast(8)
@@ -69,12 +70,14 @@ class StatsService {
     }
 
     fun updateCommits() {
-        taskPool["commits"] = object : Task<List<Pair<Month, Int>>>() {
+        taskPool["commits"] = object : Task<List<Pair<LocalDate, Int>>>() {
             override fun call() = log
-                    .groupingBy { it.date.month }
+                    .map { it.date.toLocalDate() }
+                    .map { it.minusDays(it.dayOfWeek.value.toLong() - 1) }
+                    .groupingBy { it }
                     .eachCount()
-                    .map { (month, value) -> month to value }
-                    .sortedBy { (month, _) -> month.value }
+                    .map { (date, value) -> date to value }
+                    .sortedBy { (date, _) -> date }
 
             override fun succeeded() {
                 commitsData.setAll(value)
@@ -112,7 +115,7 @@ class StatsService {
                         val max = it.maxBy { it.date }
                         min to max
                     }
-                    .mapAsync {
+                    .mapParallel {
                         if (!isCancelled && it.first != null && it.second != null) gitDiffNumstat(repository, it.first as Commit, it.second as Commit)
                         else emptyList()
                     }

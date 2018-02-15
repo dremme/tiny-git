@@ -2,23 +2,36 @@ package hamburg.remme.tinygit.domain.service
 
 import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.domain.Credentials
-import hamburg.remme.tinygit.git.gitCredentialGet
-import hamburg.remme.tinygit.git.gitCredentialStore
+import hamburg.remme.tinygit.git.gitCredentialKeychainGet
+import hamburg.remme.tinygit.git.gitCredentialKeychainStore
+import hamburg.remme.tinygit.git.gitCredentialWincredGet
+import hamburg.remme.tinygit.git.gitCredentialWincredStore
 
 class CredentialService {
 
     lateinit var credentialHandler: (String) -> Credentials?
 
     // TODO: refactor this to beauty
-    // TODO: throw exception if remote doesn't start with http
     fun applyCredentials(remote: String) {
-        if (PlatformUtil.isMac() && remote.isNotBlank() && remote.startsWith("http")) {
+        if (remote.isNotBlank() && remote.startsWith("http")) {
             val remoteMatch = "(https?)://(.+@)?(.+\\..+?)/.+".toRegex().matchEntire(remote)!!.groupValues
-            val dummy = gitCredentialGet(remoteMatch[3], remoteMatch[1])
+            val dummy = getCredentials(remoteMatch[3], remoteMatch[1])
             if (dummy.isEmpty) credentialHandler.invoke(dummy.host)?.let {
-                gitCredentialStore(Credentials(it.username, it.password, dummy.host, dummy.protocol))
+                setCredentials(Credentials(it.username, it.password, dummy.host, dummy.protocol))
             }
         }
+    }
+
+    private fun getCredentials(host: String, protocol: String) = when {
+        PlatformUtil.isWindows() -> gitCredentialWincredGet(host, protocol)
+        PlatformUtil.isMac() -> gitCredentialKeychainGet(host, protocol)
+        else -> throw RuntimeException("Credentials currently not supported for your OS.")
+    }
+
+    private fun setCredentials(credentials: Credentials) = when {
+        PlatformUtil.isWindows() -> gitCredentialWincredStore(credentials)
+        PlatformUtil.isMac() -> gitCredentialKeychainStore(credentials)
+        else -> throw RuntimeException("Credentials currently not supported for your OS.")
     }
 
 }

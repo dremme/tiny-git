@@ -110,8 +110,12 @@ class TinyGit : Application() {
 
     private val title = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
 
-    override fun start(stage: Stage) {
+    init {
         TinyGit.application = this
+        overrideTooltips()
+    }
+
+    override fun start(stage: Stage) {
         TinyGit.stage = stage
 
         // We terminate here because technical requirements for TinyGit aren't met

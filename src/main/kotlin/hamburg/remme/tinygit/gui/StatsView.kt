@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.domain.NumStat
 import hamburg.remme.tinygit.domain.service.TaskMonitor
 import hamburg.remme.tinygit.gui.builder.StackPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.columnSpan
 import hamburg.remme.tinygit.gui.builder.comboBox
 import hamburg.remme.tinygit.gui.builder.grid
@@ -17,22 +18,22 @@ import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.component.CalendarChart
 import hamburg.remme.tinygit.gui.component.DayOfYearAxis
 import hamburg.remme.tinygit.gui.component.Icons
-import hamburg.remme.tinygit.gui.component.PieChart
+import hamburg.remme.tinygit.monthOfYearFormat
 import hamburg.remme.tinygit.observableList
+import hamburg.remme.tinygit.weekOfMonthFormat
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.scene.Node
 import javafx.scene.chart.AreaChart
 import javafx.scene.chart.NumberAxis
+import javafx.scene.chart.PieChart
 import javafx.scene.chart.XYChart
 import javafx.scene.control.Tab
+import javafx.scene.control.Tooltip
 import javafx.scene.layout.Priority
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.Month
-import java.time.format.TextStyle
-import java.util.Locale
 import javafx.scene.chart.PieChart.Data as PieData
 import javafx.scene.chart.XYChart.Data as XYData
 import javafx.scene.chart.XYChart.Series as XYSeries
@@ -43,7 +44,7 @@ class StatsView : Tab() {
     private val statsService = TinyGit.statsService
     private val contributionData = observableList<PieData>()
     private val filesData = observableList<PieData>()
-    private val commitsData = observableList<PieData>()
+    private val commitsData = observableList<XYData<LocalDate, Number>>()
     private val activityData = observableList<XYData<LocalDate, DayOfWeek>>()
     private val addedLinesData = observableList<XYData<LocalDate, Number>>()
     private val removedLinesData = observableList<XYData<LocalDate, Number>>()
@@ -59,38 +60,53 @@ class StatsView : Tab() {
         statsService.activityData.addListener(ListChangeListener { updateActivity(it.list) })
         statsService.linesData.addListener(ListChangeListener { updateLines(it.list) })
 
-        val contributions = PieChart(contributionData, "lines")
+        val contributions = PieChart(contributionData)
         contributions.title = "Contributions"
+        contributions.labelsVisible = false
         val contributionIndicator = ProgressIndicator(contributions)
         statsService.contributionMonitor = contributionIndicator
 
-        val files = PieChart(filesData, "files")
+        val files = PieChart(filesData)
         files.title = "Files"
+        files.labelsVisible = false
         val filesIndicator = ProgressIndicator(files)
         statsService.filesMonitor = filesIndicator
 
-        val commits = PieChart(commitsData, "commits")
-        commits.title = "Commits by Month"
-        val commitsIndicator = ProgressIndicator(commits)
+        val commits = AreaChart<LocalDate, Number>(
+                DayOfYearAxis(), NumberAxis().apply { isMinorTickVisible = false },
+                observableList(XYChart.Series(commitsData)))
+        commits.prefHeight = 250.0
+        commits.title = "Commits by Weeks"
+        commits.isHorizontalZeroLineVisible = false
+        commits.isVerticalZeroLineVisible = false
+        commits.isLegendVisible = false
+        val commitsIndicator = ProgressIndicator(commits).columnSpan(2)
         statsService.commitsMonitor = commitsIndicator
 
         val activity = CalendarChart(activityData)
         activity.prefHeight = 250.0
-        activity.title = "Activity"
-        val activityIndicator = ProgressIndicator(activity).columnSpan(3)
+        activity.title = "Daily Activity"
+        val activityIndicator = ProgressIndicator(activity).columnSpan(2)
         statsService.activityMonitor = activityIndicator
 
-        val lines = AreaChart<LocalDate, Number>(DayOfYearAxis(), NumberAxis(),
+        val lines = AreaChart<LocalDate, Number>(
+                DayOfYearAxis(), NumberAxis().apply { isMinorTickVisible = false },
                 observableList(XYChart.Series("Added", addedLinesData), XYChart.Series("Removed", removedLinesData)))
+        lines.addClass("chart-loc")
         lines.prefHeight = 250.0
         lines.title = "Lines of Code by Month"
         lines.isHorizontalZeroLineVisible = false
         lines.isVerticalZeroLineVisible = false
-        val linesIndicator = ProgressIndicator(lines).columnSpan(3)
+        val linesIndicator = ProgressIndicator(lines).columnSpan(2)
         statsService.linesMonitor = linesIndicator
 
         content = vbox {
             +toolBar {
+                +button {
+                    graphic = Icons.refresh()
+                    tooltip = Tooltip("Refresh Stats")
+                    setOnAction { statsService.update(repoService.activeRepository.get()!!) }
+                }
                 addSpacer()
                 +comboBox<CalendarChart.Period> {
                     isDisable = true // TODO: implement changing periods
@@ -103,18 +119,21 @@ class StatsView : Tab() {
                 addClass("stats-view")
                 vgrow(Priority.ALWAYS)
                 isFitToWidth = true
-                +grid(3) {
-                    columns(33.333, 33.333, 33.333)
+                +grid(2) {
+                    columns(50.0, 50.0)
                     +listOf(activityIndicator,
+                            commitsIndicator,
                             linesIndicator,
                             contributionIndicator,
-                            commitsIndicator,
                             filesIndicator)
                 }
             }
         }
 
-        repoService.activeRepository.addListener { _, _, it -> it?.let { statsService.update(it) } }
+        repoService.activeRepository.addListener { _, _, it ->
+            if (isSelected) it?.let { statsService.update(it) }
+            else statsService.cancel()
+        }
         selectedProperty().addListener { _, _, it ->
             if (it) statsService.update(repoService.activeRepository.get()!!)
             else statsService.cancel()
@@ -127,19 +146,24 @@ class StatsView : Tab() {
 
     private fun updateContributions(data: List<Pair<String, Int>>) {
         contributionData.upsert(data.map { (author, value) -> PieData(author, value.toDouble()) })
+        contributionData.pieTooltips { "${it.name} (${it.pieValue.toInt()} lines)" }
     }
 
-    private fun updateCommits(data: List<Pair<Month, Int>>) {
-        commitsData.upsert(data.map { (month, value) -> PieData(month.getDisplayName(TextStyle.FULL, Locale.ROOT), value.toDouble()) })
+    private fun updateCommits(data: List<Pair<LocalDate, Int>>) {
+        commitsData.setAll(data.map { (date, value) -> XYData<LocalDate, Number>(date, value) })
+        commitsData.xyTooltips { "${it.xValue.format(weekOfMonthFormat)} (${it.yValue} commits)" }
     }
 
     private fun updateFiles(data: List<Pair<String, Int>>) {
         filesData.upsert(data.map { (ext, value) -> PieData(ext, value.toDouble()) })
+        filesData.pieTooltips { "${it.name} (${it.pieValue.toInt()} files)" }
     }
 
     private fun updateLines(data: List<Pair<LocalDate, NumStat>>) {
         addedLinesData.setAll(data.map { (date, value) -> XYData<LocalDate, Number>(date, value.added) })
         removedLinesData.setAll(data.map { (date, value) -> XYData<LocalDate, Number>(date, value.removed) })
+        addedLinesData.xyTooltips { "${it.xValue.format(monthOfYearFormat)} (${it.yValue} lines)" }
+        removedLinesData.xyTooltips { "${it.xValue.format(monthOfYearFormat)} (${it.yValue} lines)" }
     }
 
     private fun ObservableList<PieData>.upsert(data: List<PieData>) {
@@ -152,6 +176,20 @@ class StatsView : Tab() {
                 it.pieValue = data[i].pieValue
             }
             if (size < data.size) addAll(data.subList(size, data.size))
+        }
+    }
+
+    private fun ObservableList<PieData>.pieTooltips(block: (PieData) -> String) {
+        forEach {
+            Tooltip.uninstall(it.node, null)
+            Tooltip.install(it.node, Tooltip(block.invoke(it)))
+        }
+    }
+
+    private fun <X, Y> ObservableList<XYData<X, Y>>.xyTooltips(block: (XYData<X, Y>) -> String) {
+        forEach {
+            Tooltip.uninstall(it.node, null)
+            Tooltip.install(it.node, Tooltip(block.invoke(it)))
         }
     }
 

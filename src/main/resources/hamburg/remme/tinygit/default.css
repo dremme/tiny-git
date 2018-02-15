@@ -314,6 +314,30 @@
     -fx-background-color: CHART_COLOR_8;
 }
 
+.chart-loc .default-color0.chart-area-symbol {
+    -fx-background-color: CHART_COLOR_4;
+}
+
+.chart-loc .default-color0.chart-series-area-fill {
+    -fx-fill: CHART_COLOR_4_TRANS_20;
+}
+
+.chart-loc .default-color0.chart-series-area-line {
+    -fx-stroke: CHART_COLOR_4;
+}
+
+.chart-loc .default-color1.chart-area-symbol {
+    -fx-background-color: CHART_COLOR_1;
+}
+
+.chart-loc .default-color1.chart-series-area-fill {
+    -fx-fill: CHART_COLOR_1_TRANS_20;
+}
+
+.chart-loc .default-color1.chart-series-area-line {
+    -fx-stroke: CHART_COLOR_1;
+}
+
 .chart-pie-label-line {
     -fx-stroke: -fx-chart-label-color;
 }
