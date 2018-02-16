@@ -7,8 +7,8 @@ import javafx.scene.text.Text
 
 object Icons {
 
-    fun arrowCircleDown() = icon('\uf0ab')
-    fun arrowCircleUp() = icon('\uf0aa')
+    fun arrowAltCircleDown() = icon('\uf358')
+    fun arrowAltCircleUp() = icon('\uf35b')
     fun arrowDown() = icon('\uf063')
     fun arrowUp() = icon('\uf062')
     fun chartPie() = icon('\uf200')
@@ -33,6 +33,7 @@ object Icons {
     fun hdd() = icon('\uf0a0')
     fun levelUp() = icon('\uf3bf')
     fun list() = icon('\uf022')
+    fun locationArrow() = icon('\uf124')
     fun minus() = icon('\uf068')
     fun pencil() = icon('\uf303')
     fun plus() = icon('\uf067')

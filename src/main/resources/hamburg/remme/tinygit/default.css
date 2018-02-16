@@ -529,6 +529,14 @@
     -fx-fill: -git-active-blue;
 }
 
+.repository-cell.detached .label {
+    -fx-text-fill: -git-red;
+}
+
+.repository-cell.detached .icon {
+    -fx-fill: -git-red;
+}
+
 .repository-list-cell {
 }
 
@@ -650,6 +658,15 @@
 }
 
 .branch-badge.current .icon {
+    -fx-fill: white;
+}
+
+.branch-badge.detached {
+    -fx-text-fill: white;
+    -fx-background-color: derive(-git-red, 25%), -git-red;
+}
+
+.branch-badge.detached .icon {
     -fx-fill: white;
 }
 

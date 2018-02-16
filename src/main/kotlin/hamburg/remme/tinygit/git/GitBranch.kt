@@ -20,10 +20,10 @@ fun gitHead(repository: Repository): String {
 fun gitBranchList(repository: Repository): List<Branch> {
     val branches = mutableListOf<Branch>()
     git(repository, *branchAll) {
-        val line = it.substring(2).split(" +".toRegex())
-        val branch = line[0]
-        val commitId = line[1]
-        if (branch != "HEAD" && branch != "${remotes}origin/HEAD") {
+        val branchMatch = "[* ] (\\(.+?\\)|.+?) +([\\da-f]+) .+".toRegex().matchEntire(it)!!.groupValues
+        val branch = branchMatch[1].parseRef()
+        val commitId = branchMatch[2]
+        if (branch != "${remotes}origin/HEAD") {
             branches += Branch(commitId, branch.substringAfter(remotes), branch.startsWith(remotes))
         }
     }
@@ -67,3 +67,5 @@ fun gitCheckoutRemote(repository: Repository, branch: String) {
     if (response.startsWith(errorSeparator)) throw CheckoutException()
     else if (response.startsWith(fatalSeparator)) throw CheckoutException()
 }
+
+private fun String.parseRef() = if (matches("\\(HEAD detached at [\\da-f]+\\)".toRegex())) "HEAD" else this

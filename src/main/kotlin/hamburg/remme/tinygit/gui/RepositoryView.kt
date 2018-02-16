@@ -313,12 +313,14 @@ class RepositoryView : VBoxBuilder() {
         }
 
         private fun branchItem(item: RepositoryEntry) = hbox {
-            +Icons.codeFork()
+            +if (item.value == "HEAD") Icons.locationArrow() else Icons.codeFork()
             +Label(item.value)
-            if (item.isHead()) {
+            if (item.value == "HEAD") {
+                addClass("detached")
+            } else if (item.isHead()) {
                 addClass("current")
-                +Icons.check()
             }
+            if (item.isHead()) +Icons.check()
         }
 
         private fun RepositoryEntry?.isHead() = this?.userData == "true" // TODO: duplicated

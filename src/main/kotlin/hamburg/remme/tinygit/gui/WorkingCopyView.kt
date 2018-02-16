@@ -32,15 +32,15 @@ class WorkingCopyView : Tab() {
     private val window get() = content.scene.window
 
     val actions get() = arrayOf(ActionGroup(updateAll, stageAll, stageSelected), ActionGroup(unstageAll, unstageSelected))
-    private val unstageAll = Action("Unstage all", { Icons.arrowCircleDown() }, "Shortcut+Shift+L", state.canUnstageAll.not(),
+    private val unstageAll = Action("Unstage all", { Icons.arrowAltCircleDown() }, "Shortcut+Shift+L", state.canUnstageAll.not(),
             { workingService.unstage() })
-    private val unstageSelected = Action("Unstage selected", { Icons.arrowCircleDown() }, disable = state.canUnstageSelected.not(),
+    private val unstageSelected = Action("Unstage selected", { Icons.arrowAltCircleDown() }, disable = state.canUnstageSelected.not(),
             handler = { unstageSelected() })
-    private val updateAll = Action("Update all", { Icons.arrowCircleUp() }, disable = state.canUpdateAll.not(),
+    private val updateAll = Action("Update all", { Icons.arrowAltCircleUp() }, disable = state.canUpdateAll.not(),
             handler = { workingService.update() })
-    private val stageAll = Action("Stage all", { Icons.arrowCircleUp() }, "Shortcut+Shift+K", state.canStageAll.not(),
+    private val stageAll = Action("Stage all", { Icons.arrowAltCircleUp() }, "Shortcut+Shift+K", state.canStageAll.not(),
             { workingService.stage() })
-    private val stageSelected = Action("Stage selected", { Icons.arrowCircleUp() }, disable = state.canStageSelected.not(),
+    private val stageSelected = Action("Stage selected", { Icons.arrowAltCircleUp() }, disable = state.canStageSelected.not(),
             handler = { stageSelected() })
 
     private val staged = FileStatusView(workingService.staged, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
@@ -53,7 +53,7 @@ class WorkingCopyView : Tab() {
         graphic = Icons.hdd()
         isClosable = false
 
-        val unstageFile = Action("Unstage (L)", { Icons.arrowCircleDown() }, disable = state.canUnstageSelected.not(),
+        val unstageFile = Action("Unstage (L)", { Icons.arrowAltCircleDown() }, disable = state.canUnstageSelected.not(),
                 handler = { unstageSelected() })
 
         staged.contextMenu = contextMenu {
@@ -68,7 +68,7 @@ class WorkingCopyView : Tab() {
         }
 
         // TODO: menubar actions?
-        val stageFile = Action("Stage (K)", { Icons.arrowCircleUp() }, disable = state.canStageSelected.not(),
+        val stageFile = Action("Stage (K)", { Icons.arrowAltCircleUp() }, disable = state.canStageSelected.not(),
                 handler = { stageSelected() })
         val deleteFile = Action("Delete (Del)", { Icons.trash() }, disable = state.canDeleteSelected.not(),
                 handler = { deleteFile() })

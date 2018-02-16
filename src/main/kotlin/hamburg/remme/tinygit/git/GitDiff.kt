@@ -10,7 +10,7 @@ private val diff = arrayOf("diff", "--find-copies")
 private val diffNoIndex = arrayOf("diff", "--no-index", "/dev/null")
 private val diffNumstat = arrayOf("diff", "--numstat", "--no-renames")
 private val blame = arrayOf("blame", "--show-email")
-private val lineRegex = "\\^?[\\da-z]+\\W\\(<(.+?)>.+\\).+".toRegex()
+private val lineRegex = "\\^?[\\da-f]+\\W\\(<(.+?)>.+\\).+".toRegex()
 
 fun gitDiff(repository: Repository, file: File, lines: Int): String {
     if (!file.isCached && file.status == File.Status.ADDED) return git(repository, *diffNoIndex, file.path)
