@@ -51,11 +51,13 @@ class RepositoryView : VBoxBuilder() {
 
     private val repoService = TinyGit.repositoryService
     private val branchService = TinyGit.branchService
+    private val tagService = TinyGit.tagService
     private val stashService = TinyGit.stashService
     private val window get() = scene.window
     private val tree: TreeView<RepositoryEntry>
     private val selectedEntry @Suppress("UNNECESSARY_SAFE_CALL") get() = tree?.selectionModel?.selectedItem?.value
     private val branchComparator = { b1: TreeItem<RepositoryEntry>, b2: TreeItem<RepositoryEntry> -> b1.value.value.compareTo(b2.value.value) }
+    private val tagComparator = { b1: TreeItem<RepositoryEntry>, b2: TreeItem<RepositoryEntry> -> b1.value.value.compareTo(b2.value.value) }
     private val stashComparator = { b1: TreeItem<RepositoryEntry>, b2: TreeItem<RepositoryEntry> -> b1.value.userData.compareTo(b2.value.userData) }
 
     init {
@@ -78,6 +80,7 @@ class RepositoryView : VBoxBuilder() {
 
         val localBranches = TreeItem(RepositoryEntry("Local Branches", EntryType.LOCAL))
         val remoteBranches = TreeItem(RepositoryEntry("Remote Branches", EntryType.REMOTE))
+        val tags = TreeItem(RepositoryEntry("Tags", EntryType.TAGS))
         val stash = TreeItem(RepositoryEntry("Stash", EntryType.STASH))
 
         tree = tree {
@@ -86,6 +89,7 @@ class RepositoryView : VBoxBuilder() {
 
             +localBranches
             +remoteBranches
+            +tags
             +stash
 
             val canCheckout = Bindings.createBooleanBinding(Callable { selectedEntry.isBranch() }, selectionModel.selectedItemProperty())
@@ -119,6 +123,7 @@ class RepositoryView : VBoxBuilder() {
             localBranches.children.updateEntries(it.list.filter { it.isLocal }.map { it.toLocalEntry() }, branchComparator)
             remoteBranches.children.updateEntries(it.list.filter { it.isRemote }.map { it.toRemoteEntry() }, branchComparator)
         })
+        tagService.tags.addListener(ListChangeListener { tags.children.updateEntries(it.list.map { it.toEntry() }, tagComparator) })
         stashService.stashEntries.addListener(ListChangeListener { stash.children.updateEntries(it.list.map { it.toEntry() }, stashComparator) })
 
         TinyGit.settings.setTree { tree.root.children.map { Settings.TreeItem(it.value.value, it.isExpanded) } }
@@ -134,6 +139,8 @@ class RepositoryView : VBoxBuilder() {
     private fun Branch.toLocalEntry() = RepositoryEntry(name, EntryType.LOCAL_BRANCH, (name == branchService.head.get()).toString())
 
     private fun Branch.toRemoteEntry() = RepositoryEntry(name, EntryType.REMOTE_BRANCH, (name == branchService.head.get()).toString())
+
+    private fun String.toEntry() = RepositoryEntry(this, EntryType.TAG, this)
 
     private fun StashEntry.toEntry() = RepositoryEntry(message, EntryType.STASH_ENTRY, id)
 
@@ -218,6 +225,7 @@ class RepositoryView : VBoxBuilder() {
 
         LOCAL, LOCAL_BRANCH,
         REMOTE, REMOTE_BRANCH,
+        TAGS, TAG,
         STASH, STASH_ENTRY
 
     }
@@ -298,9 +306,11 @@ class RepositoryView : VBoxBuilder() {
             graphic = if (empty) null else {
                 when (item!!.type) {
                     EntryType.LOCAL -> item(Icons.hdd(), item.value)
-                    EntryType.REMOTE -> item(Icons.cloud(), item.value)
                     EntryType.LOCAL_BRANCH -> branchItem(item)
+                    EntryType.REMOTE -> item(Icons.cloud(), item.value)
                     EntryType.REMOTE_BRANCH -> item(Icons.codeFork(), item.value)
+                    EntryType.TAGS -> item(Icons.tags(), item.value)
+                    EntryType.TAG -> item(Icons.tag(), item.value)
                     EntryType.STASH -> item(Icons.cubes(), item.value)
                     EntryType.STASH_ENTRY -> item(Icons.cube(), item.value)
                 }.addClass("repository-cell")

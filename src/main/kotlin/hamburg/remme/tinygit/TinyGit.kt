@@ -16,6 +16,7 @@ import hamburg.remme.tinygit.domain.service.RemoteService
 import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.domain.service.StashService
 import hamburg.remme.tinygit.domain.service.StatsService
+import hamburg.remme.tinygit.domain.service.TagService
 import hamburg.remme.tinygit.domain.service.WorkingCopyService
 import hamburg.remme.tinygit.git.gitGetCredentialHelper
 import hamburg.remme.tinygit.git.gitIsInstalled
@@ -66,6 +67,7 @@ class TinyGit : Application() {
         val repositoryService: RepositoryService = RepositoryService(credentialService)
         val remoteService = RemoteService(repositoryService, credentialService).addListeners()
         val branchService = BranchService().addListeners()
+        val tagService = TagService().addListeners()
         val workingCopyService = WorkingCopyService().addListeners()
         val divergenceService = DivergenceService().addListeners()
         val mergeService = MergeService(workingCopyService).addListeners()
