@@ -58,7 +58,7 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
 
         if (item.node == null) {
             item.node = StackPane()
-            Tooltip.install(item.node, Tooltip("${item.xValue.format(shortDateFormat)} ($value commits)"))
+            Tooltip.install(item.node, Tooltip("${item.xValue.format(shortDateFormat)} ($value commit${value.plural()})"))
         }
 
         val newHash = hash(series)
@@ -80,6 +80,8 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
             plotChildren += item.node
         }
     }
+
+    private fun Number.plural() = if (toLong() > 1) "s" else ""
 
     private fun hash(series: Series<LocalDate, DayOfWeek>): Int {
         return Arrays.hashCode(series.data.map { Objects.hash(it.xValue, it.extraValue) }.toIntArray())

@@ -22,10 +22,15 @@ class RepositoryService(private val service: CredentialService) {
     }
     val remote = SimpleStringProperty()
     val hasRemote = remote.isNotEmpty!!
+    val usedProxies = observableList<String>()
 
     init {
         TinyGit.settings.setRepositories { allRepositories }
-        TinyGit.settings.load { allRepositories.setAll(it.repositories) }
+        TinyGit.settings.setUsedProxies { usedProxies }
+        TinyGit.settings.load {
+            allRepositories.setAll(it.repositories)
+            usedProxies.setAll(it.usedProxies)
+        }
     }
 
     fun init(path: String) {
@@ -33,12 +38,12 @@ class RepositoryService(private val service: CredentialService) {
         add(Repository(path))
     }
 
-    fun clone(repository: Repository, url: String, proxyHost: String, proxyPort: Int,
+    fun clone(repository: Repository, url: String, proxy: String,
               successHandler: () -> Unit,
               errorHandler: (String) -> Unit) {
-        service.applyCredentials(remote.get())
+        service.applyCredentials(url)
         TinyGit.execute("Cloning...", object : Task<Unit>() {
-            override fun call() = gitClone(repository, proxyHost, proxyPort, url)
+            override fun call() = gitClone(repository, proxy, url)
 
             override fun succeeded() {
                 add(repository)
@@ -69,8 +74,12 @@ class RepositoryService(private val service: CredentialService) {
         })
     }
 
+    fun addUsedProxy(proxy: String) {
+        if (!usedProxies.contains(proxy)) usedProxies += proxy
+    }
+
     private fun add(repository: Repository) {
-        if (!allRepositories.contains(repository)) allRepositories.add(repository)
+        if (!allRepositories.contains(repository)) allRepositories += repository
     }
 
 }

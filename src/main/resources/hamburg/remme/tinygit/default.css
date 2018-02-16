@@ -264,6 +264,26 @@
     -fx-background-color: transparent;
 }
 
+.combo-box-base:showing > .arrow-button > .arrow {
+    -fx-shape: "M 0 4 l 3.5 -4 l 3.5 4 z";
+}
+
+.combo-box-base:editable {
+    -fx-background-color: transparent;
+}
+
+.combo-box-base:editable > .arrow-button {
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: derive(-fx-text-inner-color, -50%), transparent;
+    -fx-border-width: 0 0 1 0, 0 0 1 0;
+    -fx-border-insets: 0, 0 0 1 0;
+}
+
+.combo-box-base:editable:focused > .arrow-button {
+    -fx-border-color: -fx-focus-color, -fx-focus-color;
+}
+
 .axis {
     AXIS_COLOR: -fx-chart-grid-color;
 }

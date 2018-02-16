@@ -14,11 +14,11 @@ fun gitInit(path: String) {
     git(*init, path)
 }
 
-fun gitClone(repository: Repository, proxyHost: String, proxyPort: Int, url: String) {
-    val response = if (proxyHost.isBlank()) {
+fun gitClone(repository: Repository, proxy: String, url: String) {
+    val response = if (proxy.isBlank()) {
         git(*clone, url, repository.path)
     } else {
-        git(*clone, "--config", "http.proxy=$proxyHost:$proxyPort", url, repository.path)
+        git(*clone, "--config", "http.proxy=$proxy", url, repository.path)
     }.trim()
     if (response.contains("$fatalSeparator.*already exists".toRegex(setOf(IC, G)))) {
         throw CloneException("Destination '${repository.path}' already exists and is not empty.")

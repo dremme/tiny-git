@@ -146,25 +146,27 @@ class StatsView : Tab() {
 
     private fun updateContributions(data: List<Pair<String, Int>>) {
         contributionData.upsert(data.map { (author, value) -> PieData(author, value.toDouble()) })
-        contributionData.pieTooltips { "${it.name} (${it.pieValue.toInt()} lines)" }
+        contributionData.pieTooltips { "${it.name} (${it.pieValue.toInt()} line${it.pieValue.plural()})" }
     }
 
     private fun updateCommits(data: List<Pair<LocalDate, Int>>) {
         commitsData.setAll(data.map { (date, value) -> XYData<LocalDate, Number>(date, value) })
-        commitsData.xyTooltips { "${it.xValue.format(weekOfMonthFormat)} (${it.yValue} commits)" }
+        commitsData.xyTooltips { "${it.xValue.format(weekOfMonthFormat)} (${it.yValue} commit${it.yValue.plural()})" }
     }
 
     private fun updateFiles(data: List<Pair<String, Int>>) {
         filesData.upsert(data.map { (ext, value) -> PieData(ext, value.toDouble()) })
-        filesData.pieTooltips { "${it.name} (${it.pieValue.toInt()} files)" }
+        filesData.pieTooltips { "${it.name} (${it.pieValue.toInt()} file${it.pieValue.plural()})" }
     }
 
     private fun updateLines(data: List<Pair<LocalDate, NumStat>>) {
         addedLinesData.setAll(data.map { (date, value) -> XYData<LocalDate, Number>(date, value.added) })
         removedLinesData.setAll(data.map { (date, value) -> XYData<LocalDate, Number>(date, value.removed) })
-        addedLinesData.xyTooltips { "${it.xValue.format(monthOfYearFormat)} (${it.yValue} lines)" }
-        removedLinesData.xyTooltips { "${it.xValue.format(monthOfYearFormat)} (${it.yValue} lines)" }
+        addedLinesData.xyTooltips { "${it.xValue.format(monthOfYearFormat)} (${it.yValue} line${it.yValue.plural()})" }
+        removedLinesData.xyTooltips { "${it.xValue.format(monthOfYearFormat)} (${it.yValue} line${it.yValue.plural()})" }
     }
+
+    private fun Number.plural() = if (toLong() > 1) "s" else ""
 
     private fun ObservableList<PieData>.upsert(data: List<PieData>) {
         if (isEmpty()) {

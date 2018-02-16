@@ -77,7 +77,7 @@ abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = fal
     }
 
     protected operator fun DialogButton.unaryPlus() {
-        dialog.dialogPane.buttonTypes.add(type)
+        dialog.dialogPane.buttonTypes += type
         disabled?.let { dialog.dialogPane.lookupButton(type).disabledWhen(it) }
     }
 

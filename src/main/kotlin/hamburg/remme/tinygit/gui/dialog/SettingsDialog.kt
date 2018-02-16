@@ -13,7 +13,8 @@ import hamburg.remme.tinygit.git.gitSetUserEmail
 import hamburg.remme.tinygit.git.gitSetUserName
 import hamburg.remme.tinygit.git.gitUnsetProxy
 import hamburg.remme.tinygit.gui.builder.addClass
-import hamburg.remme.tinygit.gui.builder.columnSpan
+import hamburg.remme.tinygit.gui.builder.autocomplete
+import hamburg.remme.tinygit.gui.builder.fillWidth
 import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.textField
 import javafx.scene.control.Label
@@ -26,61 +27,43 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings
     private val originalUrl = service.remote.get()!!
     private val originalName = gitGetUserName(repository)
     private val originalEmail = gitGetUserEmail(repository)
-    private val originalHost: String
-    private val originalPort: Int
+    private val originalProxy = gitGetProxy(repository)
 
     init {
-        val originalProxy = gitGetProxy(repository)
-        if (originalProxy.isNotEmpty()) {
-            originalHost = originalProxy.substringBeforeLast(':')
-            originalPort = originalProxy.substringAfterLast(':').toInt()
-        } else {
-            originalHost = ""
-            originalPort = 80
-        }
-
         val remote = textField {
-            columnSpan(3)
             prefWidth = 300.0
             text = originalUrl
             promptText = "https://github.com/..."
         }
         val location = textField {
-            columnSpan(3)
             prefWidth = 300.0
             isEditable = false
             text = repository.path
             promptText = "/home/sherlock/projects/..."
         }
         val authorName = textField {
-            columnSpan(3)
             prefWidth = 300.0
             text = originalName
             promptText = "Sherlock Holmes"
         }
         val authorEmail = textField {
-            columnSpan(3)
             prefWidth = 300.0
             promptText = "sherlock.holmes@baker-street.co.uk"
             emailFormatter(originalEmail)
         }
-        val proxyHost = textField {
-            prefWidth = 300.0
-            text = originalHost
-            promptText = "http://proxy.domain"
-        }
-        val proxyPort = textField {
-            prefColumnCount = 4
-            intFormatter(originalPort)
+        val proxy = autocomplete(service.usedProxies) {
+            fillWidth()
+            value = originalProxy
+            promptText = "http://proxy.domain:80"
         }
 
-        content = grid(4) {
+        content = grid(2) {
             addClass("settings-view")
             +listOf(Label("Remote:"), remote,
                     Label("Location:"), location,
                     Label("Author Name:"), authorName,
                     Label("Author Email:"), authorEmail,
-                    Label("Proxy:"), proxyHost, Label(":"), proxyPort)
+                    Label("Proxy:"), proxy)
         }
 
         +DialogButton(DialogButton.OK)
@@ -93,8 +76,12 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings
                     if (service.hasRemote.get()) {
                         gitSetUrl(repository, url)
                         gitSetPushUrl(repository, url)
-                    } else gitAddRemote(repository, url)
-                } else gitRemoveRemote(repository)
+                    } else {
+                        gitAddRemote(repository, url)
+                    }
+                } else {
+                    gitRemoveRemote(repository)
+                }
             }
 
             val name = authorName.text
@@ -102,11 +89,14 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings
             if (name != originalName) gitSetUserName(repository, name)
             if (email != originalEmail) gitSetUserEmail(repository, email)
 
-            val host = proxyHost.text
-            val port = proxyPort.text.toInt()
-            if (host != originalHost || port != originalPort) {
-                if (host.isNotBlank()) gitSetProxy(repository, host, port)
-                else gitUnsetProxy(repository)
+            val hostPort = proxy.value
+            if (hostPort != originalProxy) {
+                if (hostPort.isNotBlank()) {
+                    gitSetProxy(repository, hostPort)
+                    service.addUsedProxy(hostPort)
+                } else {
+                    gitUnsetProxy(repository)
+                }
             }
 
             TinyGit.fireEvent()

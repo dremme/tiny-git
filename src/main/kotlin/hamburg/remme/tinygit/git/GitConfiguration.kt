@@ -41,8 +41,8 @@ fun gitGetProxy(repository: Repository): String {
     return git(repository, *proxy).trim()
 }
 
-fun gitSetProxy(repository: Repository, host: String, port: Int) {
-    git(repository, *proxy, "$host:$port")
+fun gitSetProxy(repository: Repository, hostPort: String) {
+    git(repository, *proxy, hostPort)
 }
 
 fun gitUnsetProxy(repository: Repository) {

@@ -45,7 +45,7 @@ class ToolBarBuilder : ToolBar() {
     }
 
     operator fun Node.unaryPlus() {
-        items.add(this)
+        items += this
     }
 
     operator fun Action.unaryPlus() {

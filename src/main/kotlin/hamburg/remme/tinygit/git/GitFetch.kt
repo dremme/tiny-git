@@ -2,7 +2,7 @@ package hamburg.remme.tinygit.git
 
 import hamburg.remme.tinygit.domain.Repository
 
-private val upToDate = mutableSetOf<Repository>()
+private val upToDate = mutableSetOf<Repository>() // TODO: move to service?
 private val fetch = arrayOf("fetch", "origin")
 private val fetchPrune = arrayOf("fetch", "--prune", "origin")
 private val pull = arrayOf("pull")
@@ -14,13 +14,13 @@ fun gitUpToDate(repository: Repository): Boolean {
 fun gitFetch(repository: Repository) {
     val response = git(repository, *fetch).trim()
     if (response.lines().any { it.startsWith(errorSeparator) || it.startsWith(fatalSeparator) }) throw FetchException(response.parseError())
-    upToDate.add(repository)
+    upToDate += repository
 }
 
 fun gitFetchPrune(repository: Repository) {
     val response = git(repository, *fetchPrune).trim()
     if (response.lines().any { it.startsWith(errorSeparator) || it.startsWith(fatalSeparator) }) throw FetchException(response.parseError())
-    upToDate.add(repository)
+    upToDate += repository
 }
 
 fun gitPull(repository: Repository) {

@@ -56,6 +56,14 @@ inline fun <T> comboBox(items: ObservableList<T>, block: ComboBox<T>.() -> Unit)
     return comboBox
 }
 
+inline fun autocomplete(items: ObservableList<String>, block: ComboBox<String>.() -> Unit): ComboBox<String> {
+    val comboBox = ComboBox<String>(items)
+    comboBox.isEditable = true
+    comboBox.focusedProperty().addListener { _, _, it -> if (it && comboBox.items.isNotEmpty()) comboBox.show() }
+    block.invoke(comboBox)
+    return comboBox
+}
+
 class TextFieldBuilder : TextField() {
 
     fun intFormatter(value: Int) {

@@ -74,7 +74,7 @@ class MenuItemBuilder : MenuItem() {
 class MenuBuilder : Menu() {
 
     operator fun MenuItem.unaryPlus() {
-        items.add(this)
+        items += this
     }
 
     operator fun ActionGroup.unaryPlus() {
@@ -87,7 +87,7 @@ class MenuBuilder : Menu() {
 class ContextMenuBuilder : ContextMenu() {
 
     operator fun MenuItem.unaryPlus() {
-        items.add(this)
+        items += this
     }
 
     operator fun ActionGroup.unaryPlus() {
@@ -100,7 +100,7 @@ class ContextMenuBuilder : ContextMenu() {
 class MenuBarBuilder : MenuBar() {
 
     operator fun Menu.unaryPlus() {
-        menus.add(this)
+        menus += this
     }
 
     operator fun ActionCollection.unaryPlus() {

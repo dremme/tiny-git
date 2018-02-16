@@ -85,7 +85,7 @@ inline fun grid(numberOfColumns: Int, block: GridPaneBuilder.() -> Unit): GridPa
 open class PaneBuilder : Pane() {
 
     operator fun Node.unaryPlus() {
-        children.add(this)
+        children += this
     }
 
 }
@@ -93,7 +93,7 @@ open class PaneBuilder : Pane() {
 open class StackPaneBuilder : StackPane() {
 
     operator fun Node.unaryPlus() {
-        children.add(this)
+        children += this
     }
 
 }
@@ -101,7 +101,7 @@ open class StackPaneBuilder : StackPane() {
 open class SplitPaneBuilder : SplitPane() {
 
     operator fun Node.unaryPlus() {
-        items.add(this)
+        items += this
     }
 
 }
@@ -117,7 +117,7 @@ open class ScrollPaneBuilder : ScrollPane() {
 open class HBoxBuilder : HBox() {
 
     operator fun Node.unaryPlus() {
-        children.add(this)
+        children += this
     }
 
 }
@@ -125,7 +125,7 @@ open class HBoxBuilder : HBox() {
 open class VBoxBuilder : VBox() {
 
     operator fun Node.unaryPlus() {
-        children.add(this)
+        children += this
     }
 
 }
