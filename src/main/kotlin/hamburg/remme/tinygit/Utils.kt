@@ -90,9 +90,11 @@ fun String.htmlEncode() = replace("&", "&amp;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")
 
+fun String.htmlEncodeTabs() = replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
+
 fun String.htmlEncodeSpaces() = replace(" ", "&nbsp;")
 
-fun String.htmlEncodeAll() = htmlEncode().htmlEncodeSpaces()
+fun String.htmlEncodeAll() = htmlEncode().htmlEncodeTabs().htmlEncodeSpaces()
 
 fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*items)!!
 

@@ -73,7 +73,7 @@ class StatsService {
         taskPool["commits"] = object : Task<List<Pair<LocalDate, Int>>>() {
             override fun call() = log
                     .map { it.date.toLocalDate() }
-                    .map { it.minusDays(it.dayOfWeek.value.toLong() - 1) }
+                    .map { it.minusDays(it.dayOfWeek.value - 1L) }
                     .groupingBy { it }
                     .eachCount()
                     .map { (date, value) -> date to value }

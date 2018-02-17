@@ -2,12 +2,10 @@ package hamburg.remme.tinygit.gui.component
 
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.observableList
-import hamburg.remme.tinygit.shortDateFormat
 import javafx.animation.FadeTransition
 import javafx.collections.ObservableList
 import javafx.geometry.Side
 import javafx.scene.chart.XYChart
-import javafx.scene.control.Tooltip
 import javafx.scene.layout.StackPane
 import javafx.util.Duration
 import java.time.DayOfWeek
@@ -54,18 +52,15 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
     }
 
     override fun dataItemAdded(series: Series<LocalDate, DayOfWeek>, itemIndex: Int, item: Data<LocalDate, DayOfWeek>) {
-        val value = item.extraValue as Int
-
-        if (item.node == null) {
-            item.node = StackPane()
-            Tooltip.install(item.node, Tooltip("${item.xValue.format(shortDateFormat)} ($value commit${value.plural()})"))
-        }
+        if (item.node == null) item.node = StackPane()
 
         val newHash = hash(series)
         if (seriesHash != newHash) {
             seriesHash = newHash
             updateQuarters(series)
         }
+
+        val value = item.extraValue as Int
         val styleclass = if (value >= quarters[0]) 4 else if (value >= quarters[1]) 3 else if (value >= quarters[2]) 2 else 1
         item.node.styleClass.setAll("chart-calendar-day", "day-$styleclass")
 
@@ -81,8 +76,6 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
         }
     }
 
-    private fun Number.plural() = if (toLong() > 1) "s" else ""
-
     private fun hash(series: Series<LocalDate, DayOfWeek>): Int {
         return Arrays.hashCode(series.data.map { Objects.hash(it.xValue, it.extraValue) }.toIntArray())
     }
@@ -95,7 +88,7 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
         }
     }
 
-    override fun dataItemChanged(item: Data<LocalDate, DayOfWeek>) = throw UnsupportedOperationException()
+    override fun dataItemChanged(item: Data<LocalDate, DayOfWeek>) = throw UnsupportedOperationException("Do not update data items.")
 
     override fun dataItemRemoved(item: Data<LocalDate, DayOfWeek>, series: Series<LocalDate, DayOfWeek>) {
         if (shouldAnimate()) {

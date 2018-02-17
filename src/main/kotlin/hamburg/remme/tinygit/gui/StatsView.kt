@@ -20,6 +20,7 @@ import hamburg.remme.tinygit.gui.component.DayOfYearAxis
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.monthOfYearFormat
 import hamburg.remme.tinygit.observableList
+import hamburg.remme.tinygit.shortDateFormat
 import hamburg.remme.tinygit.weekOfMonthFormat
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ListChangeListener
@@ -142,33 +143,37 @@ class StatsView : Tab() {
 
     private fun updateActivity(data: List<Pair<LocalDate, Int>>) {
         activityData.setAll(data.map { (date, value) -> XYData(date, date.dayOfWeek, value) })
+        activityData.xyTooltips {
+            val value = it.extraValue as Int
+            "${it.xValue.format(shortDateFormat)} ($value commit${value.plural()})"
+        }
     }
 
     private fun updateContributions(data: List<Pair<String, Int>>) {
-        contributionData.upsert(data.map { (author, value) -> PieData(author, value.toDouble()) })
+        contributionData.pieUpsert(data.map { (author, value) -> PieData(author, value.toDouble()) })
         contributionData.pieTooltips { "${it.name} (${it.pieValue.toInt()} line${it.pieValue.plural()})" }
     }
 
     private fun updateCommits(data: List<Pair<LocalDate, Int>>) {
-        commitsData.setAll(data.map { (date, value) -> XYData<LocalDate, Number>(date, value) })
+        commitsData.xyUpsert(data.map { (date, value) -> XYData<LocalDate, Number>(date, value) })
         commitsData.xyTooltips { "${it.xValue.format(weekOfMonthFormat)} (${it.yValue} commit${it.yValue.plural()})" }
     }
 
     private fun updateFiles(data: List<Pair<String, Int>>) {
-        filesData.upsert(data.map { (ext, value) -> PieData(ext, value.toDouble()) })
+        filesData.pieUpsert(data.map { (ext, value) -> PieData(ext, value.toDouble()) })
         filesData.pieTooltips { "${it.name} (${it.pieValue.toInt()} file${it.pieValue.plural()})" }
     }
 
     private fun updateLines(data: List<Pair<LocalDate, NumStat>>) {
-        addedLinesData.setAll(data.map { (date, value) -> XYData<LocalDate, Number>(date, value.added) })
-        removedLinesData.setAll(data.map { (date, value) -> XYData<LocalDate, Number>(date, value.removed) })
+        addedLinesData.xyUpsert(data.map { (date, value) -> XYData<LocalDate, Number>(date, value.added) })
+        removedLinesData.xyUpsert(data.map { (date, value) -> XYData<LocalDate, Number>(date, value.removed) })
         addedLinesData.xyTooltips { "${it.xValue.format(monthOfYearFormat)} (${it.yValue} line${it.yValue.plural()})" }
         removedLinesData.xyTooltips { "${it.xValue.format(monthOfYearFormat)} (${it.yValue} line${it.yValue.plural()})" }
     }
 
     private fun Number.plural() = if (toLong() > 1) "s" else ""
 
-    private fun ObservableList<PieData>.upsert(data: List<PieData>) {
+    private fun ObservableList<PieData>.pieUpsert(data: List<PieData>) {
         if (isEmpty()) {
             setAll(data)
         } else {
@@ -176,6 +181,19 @@ class StatsView : Tab() {
             forEachIndexed { i, it ->
                 it.name = data[i].name
                 it.pieValue = data[i].pieValue
+            }
+            if (size < data.size) addAll(data.subList(size, data.size))
+        }
+    }
+
+    private fun <X, Y> ObservableList<XYData<X, Y>>.xyUpsert(data: List<XYData<X, Y>>) {
+        if (isEmpty()) {
+            setAll(data)
+        } else {
+            if (size > data.size) remove(data.size, size)
+            forEachIndexed { i, it ->
+                it.xValue = data[i].xValue
+                it.yValue = data[i].yValue
             }
             if (size < data.size) addAll(data.subList(size, data.size))
         }
