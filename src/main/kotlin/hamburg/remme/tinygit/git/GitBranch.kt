@@ -20,7 +20,7 @@ fun gitHead(repository: Repository): String {
 fun gitBranchList(repository: Repository): List<Branch> {
     val branches = mutableListOf<Branch>()
     git(repository, *branchAll) {
-        val branchMatch = "[* ] (\\(.+?\\)|.+?) +([\\da-f]+) .+".toRegex().matchEntire(it)!!.groupValues
+        val branchMatch = "[* ] (\\(.+?\\)|.+?) +([\\da-f]+|-> [-./_\\w]+).*".toRegex().matchEntire(it)!!.groupValues
         val branch = branchMatch[1].parseRef()
         val commitId = branchMatch[2]
         if (branch != "${remotes}origin/HEAD") {
