@@ -46,7 +46,7 @@ class DayOfYearAxis : Axis<LocalDate>() {
 
     override fun getZeroPosition() = 0.0
 
-    override fun toNumericValue(date: LocalDate) = throw UnsupportedOperationException()
+    override fun toNumericValue(date: LocalDate) = 0.0
 
     override fun toRealValue(value: Double) = throw UnsupportedOperationException()
 

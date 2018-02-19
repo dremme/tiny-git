@@ -24,11 +24,10 @@ import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.ThreadFactory
 import kotlin.streams.toList
 
-
 val daemonFactory = ThreadFactory { Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } }
-val cachedPool = Executors.newCachedThreadPool(daemonFactory)!!
 val scheduledPool = Executors.newScheduledThreadPool(1, daemonFactory)!!
-val forkJoinPool = ForkJoinPool(Math.min(1, Runtime.getRuntime().availableProcessors() - 1))
+val cachedPool = Executors.newCachedThreadPool(daemonFactory)!!
+val forkJoinPool = ForkJoinPool(Math.min(1, Runtime.getRuntime().availableProcessors() / 2))
 
 val weekOfMonthFormat = DateTimeFormatter.ofPattern("'Week' W 'of' MMM ''yy")!!
 val monthOfYearFormat = DateTimeFormatter.ofPattern("MMM ''yy")!!
@@ -98,12 +97,12 @@ fun String.htmlEncodeAll() = htmlEncode().htmlEncodeTabs().htmlEncodeSpaces()
 
 fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*items)!!
 
-inline fun <T : Comparable<T>> ObservableList<T>.addSorted(items: Collection<T>) = items.forEach { item ->
+fun <T : Comparable<T>> ObservableList<T>.addSorted(items: Collection<T>) = items.forEach { item ->
     val index = indexOfFirst { it > item }
     if (index < 0) add(item) else add(index, item)
 }
 
-inline fun <T> ObservableList<T>.addSorted(items: Collection<T>, comparator: (T, T) -> Int) = items.forEach { item ->
+fun <T> ObservableList<T>.addSorted(items: Collection<T>, comparator: (T, T) -> Int) = items.forEach { item ->
     val index = indexOfFirst { comparator.invoke(it, item) > 0 }
     if (index < 0) add(item) else add(index, item)
 }

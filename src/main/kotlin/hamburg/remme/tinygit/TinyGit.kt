@@ -49,6 +49,7 @@ fun main(args: Array<String>) {
 
     Font.loadFont("font/Roboto-Regular.ttf".asResource(), 13.0)
     Font.loadFont("font/Roboto-Bold.ttf".asResource(), 13.0)
+    Font.loadFont("font/Roboto-Light.ttf".asResource(), 13.0)
     Font.loadFont("font/LiberationMono-Regular.ttf".asResource(), 12.0)
     Font.loadFont("font/fa-brands-400.ttf".asResource(), 14.0)
     Font.loadFont("font/fa-solid-900.ttf".asResource(), 14.0)

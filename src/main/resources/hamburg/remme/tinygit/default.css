@@ -638,6 +638,20 @@
     -fx-vgap: 1em;
 }
 
+.stats-view .synopsis {
+    -fx-padding: 2em 0 3em 0;
+    -fx-spacing: 3em;
+    -fx-alignment: center;
+}
+
+.stats-view .synopsis > * {
+    -fx-alignment: center;
+}
+
+.stats-view .synopsis > * > .header {
+    -fx-font: 3em "Roboto Light", sans-serif;
+}
+
 .branch-badge {
     -fx-padding: 1px 6px 1px 6px;
     -fx-text-fill: derive(-git-badge, 25%);

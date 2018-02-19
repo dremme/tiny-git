@@ -9,6 +9,8 @@ import hamburg.remme.tinygit.gui.builder.button
 import hamburg.remme.tinygit.gui.builder.columnSpan
 import hamburg.remme.tinygit.gui.builder.comboBox
 import hamburg.remme.tinygit.gui.builder.grid
+import hamburg.remme.tinygit.gui.builder.hbox
+import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.progressIndicator
 import hamburg.remme.tinygit.gui.builder.scrollPane
 import hamburg.remme.tinygit.gui.builder.toolBar
@@ -122,11 +124,37 @@ class StatsView : Tab() {
                 isFitToWidth = true
                 +grid(2) {
                     columns(50.0, 50.0)
-                    +listOf(activityIndicator,
-                            commitsIndicator,
-                            linesIndicator,
+                    +listOf(
+                            hbox {
+                                columnSpan(2)
+                                addClass("synopsis")
+                                +vbox {
+                                    +label {
+                                        addClass("header")
+                                        textProperty().bind(statsService.numberOfAuthors.asString().concat(" authors"))
+                                    }
+                                    +label { +"...who pushed commits" }
+                                }
+                                +vbox {
+                                    +label {
+                                        addClass("header")
+                                        textProperty().bind(statsService.numberOfFiles.asString().concat(" files"))
+                                    }
+                                    +label { +"...tracked by Git" }
+                                }
+                                +vbox {
+                                    +label {
+                                        addClass("header")
+                                        textProperty().bind(statsService.numberOfLines.asString().concat(" lines"))
+                                    }
+                                    +label { +"...that have been touched" }
+                                }
+                            },
                             contributionIndicator,
-                            filesIndicator)
+                            filesIndicator,
+                            activityIndicator,
+                            commitsIndicator,
+                            linesIndicator)
                 }
             }
         }
@@ -151,7 +179,7 @@ class StatsView : Tab() {
 
     private fun updateContributions(data: List<Pair<String, Int>>) {
         contributionData.pieUpsert(data.map { (author, value) -> PieData(author, value.toDouble()) })
-        contributionData.pieTooltips { "${it.name} (${it.pieValue.toInt()} line${it.pieValue.plural()})" }
+        contributionData.pieTooltips { "${it.name} (${it.pieValue.toInt()} commit${it.pieValue.plural()})" }
     }
 
     private fun updateCommits(data: List<Pair<LocalDate, Int>>) {
