@@ -33,10 +33,10 @@ class DayOfWeekAxis : Axis<DayOfWeek>() {
 
     override fun isValueOnAxis(dayOfWeek: DayOfWeek) = true
 
-    override fun getZeroPosition() = 0.0
+    override fun getZeroPosition() = getDisplayPosition(DayOfWeek.MONDAY)
+
+    override fun toNumericValue(dayOfWeek: DayOfWeek) = getDisplayPosition(dayOfWeek)
 
     override fun toRealValue(value: Double) = throw UnsupportedOperationException()
-
-    override fun toNumericValue(dayOfWeek: DayOfWeek) = throw UnsupportedOperationException()
 
 }

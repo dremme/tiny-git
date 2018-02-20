@@ -44,9 +44,9 @@ class DayOfYearAxis : Axis<LocalDate>() {
 
     override fun isValueOnAxis(date: LocalDate) = date.atNoon().isAfter(firstDay.atStartOfDay()) && date.atNoon().isBefore(lastDay.atEndOfDay())
 
-    override fun getZeroPosition() = 0.0
+    override fun getZeroPosition() = getDisplayPosition(firstDay)
 
-    override fun toNumericValue(date: LocalDate) = 0.0
+    override fun toNumericValue(date: LocalDate) = getDisplayPosition(date)
 
     override fun toRealValue(value: Double) = throw UnsupportedOperationException()
 

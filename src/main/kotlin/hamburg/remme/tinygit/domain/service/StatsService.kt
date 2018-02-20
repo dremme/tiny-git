@@ -7,8 +7,8 @@ import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitDiffNumstat
 import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.git.gitLsTree
-import hamburg.remme.tinygit.mapParallel
 import hamburg.remme.tinygit.observableList
+import hamburg.remme.tinygit.takeHighest
 import javafx.animation.Interpolator
 import javafx.animation.KeyFrame
 import javafx.animation.KeyValue
@@ -16,20 +16,25 @@ import javafx.animation.Timeline
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.concurrent.Task
 import javafx.util.Duration
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Year
+import javafx.scene.chart.PieChart.Data as PieData
+import javafx.scene.chart.XYChart.Data as XYData
+import javafx.scene.chart.XYChart.Series as XYSeries
 
 class StatsService {
 
     val numberOfAuthors = SimpleIntegerProperty()
     val numberOfFiles = SimpleIntegerProperty()
     val numberOfLines = SimpleIntegerProperty()
-    val contributionData = observableList<Pair<String, Int>>()
-    val filesData = observableList<Pair<String, Int>>()
-    val commitsData = observableList<Pair<LocalDate, Int>>()
-    val activityData = observableList<Pair<LocalDate, Int>>()
-    val linesData = observableList<Pair<LocalDate, NumStat>>()
-    lateinit var contributionMonitor: TaskMonitor
+    val contributorsData = observableList<PieData>()
+    val filesData = observableList<PieData>()
+    val commitsData = observableList<XYSeries<LocalDate, Number>>()
+    val activityData = observableList<XYData<LocalDate, DayOfWeek>>()
+    val linesAddedData = observableList<XYData<LocalDate, Number>>()
+    val linesRemovedData = observableList<XYData<LocalDate, Number>>()
+    lateinit var contributorsMonitor: TaskMonitor
     lateinit var filesMonitor: TaskMonitor
     lateinit var commitsMonitor: TaskMonitor
     lateinit var activityMonitor: TaskMonitor
@@ -38,7 +43,7 @@ class StatsService {
     private val numStat = mutableListOf<NumStat>()
     private val lastDay = LocalDate.now()
     private val firstDay = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)
-    private val taskPool = mutableMapOf<String, Task<*>>()
+    private val taskPool = mutableSetOf<Task<*>>()
     private val linesTimeline = Timeline()
     private val authorsTimeline = Timeline()
     private val filesTimeline = Timeline()
@@ -62,11 +67,11 @@ class StatsService {
     }
 
     fun updateActivity() {
-        taskPool["activity"] = object : Task<List<Pair<LocalDate, Int>>>() {
+        taskPool += object : Task<List<XYData<LocalDate, DayOfWeek>>>() {
             override fun call() = log
                     .groupingBy { it.date.toLocalDate() }
                     .eachCount()
-                    .map { (date, value) -> date to value }
+                    .map { (date, value) -> XYData(date, date.dayOfWeek, value) }
 
             override fun succeeded() {
                 activityData.setAll(value)
@@ -74,57 +79,44 @@ class StatsService {
             }
 
             override fun failed() = exception.printStackTrace()
-        }.also { TinyGit.execute(it) }
+        }.also { TinyGit.executeSlowly(it) }
     }
 
-    // TODO: very slow analysis
-//    fun updateContributions(repository: Repository) {
-//        taskPool["contributions"] = object : Task<List<Pair<String, Int>>>() {
-//            override fun call() = numStat
-//                    .filter { it.added + it.removed > 0 }
-//                    .mapParallel { if (!isCancelled) gitBlame(repository, it.path, firstDay) else null }
-//                    .filterNotNull()
-//                    .flatten { i1, i2 -> i1 + i2 }
-//                    .filter { it.key != "not.committed.yet" }
-//                    .map { (author, value) -> author to value }
-//                    .sortedBy { (_, value) -> value }
-//                    .takeLast(8)
-//
-//            override fun succeeded() {
-//                contributionData.setAll(value)
-//                contributionMonitor.done()
-//            }
-//
-//            override fun failed() = exception.printStackTrace()
-//        }.also { TinyGit.execute(it) }
-//    }
-    fun updateContributions() {
-        taskPool["contributions"] = object : Task<List<Pair<String, Int>>>() {
+    fun updateContributors() {
+        taskPool += object : Task<List<PieData>>() {
             override fun call() = log
                     .groupingBy { it.authorMail.toLowerCase() }
                     .eachCount()
-                    .map { (author, value) -> author to value }
-                    .sortedBy { (_, value) -> value }
-                    .takeLast(8)
+                    .takeHighest(8)
+                    .map { (author, value) -> PieData(author, value.toDouble()) }
 
             override fun succeeded() {
-                contributionData.setAll(value)
-                contributionMonitor.done()
+                contributorsData.setAll(value)
+                contributorsMonitor.done()
             }
 
             override fun failed() = exception.printStackTrace()
-        }.also { TinyGit.execute(it) }
+        }.also { TinyGit.executeSlowly(it) }
     }
 
     fun updateCommits() {
-        taskPool["commits"] = object : Task<List<Pair<LocalDate, Int>>>() {
+        taskPool += object : Task<List<XYSeries<LocalDate, Number>>>() {
             override fun call() = log
-                    .map { it.date.toLocalDate() }
-                    .map { it.minusDays(it.dayOfWeek.value - 1L) }
-                    .groupingBy { it }
-                    .eachCount()
-                    .map { (date, value) -> date to value }
-                    .sortedBy { (date, _) -> date }
+                    .groupBy { it.authorMail.toLowerCase() }
+                    .mapValues { (_, value) ->
+                        value.map { it.date.toLocalDate() }
+                                .map { it.minusDays(it.dayOfWeek.value - 1L) }
+                                .groupingBy { it }
+                                .eachCount()
+                                .toList()
+                                .sortedBy { it.first }
+                    }
+                    .toList()
+                    .sortedBy { (_, data) -> data.sumBy { it.second } }
+                    .takeLast(8)
+                    .map { (author, data) ->
+                        XYSeries(author, observableList(data.map { (date, value) -> XYData<LocalDate, Number>(date, value) }))
+                    }
 
             override fun succeeded() {
                 commitsData.setAll(value)
@@ -132,17 +124,16 @@ class StatsService {
             }
 
             override fun failed() = exception.printStackTrace()
-        }.also { TinyGit.execute(it) }
+        }.also { TinyGit.executeSlowly(it) }
     }
 
     fun updateFiles(repository: Repository) {
-        taskPool["files"] = object : Task<List<Pair<String, Int>>>() {
+        taskPool += object : Task<List<PieData>>() {
             override fun call() = gitLsTree(repository)
                     .groupingBy { it.substringAfterLast('.', it.substringAfterLast('/')) }
                     .eachCount()
-                    .map { (ext, value) -> ext to value }
-                    .sortedBy { (_, value) -> value }
-                    .takeLast(8)
+                    .takeHighest(8)
+                    .map { (ext, value) -> PieData(ext, value.toDouble()) }
 
             override fun succeeded() {
                 filesData.setAll(value)
@@ -150,33 +141,42 @@ class StatsService {
             }
 
             override fun failed() = exception.printStackTrace()
-        }.also { TinyGit.execute(it) }
+        }.also { TinyGit.executeSlowly(it) }
     }
 
     fun updateLines(repository: Repository) {
-        taskPool["lines"] = object : Task<List<Pair<LocalDate, NumStat>>>() {
-            override fun call() = (0..12).map { firstDay.plusMonths(it.toLong()) }
-                    .map { date -> log.filter { it.date.month == date.month && it.date.year == date.year } }
-                    .map {
-                        val min = it.minBy { it.date }
-                        val max = it.maxBy { it.date }
-                        min to max
-                    }
-                    .mapParallel {
-                        if (!isCancelled && it.first != null && it.second != null) gitDiffNumstat(repository, it.first as Commit, it.second as Commit)
-                        else emptyList()
-                    }
-                    .map { NumStat(it.sumBy { it.added }, it.sumBy { it.removed }, "") }
-                    .mapIndexed { i, it -> firstDay.plusMonths(i.toLong()) to it }
-                    .filter { it.second.added + it.second.removed > 0 }
+        taskPool += object : Task<Unit>() {
+            private val added = mutableListOf<XYData<LocalDate, Number>>()
+            private val removed = mutableListOf<XYData<LocalDate, Number>>()
+
+            override fun call() {
+                (0..12).map { firstDay.plusMonths(it.toLong()) }
+                        .map { date -> log.filter { it.date.month == date.month && it.date.year == date.year } }
+                        .map {
+                            val min = it.minBy { it.date }
+                            val max = it.maxBy { it.date }
+                            min to max
+                        }
+                        .map { (first, last) ->
+                            if (!isCancelled && first != null && last != null) gitDiffNumstat(repository, first, last) else emptyList()
+                        }
+                        .map { it.sumBy { it.added } to it.sumBy { it.removed } }
+                        .mapIndexed { i, it -> firstDay.plusMonths(i.toLong()) to it }
+                        .filter { (_, stat) -> stat.first + stat.second > 0 }
+                        .forEach { (date, value) ->
+                            added += XYData<LocalDate, Number>(date, value.first)
+                            removed += XYData<LocalDate, Number>(date, value.second)
+                        }
+            }
 
             override fun succeeded() {
-                linesData.setAll(value)
+                linesAddedData.setAll(added)
+                linesRemovedData.setAll(removed)
                 linesMonitor.done()
             }
 
             override fun failed() = exception.printStackTrace()
-        }.also { TinyGit.execute(it) }
+        }.also { TinyGit.executeSlowly(it) }
     }
 
     // TODO: really?
@@ -187,7 +187,7 @@ class StatsService {
         numberOfAuthors.set(0)
         numberOfFiles.set(0)
         numberOfLines.set(0)
-        taskPool["main"] = object : Task<Unit>() {
+        taskPool += object : Task<Unit>() {
             private lateinit var log: List<Commit>
             private lateinit var numStat: List<NumStat>
 
@@ -204,12 +204,12 @@ class StatsService {
                 updateNumberOfLines()
                 updateActivity()
                 updateCommits()
-                updateContributions()
+                updateContributors()
                 updateFiles(repository)
                 updateLines(repository)
             }
         }.also {
-            contributionMonitor.started()
+            contributorsMonitor.started()
             filesMonitor.started()
             commitsMonitor.started()
             activityMonitor.started()
@@ -219,7 +219,7 @@ class StatsService {
     }
 
     fun cancel() {
-        taskPool.forEach { _, it -> it.cancel() }
+        taskPool.forEach { it.cancel() }
     }
 
 }

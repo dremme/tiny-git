@@ -17,6 +17,7 @@ object Icons {
     fun cloud() = icon('\uf0c2')
     fun cloudDownload() = icon('\uf381')
     fun cloudUpload() = icon('\uf382')
+    fun code() = icon('\uf121')
     fun codeFork() = icon('\uf126')
     fun cog() = icon('\uf013')
     fun cube() = icon('\uf1b2')
@@ -24,6 +25,7 @@ object Icons {
     fun envelope() = icon('\uf0e0')
     fun eraser() = icon('\uf12d')
     fun exclamationTriangle() = icon('\uf071')
+    fun file() = icon('\uf15b')
     fun folder() = icon('\uf07b')
     fun folderOpen() = icon('\uf07c')
     fun forward() = icon('\uf04e')
@@ -49,6 +51,7 @@ object Icons {
     fun timesCircle() = icon('\uf057')
     fun trash() = icon('\uf1f8')
     fun undo() = icon('\uf0e2')
+    fun user() = icon('\uf007')
 
     private fun icon(glyph: Char, brand: Boolean = false): Node {
         val icon = Text(glyph.toString()).addClass("icon")

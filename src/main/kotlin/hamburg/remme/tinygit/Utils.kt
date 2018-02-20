@@ -18,16 +18,14 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.concurrent.Callable
 import java.util.concurrent.Executors
-import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.ThreadFactory
 import kotlin.streams.toList
 
 val daemonFactory = ThreadFactory { Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } }
 val scheduledPool = Executors.newScheduledThreadPool(1, daemonFactory)!!
 val cachedPool = Executors.newCachedThreadPool(daemonFactory)!!
-val forkJoinPool = ForkJoinPool(Math.min(1, Runtime.getRuntime().availableProcessors() / 2))
+val singlePool = Executors.newFixedThreadPool(1, daemonFactory)!!
 
 val weekOfMonthFormat = DateTimeFormatter.ofPattern("'Week' W 'of' MMM ''yy")!!
 val monthOfYearFormat = DateTimeFormatter.ofPattern("MMM ''yy")!!
@@ -97,6 +95,8 @@ fun String.htmlEncodeAll() = htmlEncode().htmlEncodeTabs().htmlEncodeSpaces()
 
 fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*items)!!
 
+fun <T> observableList(items: Collection<T>) = FXCollections.observableArrayList<T>(items)!!
+
 fun <T : Comparable<T>> ObservableList<T>.addSorted(items: Collection<T>) = items.forEach { item ->
     val index = indexOfFirst { it > item }
     if (index < 0) add(item) else add(index, item)
@@ -107,25 +107,8 @@ fun <T> ObservableList<T>.addSorted(items: Collection<T>, comparator: (T, T) -> 
     if (index < 0) add(item) else add(index, item)
 }
 
-inline fun <K, V> List<Map<K, V>>.flatten(crossinline reduce: (V, V) -> V): Map<K, V> {
-    return fold(mutableMapOf()) { acc, it ->
-        it.forEach { key, value -> acc.merge(key, value) { i1, i2 -> reduce.invoke(i1, i2) } }
-        acc
-    }
-}
-
-inline fun <T> List<T>.forEachParallel(crossinline block: (T) -> Unit) {
-    map { Callable { block.invoke(it) } }
-            .map { forkJoinPool.submit(it) }
-            .onEach { it.fork() }
-            .forEach { it.join() }
-}
-
-inline fun <T, R> List<T>.mapParallel(crossinline block: (T) -> R): List<R> {
-    return map { Callable<R> { block.invoke(it) } }
-            .map { forkJoinPool.submit(it) }
-            .onEach { it.fork() }
-            .map { it.join() }
+fun <K, V : Comparable<V>> Map<K, V>.takeHighest(count: Int): Map<K, V> {
+    return toList().sortedBy { it.second }.takeLast(count).toMap()
 }
 
 fun IntegerProperty.inc() = set(get() + 1)

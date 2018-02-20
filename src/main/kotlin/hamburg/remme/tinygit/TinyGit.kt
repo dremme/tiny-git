@@ -98,6 +98,8 @@ class TinyGit : Application() {
 
         fun execute(task: Task<*>) = cachedPool.execute(task)
 
+        fun executeSlowly(task: Task<*>) = singlePool.execute(task)
+
         fun execute(message: String, task: Task<*>) {
             task.setOnSucceeded { state.runningProcesses.dec() }
             task.setOnCancelled { state.runningProcesses.dec() }
