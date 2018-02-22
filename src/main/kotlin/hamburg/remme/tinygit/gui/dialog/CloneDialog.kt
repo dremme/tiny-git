@@ -72,7 +72,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             val repository = Repository(location.text)
             val name = authorName.text
             val email = authorEmail.text
-            val hostPort = proxy.value
+            val hostPort = proxy.value ?: ""
             service.clone(repository, url.text, hostPort,
                     {
                         if (name.isNotBlank()) gitSetUserName(repository, name)
