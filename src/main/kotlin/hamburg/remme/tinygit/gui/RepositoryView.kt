@@ -7,8 +7,6 @@ import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
 import hamburg.remme.tinygit.domain.Tag
-import hamburg.remme.tinygit.git.BranchAlreadyExistsException
-import hamburg.remme.tinygit.git.BranchUnpushedException
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
@@ -47,23 +45,8 @@ class RepositoryView : VBoxBuilder() {
     private val tagService = TinyGit.tagService
     private val stashService = TinyGit.stashService
     private val window get() = scene.window
-    private val tree: TreeView<RepositoryEntry>
-    private val selectedEntry @Suppress("UNNECESSARY_SAFE_CALL") get() = tree?.selectionModel?.selectedItem?.value
-    private val branchComparator = { e1: TreeItem<RepositoryEntry>, e2: TreeItem<RepositoryEntry> ->
-        val b1 = e1.value.value as Branch
-        val b2 = e2.value.value as Branch
-        b1.name.compareTo(b2.name)
-    }
-    private val tagComparator = { e1: TreeItem<RepositoryEntry>, e2: TreeItem<RepositoryEntry> ->
-        val b1 = e1.value.value as Tag
-        val b2 = e2.value.value as Tag
-        b1.name.compareTo(b2.name)
-    }
-    private val stashComparator = { e1: TreeItem<RepositoryEntry>, e2: TreeItem<RepositoryEntry> ->
-        val b1 = e1.value.value as StashEntry
-        val b2 = e2.value.value as StashEntry
-        b1.id.compareTo(b2.id)
-    }
+    private val tree: TreeView<Any>
+    private val treeSelection @Suppress("UNNECESSARY_SAFE_CALL") get() = tree?.selectionModel?.selectedItem?.value
 
     init {
         addClass("repository-view")
@@ -83,10 +66,10 @@ class RepositoryView : VBoxBuilder() {
             }
         }
 
-        val localBranches = TreeItem(RepositoryEntry("Local Branches", EntryType.LOCAL))
-        val remoteBranches = TreeItem(RepositoryEntry("Remote Branches", EntryType.REMOTE))
-        val tags = TreeItem(RepositoryEntry("Tags", EntryType.TAGS))
-        val stash = TreeItem(RepositoryEntry("Stash", EntryType.STASH))
+        val localBranches = RootTreeItem(Icons.hdd(), "Local Branches")
+        val remoteBranches = RootTreeItem(Icons.cloud(), "Remote Branches")
+        val tags = RootTreeItem(Icons.tags(), "Tags")
+        val stash = RootTreeItem(Icons.cubes(), "Stash")
 
         tree = tree {
             vgrow(Priority.ALWAYS)
@@ -97,21 +80,21 @@ class RepositoryView : VBoxBuilder() {
             +tags
             +stash
 
-            val canCheckout = Bindings.createBooleanBinding(Callable { !selectedEntry.isHead() && selectedEntry.isBranch() }, selectionModel.selectedItemProperty())
-            val canRenameBranch = Bindings.createBooleanBinding(Callable { selectedEntry.isLocal() }, selectionModel.selectedItemProperty())
-            val canDeleteBranch = Bindings.createBooleanBinding(Callable { !selectedEntry.isHead() && selectedEntry.isLocal() }, selectionModel.selectedItemProperty())
+            val canCheckout = Bindings.createBooleanBinding(Callable { treeSelection.isBranch() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
+            val canRenameBranch = Bindings.createBooleanBinding(Callable { treeSelection.isLocal() }, selectionModel.selectedItemProperty())
+            val canDeleteBranch = Bindings.createBooleanBinding(Callable { treeSelection.isLocal() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
+            val canApplyStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
+            val canDeleteStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
             val checkoutBranch = Action("Checkout Branch", { Icons.cloudDownload() }, disable = canCheckout.not(),
-                    handler = { checkout(selectedEntry!!.value as Branch) })
-            val canApplyStash = Bindings.createBooleanBinding(Callable { selectedEntry.isStash() }, selectionModel.selectedItemProperty())
-            val canDeleteStash = Bindings.createBooleanBinding(Callable { selectedEntry.isStash() }, selectionModel.selectedItemProperty())
-            val renameBranch = Action("Rename Branch", { Icons.pencil() }, disable = canRenameBranch.not(),
-                    handler = { renameBranch(selectedEntry!!.value as Branch) })
+                    handler = { checkout(treeSelection as Branch) })
+            val renameBranch = Action("Rename Branch (R)", { Icons.pencil() }, disable = canRenameBranch.not(),
+                    handler = { renameBranch(treeSelection as Branch) })
             val deleteBranch = Action("Delete Branch (Del)", { Icons.trash() }, disable = canDeleteBranch.not(),
-                    handler = { deleteBranch(selectedEntry!!.value as Branch) })
+                    handler = { deleteBranch(treeSelection as Branch) })
             val applyStash = Action("Apply Stash", { Icons.cube() }, disable = canApplyStash.not(),
-                    handler = { applyStash(selectedEntry!!.value as StashEntry) })
+                    handler = { applyStash(treeSelection as StashEntry) })
             val deleteStash = Action("Delete Stash (Del)", { Icons.trash() }, disable = canDeleteStash.not(),
-                    handler = { deleteStash(selectedEntry!!.value as StashEntry) })
+                    handler = { deleteStash(treeSelection as StashEntry) })
 
             contextMenu = contextMenu {
                 isAutoHide = true
@@ -120,74 +103,66 @@ class RepositoryView : VBoxBuilder() {
             }
             setOnKeyPressed {
                 if (!it.isShortcutDown) when (it.code) {
-                    KeyCode.SPACE -> it.consume()
+                    KeyCode.R -> if (canRenameBranch.get()) renameBranch(treeSelection as Branch)
                     KeyCode.DELETE -> {
-                        if (canDeleteBranch.get()) deleteBranch(selectedEntry!!.value as Branch)
-                        if (canDeleteStash.get()) deleteStash(selectedEntry!!.value as StashEntry)
+                        if (canDeleteBranch.get()) deleteBranch(treeSelection as Branch)
+                        if (canDeleteStash.get()) deleteStash(treeSelection as StashEntry)
                     }
                     else -> Unit
                 }
             }
             setOnMouseClicked {
                 if (it.button == MouseButton.PRIMARY && it.clickCount == 2) {
-                    if (canCheckout.get()) checkout(selectedEntry!!.value as Branch)
+                    if (canCheckout.get()) checkout(treeSelection as Branch)
                 }
             }
         }
         +tree
 
+        branchService.head.addListener { _ -> tree.refresh() }
         branchService.branches.addListener(ListChangeListener {
-            localBranches.children.updateEntries(it.list.filter { it.isLocal }.map { it.toLocalEntry() }, branchComparator)
-            remoteBranches.children.updateEntries(it.list.filter { it.isRemote }.map { it.toRemoteEntry() }, branchComparator)
+            localBranches.children.updateEntries(it.list.filter { it.isLocal })
+            remoteBranches.children.updateEntries(it.list.filter { it.isRemote })
         })
-        tagService.tags.addListener(ListChangeListener { tags.children.updateEntries(it.list.map { it.toEntry() }, tagComparator) })
-        stashService.stashEntries.addListener(ListChangeListener { stash.children.updateEntries(it.list.map { it.toEntry() }, stashComparator) })
+        tagService.tags.addListener(ListChangeListener { tags.children.updateEntries(it.list) })
+        stashService.stashEntries.addListener(ListChangeListener { stash.children.updateEntries(it.list) })
 
-        TinyGit.settings.setTree { tree.root.children.map { Settings.TreeItem(it.value.text, it.isExpanded) } }
         TinyGit.settings.setRepositorySelection { repository.value }
+        TinyGit.settings.setTree { tree.root.children.map { Settings.TreeItem(tree.root.children.indexOf(it), it.isExpanded) } }
         TinyGit.settings.load { settings ->
-            settings.tree.filter { it.expanded }
-                    .mapNotNull { item -> tree.root.children.find { it.value.text == item.text } }
-                    .forEach { it.isExpanded = true }
+            settings.tree.filter { it.expanded }.forEach { tree.root.children[it.index].isExpanded = true }
             settings.repositorySelection?.let { repository.selectionModel.select(it) } ?: repository.selectionModel.selectFirst()
         }
     }
 
-    private fun Branch.toLocalEntry() = RepositoryEntry(name, EntryType.LOCAL_BRANCH, this)
-
-    private fun Branch.toRemoteEntry() = RepositoryEntry(name, EntryType.REMOTE_BRANCH, this)
-
-    private fun Tag.toEntry() = RepositoryEntry(name, EntryType.TAG, this)
-
-    private fun StashEntry.toEntry() = RepositoryEntry(message, EntryType.STASH_ENTRY, this)
-
-    private fun ObservableList<TreeItem<RepositoryEntry>>.updateEntries(updatedList: List<RepositoryEntry>, comparator: (TreeItem<RepositoryEntry>, TreeItem<RepositoryEntry>) -> Int) {
-        addSorted(updatedList.filter { entry -> none { it.value == entry } }.map { TreeItem(it) }, comparator)
+    private fun ObservableList<TreeItem<Any>>.updateEntries(updatedList: List<Any>) {
+        addSorted(updatedList.filter { entry -> none { it.value == entry } }.map { TreeItem(it) },
+                { e1: TreeItem<*>, e2: TreeItem<*> ->
+                    @Suppress("UNCHECKED_CAST") val b1 = e1.value as Comparable<Any>
+                    @Suppress("UNCHECKED_CAST") val b2 = e2.value as Comparable<Any>
+                    b1.compareTo(b2)
+                })
         removeAll(filter { entry -> updatedList.none { it == entry.value } })
     }
 
     private fun renameBranch(branch: Branch) {
         textInputDialog(window, "Enter a New Branch Name", "Rename", Icons.pencil(), branch.name) { name ->
-            try {
-                branchService.rename(branch, name)
-                tree.root.children.flatMap { it.children + it }.flatMap { it.children + it }
-                        .find { it.value.value == name }
-                        ?.let { tree.selectionModel.select(it) }
-            } catch (ex: BranchAlreadyExistsException) {
-                errorAlert(window, "Cannot Create Branch",
-                        "Branch '$name' does already exist in the working copy.")
-            }
+            branchService.rename(
+                    branch,
+                    name,
+                    { errorAlert(window, "Cannot Create Branch", "Branch '$name' does already exist in the working copy.") })
         }
     }
 
     private fun deleteBranch(branch: Branch) {
-        try {
-            branchService.delete(branch, false)
-        } catch (ex: BranchUnpushedException) {
-            if (confirmWarningAlert(window, "Delete Branch", "Delete", "Branch '$branch' was not deleted as it has unpushed commits.\n\nForce deletion?")) {
-                branchService.delete(branch, true)
-            }
-        }
+        branchService.delete(
+                branch,
+                false,
+                {
+                    if (confirmWarningAlert(window, "Delete Branch", "Delete", "Branch '$branch' was not deleted as it has unpushed commits.\n\nForce deletion?")) {
+                        branchService.delete(branch, true)
+                    }
+                })
     }
 
     private fun checkout(branch: Branch) {
@@ -216,41 +191,17 @@ class RepositoryView : VBoxBuilder() {
         }
     }
 
-    private fun RepositoryEntry?.isLocal() = this?.type == EntryType.LOCAL_BRANCH
+    private fun Any?.isBranch() = this is Branch
 
-    private fun RepositoryEntry?.isBranch() = this?.type == EntryType.LOCAL_BRANCH || this?.type == EntryType.REMOTE_BRANCH
+    private fun Any?.isLocal() = this is Branch && isLocal
 
-    private fun RepositoryEntry?.isHead() = (this?.value as? Branch)?.let { branchService.isHead(it) } == true
+    private fun Any?.isHead() = this is Branch && branchService.isHead(this)
 
-    private fun RepositoryEntry?.isStash() = this?.type == EntryType.STASH_ENTRY
+    private fun Any?.isStash() = this is StashEntry
 
-    class RepositoryEntry(val text: String, val type: EntryType, val value: Any = Unit) {
+    private class Root(val icon: Node, val text: String)
 
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as RepositoryEntry
-
-            if (value != other.value) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            return value.hashCode()
-        }
-
-    }
-
-    enum class EntryType {
-
-        LOCAL, LOCAL_BRANCH,
-        REMOTE, REMOTE_BRANCH,
-        TAGS, TAG,
-        STASH, STASH_ENTRY
-
-    }
+    private class RootTreeItem(icon: Node, text: String) : TreeItem<Any>(Root(icon, text))
 
     private class RepositoryValueCell : ListCell<Repository>() {
 
@@ -265,9 +216,6 @@ class RepositoryView : VBoxBuilder() {
 
         private val name = Label()
         private val path = Label().addClass("repository-path")
-//        private val ahead = SimpleIntegerProperty()
-//        private val behind = SimpleIntegerProperty()
-//        private var task: Task<*>? = null
 
         init {
             addClass("repository-list-cell")
@@ -276,69 +224,31 @@ class RepositoryView : VBoxBuilder() {
                 +hbox {
                     spacing = 6.0 // TODO: CSS?
                     +name
-//                    +hbox {
-//                        addClass("repository-divergence")
-//                        +label {
-//                            visibleWhen(ahead.greater0())
-//                            managedWhen(visibleProperty())
-//                            textProperty().bind(ahead.asString())
-//                            +Icons.arrowUp()
-//                        }
-//                        +label {
-//                            visibleWhen(behind.greater0())
-//                            managedWhen(visibleProperty())
-//                            textProperty().bind(behind.asString())
-//                            +Icons.arrowDown()
-//                        }
-//                    }
                 }
                 +path
             }
         }
 
-        // TODO: not updating if something got pushed or committed
         override fun updateItem(item: Repository?, empty: Boolean) {
             super.updateItem(item, empty)
             name.text = item?.shortPath
             path.text = item?.path
-//            if (!empty) updateDivergence(item!!)
         }
-
-        // TODO: maybe too heavy for a list cell
-//        private fun updateDivergence(item: Repository) {
-//            task?.cancel()
-//            ahead.set(0)
-//            behind.set(0)
-//            task = object : Task<Divergence>() {
-//                override fun call() = gitDivergence(item,ser)
-//
-//                override fun succeeded() {
-//                    ahead.set(value.ahead)
-//                    behind.set(value.behind)
-//                }
-//            }.also { TinyGit.execute(it) }
-//        }
 
     }
 
-    private inner class RepositoryEntryTreeCell : TreeCell<RepositoryEntry>() {
+    private inner class RepositoryEntryTreeCell : TreeCell<Any>() {
 
-        init {
-            branchService.head.addListener { _ -> updateItem(item, isEmpty) }
-        }
-
-        override fun updateItem(item: RepositoryEntry?, empty: Boolean) {
+        override fun updateItem(item: Any?, empty: Boolean) {
             super.updateItem(item, empty)
             graphic = if (empty) null else {
-                when (item!!.type) {
-                    EntryType.LOCAL -> item(Icons.hdd(), item.text)
-                    EntryType.LOCAL_BRANCH -> branchItem(item)
-                    EntryType.REMOTE -> item(Icons.cloud(), item.text)
-                    EntryType.REMOTE_BRANCH -> item(Icons.codeFork(), item.text)
-                    EntryType.TAGS -> item(Icons.tags(), item.text)
-                    EntryType.TAG -> item(Icons.tag(), item.text)
-                    EntryType.STASH -> item(Icons.cubes(), item.text)
-                    EntryType.STASH_ENTRY -> item(Icons.cube(), item.text)
+                when {
+                    item is Root -> item(item.icon, item.text)
+                    item is Branch && item.isLocal -> branchItem(item)
+                    item is Branch && item.isRemote -> item(Icons.codeFork(), item.name)
+                    item is Tag -> item(Icons.tag(), item.name)
+                    item is StashEntry -> item(Icons.cube(), item.message)
+                    else -> throw RuntimeException()
                 }.addClass("repository-cell")
             }
         }
@@ -348,15 +258,15 @@ class RepositoryView : VBoxBuilder() {
             +Label(text)
         }
 
-        private fun branchItem(item: RepositoryEntry) = hbox {
-            +if (item.text == "HEAD") Icons.locationArrow() else Icons.codeFork()
-            +Label(item.text)
-            if (item.text == "HEAD") {
+        private fun branchItem(branch: Branch) = hbox {
+            +if (branchService.isDetached(branch)) Icons.locationArrow() else Icons.codeFork()
+            +Label(branch.name)
+            if (branchService.isDetached(branch)) {
                 addClass("detached")
-            } else if (item.isHead()) {
+            } else if (branchService.isHead(branch)) {
                 addClass("current")
             }
-            if (item.isHead()) +Icons.check()
+            if (branchService.isHead(branch)) +Icons.check()
         }
 
     }

@@ -1,10 +1,12 @@
 package hamburg.remme.tinygit.domain
 
-open class Branch(val id: String, val name: String, val isRemote: Boolean) {
+open class Branch(val id: String, val name: String, val isRemote: Boolean) : Comparable<Branch> {
 
     val isLocal = !isRemote
 
     override fun toString() = name
+
+    override fun compareTo(other: Branch) = name.compareTo(other.name)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -33,7 +33,8 @@ val shortDateFormat = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
 val dateFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy")!!
 val shortDateTimeFormat = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
-private val origin = LocalDate.of(1900, 1, 1)
+var logTypeCharacters = 1
+private val weeksOrigin = LocalDate.of(1900, 1, 1)
 
 fun overrideTooltips() {
     val tooltip = Tooltip()
@@ -54,8 +55,8 @@ fun LocalDate.atEndOfDay() = atTime(LocalTime.MAX)!!
 
 fun LocalDate.atNoon() = atTime(LocalTime.NOON)!!
 
-fun LocalDate.weeksBetween(date: LocalDate) = Math.abs(ChronoUnit.WEEKS.between(origin, date)
-        - ChronoUnit.WEEKS.between(origin, this))
+fun LocalDate.weeksBetween(date: LocalDate) = Math.abs(ChronoUnit.WEEKS.between(weeksOrigin, date)
+        - ChronoUnit.WEEKS.between(weeksOrigin, this))
 
 fun printError(message: String) {
     System.err.println(message)
@@ -128,7 +129,8 @@ inline fun <T> measureTime(type: String, message: String, block: () -> T): T {
     val value = block.invoke()
     val totalTime = (System.currentTimeMillis() - startTime) / 1000.0
     val async = if (!Platform.isFxApplicationThread()) "[async]" else ""
-    val log = String.format("[%6.3fs] %7s %-18s: %s", totalTime, async, type, message)
+    logTypeCharacters = Math.max(logTypeCharacters, type.length)
+    val log = String.format("[%6.3fs] %7s %-${logTypeCharacters}s: %s", totalTime, async, type, message)
     if (totalTime < 1) println(log) else printError(log)
     return value
 }

@@ -6,6 +6,7 @@ import hamburg.remme.tinygit.domain.Head
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.BranchAlreadyExistsException
 import hamburg.remme.tinygit.git.BranchNameInvalidException
+import hamburg.remme.tinygit.git.BranchUnpushedException
 import hamburg.remme.tinygit.git.CheckoutException
 import hamburg.remme.tinygit.git.gitBranch
 import hamburg.remme.tinygit.git.gitBranchDelete
@@ -65,9 +66,22 @@ class BranchService : Refreshable {
         })
     }
 
-    fun rename(branch: Branch, newName: String) {
-        gitBranchMove(repository, branch, newName)
-        TinyGit.fireEvent()
+    fun rename(branch: Branch, newName: String, branchExistsHandler: () -> Unit) {
+        try {
+            gitBranchMove(repository, branch, newName)
+            TinyGit.fireEvent()
+        } catch (ex: BranchAlreadyExistsException) {
+            branchExistsHandler.invoke()
+        }
+    }
+
+    fun delete(branch: Branch, force: Boolean, branchUnpushedHandler: () -> Unit = {}) {
+        try {
+            gitBranchDelete(repository, branch, force)
+            TinyGit.fireEvent()
+        } catch (ex: BranchUnpushedException) {
+            branchUnpushedHandler.invoke()
+        }
     }
 
     fun branch(name: String, branchExistsHandler: () -> Unit, nameInvalidHandler: () -> Unit) {
@@ -84,11 +98,6 @@ class BranchService : Refreshable {
                 }
             }
         })
-    }
-
-    fun delete(branch: Branch, force: Boolean) {
-        gitBranchDelete(repository, branch, force)
-        TinyGit.fireEvent()
     }
 
     fun autoReset() {

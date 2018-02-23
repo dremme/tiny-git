@@ -1,9 +1,10 @@
 package hamburg.remme.tinygit.domain
 
-class StashEntry(val id: String,
-                 val message: String) {
+class StashEntry(val id: String, val message: String) : Comparable<StashEntry> {
 
     override fun toString() = message
+
+    override fun compareTo(other: StashEntry) = id.compareTo(other.id)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
