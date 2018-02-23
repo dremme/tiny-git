@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.git
 
+import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
 
@@ -15,8 +16,8 @@ fun gitReset(repository: Repository, files: List<File>) {
     git(repository, *reset, *files.map { it.path }.toTypedArray())
 }
 
-fun gitResetHard(repository: Repository, branch: String) {
-    git(repository, *resetHard, "origin/$branch")
+fun gitResetHard(repository: Repository, branch: Branch) {
+    git(repository, *resetHard, "origin/${branch.name}")
 }
 
 fun gitSquash(repository: Repository, baseId: String, message: String) {

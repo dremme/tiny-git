@@ -3,7 +3,7 @@ package hamburg.remme.tinygit.domain
 class StashEntry(val id: String,
                  val message: String) {
 
-    override fun toString() = "$id: $message"
+    override fun toString() = message
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

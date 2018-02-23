@@ -10,7 +10,7 @@ class Commit(val id: String,
              val authorMail: String) : Comparable<Commit> {
 
     val shortId: String = id.abbreviate()
-    val parentId = if (parents.isEmpty()) "4b825dc642cb6eb9a060e54bf8d69288fbee4904" else parents[0] // special empty tree id
+    val parentId = if (parents.isEmpty()) Head.EMPTY.id else parents[0]
     val shortParents: List<String> = parents.map { it.abbreviate() }
     val shortMessage: String = fullMessage.lines()[0].substringBefore(". ")
     val author = "$authorName <$authorMail>"

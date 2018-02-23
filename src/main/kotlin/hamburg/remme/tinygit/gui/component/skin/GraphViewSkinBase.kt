@@ -6,7 +6,6 @@ import com.sun.javafx.scene.control.skin.VirtualScrollBar
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.gui.component.GraphView
 import javafx.application.Platform
-import javafx.beans.value.ObservableDoubleValue
 
 abstract class GraphViewSkinBase(control: GraphView) : ListViewSkin<Commit>(control) {
 
@@ -17,10 +16,6 @@ abstract class GraphViewSkinBase(control: GraphView) : ListViewSkin<Commit>(cont
         val vbar = vbarField.get(flow) as VirtualScrollBar
         vbar.valueProperty().addListener { _ -> Platform.runLater { layoutGraphChildren() } }
     }
-
-    abstract fun graphWidthProperty(): ObservableDoubleValue
-
-    abstract fun getGraphWidth(): Double
 
     abstract fun layoutGraphChildren()
 

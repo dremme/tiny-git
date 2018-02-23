@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.RebaseException
 import hamburg.remme.tinygit.git.UnmergedException
@@ -20,9 +21,9 @@ class RebaseService : Refreshable {
     val rebaseLast = SimpleIntegerProperty()
     private lateinit var repository: Repository
 
-    fun rebase(rebaseBase: String, errorHandler: (String) -> Unit) {
+    fun rebase(branch: Branch, errorHandler: (String) -> Unit) {
         TinyGit.execute("Rebasing...", object : Task<Unit>() {
-            override fun call() = gitRebase(repository, rebaseBase)
+            override fun call() = gitRebase(repository, branch)
 
             override fun succeeded() = TinyGit.fireEvent()
 

@@ -107,14 +107,14 @@ inline fun textAreaDialog(window: Window,
     dialog.showAndWait()?.let(block)
 }
 
-inline fun choiceDialog(window: Window,
-                        header: String,
-                        ok: String,
-                        icon: Node,
-                        items: List<String>,
-                        description: String = "",
-                        block: (String) -> Unit) {
-    val dialog = ChoiceDialog(ok, window)
+inline fun <T> choiceDialog(window: Window,
+                            header: String,
+                            ok: String,
+                            icon: Node,
+                            items: List<T>,
+                            description: String = "",
+                            block: (T) -> Unit) {
+    val dialog = ChoiceDialog<T>(ok, window)
     dialog.header = header
     dialog.graphic = icon
     dialog.items = items

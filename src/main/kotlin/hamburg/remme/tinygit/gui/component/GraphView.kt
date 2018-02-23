@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.component
 
+import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -7,13 +8,9 @@ import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.component.skin.GraphViewSkin
-import hamburg.remme.tinygit.gui.component.skin.GraphViewSkinBase
 import hamburg.remme.tinygit.shortDateTimeFormat
-import javafx.beans.binding.Bindings
-import javafx.beans.binding.ObjectBinding
-import javafx.beans.value.ObservableStringValue
+import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ListChangeListener
-import javafx.collections.ObservableList
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -21,30 +18,26 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.layout.HBox
 import javafx.scene.text.Text
-import java.util.concurrent.Callable
 
-class GraphView(entries: ObservableList<Commit>, val head: ObservableStringValue, val branches: ObservableList<Branch>)
-    : ListView<Commit>(entries) {
+// TODO: not sure about this inheriting listview directly
+class GraphView : ListView<Commit>(TinyGit.commitLogService.commits) {
 
-    private lateinit var skin: GraphViewSkinBase
-    private lateinit var graphPadding: ObjectBinding<Insets>
+    var graphWidth: Double
+        get() = graphPadding.get().left
+        set(value) = graphPadding.set(Insets(0.0, 0.0, 0.0, value))
+    private val service = TinyGit.branchService
+    private val graphPadding = SimpleObjectProperty<Insets>(Insets.EMPTY)
 
     init {
         addClass("graph-view")
-        setCellFactory { CommitLogListCell(head, branches, graphPadding) }
-        head.addListener { _ -> refresh() }
-        branches.addListener(ListChangeListener { refresh() })
+        setCellFactory { CommitLogListCell() }
+        service.head.addListener { _ -> refresh() }
+        service.branches.addListener(ListChangeListener { refresh() })
     }
 
-    override fun createDefaultSkin(): GraphViewSkinBase {
-        skin = GraphViewSkin(this)
-        graphPadding = Bindings.createObjectBinding(Callable { Insets(0.0, 0.0, 0.0, skin.getGraphWidth()) }, skin.graphWidthProperty())
-        return skin
-    }
+    override fun createDefaultSkin() = GraphViewSkin(this)
 
-    private class CommitLogListCell(private val head: ObservableStringValue,
-                                    private val branches: ObservableList<Branch>,
-                                    private val graphPadding: ObjectBinding<Insets>) : ListCell<Commit>() {
+    private inner class CommitLogListCell : ListCell<Commit>() {
 
         private val MAX_LENGTH = 60
         private val commitId = Text().addClass("commitId")
@@ -77,20 +70,20 @@ class GraphView(entries: ObservableList<Commit>, val head: ObservableStringValue
             item?.let { c ->
                 commitId.text = c.shortId
                 date.text = c.date.format(shortDateTimeFormat)
-                badges.children.setAll(branches.filter { it.id == c.id }.map { it.name }.toBadges())
+                badges.children.setAll(service.branches.filter { it.id == c.id }.toBadges())
                 message.text = c.shortMessage
                 author.text = " ― ${c.authorName}"
             }
         }
 
-        private fun List<String>.toBadges(): List<Node> {
+        private fun List<Branch>.toBadges(): List<Node> {
             return map {
                 label {
                     addClass("branch-badge")
-                    if (it == "HEAD") addClass("detached")
-                    else if (it == head.get()) addClass("current")
-                    +it.abbrev()
-                    +if (it == "HEAD") Icons.locationArrow() else Icons.codeFork()
+                    if (service.isDetached(it)) addClass("detached")
+                    else if (service.isHead(it)) addClass("current")
+                    +it.name.abbrev()
+                    +if (service.isDetached(it)) Icons.locationArrow() else Icons.codeFork()
                 }
             }
         }

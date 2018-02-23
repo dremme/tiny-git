@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.git
 
 import hamburg.remme.tinygit.asPath
+import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Rebase
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.exists
@@ -35,8 +36,8 @@ fun gitRebaseStatus(repository: Repository): Rebase {
     }
 }
 
-fun gitRebase(repository: Repository, branch: String) {
-    val response = git(repository, *rebase, branch).trim()
+fun gitRebase(repository: Repository, branch: Branch) {
+    val response = git(repository, *rebase, branch.name).trim()
     if (response.startsWith(rebaseMarker)) throw RebaseException(response.substringAfter(rebaseMarker))
 }
 

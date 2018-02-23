@@ -20,8 +20,10 @@ class BranchBehindException : RuntimeException()
 
 class MergeException : RuntimeException()
 
+class MergeConflictException : RuntimeException()
+
 class RebaseException(message: String) : RuntimeException(message)
 
 class UnmergedException : RuntimeException()
 
-class StashPopException : RuntimeException()
+class StashConflictException : RuntimeException()

@@ -62,7 +62,7 @@ class WorkingCopyView : Tab() {
         }
         staged.setOnKeyPressed {
             if (!it.isShortcutDown) when (it.code) {
-                KeyCode.L -> unstageSelected()
+                KeyCode.L -> if (state.canUnstageSelected.get()) unstageSelected()
                 else -> Unit
             }
         }
@@ -82,9 +82,9 @@ class WorkingCopyView : Tab() {
         }
         pending.setOnKeyPressed {
             if (!it.isShortcutDown) when (it.code) {
-                KeyCode.K -> stageSelected()
-                KeyCode.D -> discardChanges()
-                KeyCode.DELETE -> deleteFile()
+                KeyCode.K -> if (state.canStageSelected.get()) stageSelected()
+                KeyCode.D -> if (state.canDiscardSelected.get()) discardChanges()
+                KeyCode.DELETE -> if (state.canDeleteSelected.get()) deleteFile()
                 else -> Unit
             }
         }

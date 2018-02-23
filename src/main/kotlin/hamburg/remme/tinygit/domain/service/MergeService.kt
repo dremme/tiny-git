@@ -1,8 +1,10 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.git.MergeConflictException
 import hamburg.remme.tinygit.git.MergeException
 import hamburg.remme.tinygit.git.gitIsMerging
 import hamburg.remme.tinygit.git.gitMerge
@@ -23,18 +25,19 @@ class MergeService(service: WorkingCopyService) : Refreshable {
         }
     }
 
-    fun merge(mergeBase: String, errorHandler: () -> Unit) {
+    fun merge(branch: Branch, conflictHandler: () -> Unit, errorHandler: () -> Unit) {
         TinyGit.execute("Merging...", object : Task<Unit>() {
-            override fun call() = gitMerge(repository, mergeBase)
+            override fun call() = gitMerge(repository, branch)
 
             override fun succeeded() = TinyGit.fireEvent()
 
             override fun failed() {
                 when (exception) {
-                    is MergeException -> {
+                    is MergeConflictException -> {
                         TinyGit.fireEvent()
-                        errorHandler.invoke()
+                        conflictHandler.invoke()
                     }
+                    is MergeException -> errorHandler.invoke()
                     else -> exception.printStackTrace()
                 }
             }

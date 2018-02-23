@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
+import hamburg.remme.tinygit.domain.Head
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.BranchAlreadyExistsException
 import hamburg.remme.tinygit.git.BranchNameInvalidException
@@ -17,18 +18,22 @@ import hamburg.remme.tinygit.git.gitResetHard
 import hamburg.remme.tinygit.git.gitSquash
 import hamburg.remme.tinygit.observableList
 import javafx.beans.binding.Bindings
-import javafx.beans.property.SimpleStringProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.concurrent.Task
 
 class BranchService : Refreshable {
 
-    val head = SimpleStringProperty("")
+    val head = SimpleObjectProperty<Head>(Head.EMPTY)
     val branches = observableList<Branch>()
     val branchesSize = Bindings.size(branches)!!
     private lateinit var repository: Repository
     private var task: Task<*>? = null
 
-    fun checkoutLocal(branch: String, errorHandler: () -> Unit) {
+    fun isHead(branch: Branch) = head.get().name == branch.name
+
+    fun isDetached(branch: Branch) = branch.name == "HEAD"
+
+    fun checkoutLocal(branch: Branch, errorHandler: () -> Unit) {
         if (branch != head.get()) {
             TinyGit.execute("Switching branches...", object : Task<Unit>() {
                 override fun call() = gitCheckout(repository, branch)
@@ -45,7 +50,7 @@ class BranchService : Refreshable {
         }
     }
 
-    fun checkoutRemote(branch: String, errorHandler: () -> Unit) {
+    fun checkoutRemote(branch: Branch, errorHandler: () -> Unit) {
         TinyGit.execute("Getting remote branch...", object : Task<Unit>() {
             override fun call() = gitCheckoutRemote(repository, branch)
 
@@ -53,14 +58,14 @@ class BranchService : Refreshable {
 
             override fun failed() {
                 when (exception) {
-                    is CheckoutException -> checkoutLocal(branch.substringAfter('/'), errorHandler)
+                    is CheckoutException -> checkoutLocal(Branch("", branch.name.substringAfter('/'), false), errorHandler)
                     else -> exception.printStackTrace()
                 }
             }
         })
     }
 
-    fun rename(branch: String, newName: String) {
+    fun rename(branch: Branch, newName: String) {
         gitBranchMove(repository, branch, newName)
         TinyGit.fireEvent()
     }
@@ -81,7 +86,7 @@ class BranchService : Refreshable {
         })
     }
 
-    fun delete(branch: String, force: Boolean) {
+    fun delete(branch: Branch, force: Boolean) {
         gitBranchDelete(repository, branch, force)
         TinyGit.fireEvent()
     }
@@ -117,24 +122,25 @@ class BranchService : Refreshable {
 
     override fun onRepositoryDeselected() {
         task?.cancel()
-        head.set("")
+        head.set(Head.EMPTY)
         branches.clear()
     }
 
     private fun update(repository: Repository) {
         this.repository = repository
         task?.cancel()
-        task = object : Task<List<Branch>>() {
-            private lateinit var value1: String
+        task = object : Task<Unit>() {
+            private lateinit var head: Head
+            private lateinit var branches: List<Branch>
 
-            override fun call(): List<Branch> {
-                value1 = gitHead(repository)
-                return gitBranchList(repository)
+            override fun call() {
+                head = gitHead(repository)
+                branches = gitBranchList(repository)
             }
 
             override fun succeeded() {
-                head.set(value1)
-                branches.setAll(value)
+                this@BranchService.head.set(head)
+                this@BranchService.branches.setAll(branches)
             }
         }.also { TinyGit.execute(it) }
     }

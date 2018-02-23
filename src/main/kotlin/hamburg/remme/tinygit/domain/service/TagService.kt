@@ -2,13 +2,14 @@ package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.domain.Tag
 import hamburg.remme.tinygit.git.gitTagList
 import hamburg.remme.tinygit.observableList
 import javafx.concurrent.Task
 
 class TagService : Refreshable {
 
-    val tags = observableList<String>()
+    val tags = observableList<Tag>()
     private lateinit var repository: Repository
     private var task: Task<*>? = null
 
@@ -29,7 +30,7 @@ class TagService : Refreshable {
     private fun update(repository: Repository) {
         this.repository = repository
         task?.cancel()
-        task = object : Task<List<String>>() {
+        task = object : Task<List<Tag>>() {
             override fun call() = gitTagList(repository)
 
             override fun succeeded() {

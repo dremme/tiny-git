@@ -109,7 +109,7 @@ class GitView : VBoxBuilder() {
         val rebaseAbort = Action("Abort Rebase", { Icons.timesCircle() }, disable = state.canRebaseAbort.not(),
                 handler = { rebaseService.abort() })
         val stash = Action("Stash", { Icons.cube() }, "Shortcut+S", state.canStash.not(),
-                { stashService.stash() })
+                { stashService.create() })
         val stashPop = Action("Pop Stash", { Icons.cube().flipXY() }, "Shortcut+Shift+S", state.canApplyStash.not(),
                 { stashPop() })
         val reset = Action("Auto-Reset", { Icons.undo() }, disable = state.canReset.not(),
@@ -275,15 +275,18 @@ class GitView : VBoxBuilder() {
 
     private fun merge() {
         val current = branchService.head.get()
-        val branches = branchService.branches.map { it.name }.filter { it != current }
+        val branches = branchService.branches.filter { it != current }
         choiceDialog(window, "Select a Branch to Merge", "Merge", Icons.codeFork().flipY(), branches) {
-            mergeService.merge(it, { errorAlert(window, "Cannot Merge", "The merge resulted in a conflict.") })
+            mergeService.merge(
+                    it,
+                    { errorAlert(window, "Cannot Merge", "The merge resulted in a conflict.") },
+                    { errorAlert(window, "Cannot Merge", "There are local changes that would be overwritten by checkout.\nCommit or stash them.") })
         }
     }
 
     private fun rebase() {
         val current = branchService.head.get()
-        val branches = branchService.branches.map { it.name }.filter { it != current }
+        val branches = branchService.branches.filter { it != current }
         choiceDialog(window, "Select a Branch for Rebasing", "Rebase", Icons.levelUp().flipX(), branches) {
             rebaseService.rebase(it, { errorAlert(window, "Cannot Rebase", it) })
         }

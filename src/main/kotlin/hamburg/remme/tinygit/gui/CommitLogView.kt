@@ -30,8 +30,7 @@ import javafx.scene.text.Text
 
 class CommitLogView : Tab() {
 
-    private val logService = TinyGit.commitLogService
-    private val branchService = TinyGit.branchService
+    private val service = TinyGit.commitLogService
     private val window get() = content.scene.window
 
     init {
@@ -39,20 +38,20 @@ class CommitLogView : Tab() {
         graphic = Icons.list()
         isClosable = false
 
-        val localCommits = GraphView(logService.commits, branchService.head, branchService.branches)
-        localCommits.items.addListener(ListChangeListener { localCommits.selectionModel.selectedItem ?: localCommits.selectionModel.selectFirst() })
-        localCommits.selectionModel.selectedItemProperty().addListener { _, _, it -> logService.activeCommit.set(it) }
-        localCommits.setOnScroll {
+        val graph = GraphView()
+        graph.items.addListener(ListChangeListener { graph.selectionModel.selectedItem ?: graph.selectionModel.selectFirst() })
+        graph.selectionModel.selectedItemProperty().addListener { _, _, it -> service.activeCommit.set(it) }
+        graph.setOnScroll {
             if (it.deltaY < 0) {
-                val index = localCommits.items.size - 1
-                logService.logMore()
-                localCommits.scrollTo(index)
+                val index = graph.items.size - 1
+                service.logMore()
+                graph.scrollTo(index)
             }
         }
-        localCommits.setOnKeyPressed {
-            if (it.code == KeyCode.DOWN && localCommits.selectionModel.selectedItem == localCommits.items.last()) {
-                logService.logMore()
-                localCommits.scrollTo(localCommits.selectionModel.selectedItem)
+        graph.setOnKeyPressed {
+            if (it.code == KeyCode.DOWN && graph.selectionModel.selectedItem == graph.items.last()) {
+                service.logMore()
+                graph.scrollTo(graph.selectionModel.selectedItem)
             }
         }
 
@@ -63,11 +62,11 @@ class CommitLogView : Tab() {
                 addSpacer()
                 +comboBox<CommitLogService.CommitType> {
                     items.addAll(CommitLogService.CommitType.values())
-                    valueProperty().bindBidirectional(logService.commitType)
+                    valueProperty().bindBidirectional(service.commitType)
                 }
                 +comboBox<CommitLogService.Scope> {
                     items.addAll(CommitLogService.Scope.values())
-                    valueProperty().bindBidirectional(logService.scope)
+                    valueProperty().bindBidirectional(service.scope)
                 }
             }
             +stackPane {
@@ -75,19 +74,19 @@ class CommitLogView : Tab() {
                 +splitPane {
                     addClass("log-view")
                     vgrow(Priority.ALWAYS)
-                    +localCommits
+                    +graph
                     +CommitDetailsView()
                 }
                 +stackPane {
                     addClass("overlay")
-                    visibleWhen(Bindings.isEmpty(localCommits.items))
+                    visibleWhen(Bindings.isEmpty(graph.items))
                     +Text("There are no commits.")
                 }
             }
         }
 
-        logService.logExecutor = indicator
-        logService.logErrorHandler = { errorAlert(window, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }
+        service.logExecutor = indicator
+        service.logErrorHandler = { errorAlert(window, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }
     }
 
     private class FetchIndicator : HBoxBuilder(), TaskExecutor {

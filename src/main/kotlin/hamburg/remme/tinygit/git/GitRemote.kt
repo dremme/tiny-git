@@ -41,20 +41,11 @@ fun gitRemoveRemote(repository: Repository) {
 }
 
 fun gitPush(repository: Repository, force: Boolean) {
-    val response = git(repository, *if (force) pushForce else push).trim()
-    if (response.contains("$fatalSeparator.*no upstream branch".toRegex(setOf(IC, G)))) gitPush(repository, response.parseBranchName(), force)
-    else if (response.contains("$errorSeparator.*tip of your current branch is behind".toRegex(setOf(IC, G)))) throw BranchBehindException()
-    else if (response.contains("$fatalSeparator.*timed out".toRegex(setOf(IC, G)))) throw TimeoutException()
-}
-
-fun gitPush(repository: Repository, branch: String, force: Boolean) {
-    val response = git(repository, *if (force) pushForce else push, *upstream, branch).trim()
+    var response = git(repository, *if (force) pushForce else push).trim()
+    if (response.contains("$fatalSeparator.*no upstream branch".toRegex(setOf(IC, G)))) {
+        val name = "${fatalSeparator}The current branch (.+) has no upstream branch\\..*".toRegex(setOf(IC, G)).matchEntire(response)!!.groupValues[1]
+        response = git(repository, *if (force) pushForce else push, *upstream, name).trim()
+    }
     if (response.contains("$errorSeparator.*tip of your current branch is behind".toRegex(setOf(IC, G)))) throw BranchBehindException()
     else if (response.contains("$fatalSeparator.*timed out".toRegex(setOf(IC, G)))) throw TimeoutException()
-}
-
-private fun String.parseBranchName(): String {
-    return "${fatalSeparator}The current branch (.+) has no upstream branch\\..*"
-            .toRegex(setOf(IC, G))
-            .matchEntire(this)!!.groupValues[1]
 }

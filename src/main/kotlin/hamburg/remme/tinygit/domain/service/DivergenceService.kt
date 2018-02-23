@@ -33,18 +33,19 @@ class DivergenceService : Refreshable {
 
     private fun update(repository: Repository) {
         task?.cancel()
-        task = object : Task<Divergence>() {
-            private var value1: Int = 0
+        task = object : Task<Unit>() {
+            private lateinit var divergence: Divergence
+            private var divExclusive: Int = 0
 
-            override fun call(): Divergence {
-                value1 = gitDivergenceExclusive(repository)
-                return gitDivergence(repository)
+            override fun call() {
+                divExclusive = gitDivergenceExclusive(repository)
+                divergence = gitDivergence(repository)
             }
 
             override fun succeeded() {
-                aheadDefault.set(value1)
-                ahead.set(value.ahead)
-                behind.set(value.behind)
+                aheadDefault.set(divExclusive)
+                ahead.set(divergence.ahead)
+                behind.set(divergence.behind)
             }
         }.also { TinyGit.execute(it) }
     }

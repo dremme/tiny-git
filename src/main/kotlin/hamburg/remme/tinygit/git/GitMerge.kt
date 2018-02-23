@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.git
 
 import hamburg.remme.tinygit.asPath
+import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.exists
 
@@ -12,9 +13,10 @@ fun gitIsMerging(repository: Repository): Boolean {
     return repository.path.asPath().resolve(".git").resolve("MERGE_HEAD").exists()
 }
 
-fun gitMerge(repository: Repository, branch: String) {
-    val response = git(repository, *merge, branch).trim()
-    if (response.lines().any { it.startsWith("CONFLICT") }) throw MergeException()
+fun gitMerge(repository: Repository, branch: Branch) {
+    val response = git(repository, *merge, branch.name).trim()
+    if (response.lines().any { it.startsWith(errorSeparator) }) throw MergeException()
+    else if (response.lines().any { it.startsWith("CONFLICT") }) throw MergeConflictException()
 }
 
 fun gitMergeContinue(repository: Repository) {

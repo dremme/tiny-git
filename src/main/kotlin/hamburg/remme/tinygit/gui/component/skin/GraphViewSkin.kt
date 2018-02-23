@@ -2,26 +2,20 @@ package hamburg.remme.tinygit.gui.component.skin
 
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.component.GraphView
-import javafx.beans.property.ReadOnlyDoubleWrapper
 import javafx.scene.Group
 import javafx.scene.shape.Circle
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
 
-class GraphViewSkin(control: GraphView) : GraphViewSkinBase(control) {
+class GraphViewSkin(private val control: GraphView) : GraphViewSkinBase(control) {
 
     private val graph = Group()
-    private val graphWidth = ReadOnlyDoubleWrapper(32.0)
 
     init {
         graph.isManaged = false
         children += graph
     }
-
-    override fun graphWidthProperty() = graphWidth.readOnlyProperty!!
-
-    override fun getGraphWidth() = graphWidthProperty().get()
 
     // TODO: inefficient and buggy; needs to be fully implemented
     override fun layoutGraphChildren() {
@@ -37,7 +31,7 @@ class GraphViewSkin(control: GraphView) : GraphViewSkinBase(control) {
                         }
                         graph.children += Circle(16.0, it.layoutY + it.height / 2, 6.0).addClass("commit-node")
                     }
-            graphWidth.set(32.0)
+            control.graphWidth = 32.0
         }
     }
 

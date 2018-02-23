@@ -27,7 +27,9 @@ class DayOfYearAxis : Axis<LocalDate>() {
     override fun getRange() = firstDay to lastDay
 
     override fun setRange(range: Any, animate: Boolean) {
-        @Suppress("UNCHECKED_CAST") (range as Pair<LocalDate, LocalDate>).let {
+        @Suppress("UNCHECKED_CAST")
+        range as Pair<LocalDate, LocalDate>
+        range.let {
             firstDay = it.first
             lastDay = it.second
         }

@@ -70,7 +70,7 @@ class Settings {
                         var tabSelection: Int = 0,
                         var usedProxies: List<String> = emptyList())
 
-    class TreeItem(var value: String = "",
+    class TreeItem(var text: String = "",
                    var expanded: Boolean = false)
 
     class WindowSettings(var x: Double = 0.0,

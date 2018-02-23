@@ -8,9 +8,9 @@ import javafx.scene.control.ComboBox
 import javafx.scene.control.Label
 import javafx.stage.Window
 
-class ChoiceDialog(ok: String, window: Window) : Dialog<String>(window, "Select") {
+class ChoiceDialog<T>(ok: String, window: Window) : Dialog<T>(window, "Select") {
 
-    var items: List<String>
+    var items: List<T>
         get() = throw RuntimeException("Write-only property.")
         set(value) {
             input.items.setAll(value)
@@ -22,7 +22,7 @@ class ChoiceDialog(ok: String, window: Window) : Dialog<String>(window, "Select"
             label.text = value
         }
     private val label = Label().apply { managedWhen(textProperty().isNotEmpty) }
-    private val input = ComboBox<String>()
+    private val input = ComboBox<T>()
 
     init {
         Platform.runLater { input.requestFocus() }
