@@ -22,13 +22,19 @@ class RepositoryService(private val service: CredentialService) {
     }
     val remote = SimpleStringProperty()
     val hasRemote = remote.isNotEmpty!!
+    val usedNames = observableList<String>()
+    val usedEmails = observableList<String>()
     val usedProxies = observableList<String>()
 
     init {
         TinyGit.settings.setRepositories { allRepositories }
+        TinyGit.settings.setUsedNames { usedNames }
+        TinyGit.settings.setUsedEmails { usedEmails }
         TinyGit.settings.setUsedProxies { usedProxies }
         TinyGit.settings.load {
             allRepositories.setAll(it.repositories)
+            usedNames.setAll(it.usedNames)
+            usedEmails.setAll(it.usedEmails)
             usedProxies.setAll(it.usedProxies)
         }
     }
@@ -72,6 +78,14 @@ class RepositoryService(private val service: CredentialService) {
 
             override fun failed() = exception.printStackTrace()
         })
+    }
+
+    fun addUsedName(name: String) {
+        if (!usedNames.contains(name)) usedNames += name
+    }
+
+    fun addUsedEmail(email: String) {
+        if (!usedEmails.contains(email)) usedEmails += email
     }
 
     fun addUsedProxy(proxy: String) {

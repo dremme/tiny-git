@@ -7,14 +7,11 @@ import javafx.scene.control.ComboBox
 import javafx.scene.control.PasswordField
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
-import javafx.scene.control.TextFormatter
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
-import javafx.util.StringConverter
-import javafx.util.converter.IntegerStringConverter
 
-inline fun textField(block: TextFieldBuilder.() -> Unit): TextField {
-    val textField = TextFieldBuilder()
+inline fun textField(block: TextField.() -> Unit): TextField {
+    val textField = TextField()
     block.invoke(textField)
     return textField
 }
@@ -62,19 +59,4 @@ inline fun autocomplete(items: ObservableList<String>, block: ComboBox<String>.(
     comboBox.focusedProperty().addListener { _, _, it -> if (it && comboBox.items.isNotEmpty()) comboBox.show() }
     block.invoke(comboBox)
     return comboBox
-}
-
-class TextFieldBuilder : TextField() {
-
-    fun intFormatter(value: Int) {
-        textFormatter = TextFormatter<Int>(IntegerStringConverter(), value)
-    }
-
-    fun emailFormatter(value: String = "") {
-        textFormatter = TextFormatter<String>(object : StringConverter<String>() {
-            override fun toString(`object`: String?) = `object`.toString()
-            override fun fromString(string: String?) = string?.takeIf { it.matches(".+@.+\\..+".toRegex()) } ?: ""
-        }, value)
-    }
-
 }

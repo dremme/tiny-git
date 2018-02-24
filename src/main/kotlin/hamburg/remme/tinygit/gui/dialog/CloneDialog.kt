@@ -39,16 +39,15 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             maxWidth = Double.MAX_VALUE
             setOnAction { directoryChooser(dialogWindow, "Choose a Directory") { location.text = it.toString() } }
         }
-        val authorName = textField {
+        val userName = autocomplete(service.usedNames) {
             columnSpan(2)
-            prefWidth = 300.0
+            fillWidth()
             promptText = "Sherlock Holmes"
         }
-        val authorEmail = textField {
+        val userEmail = autocomplete(service.usedEmails) {
             columnSpan(2)
-            prefWidth = 300.0
+            fillWidth()
             promptText = "sherlock.holmes@baker-street.co.uk"
-            emailFormatter()
         }
         val proxy = autocomplete(service.usedProxies) {
             columnSpan(2)
@@ -60,8 +59,8 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             addClass("settings-view")
             +listOf(Label("Remote:"), url,
                     Label("Location:"), location, locationSet,
-                    Label("Author Name:"), authorName,
-                    Label("Author Email:"), authorEmail,
+                    Label("User Name:"), userName,
+                    Label("User Email:"), userEmail,
                     Label("Proxy:"), proxy)
         }
 
@@ -70,14 +69,22 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
 
         okAction = {
             val repository = Repository(location.text)
-            val name = authorName.text
-            val email = authorEmail.text
+            val name = userName.value ?: ""
+            val email = userEmail.value ?: ""
             val hostPort = proxy.value ?: ""
             service.clone(repository, url.text, hostPort,
                     {
-                        if (name.isNotBlank()) gitSetUserName(repository, name)
-                        if (email.isNotBlank()) gitSetUserEmail(repository, email)
-                        if (hostPort.isNotBlank()) service.addUsedProxy(hostPort)
+                        if (name.isNotBlank()) {
+                            gitSetUserName(repository, name)
+                            service.addUsedName(name)
+                        }
+                        if (email.isNotBlank()) {
+                            gitSetUserEmail(repository, email)
+                            service.addUsedEmail(email)
+                        }
+                        if (hostPort.isNotBlank()) {
+                            service.addUsedProxy(hostPort)
+                        }
                     },
                     { errorAlert(window, "Cannot Clone Repository", it) })
         }
