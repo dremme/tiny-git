@@ -76,4 +76,6 @@ class State(repositoryService: RepositoryService,
     val canUnstageAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.staged))!!
     val canUnstageSelected = isIdle.and(Bindings.size(workingCopyService.selectedStaged).greater0())!!
 
+    val canCmd = isIdle
+
 }

@@ -729,3 +729,9 @@
 .label.status-untracked { -fx-text-fill: -git-status-untracked;}
 
 .status-untracked .icon { -fx-fill: -git-status-untracked;}
+
+.git {
+    -fx-spacing: 2px;
+    -fx-alignment: center;
+    -fx-font: normal 13px "Liberation Mono", monospace;
+}

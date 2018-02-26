@@ -3,8 +3,6 @@ package hamburg.remme.tinygit.domain.service
 import hamburg.remme.tinygit.htmlEncodeAll
 
 // TODO: implement word diff
-// TODO: re-enable line numbers
-// TODO: num widths depending on the actual number
 class DiffRenderer {
 
     fun render(rawDiff: String): String {
@@ -90,7 +88,10 @@ class DiffRenderer {
             return this
         }
 
-        override fun toString() = builder.toString()
+        override fun toString(): String {
+            if (builder.toString().isBlank()) parseInfo("@@ No changes or binary file @@")
+            return builder.toString()
+        }
 
         private fun parseInfo(line: String) {
             //language=HTML

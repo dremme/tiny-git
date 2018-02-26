@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.gui
 import com.sun.javafx.PlatformUtil
 import de.codecentric.centerdevice.MenuToolkit
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.git.git
 import hamburg.remme.tinygit.git.gitLogExclusive
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionCollection
@@ -33,10 +34,12 @@ import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.AboutDialog
 import hamburg.remme.tinygit.gui.dialog.CloneDialog
+import hamburg.remme.tinygit.gui.dialog.CmdDialog
+import hamburg.remme.tinygit.gui.dialog.CmdResultDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import javafx.application.Platform
-import javafx.beans.property.SimpleBooleanProperty
+import javafx.concurrent.Task
 import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
@@ -127,8 +130,8 @@ class GitView : VBoxBuilder() {
                 handler = { TinyGit.showDocument("https://github.com/dremme/tiny-git") })
         val about = Action("About", { Icons.questionCircle() },
                 handler = { AboutDialog(window).show() })
-        val cmd = Action("Git Command", { Icons.terminal() }, disable = SimpleBooleanProperty(true),
-                handler = { /* TODO */ })
+        val cmd = Action("Git Command", { Icons.terminal() }, disable = state.canCmd.not(),
+                handler = { gitCommand() })
 
         if (PlatformUtil.isMac()) {
             val toolkit = MenuToolkit.toolkit()
@@ -164,7 +167,8 @@ class GitView : VBoxBuilder() {
             +ActionCollection("Actions",
                     ActionGroup(commit),
                     *workingCopy.actions,
-                    ActionGroup(stash, stashPop))
+                    ActionGroup(stash, stashPop),
+                    ActionGroup(cmd))
             +ActionCollection("?", ActionGroup(github, about))
         }
         +toolBar {
@@ -313,6 +317,21 @@ class GitView : VBoxBuilder() {
         textAreaDialog(window, "Auto Squash Branch", "Squash", Icons.gavel(), message,
                 "This will automatically squash all $count commits of the current branch.\n\nNew commit message:") {
             branchService.autoSquash(baseId, it)
+        }
+    }
+
+    private fun gitCommand() {
+        CmdDialog(window).showAndWait()?.let {
+            TinyGit.execute("git ${it.joinToString(" ")}...", object : Task<String>() {
+                override fun call() = git(*it)
+
+                override fun succeeded() {
+                    TinyGit.fireEvent()
+                    if (value.isNotBlank()) CmdResultDialog(value, window).show()
+                }
+
+                override fun failed() = exception.printStackTrace()
+            })
         }
     }
 
