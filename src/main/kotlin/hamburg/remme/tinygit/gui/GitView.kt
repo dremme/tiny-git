@@ -220,8 +220,8 @@ class GitView : VBoxBuilder() {
             }
         }
 
-        TinyGit.settings.setTabSelection { tabs.selectionModel.selectedIndex }
-        TinyGit.settings.load { tabs.selectionModel.select(it.tabSelection) }
+        TinyGit.settings.addOnSave { it["tabSelection"] = tabs.selectionModel.selectedIndex }
+        TinyGit.settings.load { tabs.selectionModel.select(it.getInt("tabSelection") ?: 0) }
     }
 
     private fun newRepo() {

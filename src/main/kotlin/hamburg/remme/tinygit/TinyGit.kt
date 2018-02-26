@@ -140,14 +140,25 @@ class TinyGit : Application() {
         if (PlatformUtil.isWindows() && gitGetCredentialHelper().isBlank()) gitSetWincred()
         if (PlatformUtil.isMac() && gitGetCredentialHelper().isBlank()) gitSetKeychain()
 
-        settings.setWindow { Settings.WindowSettings(stage.x, stage.y, stage.width, stage.height, stage.isMaximized, stage.isFullScreen) }
+        settings.addOnSave {
+            it["window"] = json {
+                +("x" to stage.x)
+                +("y" to stage.y)
+                +("width" to stage.width)
+                +("height" to stage.height)
+                +("maximized" to stage.isMaximized)
+                +("fullscreen" to stage.isFullScreen)
+            }
+        }
         settings.load {
-            stage.x = it.window.x
-            stage.y = it.window.y
-            stage.width = it.window.width.takeIf { it > 1.0 } ?: 1280.0
-            stage.height = it.window.height.takeIf { it > 1.0 } ?: 800.0
-            stage.isMaximized = it.window.maximized
-            stage.isFullScreen = it.window.fullscreen
+            it.getObject("window")?.let {
+                stage.x = it.getDouble("x")!!
+                stage.y = it.getDouble("y")!!
+                stage.width = it.getDouble("width")!!.takeIf { it > 1.0 } ?: 1280.0
+                stage.height = it.getDouble("height")!!.takeIf { it > 1.0 } ?: 800.0
+                stage.isMaximized = it.getBoolean("maximized")!!
+                stage.isFullScreen = it.getBoolean("fullscreen")!!
+            }
         }
 
         // TODO: move this?

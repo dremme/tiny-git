@@ -8,6 +8,7 @@ import hamburg.remme.tinygit.git.gitClone
 import hamburg.remme.tinygit.git.gitGc
 import hamburg.remme.tinygit.git.gitGetUrl
 import hamburg.remme.tinygit.git.gitInit
+import hamburg.remme.tinygit.json
 import hamburg.remme.tinygit.observableList
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -27,15 +28,17 @@ class RepositoryService(private val service: CredentialService) {
     val usedProxies = observableList<String>()
 
     init {
-        TinyGit.settings.setRepositories { allRepositories }
-        TinyGit.settings.setUsedNames { usedNames }
-        TinyGit.settings.setUsedEmails { usedEmails }
-        TinyGit.settings.setUsedProxies { usedProxies }
+        TinyGit.settings.addOnSave {
+            it["repositories"] = allRepositories.map { json { +("path" to it.path) } }
+            it["usedNames"] = usedNames
+            it["usedEmails"] = usedEmails
+            it["usedProxies"] = usedProxies
+        }
         TinyGit.settings.load {
-            allRepositories.setAll(it.repositories)
-            usedNames.setAll(it.usedNames)
-            usedEmails.setAll(it.usedEmails)
-            usedProxies.setAll(it.usedProxies)
+            it.getObjectList("repositories")?.map { Repository(it.getString("path")!!) }?.let { allRepositories.setAll(it) }
+            it.getStringList("usedNames")?.let { usedNames.setAll(it) }
+            it.getStringList("usedEmails")?.let { usedEmails.setAll(it) }
+            it.getStringList("usedProxies")?.let { usedProxies.setAll(it) }
         }
     }
 

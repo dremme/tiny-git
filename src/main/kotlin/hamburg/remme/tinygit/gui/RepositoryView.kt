@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit.gui
 
-import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.domain.Branch
@@ -23,6 +22,7 @@ import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
+import hamburg.remme.tinygit.json
 import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
@@ -127,11 +127,22 @@ class RepositoryView : VBoxBuilder() {
         tagService.tags.addListener(ListChangeListener { tags.children.updateEntries(it.list) })
         stashService.stashEntries.addListener(ListChangeListener { stash.children.updateEntries(it.list) })
 
-        TinyGit.settings.setRepositorySelection { repository.value }
-        TinyGit.settings.setTree { tree.root.children.map { Settings.TreeItem(tree.root.children.indexOf(it), it.isExpanded) } }
+        TinyGit.settings.addOnSave {
+            it["repositorySelection"] = json { +("path" to repository.value.path) }
+            it["tree"] = tree.root.children.map {
+                json {
+                    +("index" to tree.root.children.indexOf(it))
+                    +("expanded" to it.isExpanded)
+                }
+            }
+        }
         TinyGit.settings.load { settings ->
-            settings.tree.filter { it.expanded }.forEach { tree.root.children[it.index].isExpanded = true }
-            settings.repositorySelection?.let { repository.selectionModel.select(it) } ?: repository.selectionModel.selectFirst()
+            settings.getObject("repositorySelection")
+                    ?.let { repository.selectionModel.select(Repository(it.getString("path")!!)) }
+                    ?: repository.selectionModel.selectFirst()
+            settings.getObjectList("tree")
+                    ?.filter { it.getBoolean("expanded")!! }
+                    ?.forEach { tree.root.children[it.getInt("index")!!].isExpanded = true }
         }
     }
 
