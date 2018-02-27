@@ -42,6 +42,7 @@ class CommitLogView : Tab() {
         graph.items.addListener(ListChangeListener { graph.selectionModel.selectedItem ?: graph.selectionModel.selectFirst() })
         graph.selectionModel.selectedItemProperty().addListener { _, _, it -> service.activeCommit.set(it) }
         graph.setOnScroll {
+            // TODO: buggy
             if (it.deltaY < 0) {
                 val index = graph.items.size - 1
                 service.logMore()

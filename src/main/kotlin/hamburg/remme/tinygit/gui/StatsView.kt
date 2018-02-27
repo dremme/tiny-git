@@ -103,12 +103,12 @@ class StatsView : Tab() {
 
         content = vbox {
             +toolBar {
+                addSpacer()
                 +button {
                     graphic = Icons.refresh()
                     tooltip = Tooltip("Refresh Stats")
                     setOnAction { statsService.update(repoService.activeRepository.get()!!) }
                 }
-                addSpacer()
                 +comboBox<CalendarChart.Period> {
                     isDisable = true // TODO: implement changing periods
                     items.addAll(CalendarChart.Period.values())
