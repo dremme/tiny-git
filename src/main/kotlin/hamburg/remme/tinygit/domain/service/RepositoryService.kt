@@ -35,7 +35,7 @@ class RepositoryService(private val service: CredentialService) {
             it["usedProxies"] = usedProxies
         }
         TinyGit.settings.load {
-            it.getObjectList("repositories")?.map { Repository(it.getString("path")!!) }?.let { allRepositories.setAll(it) }
+            it.getList("repositories")?.map { Repository(it.getString("path")!!) }?.let { allRepositories.setAll(it) }
             it.getStringList("usedNames")?.let { usedNames.setAll(it) }
             it.getStringList("usedEmails")?.let { usedEmails.setAll(it) }
             it.getStringList("usedProxies")?.let { usedProxies.setAll(it) }

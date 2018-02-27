@@ -137,10 +137,10 @@ class RepositoryView : VBoxBuilder() {
             }
         }
         TinyGit.settings.load { settings ->
-            settings.getObject("repositorySelection")
+            settings["repositorySelection"]
                     ?.let { repository.selectionModel.select(Repository(it.getString("path")!!)) }
                     ?: repository.selectionModel.selectFirst()
-            settings.getObjectList("tree")
+            settings.getList("tree")
                     ?.filter { it.getBoolean("expanded")!! }
                     ?.forEach { tree.root.children[it.getInt("index")!!].isExpanded = true }
         }

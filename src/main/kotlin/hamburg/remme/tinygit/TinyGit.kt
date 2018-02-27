@@ -151,7 +151,7 @@ class TinyGit : Application() {
             }
         }
         settings.load {
-            it.getObject("window")?.let {
+            it["window"]?.let {
                 stage.x = it.getDouble("x")!!
                 stage.y = it.getDouble("y")!!
                 stage.width = it.getDouble("width")!!.takeIf { it > 1.0 } ?: 1280.0
