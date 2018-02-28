@@ -321,9 +321,10 @@ class GitView : VBoxBuilder() {
     }
 
     private fun gitCommand() {
-        CmdDialog(window).showAndWait()?.let {
+        val repository = repoService.activeRepository.get()!!
+        CmdDialog(repository, window).showAndWait()?.let {
             TinyGit.execute("git ${it.joinToString(" ")}...", object : Task<String>() {
-                override fun call() = git(*it)
+                override fun call() = git(repository, *it)
 
                 override fun succeeded() {
                     TinyGit.fireEvent()
