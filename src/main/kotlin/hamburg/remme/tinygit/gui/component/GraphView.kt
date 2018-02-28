@@ -9,6 +9,7 @@ import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.component.skin.GraphViewSkin
 import hamburg.remme.tinygit.shortDateTimeFormat
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ListChangeListener
 import javafx.geometry.Insets
@@ -25,6 +26,9 @@ class GraphView : ListView<Commit>(TinyGit.commitLogService.commits) {
     var graphWidth: Double
         get() = graphPadding.get().left
         set(value) = graphPadding.set(Insets(0.0, 0.0, 0.0, value))
+    val graphVisible = object : SimpleBooleanProperty(true) {
+        override fun invalidated() = refresh()
+    }
     private val service = TinyGit.branchService
     private val graphPadding = SimpleObjectProperty<Insets>(Insets.EMPTY)
 
@@ -76,6 +80,7 @@ class GraphView : ListView<Commit>(TinyGit.commitLogService.commits) {
             }
         }
 
+        // TODO: Missing branch colors
         private fun List<Branch>.toBadges(): List<Node> {
             return map {
                 label {

@@ -5,56 +5,80 @@ import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.component.GraphView
 import javafx.scene.Group
 import javafx.scene.shape.Circle
+import javafx.scene.shape.CubicCurveTo
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
-import javafx.scene.shape.QuadCurveTo
 
 class GraphViewSkin(private val control: GraphView) : GraphViewSkinBase(control) {
 
-    private val paths = Group()
+    private val SPACING = 24.0
+    private val RADIUS = 6.0
+    private val paths: List<Path>
+    private val circleGroup = Group()
 
     init {
-        paths.isManaged = false
-        children += paths
+        val pathGroup = Group()
+        pathGroup.isManaged = false
+        circleGroup.isManaged = false
+        children.addAll(pathGroup, circleGroup)
+        paths = (0..7).map { Path().addClass("commit-path", "path-color$it") }
+        paths.reversed().forEach { pathGroup.children += it }
     }
 
-    // TODO: inefficient and buggy; needs to be fully implemented
+    // TODO: Inefficient and buggy; needs to be fully implemented
     override fun layoutGraphChildren() {
-//        val graph = Graph.of(control.items)
-//        paths.children.clear()
-//        if (flow.firstVisibleCell != null && flow.lastVisibleCell != null) {
-//            val graphPath = Path().addClass("commit-path")
-//            paths.children += graphPath
-//            (flow.firstVisibleCell.index..flow.lastVisibleCell.index).mapNotNull { flow.getVisibleCell(it) }
-//                    .forEach { cell ->
-//                        val node = graph[cell.index]
-//
-//                        val nx = 16.0 + 16.0 * node.tag
-//                        val ny = cell.layoutY + cell.height / 2
-//
-//                        node.parents.forEach {
-//                            val parentIndex = graph.indexOf(it)
-//
-//                            val tx = 16.0 + 16.0 * it.tag
-//                            val ty = if (parentIndex > flow.lastVisibleCell.index) {
-//                                parentIndex * cell.height
-//                            } else {
-//                                val target = flow.getCell(parentIndex)
-//                                target.layoutY + target.height / 2
-//                            }
-//
-//                            graphPath.elements += MoveTo(nx, ny)
-//                            if (it.tag == node.tag) {
-//                                graphPath.elements += LineTo(tx, ty)
-//                            } else {
-//                                graphPath.elements += QuadCurveTo(nx, ty, tx, ty)
-//                            }
-//                        }
-//                        paths.children += Circle(nx, ny, 6.0).addClass("commit-node")
-//                    }
-//            control.graphWidth = 16.0 + 16.0 * graph.groupBy { it.tag }.count()
-//        }
+        paths.forEach { it.elements.clear() }
+        circleGroup.children.clear()
+
+        val firstCell = flow.firstVisibleCell
+        val lastCell = flow.lastVisibleCell
+
+        if (control.graphVisible.get() && firstCell != null && lastCell != null) {
+            val graph = Graph.of(control.items)
+
+            val h = (firstCell.index..lastCell.index).map { flow.getVisibleCell(it).height }.average()
+
+            graph.forEachIndexed { i, node ->
+                val path = paths[node.tag % 8]
+
+                val nx = SPACING + SPACING * node.tag
+                val ny = if (i < firstCell.index) i * h - firstCell.index * h else flow.getCell(i).let { it.layoutY + it.height / 2 }
+
+                node.parents.forEach { parent ->
+                    val pi = graph.indexOf(parent)
+
+                    if ((i >= firstCell.index || pi >= firstCell.index) && (i <= lastCell.index || pi <= lastCell.index)) {
+                        val px = SPACING + SPACING * parent.tag
+                        val py = if (pi > lastCell.index) pi * h - firstCell.index * h else flow.getCell(pi).let { it.layoutY + it.height / 2 }
+
+                        path.elements += MoveTo(nx, ny)
+                        when {
+                            node.tag == parent.tag -> {
+                                path.elements += LineTo(px, py)
+                            }
+                            node.parents.size == 1 -> {
+                                if (pi - i > 1) {
+                                    path.elements += LineTo(nx, py - h)
+                                    path.elements += CubicCurveTo(nx, py, px, py - h, px, py)
+                                } else {
+                                    path.elements += CubicCurveTo(nx, ny + h, px, py - h, px, py)
+                                }
+                            }
+                            else -> {
+                                path.elements += CubicCurveTo(nx, ny + h, px, ny, px, ny + h)
+                            }
+                        }
+                    }
+                }
+                if (i >= firstCell.index && i <= lastCell.index) {
+                    circleGroup.children += Circle(nx, ny, RADIUS).addClass("commit-node", "node-color${node.tag % 8}")
+                }
+            }
+            control.graphWidth = SPACING + SPACING * graph.groupBy { it.tag }.count()
+        } else {
+            control.graphWidth = 0.0
+        }
     }
 
 }

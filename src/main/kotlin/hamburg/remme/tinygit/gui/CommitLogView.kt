@@ -64,6 +64,7 @@ class CommitLogView : Tab() {
                 +comboBox<CommitLogService.CommitType> {
                     items.addAll(CommitLogService.CommitType.values())
                     valueProperty().bindBidirectional(service.commitType)
+                    valueProperty().addListener { _, _, it -> graph.graphVisible.set(!it.isNoMerges) }
                 }
                 +comboBox<CommitLogService.Scope> {
                     items.addAll(CommitLogService.Scope.values())

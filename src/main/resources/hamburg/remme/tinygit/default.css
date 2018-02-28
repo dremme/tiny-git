@@ -347,14 +347,41 @@
 .graph-view {
 }
 
-.graph-view .commit-node {
-    -fx-fill: -git-active-blue;
-}
+.graph-view .commit-node.node-color0 { -fx-fill: -git-active-blue;}
+
+.graph-view .commit-node.node-color1 { -fx-fill: CHART_COLOR_1; }
+
+.graph-view .commit-node.node-color2 { -fx-fill: CHART_COLOR_2; }
+
+.graph-view .commit-node.node-color3 { -fx-fill: CHART_COLOR_3; }
+
+.graph-view .commit-node.node-color4 { -fx-fill: CHART_COLOR_4; }
+
+.graph-view .commit-node.node-color5 { -fx-fill: CHART_COLOR_5; }
+
+.graph-view .commit-node.node-color6 { -fx-fill: CHART_COLOR_6; }
+
+.graph-view .commit-node.node-color7 { -fx-fill: CHART_COLOR_7; }
 
 .graph-view .commit-path {
-    -fx-stroke: -git-active-blue;
     -fx-stroke-width: 3px;
 }
+
+.graph-view .commit-path.path-color0 { -fx-stroke: -git-active-blue; }
+
+.graph-view .commit-path.path-color1 { -fx-stroke: CHART_COLOR_1; }
+
+.graph-view .commit-path.path-color2 { -fx-stroke: CHART_COLOR_2; }
+
+.graph-view .commit-path.path-color3 { -fx-stroke: CHART_COLOR_3; }
+
+.graph-view .commit-path.path-color4 { -fx-stroke: CHART_COLOR_4; }
+
+.graph-view .commit-path.path-color5 { -fx-stroke: CHART_COLOR_5; }
+
+.graph-view .commit-path.path-color6 { -fx-stroke: CHART_COLOR_6; }
+
+.graph-view .commit-path.path-color7 { -fx-stroke: CHART_COLOR_7; }
 
 .graph-view-cell {
     -fx-spacing: 2px;
