@@ -29,10 +29,10 @@ inline fun menu(block: MenuBuilder.() -> Unit): Menu {
     return menu
 }
 
-inline fun contextMenu(block: ContextMenuBuilder.() -> Unit): ContextMenu {
-    val menu = ContextMenuBuilder()
-    block.invoke(menu)
-    return menu
+inline fun menuItem(block: MenuItemBuilder.() -> Unit): MenuItem {
+    val item = MenuItemBuilder()
+    block.invoke(item)
+    return item
 }
 
 fun menuItem(action: Action): MenuItem {
@@ -45,10 +45,19 @@ fun menuItem(action: Action): MenuItem {
     }
 }
 
-private fun menuItem(block: MenuItemBuilder.() -> Unit): MenuItem {
-    val item = MenuItemBuilder()
-    block.invoke(item)
-    return item
+inline fun contextMenu(block: ContextMenuBuilder.() -> Unit): ContextMenu {
+    val menu = ContextMenuBuilder()
+    block.invoke(menu)
+    return menu
+}
+
+fun contextMenuItem(action: Action): MenuItem {
+    return menuItem {
+        text = action.text
+        graphic = action.icon?.invoke()
+        action.disable?.let { disableProperty().bind(it) }
+        setOnAction { action.handler.invoke() }
+    }
 }
 
 class MenuItemBuilder : MenuItem() {
@@ -92,7 +101,7 @@ class ContextMenuBuilder : ContextMenu() {
 
     operator fun ActionGroup.unaryPlus() {
         if (items.isNotEmpty()) +SeparatorMenuItem()
-        action.forEach { +menuItem(it) }
+        action.forEach { +contextMenuItem(it) }
     }
 
 }
