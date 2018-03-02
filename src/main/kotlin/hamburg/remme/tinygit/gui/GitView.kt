@@ -250,6 +250,7 @@ class GitView : VBoxBuilder() {
     private fun pull() {
         remoteService.pull(
                 { errorAlert(window, "Cannot Pull From Remote Branch", it) },
+                { errorAlert(window, "Cannot Complete Pull", "Pulling changes resulted in a conflict.") },
                 { errorAlert(window, "Connection Timed Out", "Please check the repository settings.\nCredentials or proxy settings may have changed.") })
     }
 

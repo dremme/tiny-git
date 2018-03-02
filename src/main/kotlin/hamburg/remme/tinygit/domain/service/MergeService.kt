@@ -2,7 +2,6 @@ package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
-import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.MergeConflictException
 import hamburg.remme.tinygit.git.MergeException
@@ -10,20 +9,12 @@ import hamburg.remme.tinygit.git.gitIsMerging
 import hamburg.remme.tinygit.git.gitMerge
 import hamburg.remme.tinygit.git.gitMergeAbort
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
 
-class MergeService(service: WorkingCopyService) : Refreshable {
+class MergeService : Refreshable {
 
     val isMerging = SimpleBooleanProperty(false)
     private lateinit var repository: Repository
-
-    init {
-        ListChangeListener<File> { if (isMerging.get() && service.staged.isEmpty() && service.pending.isEmpty()) isMerging.set(false) }.let {
-            service.staged.addListener(it)
-            service.pending.addListener(it)
-        }
-    }
 
     fun merge(branch: Branch, conflictHandler: () -> Unit, errorHandler: () -> Unit) {
         TinyGit.execute("Merging...", object : Task<Unit>() {

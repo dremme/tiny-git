@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.domain.service
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.BranchBehindException
+import hamburg.remme.tinygit.git.MergeConflictException
 import hamburg.remme.tinygit.git.PullException
 import hamburg.remme.tinygit.git.TimeoutException
 import hamburg.remme.tinygit.git.gitFetchPrune
@@ -43,7 +44,7 @@ class RemoteService(private val repositoryService: RepositoryService,
         })
     }
 
-    fun pull(errorHandler: (String) -> Unit, timeoutHandler: () -> Unit) {
+    fun pull(errorHandler: (String) -> Unit, conflictHandler: () -> Unit, timeoutHandler: () -> Unit) {
         credentialService.applyCredentials(repositoryService.remote.get())
         TinyGit.execute("Pulling commits...", object : Task<Unit>() {
             override fun call() = gitPull(repository)
@@ -52,6 +53,10 @@ class RemoteService(private val repositoryService: RepositoryService,
 
             override fun failed() {
                 when (exception) {
+                    is MergeConflictException -> {
+                        TinyGit.fireEvent()
+                        conflictHandler.invoke()
+                    }
                     is PullException -> errorHandler.invoke(exception.message!!)
                     is TimeoutException -> timeoutHandler.invoke()
                     else -> exception.printStackTrace()

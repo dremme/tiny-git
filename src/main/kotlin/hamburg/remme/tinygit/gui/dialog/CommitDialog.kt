@@ -13,10 +13,10 @@ import hamburg.remme.tinygit.gui.builder.textArea
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import javafx.application.Platform
-import javafx.beans.binding.Bindings
 import javafx.scene.layout.Priority
 import javafx.stage.Window
 
+// TODO: show something on empty commit / merge commit
 class CommitDialog(window: Window)
     : Dialog<Unit>(window, if (TinyGit.mergeService.isMerging.get()) "Merge Commit" else "New Commit", true) {
 
@@ -59,8 +59,7 @@ class CommitDialog(window: Window)
             if (!mergeService.isMerging.get()) +amend
         }
 
-        +DialogButton(DialogButton.ok("Commit"),
-                message.textProperty().isEmpty.or(Bindings.isEmpty(files.items)))
+        +DialogButton(DialogButton.ok("Commit"), message.textProperty().isEmpty)
         +DialogButton(DialogButton.CANCEL)
 
         focusAction = {

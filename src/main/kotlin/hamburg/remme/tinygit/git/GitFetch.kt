@@ -26,6 +26,7 @@ fun gitFetchPrune(repository: Repository) {
 fun gitPull(repository: Repository) {
     val response = git(repository, *pull).trim()
     if (response.lines().any { it.startsWith(errorSeparator) || it.startsWith(fatalSeparator) }) throw PullException(response.parseError())
+    else if (response.lines().any { it.startsWith("CONFLICT") }) throw MergeConflictException()
 }
 
 private fun String.parseError(): String {

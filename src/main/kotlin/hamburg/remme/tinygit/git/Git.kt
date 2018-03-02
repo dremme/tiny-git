@@ -8,6 +8,7 @@ import java.util.Scanner
 
 val IC = RegexOption.IGNORE_CASE
 val G = RegexOption.DOT_MATCHES_ALL
+const val emptyId = "4b825dc642cb6eb9a060e54bf8d69288fbee4904" // TODO: right place here?
 const val errorSeparator = "error: "
 const val fatalSeparator = "fatal: "
 val defaultBranches = arrayOf("master", "origin/master", "develop", "origin/develop", "trunk", "origin/trunk")
