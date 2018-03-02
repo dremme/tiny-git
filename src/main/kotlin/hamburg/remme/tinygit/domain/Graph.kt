@@ -1,18 +1,13 @@
 package hamburg.remme.tinygit.domain
 
-import java.util.concurrent.atomic.AtomicInteger
-
 class Graph : ArrayList<Graph.GraphNode>() {
 
     companion object {
         fun of(commits: List<Commit>): Graph {
-            // Construction
             val graph = Graph()
             commits.forEach { trace(it, graph) }
             graph.sortWith(compareBy { node -> commits.indexOfFirst { it.id == node.id }.takeIf { it >= 0 } ?: Int.MAX_VALUE })
-            // Tagging
-            val tag = AtomicInteger(0)
-            graph.forEach { tag(it, tag) }
+            graph.fold(0, { acc, it -> tag(it, acc) })
             return graph
         }
 
@@ -25,8 +20,17 @@ class Graph : ArrayList<Graph.GraphNode>() {
             }
         }
 
-        private fun tag(node: GraphNode, tag: AtomicInteger) {
-            node.tag = node.children.minBy { it.tag }?.tag ?: tag.getAndIncrement()
+        private fun tag(node: GraphNode, tag: Int): Int {
+            if (node.tag < 0) {
+                var newTag = tag
+                node.tag = newTag
+                node.parents.forEachIndexed { i, it ->
+                    if (i > 0) newTag++
+                    newTag = tag(it, newTag)
+                }
+                return newTag
+            }
+            return tag
         }
     }
 

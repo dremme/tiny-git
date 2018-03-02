@@ -1,17 +1,21 @@
-package hamburg.remme.tinygit.gui.component
+package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.domain.Graph
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.vbox
+import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.component.skin.GraphViewSkin
 import hamburg.remme.tinygit.shortDateTimeFormat
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.value.ObservableObjectValue
 import javafx.collections.ListChangeListener
+import javafx.collections.ObservableList
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -20,8 +24,8 @@ import javafx.scene.control.ListView
 import javafx.scene.layout.HBox
 import javafx.scene.text.Text
 
-// TODO: not sure about this inheriting listview directly
-class GraphView : ListView<Commit>(TinyGit.commitLogService.commits) {
+class GraphView(commits: ObservableList<Commit>,
+                val commitGraph: ObservableObjectValue<Graph>) : ListView<Commit>(commits) {
 
     var graphWidth: Double
         get() = graphPadding.get().left

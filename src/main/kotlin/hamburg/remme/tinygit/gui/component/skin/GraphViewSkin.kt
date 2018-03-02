@@ -1,8 +1,7 @@
 package hamburg.remme.tinygit.gui.component.skin
 
-import hamburg.remme.tinygit.domain.Graph
+import hamburg.remme.tinygit.gui.GraphView
 import hamburg.remme.tinygit.gui.builder.addClass
-import hamburg.remme.tinygit.gui.component.GraphView
 import javafx.scene.Group
 import javafx.scene.shape.Circle
 import javafx.scene.shape.CubicCurveTo
@@ -35,7 +34,7 @@ class GraphViewSkin(private val control: GraphView) : GraphViewSkinBase(control)
         val lastCell = flow.lastVisibleCell
 
         if (control.graphVisible.get() && firstCell != null && lastCell != null) {
-            val graph = Graph.of(control.items)
+            val graph = control.commitGraph.get()
 
             val h = (firstCell.index..lastCell.index).map { flow.getVisibleCell(it).height }.average()
 

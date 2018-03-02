@@ -16,7 +16,6 @@ import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
-import hamburg.remme.tinygit.gui.component.GraphView
 import hamburg.remme.tinygit.gui.component.Icons
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
@@ -38,7 +37,7 @@ class CommitLogView : Tab() {
         graphic = Icons.list()
         isClosable = false
 
-        val graph = GraphView()
+        val graph = GraphView(service.commits, service.commitGraph)
         graph.items.addListener(ListChangeListener { graph.selectionModel.selectedItem ?: graph.selectionModel.selectFirst() })
         graph.selectionModel.selectedItemProperty().addListener { _, _, it -> service.activeCommit.set(it) }
         graph.setOnScroll {
