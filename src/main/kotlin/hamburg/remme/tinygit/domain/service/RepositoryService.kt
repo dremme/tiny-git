@@ -4,10 +4,14 @@ import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.exists
+import hamburg.remme.tinygit.git.gitAddRemote
 import hamburg.remme.tinygit.git.gitClone
 import hamburg.remme.tinygit.git.gitGc
 import hamburg.remme.tinygit.git.gitGetUrl
 import hamburg.remme.tinygit.git.gitInit
+import hamburg.remme.tinygit.git.gitRemoveRemote
+import hamburg.remme.tinygit.git.gitSetPushUrl
+import hamburg.remme.tinygit.git.gitSetUrl
 import hamburg.remme.tinygit.json
 import hamburg.remme.tinygit.observableList
 import javafx.beans.property.SimpleObjectProperty
@@ -81,6 +85,21 @@ class RepositoryService(private val service: CredentialService) {
 
             override fun failed() = exception.printStackTrace()
         })
+    }
+
+    fun addOrSetRemote(url: String) {
+        if (hasRemote.get()) {
+            gitSetUrl(activeRepository.get()!!, url)
+            gitSetPushUrl(activeRepository.get()!!, url)
+        } else {
+            gitAddRemote(activeRepository.get()!!, url)
+        }
+        remote.set(url)
+    }
+
+    fun removeRemote() {
+        gitRemoveRemote(activeRepository.get()!!)
+        remote.set("")
     }
 
     fun addUsedName(name: String) {

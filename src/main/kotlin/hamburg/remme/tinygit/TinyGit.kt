@@ -183,9 +183,10 @@ class TinyGit : Application() {
 
     private fun updateTitle(): String {
         val repository = repositoryService.activeRepository.get()?.let {
+            val path = if (PlatformUtil.isMac()) it.path.stripHome() else it.path
             val rebase = if (rebaseService.isRebasing.get()) "REBASING ${rebaseService.rebaseNext.get()}/${rebaseService.rebaseLast.get()} " else ""
             val merge = if (mergeService.isMerging.get()) "MERGING " else ""
-            "${it.shortPath} [$it] $merge$rebase\u2012 "
+            "${it.shortPath} [$path] $merge$rebase\u2012 "
         }
         return "${repository ?: ""}$title"
     }

@@ -49,7 +49,8 @@ fun gitDivergence(repository: Repository): Divergence {
     val head = gitHead(repository)
     val response = git(repository, *revlistCount, "origin/$head..$head")
     if (response.startsWith(fatalSeparator)) {
-        return Divergence(gitDivergenceExclusive(repository), 0)
+        val ahead = if (defaultBranches.contains(head.name)) git(repository, *revlistCount, head.name).lines()[0].toInt() else gitDivergenceExclusive(repository)
+        return Divergence(ahead, 0)
     }
     val ahead = response.lines()[0].toInt()
     val behind = git(repository, *revlistCount, "$head..origin/$head").lines()[0].toInt()

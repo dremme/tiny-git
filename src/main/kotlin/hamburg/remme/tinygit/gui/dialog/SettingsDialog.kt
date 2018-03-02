@@ -1,14 +1,10 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.TinyGit
-import hamburg.remme.tinygit.git.gitAddRemote
 import hamburg.remme.tinygit.git.gitGetProxy
 import hamburg.remme.tinygit.git.gitGetUserEmail
 import hamburg.remme.tinygit.git.gitGetUserName
-import hamburg.remme.tinygit.git.gitRemoveRemote
 import hamburg.remme.tinygit.git.gitSetProxy
-import hamburg.remme.tinygit.git.gitSetPushUrl
-import hamburg.remme.tinygit.git.gitSetUrl
 import hamburg.remme.tinygit.git.gitSetUserEmail
 import hamburg.remme.tinygit.git.gitSetUserName
 import hamburg.remme.tinygit.git.gitUnsetProxy
@@ -74,16 +70,8 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings
         okAction = {
             val url = remote.text
             if (url != originalUrl) {
-                if (url.isNotBlank()) {
-                    if (service.hasRemote.get()) {
-                        gitSetUrl(repository, url)
-                        gitSetPushUrl(repository, url)
-                    } else {
-                        gitAddRemote(repository, url)
-                    }
-                } else {
-                    gitRemoveRemote(repository)
-                }
+                if (url.isNotBlank()) service.addOrSetRemote(url)
+                else service.removeRemote()
             }
 
             val name = userName.value

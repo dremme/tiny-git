@@ -5,13 +5,13 @@
 
     <groupId>hamburg.remme</groupId>
     <artifactId>tiny-git</artifactId>
-    <version>1.0.SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
     <name>TinyGit</name>
     <description>A very small, fast and portable Git client.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.2.21</kotlin.version>
+        <kotlin.version>1.2.30</kotlin.version>
         <snakeyaml.version>1.18</snakeyaml.version>
         <centerdevice-nsmenufx.version>2.1.5</centerdevice-nsmenufx.version>
     </properties>

@@ -6,7 +6,6 @@ import hamburg.remme.tinygit.domain.NumStat
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitDiffNumstat
 import hamburg.remme.tinygit.git.gitLog
-import hamburg.remme.tinygit.git.gitLsTree
 import hamburg.remme.tinygit.observableList
 import hamburg.remme.tinygit.takeHighest
 import javafx.animation.Interpolator
@@ -127,9 +126,10 @@ class StatsService {
         }.also { TinyGit.executeSlowly(it) }
     }
 
-    fun updateFiles(repository: Repository) {
+    fun updateFiles() {
         taskPool += object : Task<List<PieData>>() {
-            override fun call() = gitLsTree(repository)
+            override fun call() = numStat
+                    .map { it.path }
                     .groupingBy { it.substringAfterLast('.', it.substringAfterLast('/')) }
                     .eachCount()
                     .takeHighest(8)
@@ -205,7 +205,7 @@ class StatsService {
                 updateActivity()
                 updateCommits()
                 updateContributors()
-                updateFiles(repository)
+                updateFiles()
                 updateLines(repository)
             }
         }.also {

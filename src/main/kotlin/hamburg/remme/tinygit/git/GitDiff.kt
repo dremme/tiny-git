@@ -25,7 +25,7 @@ fun gitDiff(repository: Repository, file: File, commit: Commit, lines: Int): Str
 
 fun gitDiffNumstat(repository: Repository, from: Commit, to: Commit): List<NumStat> {
     val numStat = mutableListOf<NumStat>()
-    git(repository, *diffNumstat, from.id, to.id) { numStat += it.parseStat() }
+    git(repository, *diffNumstat, if (from != to) from.id else "", to.id) { numStat += it.parseStat() }
     return numStat
 }
 

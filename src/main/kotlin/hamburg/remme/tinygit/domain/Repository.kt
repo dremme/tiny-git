@@ -1,11 +1,11 @@
 package hamburg.remme.tinygit.domain
 
 import hamburg.remme.tinygit.normalize
-import hamburg.remme.tinygit.shorten
+import hamburg.remme.tinygit.stripParents
 
 class Repository(var path: String = "") {
 
-    val shortPath get() = path.shorten()
+    val shortPath get() = path.stripParents()
 
     fun resolve(file: File) = "${path.normalize()}/${file.path}"
 

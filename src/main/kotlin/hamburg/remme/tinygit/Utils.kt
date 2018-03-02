@@ -27,6 +27,8 @@ val scheduledPool = Executors.newScheduledThreadPool(1, daemonFactory)!!
 val cachedPool = Executors.newCachedThreadPool(daemonFactory)!!
 val singlePool = Executors.newFixedThreadPool(1, daemonFactory)!!
 
+val homeDir = System.getProperty("user.home")!!
+
 val weekOfMonthFormat = DateTimeFormatter.ofPattern("'Week' W 'of' MMM ''yy")!!
 val monthOfYearFormat = DateTimeFormatter.ofPattern("MMM ''yy")!!
 val shortDateFormat = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
@@ -82,7 +84,9 @@ fun Path.write(text: String) = Files.write(this, text.toByteArray())!!
 
 fun String.normalize() = replace('\\', '/')
 
-fun String.shorten() = normalize().split('/').last()
+fun String.stripParents() = normalize().split('/').last()
+
+fun String.stripHome() = "~${substringAfter(homeDir)}"
 
 fun String.htmlEncode() = replace("&", "&amp;")
         .replace("<", "&lt;")

@@ -31,6 +31,7 @@ class DivergenceService : Refreshable {
         behind.set(0)
     }
 
+    // TODO: prob incorrect when the HEAD is not connected to master at all
     private fun update(repository: Repository) {
         task?.cancel()
         task = object : Task<Unit>() {

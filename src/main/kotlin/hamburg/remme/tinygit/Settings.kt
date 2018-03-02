@@ -8,7 +8,7 @@ class Settings {
 
     private val yaml = Yaml(Representer().apply { propertyUtils.setSkipMissingProperties(true) },
             DumperOptions().apply { defaultFlowStyle = DumperOptions.FlowStyle.BLOCK })
-    private val settingsFile = "${System.getProperty("user.home")}/.tinygit".asPath()
+    private val settingsFile = "$homeDir/.tinygit".asPath()
     private val suppliers = mutableListOf<(Json) -> Unit>()
     private var settings: Json? = null
 
