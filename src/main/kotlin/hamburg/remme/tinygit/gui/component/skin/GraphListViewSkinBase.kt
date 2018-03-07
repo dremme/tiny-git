@@ -4,10 +4,10 @@ import com.sun.javafx.scene.control.skin.ListViewSkin
 import com.sun.javafx.scene.control.skin.VirtualFlow
 import com.sun.javafx.scene.control.skin.VirtualScrollBar
 import hamburg.remme.tinygit.domain.Commit
-import hamburg.remme.tinygit.gui.GraphView
+import hamburg.remme.tinygit.gui.component.GraphListView
 import javafx.application.Platform
 
-abstract class GraphViewSkinBase(control: GraphView) : ListViewSkin<Commit>(control) {
+abstract class GraphListViewSkinBase(control: GraphListView) : ListViewSkin<Commit>(control) {
 
     init {
         // Yuck

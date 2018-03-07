@@ -313,7 +313,7 @@ class GitView : VBoxBuilder() {
     private fun autoSquash() {
         val commits = gitLogExclusive(repoService.activeRepository.get()!!)
         val message = commits.joinToString("\n") { "# ${it.shortId}\n${it.fullMessage}" } // TODO: too many newlines
-        val baseId = commits.last().parents[0]
+        val baseId = commits.last().parents[0].id
         val count = commits.size
         textAreaDialog(window, "Auto Squash Branch", "Squash", Icons.gavel(), message,
                 "This will automatically squash all $count commits of the current branch.\n\nNew commit message:") {

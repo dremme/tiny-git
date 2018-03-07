@@ -1,36 +1,34 @@
 package hamburg.remme.tinygit
 
-class Json(backingMap: Map<String, *> = emptyMap<String, Any>()) : HashMap<String, Any>(backingMap) {
+class Json(private val backingMap: LinkedHashMap<String, Any> = LinkedHashMap()) {
 
     @Suppress("UNCHECKED_CAST")
-    override fun get(property: String) = (super.get(property) as? Map<String, *>)?.let { Json(it) }
+    operator fun get(property: String) = (backingMap[property] as? LinkedHashMap<String, Any>)?.let { Json(it) }
+
+    operator fun set(property: String, value: Any) = backingMap.put(property, value)
 
     @Suppress("UNCHECKED_CAST")
-    fun getList(property: String) = (super.get(property) as? List<*>)?.map { Json(it as Map<String, *>) }
+    fun getList(property: String) = (backingMap[property] as? List<*>)?.map { Json(it as LinkedHashMap<String, Any>) }
 
-    fun getString(property: String) = super.get(property) as? String
+    fun getString(property: String) = backingMap[property] as? String
 
-    fun getStringList(property: String) = (super.get(property) as? List<*>)?.map { it as String }
+    fun getStringList(property: String) = (backingMap[property] as? List<*>)?.map { it as String }
 
-    fun getBoolean(property: String) = super.get(property) as? Boolean
+    fun getBoolean(property: String) = backingMap[property] as? Boolean
 
-    fun getBooleanList(property: String) = (super.get(property) as? List<*>)?.map { it as Boolean }
+    fun getBooleanList(property: String) = (backingMap[property] as? List<*>)?.map { it as Boolean }
 
-    fun getInt(property: String) = super.get(property) as? Int
+    fun getInt(property: String) = backingMap[property] as? Int
 
-    fun getIntList(property: String) = (super.get(property) as? List<*>)?.map { it as Int }
+    fun getIntList(property: String) = (backingMap[property] as? List<*>)?.map { it as Int }
 
-    fun getDouble(property: String) = super.get(property) as? Double
+    fun getDouble(property: String) = backingMap[property] as? Double
 
-    fun getDoubleList(property: String) = (super.get(property) as? List<*>)?.map { it as Double }
+    fun getDoubleList(property: String) = (backingMap[property] as? List<*>)?.map { it as Double }
 
-    operator fun Pair<String, Any>.unaryPlus() {
-        put(first, second)
-    }
+    operator fun Pair<String, Any>.unaryPlus() = backingMap.put(first, second)
 
-    operator fun String.unaryMinus() {
-        remove(this)
-    }
+    operator fun String.unaryMinus() = backingMap.remove(this)
 
 }
 

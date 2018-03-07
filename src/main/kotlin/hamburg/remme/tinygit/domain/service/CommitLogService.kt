@@ -3,7 +3,6 @@ package hamburg.remme.tinygit.domain.service
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.domain.Commit
-import hamburg.remme.tinygit.domain.Graph
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.FetchException
 import hamburg.remme.tinygit.git.gitFetch
@@ -11,7 +10,6 @@ import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.git.gitUpToDate
 import hamburg.remme.tinygit.observableList
 import javafx.beans.property.SimpleObjectProperty
-import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
 
 class CommitLogService(private val repositoryService: RepositoryService,
@@ -19,7 +17,6 @@ class CommitLogService(private val repositoryService: RepositoryService,
 
     val commits = observableList<Commit>()
     val activeCommit = SimpleObjectProperty<Commit?>()
-    val commitGraph = SimpleObjectProperty<Graph>(Graph())
     val scope = object : SimpleObjectProperty<Scope>(Scope.ALL) {
         override fun invalidated() = log()
     }
@@ -33,10 +30,6 @@ class CommitLogService(private val repositoryService: RepositoryService,
     private var remoteTask: Task<*>? = null
     private val maxIncrement = 30
     private var max = 0
-
-    init {
-        commits.addListener(ListChangeListener { commitGraph.set(Graph.of(it.list)) })
-    }
 
     fun logMore() {
         val result = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, max, max + maxIncrement)
@@ -62,7 +55,6 @@ class CommitLogService(private val repositoryService: RepositoryService,
         remoteTask?.cancel()
         commits.clear()
         activeCommit.set(null)
-        commitGraph.set(Graph())
     }
 
     private fun update(repository: Repository) {

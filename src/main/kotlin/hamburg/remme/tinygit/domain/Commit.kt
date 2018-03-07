@@ -2,16 +2,16 @@ package hamburg.remme.tinygit.domain
 
 import java.time.LocalDateTime
 
-class Commit(val id: String,
-             val parents: List<String>,
-             val fullMessage: String,
-             val date: LocalDateTime,
-             val authorName: String,
-             val authorMail: String) : Comparable<Commit> {
+open class Commit(val id: String,
+                  val parents: List<CommitIsh>,
+                  val fullMessage: String,
+                  val date: LocalDateTime,
+                  val authorName: String,
+                  val authorMail: String) : Comparable<Commit> {
 
     val shortId: String = id.abbreviate()
-    val parentId = if (parents.isEmpty()) Head.EMPTY.id else parents[0]
-    val shortParents: List<String> = parents.map { it.abbreviate() }
+    val parentId = if (parents.isEmpty()) Head.EMPTY.id else parents[0].id
+    val shortParents: List<String> = parents.map { it.shortId }
     val shortMessage: String = fullMessage.lines()[0].substringBefore(". ")
     val author = "$authorName <$authorMail>"
 
