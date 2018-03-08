@@ -24,7 +24,7 @@ class Settings {
                         // TODO: needed for migration
                         if (it.startsWith("!!")) it.lines().drop(1).joinToString("\n") else it
                     }.let {
-                        Json(yaml.load(it) as LinkedHashMap<String, Any>)
+                        Json(yaml.load(it) as Map<String, *>)
                     }
         }
         settings?.let(block)
