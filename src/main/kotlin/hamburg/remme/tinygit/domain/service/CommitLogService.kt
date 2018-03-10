@@ -28,17 +28,18 @@ class CommitLogService(private val repositoryService: RepositoryService,
     private lateinit var repository: Repository
     private var quickTask: Task<*>? = null
     private var remoteTask: Task<*>? = null
-    private val maxIncrement = 30
+    private val maxIncrement = 250
     private var max = 0
 
-    fun logMore() {
-        val result = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, max, max + maxIncrement)
-                .filter { commits.none(it::equals) }
-        if (result.isNotEmpty()) {
-            max += maxIncrement
-            commits.addSorted(result)
-        }
-    }
+    // TODO: too buggy and needy right now.
+//    fun logMore() {
+//        val result = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, max, max + maxIncrement)
+//                .filter { commits.none(it::equals) }
+//        if (result.isNotEmpty()) {
+//            max += maxIncrement
+//            commits.addSorted(result)
+//        }
+//    }
 
     override fun onRefresh(repository: Repository) {
         update(repository)

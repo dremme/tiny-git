@@ -11,7 +11,7 @@ open class Commit(val id: String,
 
     val shortId: String = id.abbreviate()
     val parentId = if (parents.isEmpty()) Head.EMPTY.id else parents[0].id
-    val shortParents: List<String> = parents.map { it.shortId }
+    val shortParents: List<String> = parents.map { it.id.abbreviate() }
     val shortMessage: String = fullMessage.lines()[0].substringBefore(". ")
     val author = "$authorName <$authorMail>"
 
