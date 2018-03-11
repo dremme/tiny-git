@@ -40,13 +40,12 @@ class GraphListViewSkin(private val graphList: GraphListView) : GraphListViewSki
 
             val branchFlow = mutableListOf<BranchFlow>()
             graphList.items.forEachIndexed { i, it -> branchFlow.createFlow(it, i) }
-            branchFlow.forEach { println("${it.tag}: ${it.start} -> ${it.end}") }
             graphList.items.forEachIndexed { commitIndex, commit ->
                 val tag = branchFlow.getTag(commit)
 
                 val commitX = SPACING + SPACING * tag
                 val commitY = if (commitIndex < firstCell.index) {
-                    commitIndex * cellHeight - firstCell.index * cellHeight
+                    (commitIndex - firstCell.index) * cellHeight
                 } else {
                     flow.getCell(commitIndex).let { it.layoutY + it.height / 2 }
                 }
@@ -59,10 +58,11 @@ class GraphListViewSkin(private val graphList: GraphListView) : GraphListViewSki
                     val parentIndex = graphList.items.indexOfFirst { it.id == parent.id }.takeIf { it >= 0 } ?: Int.MAX_VALUE
                     val parentTag = branchFlow.getTag(parent)
 
-                    if (!(commitIndex <= firstCell.index && parentIndex <= firstCell.index || commitIndex >= lastCell.index && parentIndex >= lastCell.index)) {
+                    if (!(commitIndex <= firstCell.index && parentIndex <= firstCell.index)
+                            && !(commitIndex >= lastCell.index && parentIndex >= lastCell.index)) {
                         val parentX = SPACING + SPACING * parentTag
                         val parentY = if (parentIndex > lastCell.index) {
-                            parentIndex * cellHeight - firstCell.index * cellHeight
+                            (parentIndex - firstCell.index) * cellHeight
                         } else {
                             flow.getCell(parentIndex).let { it.layoutY + it.height / 2 }
                         }
