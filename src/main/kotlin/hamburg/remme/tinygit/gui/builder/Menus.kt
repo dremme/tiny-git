@@ -1,21 +1,13 @@
 package hamburg.remme.tinygit.gui.builder
 
 import com.sun.javafx.PlatformUtil
-import hamburg.remme.tinygit.asResource
-import javafx.application.Platform
 import javafx.scene.Node
-import javafx.scene.Scene
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuBar
 import javafx.scene.control.MenuItem
 import javafx.scene.control.SeparatorMenuItem
-import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCombination
-import javafx.scene.layout.StackPane
-import javafx.scene.paint.Color
-import javafx.stage.Stage
-import javafx.stage.StageStyle
 
 inline fun menuBar(block: MenuBarBuilder.() -> Unit): MenuBar {
     val menuBar = MenuBarBuilder()
@@ -66,15 +58,17 @@ class MenuItemBuilder : MenuItem() {
         get() = graphic
         set(icon) = when {
             icon == null -> graphic = null
-            PlatformUtil.isMac() -> Platform.runLater {
-                val offscreenScene = Scene(StackPane((icon)).addClass("platform-parent"))
-                offscreenScene.stylesheets += "platform-icons.css".asResource()
-                offscreenScene.fill = Color.TRANSPARENT
-                val offscreenStage = Stage()
-                offscreenStage.scene = offscreenScene
-                offscreenStage.initStyle(StageStyle.UNDECORATED)
-                graphic = ImageView(offscreenScene.snapshot(null))
-            }
+            PlatformUtil.isMac() -> graphic = null
+            // TODO: buggy; images are super blurry
+//                Platform.runLater {
+//                val offscreenScene = Scene(StackPane((icon)).addClass("platform-parent"))
+//                offscreenScene.stylesheets += "platform-icons.css".asResource()
+//                offscreenScene.fill = Color.TRANSPARENT
+//                val offscreenStage = Stage()
+//                offscreenStage.scene = offscreenScene
+//                offscreenStage.initStyle(StageStyle.UNDECORATED)
+//                graphic = ImageView(offscreenScene.snapshot(null))
+//            }
             else -> graphic = icon
         }
 
