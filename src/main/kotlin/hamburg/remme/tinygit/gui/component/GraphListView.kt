@@ -29,6 +29,7 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
     var isGraphVisible
         get() = graphVisible.get()
         set(value) = graphVisible.set(value)
+    val logGraph = TinyGit.commitLogService.logGraph
     private val service = TinyGit.branchService
     private val graphVisible = object : SimpleBooleanProperty(true) {
         override fun invalidated() = refresh()

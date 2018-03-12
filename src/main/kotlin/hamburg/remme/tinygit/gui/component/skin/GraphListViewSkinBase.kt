@@ -9,17 +9,20 @@ import javafx.application.Platform
 
 abstract class GraphListViewSkinBase(control: GraphListView) : ListViewSkin<Commit>(control) {
 
+    // TODO: hbar clipping through the graph
+    private val vertical = flow.getReflective<VirtualScrollBar>("vbar")!!
+    private val horizontal = flow.getReflective<VirtualScrollBar>("hbar")!!
+
     init {
-        // Yuck
-        val vbar = flow.getReflective<VirtualScrollBar>("vbar")!!
-        vbar.valueProperty().addListener { _ -> Platform.runLater { layoutGraphChildren() } }
+        horizontal.valueProperty().addListener { _, _, it -> Platform.runLater { layoutGraphChildren(it.toDouble(), vertical.value) } }
+        vertical.valueProperty().addListener { _, _, it -> Platform.runLater { layoutGraphChildren(horizontal.value, it.toDouble()) } }
     }
 
-    abstract fun layoutGraphChildren()
+    abstract fun layoutGraphChildren(scrollX: Double, scrollY: Double)
 
     override fun layoutChildren(x: Double, y: Double, w: Double, h: Double) {
         super.layoutChildren(x, y, w, h)
-        Platform.runLater { layoutGraphChildren() }
+        Platform.runLater { layoutGraphChildren(horizontal.value, vertical.value) }
     }
 
 }

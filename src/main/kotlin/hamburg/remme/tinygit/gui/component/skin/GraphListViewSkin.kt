@@ -1,7 +1,5 @@
 package hamburg.remme.tinygit.gui.component.skin
 
-import hamburg.remme.tinygit.domain.Commit
-import hamburg.remme.tinygit.domain.CommitIsh
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.component.GraphListView
 import javafx.scene.Group
@@ -11,7 +9,7 @@ import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
 
-class GraphListViewSkin(private val graphList: GraphListView) : GraphListViewSkinBase(graphList) {
+class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSkinBase(graphView) {
 
     private val SPACING = 24.0
     private val RADIUS = 6.0
@@ -27,22 +25,20 @@ class GraphListViewSkin(private val graphList: GraphListView) : GraphListViewSki
         paths.reversed().forEach { pathGroup.children += it }
     }
 
-    override fun layoutGraphChildren() {
+    override fun layoutGraphChildren(scrollX: Double, scrollY: Double) {
         paths.forEach { it.elements.clear() }
         circleGroup.children.clear()
 
         val firstCell = flow.firstVisibleCell
         val lastCell = flow.lastVisibleCell
 
-        if (graphList.isGraphVisible && firstCell != null && lastCell != null) {
+        if (graphView.isGraphVisible && firstCell != null && lastCell != null) {
             val cellHeight = (firstCell.index..lastCell.index).map { flow.getVisibleCell(it).height }.average()
 
-            val branches = mutableListOf<BranchFlow>()
-            graphList.items.forEachIndexed { i, it -> branches.createFlow(it, i) }
-            graphList.items.forEachIndexed { commitIndex, commit ->
-                val tag = branches.getTag(commit)
+            graphView.items.forEachIndexed { commitIndex, commit ->
+                val tag = graphView.logGraph.getTag(commit)
 
-                val commitX = SPACING + SPACING * tag
+                val commitX = SPACING + SPACING * tag - scrollX
                 val commitY = if (commitIndex < firstCell.index) {
                     (commitIndex - firstCell.index) * cellHeight
                 } else {
@@ -54,12 +50,12 @@ class GraphListViewSkin(private val graphList: GraphListView) : GraphListViewSki
                 }
 
                 commit.parents.forEach { parent ->
-                    val parentIndex = graphList.items.indexOfFirst { it.id == parent.id }.takeIf { it >= 0 } ?: 9999
-                    val parentTag = branches.getTag(parent)
+                    val parentIndex = graphView.items.indexOfFirst { it.id == parent.id }.takeIf { it >= 0 } ?: 9999
+                    val parentTag = graphView.logGraph.getTag(parent)
 
                     if (!(commitIndex < firstCell.index && parentIndex < firstCell.index)
                             && !(commitIndex > lastCell.index && parentIndex > lastCell.index)) {
-                        val parentX = SPACING + SPACING * parentTag
+                        val parentX = SPACING + SPACING * parentTag - scrollX
                         val parentY = if (parentIndex > lastCell.index) {
                             (parentIndex - firstCell.index) * cellHeight
                         } else {
@@ -88,57 +84,10 @@ class GraphListViewSkin(private val graphList: GraphListView) : GraphListViewSki
                     }
                 }
             }
-            graphList.graphWidth = SPACING + SPACING * branches.map { it.tag + 1 }.max()!!
+            graphView.graphWidth = SPACING + SPACING * (graphView.logGraph.getHighestTag() + 1)
         } else {
-            graphList.graphWidth = 0.0
+            graphView.graphWidth = 0.0
         }
     }
-
-    private fun List<BranchFlow>.containsCommit(commit: Commit) = any { it.contains(commit.id) }
-
-    private fun List<BranchFlow>.containsCommit(commit: CommitIsh) = any { it.contains(commit.id) }
-
-    private fun MutableList<BranchFlow>.getTag(commit: Commit) = find { it.any { it == commit.id } }!!.tag
-
-    private fun MutableList<BranchFlow>.getTag(commit: CommitIsh) = find { it.any { it == commit.id } }!!.tag
-
-    private fun MutableList<BranchFlow>.createFlow(commit: Commit, commitIndex: Int) {
-        if (!containsCommit(commit)) {
-            val tags = filter { it.start <= commitIndex && it.end >= commitIndex }.map { it.tag }
-            val max = tags.max() ?: 0
-            val tag = (0..max).firstOrNull { !tags.contains(it) } ?: max+1
-
-            val branch = BranchFlow(tag, commitIndex)
-            add(branch)
-
-            commit.more(branch, this)
-        }
-    }
-
-    private fun Commit.more(branch: BranchFlow, branches: List<BranchFlow>) {
-        branch.add(id)
-        parents.firstOrNull()
-                ?.let {
-                    if (!branches.containsCommit(it)) it.peel()?.more(branch, branches) ?: branch.indeterminate(it)
-                    else branch.finish(it)
-                }
-                ?: branch.finish(this)
-    }
-
-    private fun BranchFlow.finish(commit: Commit) {
-        end = graphList.items.indexOf(commit)
-    }
-
-    private fun BranchFlow.finish(commit: CommitIsh) {
-        end = commit.peel()?.let { graphList.items.indexOf(it) } ?: 9999
-    }
-
-    private fun BranchFlow.indeterminate(commit: CommitIsh) {
-        add(commit.id)
-    }
-
-    private fun CommitIsh.peel() = graphList.items.firstOrNull { it.id == id }
-
-    private inner class BranchFlow(val tag: Int, val start: Int, var end: Int = 9999) : ArrayList<String>()
 
 }
