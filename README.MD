@@ -13,7 +13,9 @@ Analyse your and other repositories with the help of TinyGit's statistics.
 
 TinyGit runs only with a [Git](https://git-scm.com/downloads) installation on your device.
 
-Requires Java 1.8 or newer to be installed.
+For Mac OS this should be installed via `brew install git`.
+
+Requires Java 1.8 to be installed. Will not work with Java 9 yet.
 
 ```bash
 java -jar tinygit-x.x.x.jar
@@ -27,17 +29,15 @@ java -jar tinygit-x.x.x.jar
  - Working with branches
  - Automatic squashing of feature branches
  - Automatic reset if a branch diverged from remote branch
+ - Repository statistics
 
 ### Missing Features
 
- - Tracking only wanted branches
- - Commit graph in the log
- - Viewing/applying/removing explicit stashes
+ - Viewing stashes
  - Resetting branches
  - Tagging commits & push/remove tags
  - Staging/unstaging code blocks
  - Saving split pane dividers
  - Opening selected file in explorer/finder
- - Opening pull requests.
- - Set author and email per repository
- - Git statistics
+ - Opening pull requests
+ - High DPI scaling
