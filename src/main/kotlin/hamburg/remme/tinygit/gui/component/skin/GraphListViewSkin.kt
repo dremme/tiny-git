@@ -27,7 +27,6 @@ class GraphListViewSkin(private val graphList: GraphListView) : GraphListViewSki
         paths.reversed().forEach { pathGroup.children += it }
     }
 
-    // TODO: Inefficient and buggy; needs to be fully implemented
     override fun layoutGraphChildren() {
         paths.forEach { it.elements.clear() }
         circleGroup.children.clear()
@@ -38,10 +37,10 @@ class GraphListViewSkin(private val graphList: GraphListView) : GraphListViewSki
         if (graphList.isGraphVisible && firstCell != null && lastCell != null) {
             val cellHeight = (firstCell.index..lastCell.index).map { flow.getVisibleCell(it).height }.average()
 
-            val branchFlow = mutableListOf<BranchFlow>()
-            graphList.items.forEachIndexed { i, it -> branchFlow.createFlow(it, i) }
+            val branches = mutableListOf<BranchFlow>()
+            graphList.items.forEachIndexed { i, it -> branches.createFlow(it, i) }
             graphList.items.forEachIndexed { commitIndex, commit ->
-                val tag = branchFlow.getTag(commit)
+                val tag = branches.getTag(commit)
 
                 val commitX = SPACING + SPACING * tag
                 val commitY = if (commitIndex < firstCell.index) {
@@ -55,11 +54,11 @@ class GraphListViewSkin(private val graphList: GraphListView) : GraphListViewSki
                 }
 
                 commit.parents.forEach { parent ->
-                    val parentIndex = graphList.items.indexOfFirst { it.id == parent.id }.takeIf { it >= 0 } ?: Int.MAX_VALUE
-                    val parentTag = branchFlow.getTag(parent)
+                    val parentIndex = graphList.items.indexOfFirst { it.id == parent.id }.takeIf { it >= 0 } ?: 9999
+                    val parentTag = branches.getTag(parent)
 
-                    if (!(commitIndex <= firstCell.index && parentIndex <= firstCell.index)
-                            && !(commitIndex >= lastCell.index && parentIndex >= lastCell.index)) {
+                    if (!(commitIndex < firstCell.index && parentIndex < firstCell.index)
+                            && !(commitIndex > lastCell.index && parentIndex > lastCell.index)) {
                         val parentX = SPACING + SPACING * parentTag
                         val parentY = if (parentIndex > lastCell.index) {
                             (parentIndex - firstCell.index) * cellHeight
@@ -89,7 +88,7 @@ class GraphListViewSkin(private val graphList: GraphListView) : GraphListViewSki
                     }
                 }
             }
-            graphList.graphWidth = SPACING + SPACING * branchFlow.map { it.tag + 1 }.max()!!
+            graphList.graphWidth = SPACING + SPACING * branches.map { it.tag + 1 }.max()!!
         } else {
             graphList.graphWidth = 0.0
         }
@@ -106,43 +105,40 @@ class GraphListViewSkin(private val graphList: GraphListView) : GraphListViewSki
     private fun MutableList<BranchFlow>.createFlow(commit: Commit, commitIndex: Int) {
         if (!containsCommit(commit)) {
             val tags = filter { it.start <= commitIndex && it.end >= commitIndex }.map { it.tag }
-            val tag = (0..(tags.max() ?: 0)).firstOrNull { !tags.contains(it) } ?: tags.size
+            val max = tags.max() ?: 0
+            val tag = (0..max).firstOrNull { !tags.contains(it) } ?: max+1
 
             val branch = BranchFlow(tag, commitIndex)
-            branch.add(commit.id)
             add(branch)
 
-            val parent = commit.parents.firstOrNull()
-            if (parent != null && !containsCommit(parent)) {
-                parent.peel()?.let { branch.more(it, this) } ?: branch.indeterminate(parent)
-            } else {
-                branch.finish(commit)
-            }
+            commit.more(branch, this)
         }
     }
 
-    private fun BranchFlow.more(commit: Commit, branchFlow: List<BranchFlow>) {
-        add(commit.id)
-
-        val parent = commit.parents.firstOrNull()
-        if (parent != null && !branchFlow.containsCommit(parent)) {
-            parent.peel()?.let { more(it, branchFlow) } ?: indeterminate(parent)
-        } else {
-            finish(commit)
-        }
+    private fun Commit.more(branch: BranchFlow, branches: List<BranchFlow>) {
+        branch.add(id)
+        parents.firstOrNull()
+                ?.let {
+                    if (!branches.containsCommit(it)) it.peel()?.more(branch, branches) ?: branch.indeterminate(it)
+                    else branch.finish(it)
+                }
+                ?: branch.finish(this)
     }
 
     private fun BranchFlow.finish(commit: Commit) {
         end = graphList.items.indexOf(commit)
     }
 
+    private fun BranchFlow.finish(commit: CommitIsh) {
+        end = commit.peel()?.let { graphList.items.indexOf(it) } ?: 9999
+    }
+
     private fun BranchFlow.indeterminate(commit: CommitIsh) {
         add(commit.id)
-        end = Int.MAX_VALUE
     }
 
     private fun CommitIsh.peel() = graphList.items.firstOrNull { it.id == id }
 
-    private inner class BranchFlow(val tag: Int, val start: Int, var end: Int = Int.MAX_VALUE) : ArrayList<String>()
+    private inner class BranchFlow(val tag: Int, val start: Int, var end: Int = 9999) : ArrayList<String>()
 
 }

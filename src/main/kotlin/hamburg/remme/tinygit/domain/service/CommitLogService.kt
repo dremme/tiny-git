@@ -28,7 +28,7 @@ class CommitLogService(private val repositoryService: RepositoryService,
     private lateinit var repository: Repository
     private var quickTask: Task<*>? = null
     private var remoteTask: Task<*>? = null
-    private val maxIncrement = 250
+    private val maxIncrement = 250 // TODO
     private var max = 0
 
     // TODO: too buggy and needy right now.
