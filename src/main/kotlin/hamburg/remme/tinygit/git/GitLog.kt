@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.git
 
 import hamburg.remme.tinygit.atEndOfDay
 import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.domain.CommitIsh
 import hamburg.remme.tinygit.domain.Divergence
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.localDateTime
@@ -107,6 +108,6 @@ private class CommitBuilder {
     lateinit var authorName: String
     lateinit var authorMail: String
 
-    fun build() = Commit(id, parents, fullMessage, date, authorName, authorMail)
+    fun build() = Commit(id, parents.map { CommitIsh(it) }, fullMessage, date, authorName, authorMail)
 
 }

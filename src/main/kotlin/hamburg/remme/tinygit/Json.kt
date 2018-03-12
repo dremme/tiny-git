@@ -1,8 +1,8 @@
 package hamburg.remme.tinygit
 
-class Json(backingMap: Map<String, *> = emptyMap<String, Any>()) : HashMap<String, Any>(backingMap) {
+class Json(map: Map<String, *> = emptyMap<String, Any>()) : LinkedHashMap<String, Any>(map) {
 
-    @Suppress("UNCHECKED_CAST")
+    @Suppress("UNCHECKED_CAST", "PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override fun get(property: String) = (super.get(property) as? Map<String, *>)?.let { Json(it) }
 
     @Suppress("UNCHECKED_CAST")

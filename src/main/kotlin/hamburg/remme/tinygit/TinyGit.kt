@@ -71,7 +71,7 @@ class TinyGit : Application() {
         val tagService = TagService().addListeners()
         val workingCopyService = WorkingCopyService().addListeners()
         val divergenceService = DivergenceService().addListeners()
-        val mergeService = MergeService(workingCopyService).addListeners()
+        val mergeService = MergeService().addListeners()
         val rebaseService = RebaseService().addListeners()
         val stashService = StashService().addListeners()
         val commitLogService = CommitLogService(repositoryService, credentialService).addListeners()

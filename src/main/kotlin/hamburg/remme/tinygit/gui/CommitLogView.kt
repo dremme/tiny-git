@@ -16,7 +16,7 @@ import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
-import hamburg.remme.tinygit.gui.component.GraphView
+import hamburg.remme.tinygit.gui.component.GraphListView
 import hamburg.remme.tinygit.gui.component.Icons
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
@@ -24,7 +24,6 @@ import javafx.collections.ListChangeListener
 import javafx.concurrent.Task
 import javafx.geometry.Pos
 import javafx.scene.control.Tab
-import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 
@@ -38,23 +37,24 @@ class CommitLogView : Tab() {
         graphic = Icons.list()
         isClosable = false
 
-        val graph = GraphView()
+        val graph = GraphListView(service.commits)
         graph.items.addListener(ListChangeListener { graph.selectionModel.selectedItem ?: graph.selectionModel.selectFirst() })
         graph.selectionModel.selectedItemProperty().addListener { _, _, it -> service.activeCommit.set(it) }
-        graph.setOnScroll {
-            // TODO: buggy
-            if (it.deltaY < 0) {
-                val index = graph.items.size - 1
-                service.logMore()
-                graph.scrollTo(index)
-            }
-        }
-        graph.setOnKeyPressed {
-            if (it.code == KeyCode.DOWN && graph.selectionModel.selectedItem == graph.items.last()) {
-                service.logMore()
-                graph.scrollTo(graph.selectionModel.selectedItem)
-            }
-        }
+        // TODO: too buggy and needy right now.
+//        graph.setOnScroll {
+//            // TODO: buggy
+//            if (it.deltaY < 0) {
+//                val index = graph.items.size - 1
+//                service.logMore()
+//                graph.scrollTo(index)
+//            }
+//        }
+//        graph.setOnKeyPressed {
+//            if (it.code == KeyCode.DOWN && graph.selectionModel.selectedItem == graph.items.last()) {
+//                service.logMore()
+//                graph.scrollTo(graph.selectionModel.selectedItem)
+//            }
+//        }
 
         val indicator = FetchIndicator()
         content = vbox {
@@ -64,7 +64,7 @@ class CommitLogView : Tab() {
                 +comboBox<CommitLogService.CommitType> {
                     items.addAll(CommitLogService.CommitType.values())
                     valueProperty().bindBidirectional(service.commitType)
-                    valueProperty().addListener { _, _, it -> graph.graphVisible.set(!it.isNoMerges) }
+                    valueProperty().addListener { _, _, it -> graph.isGraphVisible = !it.isNoMerges }
                 }
                 +comboBox<CommitLogService.Scope> {
                     items.addAll(CommitLogService.Scope.values())

@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.domain.service
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.domain.LogGraph
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.FetchException
 import hamburg.remme.tinygit.git.gitFetch
@@ -23,22 +24,24 @@ class CommitLogService(private val repositoryService: RepositoryService,
     val commitType = object : SimpleObjectProperty<CommitType>(CommitType.ALL) {
         override fun invalidated() = log()
     }
+    val logGraph = LogGraph() // TODO: overthink this
     lateinit var logExecutor: TaskExecutor
     lateinit var logErrorHandler: (String) -> Unit
     private lateinit var repository: Repository
     private var quickTask: Task<*>? = null
     private var remoteTask: Task<*>? = null
-    private val maxIncrement = 30
+    private val maxIncrement = 250 // TODO: magic number
     private var max = 0
 
-    fun logMore() {
-        val result = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, max, max + maxIncrement)
-                .filter { commits.none(it::equals) }
-        if (result.isNotEmpty()) {
-            max += maxIncrement
-            commits.addSorted(result)
-        }
-    }
+    // TODO: too buggy and needy right now.
+//    fun logMore() {
+//        val result = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, max, max + maxIncrement)
+//                .filter { commits.none(it::equals) }
+//        if (result.isNotEmpty()) {
+//            max += maxIncrement
+//            commits.addSorted(result)
+//        }
+//    }
 
     override fun onRefresh(repository: Repository) {
         update(repository)
@@ -66,7 +69,11 @@ class CommitLogService(private val repositoryService: RepositoryService,
         quickTask?.cancel()
         remoteTask?.cancel()
         quickTask = object : Task<List<Commit>>() {
-            override fun call() = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, 0, max)
+            override fun call(): List<Commit> {
+                val log = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, 0, max)
+                logGraph.recreate(log)
+                return log
+            }
 
             override fun succeeded() {
                 commits.addSorted(value.filter { commits.none(it::equals) })
@@ -82,7 +89,9 @@ class CommitLogService(private val repositoryService: RepositoryService,
         remoteTask = object : Task<List<Commit>>() {
             override fun call(): List<Commit> {
                 gitFetch(repository)
-                return gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, 0, max)
+                val log = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, 0, max)
+                logGraph.recreate(log)
+                return log
             }
 
             override fun succeeded() {

@@ -60,10 +60,6 @@ fun LocalDate.atNoon() = atTime(LocalTime.NOON)!!
 fun LocalDate.weeksBetween(date: LocalDate) = Math.abs(ChronoUnit.WEEKS.between(weeksOrigin, date)
         - ChronoUnit.WEEKS.between(weeksOrigin, this))
 
-fun printError(message: String) {
-    System.err.println(message)
-}
-
 fun String.asResource() = TinyGit::class.java.getResource(this).toExternalForm()!!
 
 fun String.asPath() = Paths.get(this)!!
@@ -116,6 +112,13 @@ fun <K, V : Comparable<V>> Map<K, V>.takeHighest(count: Int): Map<K, V> {
     return toList().sortedBy { it.second }.takeLast(count).toMap()
 }
 
+@Suppress("UNCHECKED_CAST")
+fun <T> Any.getReflective(property: String): T? {
+    val field = javaClass.getDeclaredField(property)
+    field.isAccessible = true
+    return field.get(this) as? T
+}
+
 fun IntegerProperty.inc() = set(get() + 1)
 
 fun IntegerProperty.dec() = set(get() - 1)
@@ -127,6 +130,10 @@ fun IntegerExpression.unequals0() = isNotEqualTo(0)!!
 fun IntegerExpression.greater0() = greaterThan(0)!!
 
 fun IntegerExpression.greater1() = greaterThan(1)!!
+
+fun printError(message: String) {
+    System.err.println(message)
+}
 
 inline fun <T> measureTime(type: String, message: String, block: () -> T): T {
     val startTime = System.currentTimeMillis()

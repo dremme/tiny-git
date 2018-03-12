@@ -7,11 +7,12 @@ import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.vbox
-import hamburg.remme.tinygit.gui.component.skin.GraphViewSkin
+import hamburg.remme.tinygit.gui.component.skin.GraphListViewSkin
 import hamburg.remme.tinygit.shortDateTimeFormat
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ListChangeListener
+import javafx.collections.ObservableList
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -20,16 +21,19 @@ import javafx.scene.control.ListView
 import javafx.scene.layout.HBox
 import javafx.scene.text.Text
 
-// TODO: not sure about this inheriting listview directly
-class GraphView : ListView<Commit>(TinyGit.commitLogService.commits) {
+class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits) {
 
     var graphWidth: Double
         get() = graphPadding.get().left
         set(value) = graphPadding.set(Insets(0.0, 0.0, 0.0, value))
-    val graphVisible = object : SimpleBooleanProperty(true) {
+    var isGraphVisible
+        get() = graphVisible.get()
+        set(value) = graphVisible.set(value)
+    val logGraph = TinyGit.commitLogService.logGraph
+    private val service = TinyGit.branchService
+    private val graphVisible = object : SimpleBooleanProperty(true) {
         override fun invalidated() = refresh()
     }
-    private val service = TinyGit.branchService
     private val graphPadding = SimpleObjectProperty<Insets>(Insets.EMPTY)
 
     init {
@@ -39,7 +43,7 @@ class GraphView : ListView<Commit>(TinyGit.commitLogService.commits) {
         service.branches.addListener(ListChangeListener { refresh() })
     }
 
-    override fun createDefaultSkin() = GraphViewSkin(this)
+    override fun createDefaultSkin() = GraphListViewSkin(this)
 
     private inner class CommitLogListCell : ListCell<Commit>() {
 
