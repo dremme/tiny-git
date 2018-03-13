@@ -53,7 +53,8 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
                     val parentIndex = graphView.items.indexOfFirst { it.id == parent.id }.takeIf { it >= 0 } ?: 9999
                     val parentTag = graphView.logGraph.getTag(parent)
 
-                    if (!(commitIndex < firstCell.index && parentIndex < firstCell.index)
+                    if (parentTag >= 0
+                            && !(commitIndex < firstCell.index && parentIndex < firstCell.index)
                             && !(commitIndex > lastCell.index && parentIndex > lastCell.index)) {
                         val parentX = SPACING + SPACING * parentTag - scrollX
                         val parentY = if (parentIndex > lastCell.index) {
