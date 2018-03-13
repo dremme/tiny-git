@@ -100,15 +100,15 @@ class GitView : VBoxBuilder() {
                 { repoService.gc() })
         val branch = Action("Branch", { Icons.codeFork() }, "Shortcut+B", state.canBranch.not(),
                 { createBranch() })
-        val merge = Action("Merge", { Icons.codeFork().flipY() }, "Shortcut+M", state.canMerge.not(),
+        val merge = Action("Merge", { Icons.codeFork().flipY() }, if (PlatformUtil.isMac()) "Shortcut+Shift+M" else "Shortcut+M", state.canMerge.not(),
                 handler = { merge() })
-        val mergeContinue = Action("Continue Merge", { Icons.forward() }, "Shortcut+Shift+M", state.canMergeContinue.not(),
+        val mergeContinue = Action("Continue Merge", { Icons.forward() }, disable = state.canMergeContinue.not(),
                 handler = { CommitDialog(window).show() })
         val mergeAbort = Action("Abort Merge", { Icons.timesCircle() }, disable = state.canMergeAbort.not(),
                 handler = { mergeService.abort() })
         val rebase = Action("Rebase", { Icons.levelUp().flipX() }, "Shortcut+R", state.canRebase.not(),
                 handler = { rebase() })
-        val rebaseContinue = Action("Continue Rebase", { Icons.forward() }, "Shortcut+Shift+R", state.canRebaseContinue.not(),
+        val rebaseContinue = Action("Continue Rebase", { Icons.forward() }, disable = state.canRebaseContinue.not(),
                 handler = { rebaseContinue() })
         val rebaseAbort = Action("Abort Rebase", { Icons.timesCircle() }, disable = state.canRebaseAbort.not(),
                 handler = { rebaseService.abort() })
@@ -136,7 +136,7 @@ class GitView : VBoxBuilder() {
 
         if (PlatformUtil.isMac()) {
             val toolkit = MenuToolkit.toolkit()
-            val macMenu = menu {
+            toolkit.setApplicationMenu(menu {
                 text = "TinyGit"
                 +menuItem(preferences)
                 +SeparatorMenuItem()
@@ -145,8 +145,7 @@ class GitView : VBoxBuilder() {
                 +toolkit.createUnhideAllMenuItem()
                 +SeparatorMenuItem()
                 +toolkit.createQuitMenuItem("TinyGit")
-            }
-            toolkit.setApplicationMenu(macMenu)
+            })
         }
         +menuBar {
             isUseSystemMenuBar = true
@@ -170,6 +169,14 @@ class GitView : VBoxBuilder() {
                     *workingCopy.actions,
                     ActionGroup(stash, stashPop),
                     ActionGroup(cmd))
+            if (PlatformUtil.isMac()) {
+                val toolkit = MenuToolkit.toolkit()
+                +menu {
+                    text = "Window"
+                    +toolkit.createMinimizeMenuItem()
+                    +toolkit.createZoomMenuItem()
+                }
+            }
             +ActionCollection("?", ActionGroup(github, about))
         }
         +toolBar {
