@@ -1,21 +1,30 @@
 package hamburg.remme.tinygit.domain
 
+import java.util.concurrent.locks.ReentrantLock
+
 class LogGraph {
 
+    private val lock = ReentrantLock()
     private val backingList = mutableListOf<Branch>()
     private lateinit var commits: List<Commit>
 
-    fun recreate(commits: List<Commit>) {
+    fun recreate(commits: List<Commit>) = synchronized(lock) {
         backingList.clear()
         this.commits = commits
         this.commits.forEachIndexed { i, it -> createFlow(it, i) }
     }
 
-    fun getTag(commit: Commit) = backingList.find { it.any { it == commit.id } }?.tag ?: -1
+    fun getTag(commit: Commit) = getTag(commit.id)
 
-    fun getTag(commit: CommitIsh) = backingList.find { it.any { it == commit.id } }?.tag ?: -1
+    fun getTag(commit: CommitIsh) = getTag(commit.id)
 
-    fun getHighestTag() = backingList.map { it.tag }.max() ?: -1
+    private fun getTag(id: String) = synchronized(lock) {
+        backingList.find { it.any { it == id } }?.tag ?: -1
+    }
+
+    fun getHighestTag() = synchronized(lock) {
+        backingList.map { it.tag }.max() ?: -1
+    }
 
     private fun contains(commit: Commit) = backingList.any { it.contains(commit.id) }
 

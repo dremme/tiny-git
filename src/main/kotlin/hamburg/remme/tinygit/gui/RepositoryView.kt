@@ -87,7 +87,7 @@ class RepositoryView : VBoxBuilder() {
             val canDeleteBranch = Bindings.createBooleanBinding(Callable { treeSelection.isLocal() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
             val canApplyStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
             val canDeleteStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
-            val checkoutBranch = Action("Checkout Branch", { Icons.cloudDownload() }, disable = canCheckout.not(),
+            val checkoutBranch = Action("Checkout Branch", { Icons.check() }, disable = canCheckout.not(),
                     handler = { checkout(treeSelection as Branch) })
             val renameBranch = Action("Rename Branch (R)", { Icons.pencil() }, disable = canRenameBranch.not(),
                     handler = { renameBranch(treeSelection as Branch) })

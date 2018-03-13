@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
+import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.Head
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.BranchAlreadyExistsException
@@ -33,6 +34,21 @@ class BranchService : Refreshable {
     fun isHead(branch: Branch) = head.get().name == branch.name
 
     fun isDetached(branch: Branch) = branch.name == "HEAD"
+
+    fun checkoutCommit(commit: Commit, errorHandler: () -> Unit) {
+        TinyGit.execute("Checking out...", object : Task<Unit>() {
+            override fun call() = gitCheckout(repository, commit)
+
+            override fun succeeded() = TinyGit.fireEvent()
+
+            override fun failed() {
+                when (exception) {
+                    is CheckoutException -> errorHandler.invoke()
+                    else -> exception.printStackTrace()
+                }
+            }
+        })
+    }
 
     fun checkoutLocal(branch: Branch, errorHandler: () -> Unit) {
         if (branch != head.get()) {
@@ -97,6 +113,16 @@ class BranchService : Refreshable {
                     else -> exception.printStackTrace()
                 }
             }
+        })
+    }
+
+    fun reset(commit: Commit) {
+        TinyGit.execute("Resetting...", object : Task<Unit>() {
+            override fun call() = gitResetHard(repository, commit)
+
+            override fun succeeded() = TinyGit.fireEvent()
+
+            override fun failed() = exception.printStackTrace()
         })
     }
 

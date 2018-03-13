@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.gui
 import com.sun.javafx.PlatformUtil
 import de.codecentric.centerdevice.MenuToolkit
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.git.defaultBranches
 import hamburg.remme.tinygit.git.git
 import hamburg.remme.tinygit.git.gitLogExclusive
 import hamburg.remme.tinygit.gui.builder.Action
@@ -291,7 +292,14 @@ class GitView : VBoxBuilder() {
 
     private fun rebase() {
         val current = branchService.head.get()
-        val branches = branchService.branches.filter { it != current }
+        val branches = branchService.branches.filter { it != current }.sortedWith(Comparator { a, b ->
+            when {
+                defaultBranches.contains(a.name) && defaultBranches.contains(b.name) -> a.compareTo(b)
+                defaultBranches.contains(a.name) -> -1
+                defaultBranches.contains(b.name) -> 1
+                else -> a.compareTo(b)
+            }
+        })
         choiceDialog(window, "Select a Branch for Rebasing", "Rebase", Icons.levelUp().flipX(), branches) {
             rebaseService.rebase(it, { errorAlert(window, "Cannot Rebase", it) })
         }

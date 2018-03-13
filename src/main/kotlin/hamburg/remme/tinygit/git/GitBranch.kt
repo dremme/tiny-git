@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.git
 
 import hamburg.remme.tinygit.domain.Branch
+import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Head
 import hamburg.remme.tinygit.domain.Repository
@@ -60,6 +61,12 @@ fun gitCheckout(repository: Repository, files: List<File>) {
 fun gitCheckout(repository: Repository, branch: Branch) {
     if (branch.name == "HEAD") return // cannot checkout HEAD directly
     val response = git(repository, *checkout, branch.name).trim()
+    if (response.startsWith(errorSeparator)) throw CheckoutException()
+    else if (response.startsWith(fatalSeparator)) throw CheckoutException()
+}
+
+fun gitCheckout(repository: Repository, commit: Commit) {
+    val response = git(repository, *checkout, commit.id).trim()
     if (response.startsWith(errorSeparator)) throw CheckoutException()
     else if (response.startsWith(fatalSeparator)) throw CheckoutException()
 }

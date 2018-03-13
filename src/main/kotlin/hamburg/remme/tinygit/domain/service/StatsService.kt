@@ -33,11 +33,11 @@ class StatsService {
     val activityData = observableList<XYData<LocalDate, DayOfWeek>>()
     val linesAddedData = observableList<XYData<LocalDate, Number>>()
     val linesRemovedData = observableList<XYData<LocalDate, Number>>()
-    lateinit var contributorsMonitor: TaskMonitor
-    lateinit var filesMonitor: TaskMonitor
-    lateinit var commitsMonitor: TaskMonitor
-    lateinit var activityMonitor: TaskMonitor
-    lateinit var linesMonitor: TaskMonitor
+    lateinit var contributorsListener: TaskListener
+    lateinit var filesListener: TaskListener
+    lateinit var commitsListener: TaskListener
+    lateinit var activityListener: TaskListener
+    lateinit var linesListener: TaskListener
     private val log = mutableListOf<Commit>()
     private val numStat = mutableListOf<NumStat>()
     private val lastDay = LocalDate.now()
@@ -74,7 +74,7 @@ class StatsService {
 
             override fun succeeded() {
                 activityData.setAll(value)
-                activityMonitor.done()
+                activityListener.done()
             }
 
             override fun failed() = exception.printStackTrace()
@@ -91,7 +91,7 @@ class StatsService {
 
             override fun succeeded() {
                 contributorsData.setAll(value)
-                contributorsMonitor.done()
+                contributorsListener.done()
             }
 
             override fun failed() = exception.printStackTrace()
@@ -119,7 +119,7 @@ class StatsService {
 
             override fun succeeded() {
                 commitsData.setAll(value)
-                commitsMonitor.done()
+                commitsListener.done()
             }
 
             override fun failed() = exception.printStackTrace()
@@ -137,7 +137,7 @@ class StatsService {
 
             override fun succeeded() {
                 filesData.setAll(value)
-                filesMonitor.done()
+                filesListener.done()
             }
 
             override fun failed() = exception.printStackTrace()
@@ -172,7 +172,7 @@ class StatsService {
             override fun succeeded() {
                 linesAddedData.setAll(added)
                 linesRemovedData.setAll(removed)
-                linesMonitor.done()
+                linesListener.done()
             }
 
             override fun failed() = exception.printStackTrace()
@@ -209,11 +209,11 @@ class StatsService {
                 updateLines(repository)
             }
         }.also {
-            contributorsMonitor.started()
-            filesMonitor.started()
-            commitsMonitor.started()
-            activityMonitor.started()
-            linesMonitor.started()
+            contributorsListener.started()
+            filesListener.started()
+            commitsListener.started()
+            activityListener.started()
+            linesListener.started()
             TinyGit.execute(it)
         }
     }

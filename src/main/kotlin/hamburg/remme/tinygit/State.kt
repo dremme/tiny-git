@@ -2,6 +2,7 @@ package hamburg.remme.tinygit
 
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.service.BranchService
+import hamburg.remme.tinygit.domain.service.CommitLogService
 import hamburg.remme.tinygit.domain.service.DivergenceService
 import hamburg.remme.tinygit.domain.service.MergeService
 import hamburg.remme.tinygit.domain.service.RebaseService
@@ -19,7 +20,8 @@ class State(repositoryService: RepositoryService,
             divergenceService: DivergenceService,
             mergeService: MergeService,
             rebaseService: RebaseService,
-            stashService: StashService) {
+            stashService: StashService,
+            commitLogService: CommitLogService) {
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *                                                                                                               *
@@ -47,27 +49,27 @@ class State(repositoryService: RepositoryService,
      *                                                                                                               *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private val isIdle = repositoryService.activeRepository.isNotNull.and(runningProcesses.equals0())!!
-    private val isReady = isIdle.and(mergeService.isMerging.not()).and(rebaseService.isRebasing.not())!!
-    val canRemove = isReady
-    val canSettings = isReady
-    val canPush = isReady.and(divergenceService.ahead.unequals0())!!
+    private val isClean = isIdle.and(mergeService.isMerging.not()).and(rebaseService.isRebasing.not())!!
+    val canRemove = isClean
+    val canSettings = isClean
+    val canPush = isClean.and(divergenceService.ahead.unequals0())!!
     val canForcePush = canPush
-    val canPull = isReady.and(divergenceService.behind.greater0())!!
-    val canFetch = isReady
+    val canPull = isClean.and(divergenceService.behind.greater0())!!
+    val canFetch = isClean
     val canGc = canFetch
-    val canBranch = isReady
-    val canMerge = isReady.and(branchService.branchesSize.greater1())!!
+    val canBranch = isClean
+    val canMerge = isClean.and(branchService.branchesSize.greater1())!!
     val canMergeContinue = isIdle.and(mergeService.isMerging)!!
     val canMergeAbort = isIdle.and(mergeService.isMerging)!!
-    val canRebase = isReady.and(branchService.branchesSize.greater1())!!
+    val canRebase = isClean.and(branchService.branchesSize.greater1())!!
     val canRebaseContinue = isIdle.and(rebaseService.isRebasing)!!
     val canRebaseAbort = isIdle.and(rebaseService.isRebasing)!!
-    val canStash = isReady.and(Bindings.isNotEmpty(workingCopyService.staged).or(Bindings.isNotEmpty(workingCopyService.pending)))!!
-    val canApplyStash = isReady.and(stashService.stashSize.greater0())!!
-    val canReset = isReady.and(divergenceService.behind.greater0())!!
-    val canSquash = isReady.and(divergenceService.aheadDefault.greater1())!!
+    val canStash = isClean.and(Bindings.isNotEmpty(workingCopyService.staged).or(Bindings.isNotEmpty(workingCopyService.pending)))!!
+    val canApplyStash = isClean.and(stashService.stashSize.greater0())!!
+    val canReset = isClean.and(divergenceService.behind.greater0())!!
+    val canSquash = isClean.and(divergenceService.aheadDefault.greater1())!!
 
-    val canCommit = isReady.and(Bindings.isNotEmpty(workingCopyService.staged))!!
+    val canCommit = isClean.and(Bindings.isNotEmpty(workingCopyService.staged))!!
     val canStageAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.pending))!!
     val canUpdateAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.modifiedPending))!!
     val canStageSelected = isIdle.and(Bindings.size(workingCopyService.selectedPending).greater0())!!
@@ -75,6 +77,10 @@ class State(repositoryService: RepositoryService,
     val canDiscardSelected = isIdle.and(Bindings.size(workingCopyService.selectedPending.filtered { it.status != File.Status.ADDED }).greater0())!!
     val canUnstageAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.staged))!!
     val canUnstageSelected = isIdle.and(Bindings.size(workingCopyService.selectedStaged).greater0())!!
+
+    val canCheckoutCommit = isClean.and(commitLogService.activeCommit.isNotNull)!!
+    val canResetToCommit = isClean.and(commitLogService.activeCommit.isNotNull)!!
+    val canTagCommit = isClean.and(commitLogService.activeCommit.isNotNull)!!
 
     val canCmd = isIdle
 

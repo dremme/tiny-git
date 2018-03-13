@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
-interface TaskMonitor {
+interface TaskListener {
 
     fun started()
 

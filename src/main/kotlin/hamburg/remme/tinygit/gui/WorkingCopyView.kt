@@ -27,24 +27,24 @@ import java.util.concurrent.Callable
 
 class WorkingCopyView : Tab() {
 
-    private val workingService = TinyGit.workingCopyService
+    private val service = TinyGit.workingCopyService
     private val state = TinyGit.state
     private val window get() = content.scene.window
 
     val actions get() = arrayOf(ActionGroup(updateAll, stageAll, stageSelected), ActionGroup(unstageAll, unstageSelected))
     private val unstageAll = Action("Unstage all", { Icons.arrowAltCircleDown() }, "Shortcut+Shift+L", state.canUnstageAll.not(),
-            { workingService.unstage() })
+            { service.unstage() })
     private val unstageSelected = Action("Unstage selected", { Icons.arrowAltCircleDown() }, disable = state.canUnstageSelected.not(),
             handler = { unstageSelected() })
     private val updateAll = Action("Update all", { Icons.arrowAltCircleUp() }, disable = state.canUpdateAll.not(),
-            handler = { workingService.update() })
+            handler = { service.update() })
     private val stageAll = Action("Stage all", { Icons.arrowAltCircleUp() }, "Shortcut+Shift+K", state.canStageAll.not(),
-            { workingService.stage() })
+            { service.stage() })
     private val stageSelected = Action("Stage selected", { Icons.arrowAltCircleUp() }, disable = state.canStageSelected.not(),
             handler = { stageSelected() })
 
-    private val staged = FileStatusView(workingService.staged, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
-    private val pending = FileStatusView(workingService.pending, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
+    private val staged = FileStatusView(service.staged, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
+    private val pending = FileStatusView(service.pending, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
     private val selectedStaged = staged.selectionModel
     private val selectedPending = pending.selectionModel
 
@@ -89,10 +89,10 @@ class WorkingCopyView : Tab() {
             }
         }
 
-        selectedStaged.selectedItems.addListener(ListChangeListener { workingService.selectedStaged.setAll(it.list) })
+        selectedStaged.selectedItems.addListener(ListChangeListener { service.selectedStaged.setAll(it.list) })
         selectedStaged.selectedItemProperty().addListener({ _, _, it -> it?.let { selectedPending.clearSelection() } })
 
-        selectedPending.selectedItems.addListener(ListChangeListener { workingService.selectedPending.setAll(it.list) })
+        selectedPending.selectedItems.addListener(ListChangeListener { service.selectedPending.setAll(it.list) })
         selectedPending.selectedItemProperty().addListener({ _, _, it -> it?.let { selectedStaged.clearSelection() } })
 
         val fileDiff = FileDiffView(Bindings.createObjectBinding(
@@ -140,25 +140,25 @@ class WorkingCopyView : Tab() {
 
     private fun stageSelected() {
         val selected = getIndex(selectedPending)
-        workingService.stageSelected { setIndex(selectedPending, selected) }
+        service.stageSelected { setIndex(selectedPending, selected) }
     }
 
     private fun unstageSelected() {
         val selected = getIndex(selectedStaged)
-        workingService.unstageSelected { setIndex(selectedStaged, selected) }
+        service.unstageSelected { setIndex(selectedStaged, selected) }
     }
 
     private fun deleteFile() {
         if (confirmWarningAlert(window, "Delete Files", "Delete", "This will remove ${selectedPending.selectedItems.size} selected files from the disk.")) {
             val selected = getIndex(selectedPending)
-            workingService.delete { setIndex(selectedPending, selected) }
+            service.delete { setIndex(selectedPending, selected) }
         }
     }
 
     private fun discardChanges() {
         if (confirmWarningAlert(window, "Discard Changes", "Discard", "This will discard unstaged changes from ${selectedPending.selectedItems.size} selected files.")) {
             val selected = getIndex(selectedPending)
-            workingService.discardChanges(
+            service.discardChanges(
                     { setIndex(selectedPending, selected) },
                     { errorAlert(window, "Cannot Discard Changes", it) })
         }

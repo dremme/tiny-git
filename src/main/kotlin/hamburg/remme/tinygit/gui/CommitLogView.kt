@@ -1,11 +1,16 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.service.CommitLogService
-import hamburg.remme.tinygit.domain.service.TaskExecutor
+import hamburg.remme.tinygit.domain.service.TaskListener
+import hamburg.remme.tinygit.gui.builder.Action
+import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.HBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.comboBox
+import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
+import hamburg.remme.tinygit.gui.builder.contextMenu
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
@@ -21,7 +26,6 @@ import hamburg.remme.tinygit.gui.component.Icons
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ListChangeListener
-import javafx.concurrent.Task
 import javafx.geometry.Pos
 import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
@@ -29,17 +33,32 @@ import javafx.scene.text.Text
 
 class CommitLogView : Tab() {
 
-    private val service = TinyGit.commitLogService
+    private val state = TinyGit.state
+    private val logService = TinyGit.commitLogService
+    private val branchService = TinyGit.branchService
     private val window get() = content.scene.window
+    private val graph = GraphListView(logService.commits)
+    private val graphSelection get() = graph.selectionModel.selectedItem
 
     init {
         text = "Commit Log (beta)"
         graphic = Icons.list()
         isClosable = false
 
-        val graph = GraphListView(service.commits)
+        // TODO: should be exposed and used in the menu bar as well?!
+        val checkoutCommit = Action("Checkout", { Icons.check() }, disable = state.canCheckoutCommit.not(),
+                handler = { checkoutCommit(graphSelection) })
+        val resetToCommit = Action("Reset", { Icons.refresh() }, disable = state.canResetToCommit.not(),
+                handler = { resetToCommit(graphSelection) })
+        val tagCommit = Action("Tag", { Icons.tag() }, disable = state.canTagCommit.not(),
+                handler = { tagCommit(graphSelection) })
+
         graph.items.addListener(ListChangeListener { graph.selectionModel.selectedItem ?: graph.selectionModel.selectFirst() })
-        graph.selectionModel.selectedItemProperty().addListener { _, _, it -> service.activeCommit.set(it) }
+        graph.selectionModel.selectedItemProperty().addListener { _, _, it -> logService.activeCommit.set(it) }
+        graph.contextMenu = contextMenu {
+            isAutoHide = true
+            +ActionGroup(checkoutCommit, resetToCommit)
+        }
         // TODO: too buggy and needy right now.
 //        graph.setOnScroll {
 //            // TODO: buggy
@@ -63,12 +82,12 @@ class CommitLogView : Tab() {
                 addSpacer()
                 +comboBox<CommitLogService.CommitType> {
                     items.addAll(CommitLogService.CommitType.values())
-                    valueProperty().bindBidirectional(service.commitType)
+                    valueProperty().bindBidirectional(logService.commitType)
                     valueProperty().addListener { _, _, it -> graph.isGraphVisible = !it.isNoMerges }
                 }
                 +comboBox<CommitLogService.Scope> {
                     items.addAll(CommitLogService.Scope.values())
-                    valueProperty().bindBidirectional(service.scope)
+                    valueProperty().bindBidirectional(logService.scope)
                 }
             }
             +stackPane {
@@ -87,11 +106,26 @@ class CommitLogView : Tab() {
             }
         }
 
-        service.logExecutor = indicator
-        service.logErrorHandler = { errorAlert(window, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }
+        logService.logListener = indicator
+        logService.logErrorHandler = { errorAlert(window, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }
     }
 
-    private class FetchIndicator : HBoxBuilder(), TaskExecutor {
+    private fun checkoutCommit(commit: Commit) {
+        branchService.checkoutCommit(
+                commit,
+                { errorAlert(window, "Cannot Checkout Commit", "There are local changes that would be overwritten by checkout.\nCommit or stash them.") })
+    }
+
+    private fun resetToCommit(commit: Commit) {
+        if (!confirmWarningAlert(window, "Reset Branch", "Reset", "This will reset the current branch to '${commit.shortId}'.\nAll uncommitted changes will be lost.")) return
+        branchService.reset(commit)
+    }
+
+    private fun tagCommit(commit: Commit) {
+        // TODO
+    }
+
+    private class FetchIndicator : HBoxBuilder(), TaskListener {
 
         private val visible = SimpleBooleanProperty()
 
@@ -104,13 +138,9 @@ class CommitLogView : Tab() {
             +label { +"Fetching..." }
         }
 
-        override fun execute(task: Task<*>) {
-            task.setOnSucceeded { visible.set(false) }
-            task.setOnCancelled { visible.set(false) }
-            task.setOnFailed { visible.set(false) }
-            visible.set(true)
-            TinyGit.execute(task)
-        }
+        override fun started() = visible.set(true)
+
+        override fun done() = visible.set(false)
 
     }
 

@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.TinyGit
-import hamburg.remme.tinygit.domain.service.TaskMonitor
+import hamburg.remme.tinygit.domain.service.TaskListener
 import hamburg.remme.tinygit.gui.builder.StackPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
@@ -65,13 +65,13 @@ class StatsView : Tab() {
         contributions.title = "Top Contributors"
         contributions.labelsVisible = false
         val contributionIndicator = ProgressIndicator(contributions)
-        statsService.contributorsMonitor = contributionIndicator
+        statsService.contributorsListener = contributionIndicator
 
         val files = PieChart(filesData)
         files.title = "Files"
         files.labelsVisible = false
         val filesIndicator = ProgressIndicator(files)
-        statsService.filesMonitor = filesIndicator
+        statsService.filesListener = filesIndicator
 
         val commits = StackedAreaChart<LocalDate, Number>(DayOfYearAxis(), NumberAxis().apply { isMinorTickVisible = false }, commitsData)
         commits.addClass("contributors")
@@ -81,13 +81,13 @@ class StatsView : Tab() {
         commits.isHorizontalZeroLineVisible = false
         commits.isVerticalZeroLineVisible = false
         val commitsIndicator = ProgressIndicator(commits).columnSpan(2)
-        statsService.commitsMonitor = commitsIndicator
+        statsService.commitsListener = commitsIndicator
 
         val activity = CalendarChart(activityData)
         activity.prefHeight = 250.0
         activity.title = "Daily Activity"
         val activityIndicator = ProgressIndicator(activity).columnSpan(2)
-        statsService.activityMonitor = activityIndicator
+        statsService.activityListener = activityIndicator
 
         val lines = StackedAreaChart<LocalDate, Number>(
                 DayOfYearAxis(), NumberAxis().apply { isMinorTickVisible = false },
@@ -99,7 +99,7 @@ class StatsView : Tab() {
         lines.isHorizontalZeroLineVisible = false
         lines.isVerticalZeroLineVisible = false
         val linesIndicator = ProgressIndicator(lines).columnSpan(2)
-        statsService.linesMonitor = linesIndicator
+        statsService.linesListener = linesIndicator
 
         content = vbox {
             +toolBar {
@@ -237,7 +237,7 @@ class StatsView : Tab() {
         }
     }
 
-    private class ProgressIndicator(content: Node) : StackPaneBuilder(), TaskMonitor {
+    private class ProgressIndicator(content: Node) : StackPaneBuilder(), TaskListener {
 
         private val visible = SimpleBooleanProperty()
 

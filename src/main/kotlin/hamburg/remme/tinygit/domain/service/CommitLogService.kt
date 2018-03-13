@@ -10,6 +10,7 @@ import hamburg.remme.tinygit.git.gitFetch
 import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.git.gitUpToDate
 import hamburg.remme.tinygit.observableList
+import javafx.application.Platform
 import javafx.beans.property.SimpleObjectProperty
 import javafx.concurrent.Task
 
@@ -25,7 +26,7 @@ class CommitLogService(private val repositoryService: RepositoryService,
         override fun invalidated() = log()
     }
     val logGraph = LogGraph() // TODO: overthink this
-    lateinit var logExecutor: TaskExecutor
+    lateinit var logListener: TaskListener
     lateinit var logErrorHandler: (String) -> Unit
     private lateinit var repository: Repository
     private var quickTask: Task<*>? = null
@@ -106,7 +107,12 @@ class CommitLogService(private val repositoryService: RepositoryService,
                     else -> exception.printStackTrace()
                 }
             }
-        }.also { logExecutor.execute(it) }
+
+            override fun done() = Platform.runLater { logListener.done() }
+        }.also {
+            logListener.started()
+            TinyGit.execute(it)
+        }
     }
 
     enum class Scope(val isAll: Boolean, private val description: String) {
