@@ -45,6 +45,7 @@ import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TabPane
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
+import javafx.stage.Stage
 
 class GitView : VBoxBuilder() {
 
@@ -175,6 +176,20 @@ class GitView : VBoxBuilder() {
                     text = "Window"
                     +toolkit.createMinimizeMenuItem()
                     +toolkit.createZoomMenuItem()
+                    +menuItem {
+                        shortcut = "Shortcut+Ctrl+F"
+                        text = "Enter Fullscreen"
+                        setOnAction {
+                            val stage = window as Stage
+                            if (stage.isFullScreen) {
+                                text = "Enter Fullscreen"
+                                stage.isFullScreen = false
+                            } else {
+                                text = "Exit Fullscreen"
+                                stage.isFullScreen = true
+                            }
+                        }
+                    }
                 }
             }
             +ActionCollection("?", ActionGroup(github, about))

@@ -54,12 +54,18 @@ fun contextMenuItem(action: Action): MenuItem {
 
 class MenuItemBuilder : MenuItem() {
 
+    var shortcut: String
+        get() = throw RuntimeException("Write-only property.")
+        set(value) {
+            accelerator = KeyCombination.valueOf(value)
+        }
+
     var icon: Node?
         get() = graphic
         set(icon) = when {
             icon == null -> graphic = null
             PlatformUtil.isMac() -> graphic = null
-            // TODO: buggy; images are super blurry
+        // TODO: buggy; images are super blurry
 //                Platform.runLater {
 //                val offscreenScene = Scene(StackPane((icon)).addClass("platform-parent"))
 //                offscreenScene.stylesheets += "platform-icons.css".asResource()
