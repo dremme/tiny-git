@@ -1,20 +1,20 @@
 .dialog-pane > .label {
     -fx-min-width: 300px;
-    -fx-max-width: 400px;
+    /*-fx-max-width: 400px;*/
 }
 
 .text-input,
 .text-area {
     -fx-min-width: 300px;
-    -fx-max-width: 400px;
+    /*-fx-max-width: 400px;*/
 }
 
 .combo-box {
     -fx-min-width: 300px;
-    -fx-max-width: 400px;
+    /*-fx-max-width: 400px;*/
 }
 
 .combo-box-popup > .list-view {
     -fx-min-width: 300px;
-    -fx-max-width: 400px;
+    /*-fx-max-width: 400px;*/
 }

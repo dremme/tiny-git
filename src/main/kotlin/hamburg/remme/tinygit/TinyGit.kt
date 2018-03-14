@@ -24,6 +24,7 @@ import hamburg.remme.tinygit.git.gitSetKeychain
 import hamburg.remme.tinygit.git.gitSetWincred
 import hamburg.remme.tinygit.git.gitVersion
 import hamburg.remme.tinygit.gui.GitView
+import hamburg.remme.tinygit.gui.I18N
 import hamburg.remme.tinygit.gui.builder.fatalAlert
 import hamburg.remme.tinygit.gui.dialog.CredentialsDialog
 import javafx.application.Application
@@ -126,13 +127,13 @@ class TinyGit : Application() {
         // We terminate here because technical requirements for TinyGit aren't met
         if (PlatformUtil.isMac() || PlatformUtil.isUnix()) gitIsInstalled() // UNIX workaround
         if (!gitIsInstalled()) {
-            fatalAlert("Git Error", "Git is not installed or not in PATH.")
+            fatalAlert(I18N["error.gitError"], I18N["error.gitNotInstalled"])
             showDocument("https://git-scm.com/downloads")
             System.exit(-1)
             return
         }
         if (gitVersion().major < 2) {
-            fatalAlert("Git Error", "The installed Git client is out of date.\nPlease install the newest version.")
+            fatalAlert(I18N["error.gitError"], I18N["error.gitOutOfDate"])
             showDocument("https://git-scm.com/downloads")
             System.exit(-1)
             return

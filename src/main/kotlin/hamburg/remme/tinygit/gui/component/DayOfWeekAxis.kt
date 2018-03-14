@@ -23,7 +23,7 @@ class DayOfWeekAxis : Axis<DayOfWeek>() {
 
     override fun setRange(range: Any, animate: Boolean) = Unit
 
-    override fun getTickMarkLabel(dayOfWeek: DayOfWeek) = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ROOT)!!
+    override fun getTickMarkLabel(dayOfWeek: DayOfWeek) = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())!!
 
     override fun calculateTickValues(length: Double, range: Any) = DayOfWeek.values().toList().reversed()
 

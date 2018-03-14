@@ -36,7 +36,8 @@ class RebaseService : Refreshable {
         })
     }
 
-    fun `continue`(unresolvedHandler: () -> Unit) {
+    // continue is a keyword in Kotlin and `continue` is an ugly function name
+    fun doContinue(unresolvedHandler: () -> Unit) {
         TinyGit.execute("Rebasing...", object : Task<Unit>() {
             override fun call() = gitRebaseContinue(repository)
 

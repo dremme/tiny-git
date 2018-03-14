@@ -4,17 +4,22 @@ import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.addStylesheet
 import hamburg.remme.tinygit.gui.builder.hbox
+import hamburg.remme.tinygit.gui.builder.hgrow
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.textField
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.component.Icons
 import javafx.application.Platform
+import javafx.scene.layout.Priority
 import javafx.stage.Window
 
 class CmdDialog(repository: Repository, window: Window) : Dialog<Array<String>>(window, "Command") {
 
     init {
-        val input = textField { Platform.runLater { requestFocus() } }
+        val input = textField {
+            hgrow(Priority.ALWAYS)
+            Platform.runLater { requestFocus() }
+        }
 
         header = "Execute Git Command"
         graphic = Icons.terminal()
