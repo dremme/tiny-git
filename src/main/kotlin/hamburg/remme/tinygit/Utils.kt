@@ -7,6 +7,7 @@ import javafx.beans.property.IntegerProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.scene.control.Tooltip
+import javafx.scene.input.KeyCode
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -53,9 +54,11 @@ fun systemOffset() = ZoneId.systemDefault().rules.getOffset(Instant.now())!!
 
 fun localDateTime(epochSecond: Long) = LocalDateTime.ofEpochSecond(epochSecond, 0, systemOffset())!!
 
-fun LocalDate.atEndOfDay() = atTime(LocalTime.MAX)!!
+val LocalDate.startOfDay get() = atStartOfDay()!!
 
-fun LocalDate.atNoon() = atTime(LocalTime.NOON)!!
+val LocalDate.endOfDay get() = atTime(LocalTime.MAX)!!
+
+val LocalDate.noon get() = atTime(LocalTime.NOON)!!
 
 fun LocalDate.weeksBetween(date: LocalDate) = Math.abs(ChronoUnit.WEEKS.between(weeksOrigin, date)
         - ChronoUnit.WEEKS.between(weeksOrigin, this))
@@ -130,6 +133,8 @@ fun IntegerExpression.unequals0() = isNotEqualTo(0)!!
 fun IntegerExpression.greater0() = greaterThan(0)!!
 
 fun IntegerExpression.greater1() = greaterThan(1)!!
+
+val KeyCode.shortName get() = getName().substring(0, Math.min(3, getName().length))
 
 fun printError(message: String) {
     System.err.println(message)

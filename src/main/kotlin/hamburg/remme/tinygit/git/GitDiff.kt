@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.NumStat
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.startOfDay
 import java.time.LocalDate
 
 private val diff = arrayOf("diff", "--find-copies")
@@ -31,7 +32,7 @@ fun gitDiffNumstat(repository: Repository, from: Commit, to: Commit): List<NumSt
 
 fun gitBlame(repository: Repository, path: String, after: LocalDate): Map<String, Int> {
     val lines = mutableListOf<String>()
-    git(repository, *blame, "--after=\"${after.atStartOfDay()}\"", path) {
+    git(repository, *blame, "--after=\"${after.startOfDay}\"", path) {
         lineRegex.matchEntire(it)?.let { lines += it.groupValues[1] }
     }
     return lines.groupingBy { it }.eachCount()

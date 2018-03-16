@@ -1,8 +1,9 @@
 package hamburg.remme.tinygit.gui.component
 
-import hamburg.remme.tinygit.atEndOfDay
-import hamburg.remme.tinygit.atNoon
+import hamburg.remme.tinygit.endOfDay
 import hamburg.remme.tinygit.monthOfYearFormat
+import hamburg.remme.tinygit.noon
+import hamburg.remme.tinygit.startOfDay
 import hamburg.remme.tinygit.weeksBetween
 import javafx.scene.chart.Axis
 import java.time.LocalDate
@@ -44,7 +45,7 @@ class DayOfYearAxis : Axis<LocalDate>() {
 
     override fun getValueForDisplay(displayPosition: Double) = throw UnsupportedOperationException()
 
-    override fun isValueOnAxis(date: LocalDate) = date.atNoon().isAfter(firstDay.atStartOfDay()) && date.atNoon().isBefore(lastDay.atEndOfDay())
+    override fun isValueOnAxis(date: LocalDate) = date.noon.isAfter(firstDay.startOfDay) && date.noon.isBefore(lastDay.endOfDay)
 
     override fun getZeroPosition() = getDisplayPosition(firstDay)
 

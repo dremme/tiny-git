@@ -25,6 +25,7 @@ import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import hamburg.remme.tinygit.json
+import hamburg.remme.tinygit.shortName
 import hamburg.remme.tinygit.stripHome
 import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
@@ -93,13 +94,13 @@ class RepositoryView : VBoxBuilder() {
             val canDeleteStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
             val checkoutBranch = Action(I18N["repository.checkoutBranch"], { Icons.check() }, disable = canCheckout.not(),
                     handler = { checkout(treeSelection as Branch) })
-            val renameBranch = Action("${I18N["repository.renameBranch"]} (${renameKey.name})", { Icons.pencil() }, disable = canRenameBranch.not(),
+            val renameBranch = Action("${I18N["repository.renameBranch"]} (${renameKey.shortName})", { Icons.pencil() }, disable = canRenameBranch.not(),
                     handler = { renameBranch(treeSelection as Branch) })
-            val deleteBranch = Action("${I18N["repository.deleteBranch"]} (${deleteKey.name})", { Icons.trash() }, disable = canDeleteBranch.not(),
+            val deleteBranch = Action("${I18N["repository.deleteBranch"]} (${deleteKey.shortName})", { Icons.trash() }, disable = canDeleteBranch.not(),
                     handler = { deleteBranch(treeSelection as Branch) })
             val applyStash = Action(I18N["repository.applyStash"], { Icons.cube() }, disable = canApplyStash.not(),
                     handler = { applyStash(treeSelection as StashEntry) })
-            val deleteStash = Action("${I18N["repository.deleteStash"]} (${deleteKey.name})", { Icons.trash() }, disable = canDeleteStash.not(),
+            val deleteStash = Action("${I18N["repository.deleteStash"]} (${deleteKey.shortName})", { Icons.trash() }, disable = canDeleteStash.not(),
                     handler = { deleteStash(treeSelection as StashEntry) })
 
             contextMenu = contextMenu {

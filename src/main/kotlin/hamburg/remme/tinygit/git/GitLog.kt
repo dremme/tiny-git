@@ -1,11 +1,12 @@
 package hamburg.remme.tinygit.git
 
-import hamburg.remme.tinygit.atEndOfDay
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.CommitIsh
 import hamburg.remme.tinygit.domain.Divergence
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.endOfDay
 import hamburg.remme.tinygit.localDateTime
+import hamburg.remme.tinygit.startOfDay
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -36,7 +37,7 @@ fun gitLog(repository: Repository, all: Boolean, noMerges: Boolean, skip: Int, m
 
 fun gitLog(repository: Repository, after: LocalDate, before: LocalDate): List<Commit> {
     val parser = CommitParser()
-    git(repository, *logAll, "--after=\"${after.atStartOfDay()}\"", "--before=\"${before.atEndOfDay()}\"") { parser.parseLine(it) }
+    git(repository, *logAll, "--after=\"${after.startOfDay}\"", "--before=\"${before.endOfDay}\"") { parser.parseLine(it) }
     return parser.commits
 }
 
