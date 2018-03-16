@@ -24,7 +24,6 @@ import hamburg.remme.tinygit.git.gitSetKeychain
 import hamburg.remme.tinygit.git.gitSetWincred
 import hamburg.remme.tinygit.git.gitVersion
 import hamburg.remme.tinygit.gui.GitView
-import hamburg.remme.tinygit.gui.I18N
 import hamburg.remme.tinygit.gui.builder.fatalAlert
 import hamburg.remme.tinygit.gui.dialog.CredentialsDialog
 import javafx.application.Application

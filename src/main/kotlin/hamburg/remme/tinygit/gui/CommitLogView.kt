@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.service.CommitLogService
@@ -41,16 +42,17 @@ class CommitLogView : Tab() {
     private val graphSelection get() = graph.selectionModel.selectedItem
 
     init {
-        text = "Commit Log (beta)"
+        text = I18N["commitLog.tab"]
         graphic = Icons.list()
         isClosable = false
 
         // TODO: should be exposed and used in the menu bar as well?!
-        val checkoutCommit = Action("Checkout", { Icons.check() }, disable = state.canCheckoutCommit.not(),
+        val checkoutCommit = Action(I18N["commitLog.checkout"], { Icons.check() }, disable = state.canCheckoutCommit.not(),
                 handler = { checkoutCommit(graphSelection) })
-        val resetToCommit = Action("Reset", { Icons.refresh() }, disable = state.canResetToCommit.not(),
+        val resetToCommit = Action(I18N["commitLog.reset"], { Icons.refresh() }, disable = state.canResetToCommit.not(),
                 handler = { resetToCommit(graphSelection) })
-        val tagCommit = Action("Tag", { Icons.tag() }, disable = state.canTagCommit.not(),
+        // TODO
+        val tagCommit = Action(I18N["commitLog.tag"], { Icons.tag() }, disable = state.canTagCommit.not(),
                 handler = { tagCommit(graphSelection) })
 
         graph.items.addListener(ListChangeListener { graph.selectionModel.selectedItem ?: graph.selectionModel.selectFirst() })
@@ -101,23 +103,23 @@ class CommitLogView : Tab() {
                 +stackPane {
                     addClass("overlay")
                     visibleWhen(Bindings.isEmpty(graph.items))
-                    +Text("There are no commits.")
+                    +Text(I18N["commitLog.noCommits"])
                 }
             }
         }
 
         logService.logListener = indicator
-        logService.logErrorHandler = { errorAlert(window, "Cannot Fetch From Remote", "Please check the repository settings.\nCredentials or proxy settings may have changed.") }
+        logService.logErrorHandler = { errorAlert(window, I18N["dialog.cannotFetch.header"], I18N["dialog.cannotFetch.text"]) }
     }
 
     private fun checkoutCommit(commit: Commit) {
         branchService.checkoutCommit(
                 commit,
-                { errorAlert(window, "Cannot Checkout Commit", "There are local changes that would be overwritten by checkout.\nCommit or stash them.") })
+                { errorAlert(window, I18N["dialog.cannotCheckout.header"], I18N["dialog.cannotCheckout.text"]) })
     }
 
     private fun resetToCommit(commit: Commit) {
-        if (!confirmWarningAlert(window, "Reset Branch", "Reset", "This will reset the current branch to '${commit.shortId}'.\nAll uncommitted changes will be lost.")) return
+        if (!confirmWarningAlert(window, I18N["dialog.resetBranch.header"], I18N["dialog.resetBranch.button"], I18N["dialog.resetBranch.text", commit.shortId])) return
         branchService.reset(commit)
     }
 
@@ -135,7 +137,7 @@ class CommitLogView : Tab() {
             spacing = 6.0
             alignment = Pos.CENTER
             +progressIndicator(6.0)
-            +label { +"Fetching..." }
+            +label { +"${I18N["commitLog.fetching"]}..." }
         }
 
         override fun started() = visible.set(true)

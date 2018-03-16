@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.htmlEncodeAll
 
 // TODO: implement word diff
@@ -74,10 +75,10 @@ class DiffRenderer {
             when {
                 line.startsWith("+++") -> return this
                 line.startsWith("---") -> return this
-                line.startsWith("* Unmerged path") -> parseInfo("@@ Unmerged path @@")
-                line.startsWith("Binary files") -> parseInfo("@@ Binary file @@")
-                line.startsWith("warning: LF will be replaced") -> parseInfo("@@ Line endings will be changed @@")
-                line.startsWith("warning: CRLF will be replaced") -> parseInfo("@@ Line endings will be changed @@")
+                line.startsWith("* Unmerged path") -> parseInfo("@@ ${I18N["fileDiff.unmerged"]} @@")
+                line.startsWith("Binary files") -> parseInfo("@@ ${I18N["fileDiff.binary"]} @@")
+                line.startsWith("warning: LF will be replaced") -> parseInfo("@@ ${I18N["fileDiff.lineEndings"]} @@")
+                line.startsWith("warning: CRLF will be replaced") -> parseInfo("@@ ${I18N["fileDiff.lineEndings"]} @@")
                 line.startsWith('@') -> parseHead(line)
                 line.startsWith('+') -> parseLineAdded(line)
                 line.startsWith('-') -> parseLineRemoved(line)
@@ -89,7 +90,7 @@ class DiffRenderer {
         }
 
         override fun toString(): String {
-            if (builder.toString().isBlank()) parseInfo("@@ No changes or binary file @@")
+            if (builder.toString().isBlank()) parseInfo("@@ ${I18N["fileDiff.noChanges"]} @@")
             return builder.toString()
         }
 

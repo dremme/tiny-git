@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.label
@@ -15,56 +16,56 @@ class StatusCountView(items: ObservableList<File>) : HBox() {
     private val conflicting = label {
         addClass("status-conflict")
         managedWhen(visibleProperty())
-        tooltip = Tooltip("Conflicting")
+        tooltip = Tooltip(I18N["status.conflicting"])
         isVisible = false
         +FileStatusView.conflictIcon()
     }
     private val added = label {
         addClass("status-added")
         managedWhen(visibleProperty())
-        tooltip = Tooltip("Added")
+        tooltip = Tooltip(I18N["status.added"])
         isVisible = false
         +FileStatusView.addedIcon()
     }
     private val copied = label {
         addClass("status-copied")
         managedWhen(visibleProperty())
-        tooltip = Tooltip("Copied")
+        tooltip = Tooltip(I18N["status.copied"])
         isVisible = false
         +FileStatusView.copiedIcon()
     }
     private val renamed = label {
         addClass("status-renamed")
         managedWhen(visibleProperty())
-        tooltip = Tooltip("Renamed")
+        tooltip = Tooltip(I18N["status.renamed"])
         isVisible = false
         +FileStatusView.renamedIcon()
     }
     private val modified = label {
         addClass("status-modified")
         managedWhen(visibleProperty())
-        tooltip = Tooltip("Modified")
+        tooltip = Tooltip(I18N["status.modified"])
         isVisible = false
         +FileStatusView.modifiedIcon()
     }
     private val removed = label {
         addClass("status-removed")
         managedWhen(visibleProperty())
-        tooltip = Tooltip("Removed")
+        tooltip = Tooltip(I18N["status.removed"])
         isVisible = false
         +FileStatusView.removedIcon()
     }
     private val missing = label {
         addClass("status-missing")
         managedWhen(visibleProperty())
-        tooltip = Tooltip("Missing")
+        tooltip = Tooltip(I18N["status.missing"])
         isVisible = false
         +FileStatusView.missingIcon()
     }
     private val untracked = label {
         addClass("status-untracked")
         managedWhen(visibleProperty())
-        tooltip = Tooltip("Untracked")
+        tooltip = Tooltip(I18N["status.untracked"])
         isVisible = false
         +FileStatusView.untrackedIcon()
     }

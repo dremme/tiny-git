@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui
 
 import com.sun.javafx.PlatformUtil
 import de.codecentric.centerdevice.MenuToolkit
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.git.defaultBranches
 import hamburg.remme.tinygit.git.git
@@ -337,7 +338,7 @@ class GitView : VBoxBuilder() {
         val message = commits.joinToString("\n") { "# ${it.shortId}\n${it.fullMessage}" } // TODO: too many newlines
         val baseId = commits.last().parents[0].id
         textAreaDialog(window, I18N["dialog.autoSquash.header"], I18N["dialog.autoSquash.button"], Icons.gavel(), message,
-                I18N["dialog.autoSquash.text", commits.size.toString()]) {
+                "${I18N["dialog.autoSquash.text", commits.size.toString()]}:") {
             branchService.autoSquash(baseId, it)
         }
     }

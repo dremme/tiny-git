@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.File
@@ -85,7 +86,7 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
 
         override fun updateItem(item: Int?, empty: Boolean) {
             super.updateItem(item, empty)
-            text = item?.let { "$it lines" }
+            text = item?.let { I18N["fileDiff.lines", it] }
         }
 
     }

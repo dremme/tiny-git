@@ -11,6 +11,7 @@ class CredentialService {
 
     lateinit var credentialHandler: (String) -> Credentials?
 
+    // TODO: ssh / ssh-add functionality
     // TODO: refactor this to beauty
     fun applyCredentials(remote: String) {
         if (remote.isNotBlank() && remote.startsWith("http")) {

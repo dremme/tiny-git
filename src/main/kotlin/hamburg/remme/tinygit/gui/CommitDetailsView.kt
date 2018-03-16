@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.gui.builder.SplitPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -37,7 +38,7 @@ class CommitDetailsView : SplitPaneBuilder() {
                 +stackPane {
                     addClass("overlay")
                     visibleWhen(Bindings.isEmpty(files.items))
-                    +Text("This commit has no changes.")
+                    +Text(I18N["commitDetails.noChanges"])
                 }
             }
         }

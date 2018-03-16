@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.gui
 
 import com.sun.javafx.PlatformUtil
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.domain.Branch
@@ -68,10 +69,10 @@ class RepositoryView : VBoxBuilder() {
             }
         }
 
-        val localBranches = RootTreeItem(Icons.hdd(), "Local Branches")
-        val remoteBranches = RootTreeItem(Icons.cloud(), "Remote Branches")
-        val tags = RootTreeItem(Icons.tags(), "Tags")
-        val stash = RootTreeItem(Icons.cubes(), "Stash")
+        val localBranches = RootTreeItem(Icons.hdd(), I18N["repository.localBranches"])
+        val remoteBranches = RootTreeItem(Icons.cloud(), I18N["repository.remoteBranches"])
+        val tags = RootTreeItem(Icons.tags(), I18N["repository.tags"])
+        val stash = RootTreeItem(Icons.cubes(), I18N["repository.stash"])
 
         tree = tree {
             vgrow(Priority.ALWAYS)
@@ -82,20 +83,23 @@ class RepositoryView : VBoxBuilder() {
             +tags
             +stash
 
+            val renameKey = KeyCode.R
+            val deleteKey = KeyCode.DELETE
+
             val canCheckout = Bindings.createBooleanBinding(Callable { treeSelection.isBranch() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
             val canRenameBranch = Bindings.createBooleanBinding(Callable { treeSelection.isLocal() }, selectionModel.selectedItemProperty())
             val canDeleteBranch = Bindings.createBooleanBinding(Callable { treeSelection.isLocal() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
             val canApplyStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
             val canDeleteStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
-            val checkoutBranch = Action("Checkout Branch", { Icons.check() }, disable = canCheckout.not(),
+            val checkoutBranch = Action(I18N["repository.checkoutBranch"], { Icons.check() }, disable = canCheckout.not(),
                     handler = { checkout(treeSelection as Branch) })
-            val renameBranch = Action("Rename Branch (R)", { Icons.pencil() }, disable = canRenameBranch.not(),
+            val renameBranch = Action("${I18N["repository.renameBranch"]} (${renameKey.name})", { Icons.pencil() }, disable = canRenameBranch.not(),
                     handler = { renameBranch(treeSelection as Branch) })
-            val deleteBranch = Action("Delete Branch (Del)", { Icons.trash() }, disable = canDeleteBranch.not(),
+            val deleteBranch = Action("${I18N["repository.deleteBranch"]} (${deleteKey.name})", { Icons.trash() }, disable = canDeleteBranch.not(),
                     handler = { deleteBranch(treeSelection as Branch) })
-            val applyStash = Action("Apply Stash", { Icons.cube() }, disable = canApplyStash.not(),
+            val applyStash = Action(I18N["repository.applyStash"], { Icons.cube() }, disable = canApplyStash.not(),
                     handler = { applyStash(treeSelection as StashEntry) })
-            val deleteStash = Action("Delete Stash (Del)", { Icons.trash() }, disable = canDeleteStash.not(),
+            val deleteStash = Action("${I18N["repository.deleteStash"]} (${deleteKey.name})", { Icons.trash() }, disable = canDeleteStash.not(),
                     handler = { deleteStash(treeSelection as StashEntry) })
 
             contextMenu = contextMenu {
@@ -105,8 +109,8 @@ class RepositoryView : VBoxBuilder() {
             }
             setOnKeyPressed {
                 if (!it.isShortcutDown) when (it.code) {
-                    KeyCode.R -> if (canRenameBranch.get()) renameBranch(treeSelection as Branch)
-                    KeyCode.DELETE -> {
+                    renameKey -> if (canRenameBranch.get()) renameBranch(treeSelection as Branch)
+                    deleteKey -> {
                         if (canDeleteBranch.get()) deleteBranch(treeSelection as Branch)
                         if (canDeleteStash.get()) deleteStash(treeSelection as StashEntry)
                     }
@@ -159,11 +163,11 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun renameBranch(branch: Branch) {
-        textInputDialog(window, "Enter a New Branch Name", "Rename", Icons.pencil(), branch.name) { name ->
+        textInputDialog(window, I18N["dialog.renameBranch.header"], I18N["dialog.renameBranch.button"], Icons.pencil(), branch.name) { name ->
             branchService.rename(
                     branch,
                     name,
-                    { errorAlert(window, "Cannot Create Branch", "Branch '$name' does already exist in the working copy.") })
+                    { errorAlert(window, I18N["dialog.cannotRenameBranch.header"], I18N["dialog.cannotRenameBranch.text", name]) })
         }
     }
 
@@ -172,7 +176,7 @@ class RepositoryView : VBoxBuilder() {
                 branch,
                 false,
                 {
-                    if (confirmWarningAlert(window, "Delete Branch", "Delete", "Branch '$branch' was not deleted as it has unpushed commits.\n\nForce deletion?")) {
+                    if (confirmWarningAlert(window, I18N["dialog.deleteBranch.header"], I18N["dialog.deleteBranch.button"], I18N["dialog.cannotDeleteBranch.text", branch])) {
                         branchService.delete(branch, true)
                     }
                 })
@@ -185,23 +189,22 @@ class RepositoryView : VBoxBuilder() {
     private fun checkoutLocal(branch: Branch) {
         branchService.checkoutLocal(
                 branch,
-                { errorAlert(window, "Cannot Switch Branches", "There are local changes that would be overwritten by checkout.\nCommit or stash them.") })
+                { errorAlert(window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) })
     }
 
     private fun checkoutRemote(branch: Branch) {
         branchService.checkoutRemote(
                 branch,
-                { errorAlert(window, "Cannot Switch Branches", "There are local changes that would be overwritten by checkout.\nCommit or stash them.") })
+                { errorAlert(window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) })
     }
 
     private fun applyStash(stashEntry: StashEntry) {
-        stashService.apply(stashEntry, { errorAlert(window, "Cannot Apply Stash", "Applying stashed changes resulted in a conflict.") })
+        stashService.apply(stashEntry, { errorAlert(window, I18N["dialog.cannotApply.header"], I18N["dialog.cannotApply.text"]) })
     }
 
     private fun deleteStash(stashEntry: StashEntry) {
-        if (confirmWarningAlert(window, "Delete Stash Entry", "Delete", "Stash entry '$stashEntry' cannot be restored.")) {
-            stashService.drop(stashEntry)
-        }
+        if (!confirmWarningAlert(window, I18N["dialog.deleteStash.header"], I18N["dialog.deleteStash.button"], I18N["dialog.deleteStash.text", stashEntry])) return
+        stashService.drop(stashEntry)
     }
 
     private fun Any?.isBranch() = this is Branch

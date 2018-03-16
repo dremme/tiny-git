@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.dateTimeFormat
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.htmlEncode
@@ -47,10 +48,10 @@ class DetailsRenderer {
             </head>
             <body>
                 <table>
-                    <tr><td class="label">Commit:</td><td>${commit.id} [${commit.shortId}]</td></tr>
-                    <tr><td class="label">Parents:</td><td>${commit.shortParents.joinToString()}</td></tr>
-                    <tr><td class="label">Author:</td><td>${commit.author.htmlEncode()}</td></tr>
-                    <tr><td class="label">Date:</td><td>${commit.date.format(dateTimeFormat)}</td></tr>
+                    <tr><td class="label">${I18N["commitDetails.commit"]}:</td><td>${commit.id} [${commit.shortId}]</td></tr>
+                    <tr><td class="label">${I18N["commitDetails.parents"]}:</td><td>${commit.shortParents.joinToString()}</td></tr>
+                    <tr><td class="label">${I18N["commitDetails.author"]}:</td><td>${commit.author.htmlEncode()}</td></tr>
+                    <tr><td class="label">${I18N["commitDetails.date"]}:</td><td>${commit.date.format(dateTimeFormat)}</td></tr>
                     <tr><td colspan="2"><br/>${commit.fullMessage.htmlEncodeAll().replace("\r?\n".toRegex(), "<br/>")}</td></tr>
                 </table>
             </body>
