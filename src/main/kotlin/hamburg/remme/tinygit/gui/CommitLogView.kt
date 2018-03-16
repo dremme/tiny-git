@@ -137,7 +137,7 @@ class CommitLogView : Tab() {
             spacing = 6.0
             alignment = Pos.CENTER
             +progressIndicator(6.0)
-            +label { +"${I18N["commitLog.fetching"]}..." }
+            +label { +I18N["commitLog.fetching"] }
         }
 
         override fun started() = visible.set(true)

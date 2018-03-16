@@ -8,13 +8,8 @@ import hamburg.remme.tinygit.git.gitDiffNumstat
 import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.observableList
 import hamburg.remme.tinygit.takeHighest
-import javafx.animation.Interpolator
-import javafx.animation.KeyFrame
-import javafx.animation.KeyValue
-import javafx.animation.Timeline
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.concurrent.Task
-import javafx.util.Duration
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Year
@@ -43,26 +38,17 @@ class StatsService {
     private val lastDay = LocalDate.now()
     private val firstDay = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)
     private val taskPool = mutableSetOf<Task<*>>()
-    private val linesTimeline = Timeline()
-    private val authorsTimeline = Timeline()
-    private val filesTimeline = Timeline()
 
     fun updateNumberOfAuthors() {
-        authorsTimeline.stop()
-        authorsTimeline.keyFrames.setAll(KeyFrame(Duration.millis(1000.0), KeyValue(numberOfAuthors, log.distinctBy { it.authorMail.toLowerCase() }.size, Interpolator.EASE_OUT)))
-        authorsTimeline.play()
+        numberOfAuthors.set(log.distinctBy { it.authorMail.toLowerCase() }.size)
     }
 
     fun updateNumberOfFiles() {
-        filesTimeline.stop()
-        filesTimeline.keyFrames.setAll(KeyFrame(Duration.millis(1000.0), KeyValue(numberOfFiles, numStat.size, Interpolator.EASE_OUT)))
-        filesTimeline.play()
+        numberOfFiles.set(numStat.size)
     }
 
     fun updateNumberOfLines() {
-        linesTimeline.stop()
-        linesTimeline.keyFrames.setAll(KeyFrame(Duration.millis(1000.0), KeyValue(numberOfLines, numStat.sumBy { it.added + it.removed }, Interpolator.EASE_OUT)))
-        linesTimeline.play()
+        numberOfLines.set(numStat.sumBy { it.added + it.removed })
     }
 
     fun updateActivity() {

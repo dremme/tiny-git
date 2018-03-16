@@ -38,29 +38,29 @@ object I18N {
     operator fun get(key: String) = bundle[key]
 
     /**
-     * Get the message property [key] formatted with [args].
-     *
-     * @throws NullPointerException if [key] is not present in the message bundle
-     */
-    operator fun get(key: String, vararg args: Any) = format(bundle[key], *args)
-
-    /**
      * Get the message property [key] formatted with [count] as choice and `{0}`.
      *
      * @throws NullPointerException if [key] is not present in the message bundle
      */
-    operator fun get(key: String, count: Int) = format(choose(bundle[key], count), count)
+    operator fun get(key: String, count: Number) = format(choose(bundle[key], count), count)
 
     /**
      * Get the message property [key] formatted with [count] as choice and `{0}` and [args] starting with `{1}`.
      *
      * @throws NullPointerException if [key] is not present in the message bundle
      */
-    operator fun get(key: String, count: Int, vararg args: Any) = format(choose(bundle[key], count), count, *args)
+    operator fun get(key: String, count: Number, vararg args: Any) = format(choose(bundle[key], count), count, *args)
+
+    /**
+     * Get the message property [key] formatted with [args].
+     *
+     * @throws NullPointerException if [key] is not present in the message bundle
+     */
+    operator fun get(key: String, vararg args: Any) = format(bundle[key], *args)
 
     private fun format(template: String, vararg args: Any) = MessageFormat.format(template.replace("'", "''"), *args)!!
 
-    private fun choose(template: String, count: Int) = ChoiceFormat(template).format(count)!!
+    private fun choose(template: String, count: Number) = ChoiceFormat(template).format(count)!!
 
     private operator fun ResourceBundle.get(key: String) = getString(key)!!
 

@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.service.TaskListener
 import hamburg.remme.tinygit.gui.builder.StackPaneBuilder
@@ -21,7 +22,14 @@ import hamburg.remme.tinygit.gui.component.DayOfYearAxis
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.observableList
 import hamburg.remme.tinygit.shortDateFormat
+import javafx.animation.Interpolator
+import javafx.animation.KeyFrame
+import javafx.animation.KeyValue
+import javafx.animation.Timeline
+import javafx.beans.binding.Bindings
+import javafx.beans.property.IntegerProperty
 import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.SimpleIntegerProperty
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.scene.Node
@@ -32,8 +40,10 @@ import javafx.scene.chart.XYChart
 import javafx.scene.control.Tab
 import javafx.scene.control.Tooltip
 import javafx.scene.layout.Priority
+import javafx.util.Duration
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.util.concurrent.Callable
 import javafx.scene.chart.PieChart.Data as PieData
 import javafx.scene.chart.XYChart.Data as XYData
 import javafx.scene.chart.XYChart.Series as XYSeries
@@ -48,9 +58,15 @@ class StatsView : Tab() {
     private val activityData = observableList<XYData<LocalDate, DayOfWeek>>()
     private val linesAddedData = observableList<XYData<LocalDate, Number>>()
     private val linesRemovedData = observableList<XYData<LocalDate, Number>>()
+    private val numberOfAuthors = SimpleIntegerProperty()
+    private val numberOfFiles = SimpleIntegerProperty()
+    private val numberOfLines = SimpleIntegerProperty()
+    private val linesTimeline = Timeline()
+    private val authorsTimeline = Timeline()
+    private val filesTimeline = Timeline()
 
     init {
-        text = "Statistics (beta)"
+        text = I18N["stats.tab"]
         graphic = Icons.chartPie()
         isClosable = false
 
@@ -60,9 +76,12 @@ class StatsView : Tab() {
         statsService.activityData.addListener(ListChangeListener { updateActivity(it.list) })
         statsService.linesAddedData.addListener(ListChangeListener { linesAddedData.setAll(it.list) })
         statsService.linesRemovedData.addListener(ListChangeListener { linesRemovedData.setAll(it.list) })
+        statsService.numberOfAuthors.addListener { _, _, it -> authorsTimeline.play(numberOfAuthors, it.toInt()) }
+        statsService.numberOfFiles.addListener { _, _, it -> filesTimeline.play(numberOfFiles, it.toInt()) }
+        statsService.numberOfLines.addListener { _, _, it -> linesTimeline.play(numberOfLines, it.toInt()) }
 
         val contributions = PieChart(contributorsData)
-        contributions.title = "Top Contributors"
+        contributions.title = I18N["stats.contributors"]
         contributions.labelsVisible = false
         val contributionIndicator = ProgressIndicator(contributions)
         statsService.contributorsListener = contributionIndicator
@@ -76,7 +95,7 @@ class StatsView : Tab() {
         val commits = StackedAreaChart<LocalDate, Number>(DayOfYearAxis(), NumberAxis().apply { isMinorTickVisible = false }, commitsData)
         commits.addClass("contributors")
         commits.prefHeight = 300.0
-        commits.title = "Weekly Contributors"
+        commits.title = I18N["stats.weeklyContributors"]
         commits.createSymbols = false
         commits.isHorizontalZeroLineVisible = false
         commits.isVerticalZeroLineVisible = false
@@ -85,16 +104,16 @@ class StatsView : Tab() {
 
         val activity = CalendarChart(activityData)
         activity.prefHeight = 250.0
-        activity.title = "Daily Activity"
+        activity.title = I18N["stats.activity"]
         val activityIndicator = ProgressIndicator(activity).columnSpan(2)
         statsService.activityListener = activityIndicator
 
         val lines = StackedAreaChart<LocalDate, Number>(
                 DayOfYearAxis(), NumberAxis().apply { isMinorTickVisible = false },
-                observableList(XYChart.Series("Removed", linesRemovedData), XYChart.Series("Added", linesAddedData)))
+                observableList(XYChart.Series(I18N["stats.removed"], linesRemovedData), XYChart.Series(I18N["stats.added"], linesAddedData)))
         lines.addClass("lines-of-code")
         lines.prefHeight = 250.0
-        lines.title = "Lines of Code by Month"
+        lines.title = I18N["stats.loc"]
         lines.createSymbols = false
         lines.isHorizontalZeroLineVisible = false
         lines.isVerticalZeroLineVisible = false
@@ -106,7 +125,7 @@ class StatsView : Tab() {
                 addSpacer()
                 +button {
                     graphic = Icons.refresh()
-                    tooltip = Tooltip("Refresh Stats")
+                    tooltip = Tooltip(I18N["stats.refresh"])
                     setOnAction { statsService.update(repoService.activeRepository.get()!!) }
                 }
                 +comboBox<CalendarChart.Period> {
@@ -129,26 +148,26 @@ class StatsView : Tab() {
                                 +vbox {
                                     +label {
                                         addClass("header")
-                                        textProperty().bind(statsService.numberOfAuthors.asString().concat(" authors"))
+                                        textProperty().bind(Bindings.createStringBinding(Callable { I18N["stats.authors", numberOfAuthors.get()] }, numberOfAuthors))
                                         +Icons.user()
                                     }
-                                    +label { +"...who pushed commits" }
+                                    +label { +"...${I18N["stats.headAuthors"]}" }
                                 }
                                 +vbox {
                                     +label {
                                         addClass("header")
-                                        textProperty().bind(statsService.numberOfFiles.asString().concat(" files"))
+                                        textProperty().bind(Bindings.createStringBinding(Callable { I18N["stats.files", numberOfFiles.get()] }, numberOfFiles))
                                         +Icons.file()
                                     }
-                                    +label { +"...tracked by Git" }
+                                    +label { +"...${I18N["stats.headFiles"]}" }
                                 }
                                 +vbox {
                                     +label {
                                         addClass("header")
-                                        textProperty().bind(statsService.numberOfLines.asString().concat(" lines"))
+                                        textProperty().bind(Bindings.createStringBinding(Callable { I18N["stats.lines", numberOfLines.get()] }, numberOfLines))
                                         +Icons.code()
                                     }
-                                    +label { +"...that have been touched" }
+                                    +label { +"...${I18N["stats.headLines"]}" }
                                 }
                             },
                             contributionIndicator,
@@ -172,12 +191,12 @@ class StatsView : Tab() {
 
     private fun updateActivity(data: List<XYData<LocalDate, DayOfWeek>>) {
         activityData.setAll(data)
-        activityData.tooltip { x, _, z -> "${x.format(shortDateFormat)} ($z commits)" }
+        activityData.tooltip { x, _, z -> "${x.format(shortDateFormat)} (${I18N["stats.commits", z as Int]})" }
     }
 
     private fun updateContributions(data: List<PieData>) {
         contributorsData.pieUpsert(data)
-        contributorsData.tooltip { name, value -> "$name ($value commits)" }
+        contributorsData.tooltip { name, value -> "$name (${I18N["stats.commits", value]})" }
     }
 
     private fun updateCommits(data: List<XYSeries<LocalDate, Number>>) {
@@ -187,7 +206,7 @@ class StatsView : Tab() {
 
     private fun updateFiles(data: List<PieData>) {
         filesData.pieUpsert(data)
-        filesData.tooltip { name, value -> "$name ($value files)" }
+        filesData.tooltip { name, value -> "$name (${I18N["stats.files", value]})" }
     }
 
     private fun ObservableList<PieData>.pieUpsert(data: List<PieData>) {
@@ -235,6 +254,12 @@ class StatsView : Tab() {
             Tooltip.uninstall(it.node, null)
             Tooltip.install(it.node, Tooltip(block.invoke(it.xValue, it.yValue, it.extraValue)))
         }
+    }
+
+    private fun Timeline.play(property: IntegerProperty, value: Int) {
+        stop()
+        keyFrames.setAll(KeyFrame(Duration.millis(1000.0), KeyValue(property, value, Interpolator.EASE_OUT)))
+        play()
     }
 
     private class ProgressIndicator(content: Node) : StackPaneBuilder(), TaskListener {
