@@ -1,8 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.TinyGit
-import hamburg.remme.tinygit.git.gitHeadMessage
-import hamburg.remme.tinygit.git.gitMergeMessage
 import hamburg.remme.tinygit.gui.FileDiffView
 import hamburg.remme.tinygit.gui.FileStatusView
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -20,7 +18,6 @@ import javafx.stage.Window
 class CommitDialog(window: Window)
     : Dialog<Unit>(window, if (TinyGit.mergeService.isMerging.get()) "Merge Commit" else "New Commit", true) {
 
-    private val repoService = TinyGit.repositoryService
     private val mergeService = TinyGit.mergeService
     private val commitService = TinyGit.commitService
     private val workingService = TinyGit.workingCopyService
@@ -34,17 +31,15 @@ class CommitDialog(window: Window)
         val message = textArea {
             promptText = "Enter commit message"
             prefHeight = 100.0
-            textProperty().bindBidirectional(workingService.message)
+            textProperty().bindBidirectional(commitService.message)
             Platform.runLater { requestFocus() }
         }
-        if (mergeService.isMerging.get() && message.text.isNullOrBlank()) message.text = gitMergeMessage(repoService.activeRepository.get()!!)
+        if (mergeService.isMerging.get()) commitService.setMergeMessage()
 
         val fileDiff = FileDiffView(files.selectionModel.selectedItemProperty())
         val amend = checkBox {
             text = "Amend last commit."
-            selectedProperty().addListener { _, _, it ->
-                if (it && message.text.isNullOrBlank()) message.text = gitHeadMessage(repoService.activeRepository.get()!!)
-            }
+            selectedProperty().addListener { _, _, it -> if (it) commitService.setHeadMessage() }
         }
 
         content = vbox {

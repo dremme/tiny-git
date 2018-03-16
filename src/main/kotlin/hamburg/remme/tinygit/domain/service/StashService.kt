@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
@@ -21,7 +22,7 @@ class StashService : Refreshable {
     private var task: Task<*>? = null
 
     fun create() {
-        TinyGit.execute("Stashing files...", object : Task<Unit>() {
+        TinyGit.execute(I18N["stash.create"], object : Task<Unit>() {
             override fun call() = gitStash(repository)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -31,7 +32,7 @@ class StashService : Refreshable {
     }
 
     fun apply(stashEntry: StashEntry, conflictHandler: () -> Unit) {
-        TinyGit.execute("Applying stash entry...", object : Task<Unit>() {
+        TinyGit.execute(I18N["stash.apply"], object : Task<Unit>() {
             override fun call() = gitStashApply(repository, stashEntry)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -49,7 +50,7 @@ class StashService : Refreshable {
     }
 
     fun pop(conflictHandler: () -> Unit) {
-        TinyGit.execute("Applying stash entry...", object : Task<Unit>() {
+        TinyGit.execute(I18N["stash.pop"], object : Task<Unit>() {
             override fun call() = gitStashPop(repository)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -67,7 +68,7 @@ class StashService : Refreshable {
     }
 
     fun drop(stashEntry: StashEntry) {
-        TinyGit.execute("Dropping stash entry...", object : Task<Unit>() {
+        TinyGit.execute(I18N["stash.drop"], object : Task<Unit>() {
             override fun call() = gitStashDrop(repository, stashEntry)
 
             override fun succeeded() = TinyGit.fireEvent()

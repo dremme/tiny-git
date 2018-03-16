@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.domain.Commit
@@ -117,7 +118,7 @@ class CommitLogService(private val repositoryService: RepositoryService,
 
     enum class Scope(val isAll: Boolean, private val description: String) {
 
-        ALL(true, "All Branches"), CURRENT(false, "Current Branch Only");
+        ALL(true, I18N["commitLog.allBranches"]), CURRENT(false, I18N["commitLog.currentOnly"]);
 
         override fun toString() = description
 
@@ -125,7 +126,7 @@ class CommitLogService(private val repositoryService: RepositoryService,
 
     enum class CommitType(val isNoMerges: Boolean, private val description: String) {
 
-        ALL(false, "All Commits"), NO_MERGE_COMMITS(true, "No Merges");
+        ALL(false, I18N["commitLog.allCommits"]), NO_MERGE_COMMITS(true, I18N["commitLog.noMerges"]);
 
         override fun toString() = description
 

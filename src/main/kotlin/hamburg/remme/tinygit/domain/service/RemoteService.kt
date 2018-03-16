@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.BranchBehindException
@@ -18,7 +19,7 @@ class RemoteService(private val repositoryService: RepositoryService,
 
     fun push(force: Boolean, behindHandler: () -> Unit, timeoutHandler: () -> Unit) {
         credentialService.applyCredentials(repositoryService.remote.get())
-        TinyGit.execute("Pushing commits...", object : Task<Unit>() {
+        TinyGit.execute(I18N["remote.push"], object : Task<Unit>() {
             override fun call() = gitPush(repository, force)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -35,7 +36,7 @@ class RemoteService(private val repositoryService: RepositoryService,
 
     fun fetch() {
         credentialService.applyCredentials(repositoryService.remote.get())
-        TinyGit.execute("Fetching...", object : Task<Unit>() {
+        TinyGit.execute(I18N["remote.fetch"], object : Task<Unit>() {
             override fun call() = gitFetchPrune(repository)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -46,7 +47,7 @@ class RemoteService(private val repositoryService: RepositoryService,
 
     fun pull(errorHandler: (String) -> Unit, conflictHandler: () -> Unit, timeoutHandler: () -> Unit) {
         credentialService.applyCredentials(repositoryService.remote.get())
-        TinyGit.execute("Pulling commits...", object : Task<Unit>() {
+        TinyGit.execute(I18N["remote.pull"], object : Task<Unit>() {
             override fun call() = gitPull(repository)
 
             override fun succeeded() = TinyGit.fireEvent()

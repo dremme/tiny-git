@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
@@ -22,7 +23,7 @@ class RebaseService : Refreshable {
     private lateinit var repository: Repository
 
     fun rebase(branch: Branch, errorHandler: (String) -> Unit) {
-        TinyGit.execute("Rebasing...", object : Task<Unit>() {
+        TinyGit.execute(I18N["rebase.rebasing"], object : Task<Unit>() {
             override fun call() = gitRebase(repository, branch)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -38,7 +39,7 @@ class RebaseService : Refreshable {
 
     // continue is a keyword in Kotlin and `continue` is an ugly function name
     fun doContinue(unresolvedHandler: () -> Unit) {
-        TinyGit.execute("Rebasing...", object : Task<Unit>() {
+        TinyGit.execute(I18N["rebase.rebasing"], object : Task<Unit>() {
             override fun call() = gitRebaseContinue(repository)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -53,7 +54,7 @@ class RebaseService : Refreshable {
     }
 
     fun abort() {
-        TinyGit.execute("Aborting...", object : Task<Unit>() {
+        TinyGit.execute(I18N["rebase.abort"], object : Task<Unit>() {
             override fun call() = gitRebaseAbort(repository)
 
             override fun succeeded() = TinyGit.fireEvent()

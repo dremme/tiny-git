@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
@@ -17,7 +18,7 @@ class MergeService : Refreshable {
     private lateinit var repository: Repository
 
     fun merge(branch: Branch, conflictHandler: () -> Unit, errorHandler: () -> Unit) {
-        TinyGit.execute("Merging...", object : Task<Unit>() {
+        TinyGit.execute(I18N["merge.merging"], object : Task<Unit>() {
             override fun call() = gitMerge(repository, branch)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -36,7 +37,7 @@ class MergeService : Refreshable {
     }
 
     fun abort() {
-        TinyGit.execute("Aborting...", object : Task<Unit>() {
+        TinyGit.execute(I18N["merge.abort"], object : Task<Unit>() {
             override fun call() = gitMergeAbort(repository)
 
             override fun succeeded() = TinyGit.fireEvent()

@@ -15,7 +15,6 @@ import hamburg.remme.tinygit.git.gitRemove
 import hamburg.remme.tinygit.git.gitReset
 import hamburg.remme.tinygit.git.gitStatus
 import hamburg.remme.tinygit.observableList
-import javafx.beans.property.SimpleStringProperty
 import javafx.concurrent.Task
 
 class WorkingCopyService : Refreshable {
@@ -25,7 +24,6 @@ class WorkingCopyService : Refreshable {
     val modifiedPending = pending.filtered { it.status != File.Status.ADDED }!!
     val selectedStaged = observableList<File>()
     val selectedPending = observableList<File>()
-    val message = SimpleStringProperty()
     private lateinit var repository: Repository
     private var task: Task<*>? = null // TODO: needed?
 

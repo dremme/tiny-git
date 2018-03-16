@@ -76,7 +76,7 @@ class TinyGit : Application() {
         val stashService = StashService().addListeners()
         val commitLogService = CommitLogService(repositoryService, credentialService).addListeners()
         val commitDetailsService = CommitDetailsService(commitLogService).addListeners()
-        val commitService = CommitService(workingCopyService).addListeners()
+        val commitService = CommitService().addListeners()
         val diffService = DiffService().addListeners()
         val state = State(repositoryService, branchService, workingCopyService, divergenceService, mergeService, rebaseService, stashService, commitLogService)
         private lateinit var application: Application

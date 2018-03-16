@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.domain.Repository
@@ -55,7 +56,7 @@ class RepositoryService(private val service: CredentialService) {
               successHandler: () -> Unit,
               errorHandler: (String) -> Unit) {
         service.applyCredentials(url)
-        TinyGit.execute("Cloning...", object : Task<Unit>() {
+        TinyGit.execute(I18N["repository.clone"], object : Task<Unit>() {
             override fun call() = gitClone(repository, proxy, url)
 
             override fun succeeded() {
@@ -78,7 +79,7 @@ class RepositoryService(private val service: CredentialService) {
     fun remove(repository: Repository) = allRepositories.remove(repository)
 
     fun gc() {
-        TinyGit.execute("Cleaning up...", object : Task<Unit>() {
+        TinyGit.execute(I18N["repository.gc"], object : Task<Unit>() {
             override fun call() = gitGc(activeRepository.get()!!)
 
             override fun succeeded() = TinyGit.fireEvent()

@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Commit
@@ -36,7 +37,7 @@ class BranchService : Refreshable {
     fun isDetached(branch: Branch) = branch.name == "HEAD"
 
     fun checkoutCommit(commit: Commit, errorHandler: () -> Unit) {
-        TinyGit.execute("Checking out...", object : Task<Unit>() {
+        TinyGit.execute(I18N["branch.checkoutCommit"], object : Task<Unit>() {
             override fun call() = gitCheckout(repository, commit)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -52,7 +53,7 @@ class BranchService : Refreshable {
 
     fun checkoutLocal(branch: Branch, errorHandler: () -> Unit) {
         if (branch != head.get()) {
-            TinyGit.execute("Switching branches...", object : Task<Unit>() {
+            TinyGit.execute(I18N["branch.checkoutLocal"], object : Task<Unit>() {
                 override fun call() = gitCheckout(repository, branch)
 
                 override fun succeeded() = TinyGit.fireEvent()
@@ -68,7 +69,7 @@ class BranchService : Refreshable {
     }
 
     fun checkoutRemote(branch: Branch, errorHandler: () -> Unit) {
-        TinyGit.execute("Getting remote branch...", object : Task<Unit>() {
+        TinyGit.execute(I18N["branch.checkoutRemote"], object : Task<Unit>() {
             override fun call() = gitCheckoutRemote(repository, branch)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -101,7 +102,7 @@ class BranchService : Refreshable {
     }
 
     fun branch(name: String, branchExistsHandler: () -> Unit, nameInvalidHandler: () -> Unit) {
-        TinyGit.execute("Branching...", object : Task<Unit>() {
+        TinyGit.execute(I18N["branch.create"], object : Task<Unit>() {
             override fun call() = gitBranch(repository, name)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -117,7 +118,7 @@ class BranchService : Refreshable {
     }
 
     fun reset(commit: Commit) {
-        TinyGit.execute("Resetting...", object : Task<Unit>() {
+        TinyGit.execute(I18N["branch.reset"], object : Task<Unit>() {
             override fun call() = gitResetHard(repository, commit)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -127,7 +128,7 @@ class BranchService : Refreshable {
     }
 
     fun autoReset() {
-        TinyGit.execute("Resetting branch...", object : Task<Unit>() {
+        TinyGit.execute(I18N["branch.autoReset"], object : Task<Unit>() {
             override fun call() = gitResetHard(repository, head.get())
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -137,7 +138,7 @@ class BranchService : Refreshable {
     }
 
     fun autoSquash(baseId: String, message: String) {
-        TinyGit.execute("Squashing branch...", object : Task<Unit>() {
+        TinyGit.execute(I18N["branch.autoSquash"], object : Task<Unit>() {
             override fun call() = gitSquash(repository, baseId, message)
 
             override fun succeeded() = TinyGit.fireEvent()
