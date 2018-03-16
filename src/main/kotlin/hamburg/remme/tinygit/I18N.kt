@@ -16,6 +16,13 @@ object I18N {
 
     private val bundle = ResourceBundle.getBundle("hamburg.remme.tinygit.message", UTF8Support())
 
+    /**
+     * Get the message property [key] with [icon] as `{0}`.
+     *
+     * @return a node containing the message and the [icon]
+     *
+     * @throws NullPointerException if [key] is not present in the message bundle
+     */
     operator fun get(key: String, icon: Node): Node = hbox {
         val parts = bundle[key].split("\\{\\d+}".toRegex())
         +Text(parts[0])
@@ -23,13 +30,33 @@ object I18N {
         +Text(parts[1])
     }
 
+    /**
+     * Get the message property [key].
+     *
+     * @throws NullPointerException if [key] is not present in the message bundle
+     */
     operator fun get(key: String) = bundle[key]
 
+    /**
+     * Get the message property [key] formatted with [args].
+     *
+     * @throws NullPointerException if [key] is not present in the message bundle
+     */
     operator fun get(key: String, vararg args: Any) = format(bundle[key], *args)
 
+    /**
+     * Get the message property [key] formatted with [count] as choice and `{0}`.
+     *
+     * @throws NullPointerException if [key] is not present in the message bundle
+     */
     operator fun get(key: String, count: Int) = format(choose(bundle[key], count), count)
 
-    operator fun get(key: String, count: Int, vararg args: Any) = format(choose(bundle[key], count), *args)
+    /**
+     * Get the message property [key] formatted with [count] as choice and `{0}` and [args] starting with `{1}`.
+     *
+     * @throws NullPointerException if [key] is not present in the message bundle
+     */
+    operator fun get(key: String, count: Int, vararg args: Any) = format(choose(bundle[key], count), count, *args)
 
     private fun format(template: String, vararg args: Any) = MessageFormat.format(template.replace("'", "''"), *args)!!
 
