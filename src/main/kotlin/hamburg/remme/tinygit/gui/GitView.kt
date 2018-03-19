@@ -19,6 +19,7 @@ import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.flipX
 import hamburg.remme.tinygit.gui.builder.flipXY
 import hamburg.remme.tinygit.gui.builder.flipY
+import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.menu
@@ -30,6 +31,7 @@ import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.textAreaDialog
 import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.builder.toolBar
+import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.component.Icons
@@ -43,7 +45,9 @@ import javafx.application.Platform
 import javafx.concurrent.Task
 import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TabPane
+import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Priority
+import javafx.scene.text.Text
 import javafx.stage.Stage
 
 class GitView : VBoxBuilder() {
@@ -231,7 +235,24 @@ class GitView : VBoxBuilder() {
             +stackPane {
                 addClass("overlay")
                 visibleWhen(state.showGlobalInfo)
-                +I18N["gitView.addRepositoryInfo", Icons.folderOpen()].addClass("box")
+                +vbox {
+                    addClass("box")
+                    +hbox {
+                        +Icons.folderOpen()
+                        +Text(I18N["gitView.addRepositoryInfo"])
+                        +Text(KeyCombination.valueOf(addRepo.shortcut).displayText).addClass("shortcut")
+                    }
+                    +hbox {
+                        +Icons.clone()
+                        +Text(I18N["gitView.cloneRepositoryInfo"])
+                        +Text(KeyCombination.valueOf(cloneRepo.shortcut).displayText).addClass("shortcut")
+                    }
+                    +hbox {
+                        +Icons.folder()
+                        +Text(I18N["gitView.newRepositoryInfo"])
+                        +Text(KeyCombination.valueOf(newRepo.shortcut).displayText).addClass("shortcut")
+                    }
+                }
             }
             +stackPane {
                 addClass("progress-overlay")

@@ -1,8 +1,5 @@
 package hamburg.remme.tinygit
 
-import hamburg.remme.tinygit.gui.builder.hbox
-import javafx.scene.Node
-import javafx.scene.text.Text
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import java.text.ChoiceFormat
@@ -11,24 +8,9 @@ import java.util.Locale
 import java.util.PropertyResourceBundle
 import java.util.ResourceBundle
 
-
 object I18N {
 
     private val bundle = ResourceBundle.getBundle("hamburg.remme.tinygit.message", UTF8Support())
-
-    /**
-     * Get the message property [key] with [icon] as `{0}`.
-     *
-     * @return a node containing the message and the [icon]
-     *
-     * @throws NullPointerException if [key] is not present in the message bundle
-     */
-    operator fun get(key: String, icon: Node): Node = hbox {
-        val parts = bundle[key].split("\\{\\d+}".toRegex())
-        +Text(parts[0])
-        +icon
-        +Text(parts[1])
-    }
 
     /**
      * Get the message property [key].

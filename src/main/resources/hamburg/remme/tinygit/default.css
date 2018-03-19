@@ -284,8 +284,8 @@
 
 .chart-area-symbol {
     -fx-background-color: CHART_COLOR_1;
-    -fx-background-radius: 6px;
-    -fx-padding: 4px;
+    -fx-background-radius: 0.5em;
+    -fx-padding: 0.3em;
 }
 
 .default-color0.chart-area-symbol { -fx-background-color: CHART_COLOR_1;}
@@ -383,13 +383,9 @@
 
 .graph-view .commit-path.path-color7 { -fx-stroke: CHART_COLOR_7; }
 
-.graph-view-cell {
-    -fx-spacing: 2px;
-}
+.graph-view-cell { -fx-spacing: 0.3em; }
 
-.graph-view-cell > * {
-    -fx-spacing: 6px;
-}
+.graph-view-cell > * { -fx-spacing: 0.5em; }
 
 .graph-view-cell .commitId {
     -fx-fill: -fx-text-base-color;
@@ -401,7 +397,7 @@
 }
 
 .graph-view-cell .branches {
-    -fx-spacing: 6px;
+    -fx-spacing: 0.5em;
 }
 
 .graph-view-cell .message {
@@ -441,8 +437,8 @@
 }
 
 .settings-view {
-    -fx-hgap: 0.333em;
-    -fx-vgap: 0.333em;
+    -fx-hgap: 0.3em;
+    -fx-vgap: 0.3em;
 }
 
 .settings-view .label {
@@ -450,7 +446,7 @@
 }
 
 .about-view {
-    -fx-hgap: 0.333em;
+    -fx-hgap: 0.3em;
     -fx-vgap: 0.5em;
 }
 
@@ -460,7 +456,7 @@
 }
 
 .repository-view {
-    -fx-spacing: 6px;
+    -fx-spacing: 0.5em;
 }
 
 .repository-view .button,
@@ -488,8 +484,8 @@
 }
 
 .repository-cell {
-    -fx-padding: 0 0 0 6px;
-    -fx-spacing: 6px;
+    -fx-padding: 0 0 0 0.5em;
+    -fx-spacing: 0.5em;
     -fx-alignment: center-left;
 }
 
@@ -527,7 +523,7 @@
 }
 
 .repository-divergence {
-    -fx-spacing: 6;
+    -fx-spacing: 0.5em;
 }
 
 .repository-divergence .label {
@@ -639,7 +635,7 @@
 }
 
 .branch-badge {
-    -fx-padding: 1px 6px 1px 6px;
+    -fx-padding: 1px 0.5em 1px 0.5em;
     -fx-text-fill: derive(-git-badge, 25%);
     -fx-background-color: derive(-git-badge, -25%), derive(-git-badge, -35%);
     -fx-background-insets: 0, 1;
@@ -685,13 +681,21 @@
     -fx-font-size: 2em;
 }
 
-.overlay > *,
-.overlay .box > * {
+.overlay * {
+    -fx-alignment: center;
     -fx-fill: -fx-text-base-color;
 }
 
 .overlay .box {
-    -fx-alignment: center;
+    -fx-spacing: 1em;
+}
+
+.overlay .box > * {
+    -fx-spacing: 0.5em;
+}
+
+.overlay .box .shortcut {
+    -fx-fill: -fx-focus-color;
 }
 
 .overlay .box .icon {
@@ -710,7 +714,7 @@
 
 .status-count-view {
     -fx-alignment: center-left;
-    -fx-spacing: 6px;
+    -fx-spacing: 0.5em;
 }
 
 .label.status-conflict,
@@ -758,7 +762,7 @@
 .status-untracked .icon { -fx-fill: -git-status-untracked;}
 
 .git {
-    -fx-spacing: 2px;
+    -fx-spacing: 0.3em;
     -fx-alignment: center;
     -fx-font: normal 13px "Liberation Mono", monospace;
 }
