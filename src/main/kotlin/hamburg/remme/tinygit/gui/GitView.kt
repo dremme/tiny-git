@@ -260,7 +260,7 @@ class GitView : VBoxBuilder() {
 
     private fun removeRepo() {
         val repository = repoService.activeRepository.get()!!
-        if (!confirmWarningAlert(window, I18N["dialog.remove.title"], I18N["dialog.remove.button"], I18N["dialog.remove.text", repository])) return
+        if (!confirmWarningAlert(window, I18N["dialog.remove.header"], I18N["dialog.remove.button"], I18N["dialog.remove.text", repository])) return
         repoService.remove(repository)
     }
 

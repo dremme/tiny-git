@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.gui.builder.addStylesheet
 import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.textArea
@@ -11,7 +12,7 @@ import javafx.scene.control.TextField
 import javafx.scene.layout.Priority
 import javafx.stage.Window
 
-class TextInputDialog(ok: String, textArea: Boolean, window: Window) : Dialog<String>(window, "Input", textArea) {
+class TextInputDialog(ok: String, textArea: Boolean, window: Window) : Dialog<String>(window, I18N["dialog.input.title"], textArea) {
 
     var defaultValue: String
         get() = throw RuntimeException("Write-only property.")

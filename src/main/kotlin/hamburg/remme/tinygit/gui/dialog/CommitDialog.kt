@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.gui.FileDiffView
 import hamburg.remme.tinygit.gui.FileStatusView
@@ -16,7 +17,7 @@ import javafx.stage.Window
 
 // TODO: show something on empty commit / merge commit
 class CommitDialog(window: Window)
-    : Dialog<Unit>(window, if (TinyGit.mergeService.isMerging.get()) "Merge Commit" else "New Commit", true) {
+    : Dialog<Unit>(window, if (TinyGit.mergeService.isMerging.get()) I18N["dialog.commit.mergeTitle"] else I18N["dialog.commit.title"], true) {
 
     private val mergeService = TinyGit.mergeService
     private val commitService = TinyGit.commitService
@@ -29,7 +30,7 @@ class CommitDialog(window: Window)
         Platform.runLater { files.selectionModel.selectFirst() }
 
         val message = textArea {
-            promptText = "Enter commit message"
+            promptText = I18N["dialog.commit.message"]
             prefHeight = 100.0
             textProperty().bindBidirectional(commitService.message)
             Platform.runLater { requestFocus() }
@@ -38,7 +39,7 @@ class CommitDialog(window: Window)
 
         val fileDiff = FileDiffView(files.selectionModel.selectedItemProperty())
         val amend = checkBox {
-            text = "Amend last commit."
+            text = I18N["dialog.commit.amend"]
             selectedProperty().addListener { _, _, it -> if (it) commitService.setHeadMessage() }
         }
 
@@ -54,7 +55,7 @@ class CommitDialog(window: Window)
             if (!mergeService.isMerging.get()) +amend
         }
 
-        +DialogButton(DialogButton.ok("Commit"), message.textProperty().isEmpty)
+        +DialogButton(DialogButton.ok(I18N["dialog.commit.button"]), message.textProperty().isEmpty)
         +DialogButton(DialogButton.CANCEL)
 
         focusAction = {
@@ -65,7 +66,7 @@ class CommitDialog(window: Window)
             commitService.commit(
                     message.text,
                     amend.isSelected,
-                    { errorAlert(window, "Cannot Commit", "Cannot commit because there are unmerged changes.") })
+                    { errorAlert(window, I18N["dialog.cannotCommit.header"], I18N["dialog.cannotCommit.text"]) })
         }
     }
 

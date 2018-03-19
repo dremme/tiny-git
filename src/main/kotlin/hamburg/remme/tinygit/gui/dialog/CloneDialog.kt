@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitSetUserEmail
@@ -18,7 +19,7 @@ import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.stage.Window
 
-class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
+class CloneDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.clone.title"]) {
 
     private val service = TinyGit.repositoryService
 
@@ -37,7 +38,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
             fillWidth()
             graphic = Icons.search()
             maxWidth = Double.MAX_VALUE
-            setOnAction { directoryChooser(dialogWindow, "Choose a Directory") { location.text = it.toString() } }
+            setOnAction { directoryChooser(dialogWindow, I18N["dialog.chooseCloneDir.title"]) { location.text = it.toString() } }
         }
         val userName = autocomplete(service.usedNames) {
             columnSpan(2)
@@ -57,14 +58,14 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
 
         content = grid(3) {
             addClass("settings-view")
-            +listOf(Label("Remote:"), url,
-                    Label("Location:"), location, locationSet,
-                    Label("User Name:"), userName,
-                    Label("User Email:"), userEmail,
-                    Label("Proxy:"), proxy)
+            +listOf(Label("${I18N["dialog.clone.remote"]}:"), url,
+                    Label("${I18N["dialog.clone.location"]}:"), location, locationSet,
+                    Label("${I18N["dialog.clone.userName"]}:"), userName,
+                    Label("${I18N["dialog.clone.userEmail"]}:"), userEmail,
+                    Label("${I18N["dialog.clone.proxy"]}:"), proxy)
         }
 
-        +DialogButton(DialogButton.ok("Clone"), location.textProperty().isEmpty.or(url.textProperty().isEmpty))
+        +DialogButton(DialogButton.ok(I18N["dialog.clone.button"]), location.textProperty().isEmpty.or(url.textProperty().isEmpty))
         +DialogButton(DialogButton.CANCEL)
 
         okAction = {
@@ -86,7 +87,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, "Clone Repository") {
                             service.addUsedProxy(hostPort)
                         }
                     },
-                    { errorAlert(window, "Cannot Clone Repository", it) })
+                    { errorAlert(window, I18N["dialog.cannotClone.header"], it) })
         }
     }
 

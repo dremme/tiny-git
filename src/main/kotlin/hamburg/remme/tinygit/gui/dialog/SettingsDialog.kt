@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
+import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.git.gitGetProxy
 import hamburg.remme.tinygit.git.gitGetUserEmail
@@ -18,7 +19,7 @@ import hamburg.remme.tinygit.gui.builder.textField
 import javafx.scene.control.Label
 import javafx.stage.Window
 
-class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings") {
+class SettingsDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.settings.title"]) {
 
     private val service = TinyGit.repositoryService
     private val repository = service.activeRepository.get()!!
@@ -57,11 +58,11 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, "Repository Settings
 
         content = grid(2) {
             addClass("settings-view")
-            +listOf(Label("Remote:"), remote,
-                    Label("Location:"), location,
-                    Label("User Name:"), userName,
-                    Label("User Email:"), userEmail,
-                    Label("Proxy:"), proxy)
+            +listOf(Label("${I18N["dialog.settings.remote"]}:"), remote,
+                    Label("${I18N["dialog.settings.location"]}:"), location,
+                    Label("${I18N["dialog.settings.userName"]}:"), userName,
+                    Label("${I18N["dialog.settings.userEmail"]}:"), userEmail,
+                    Label("${I18N["dialog.settings.proxy"]}:"), proxy)
         }
 
         +DialogButton(DialogButton.OK)
