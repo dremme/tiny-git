@@ -95,7 +95,7 @@ class WorkingCopyService : Refreshable {
                         status(successHandler)
                     }
         } catch (ex: RuntimeException) { // TODO
-            errorHandler.invoke(ex.message ?: "")
+            errorHandler(ex.message ?: "")
         }
     }
 

@@ -5,7 +5,7 @@ import javafx.scene.control.Label
 
 inline fun label(block: LabelBuilder.() -> Unit): Label {
     val label = LabelBuilder()
-    block.invoke(label)
+    block(label)
     return label
 }
 

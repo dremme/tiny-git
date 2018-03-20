@@ -104,7 +104,7 @@ class CommitLogService(private val repositoryService: RepositoryService,
 
             override fun failed() {
                 when (exception) {
-                    is FetchException -> logErrorHandler.invoke(exception.message!!)
+                    is FetchException -> logErrorHandler(exception.message!!)
                     else -> exception.printStackTrace()
                 }
             }

@@ -41,7 +41,7 @@ class StashService : Refreshable {
                 when (exception) {
                     is StashConflictException -> {
                         TinyGit.fireEvent()
-                        conflictHandler.invoke()
+                        conflictHandler()
                     }
                     else -> exception.printStackTrace()
                 }
@@ -59,7 +59,7 @@ class StashService : Refreshable {
                 when (exception) {
                     is StashConflictException -> {
                         TinyGit.fireEvent()
-                        conflictHandler.invoke()
+                        conflictHandler()
                     }
                     else -> exception.printStackTrace()
                 }

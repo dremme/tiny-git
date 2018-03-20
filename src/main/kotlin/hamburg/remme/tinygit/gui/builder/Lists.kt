@@ -5,7 +5,7 @@ import javafx.scene.control.TreeView
 
 inline fun <T> tree(block: TreeViewBuilder<T>.() -> Unit): TreeView<T> {
     val tree = TreeViewBuilder<T>()
-    block.invoke(tree)
+    block(tree)
     return tree
 }
 

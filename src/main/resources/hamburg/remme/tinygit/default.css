@@ -209,11 +209,11 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 2, 0, 2, 2);
 }
 
-.dialog-pane:header .header-panel .graphic-container .info .icon { -fx-fill: #5bc0de;}
+.dialog-pane:header .header-panel .graphic-container .info .icon { -fx-fill: #5bc0de; }
 
-.dialog-pane:header .header-panel .graphic-container .warning .icon { -fx-fill: #f0ad4e;}
+.dialog-pane:header .header-panel .graphic-container .warning .icon { -fx-fill: #f0ad4e; }
 
-.dialog-pane:header .header-panel .graphic-container .error .icon { -fx-fill: #d9534f;}
+.dialog-pane:header .header-panel .graphic-container .error .icon { -fx-fill: #d9534f; }
 
 .check-box > .box {
     -fx-padding: 0.3em 0.25em 0.4em 0.25em;
@@ -270,6 +270,53 @@
     -fx-border-color: -fx-focus-color, -fx-focus-color;
 }
 
+.diagram { -fx-padding: 1em; }
+
+.diagram-title {
+    -fx-padding: 0 0 1em 0;
+    -fx-alignment: center;
+    -fx-font-size: 1.5em;
+}
+
+.histogram-shape { -fx-stroke: transparent; }
+
+.default-color0.histogram-shape { -fx-fill: CHART_COLOR_1; }
+
+.default-color1.histogram-shape { -fx-fill: CHART_COLOR_2; }
+
+.default-color2.histogram-shape { -fx-fill: CHART_COLOR_3; }
+
+.default-color3.histogram-shape { -fx-fill: CHART_COLOR_4; }
+
+.default-color4.histogram-shape { -fx-fill: CHART_COLOR_5; }
+
+.default-color5.histogram-shape { -fx-fill: CHART_COLOR_6; }
+
+.default-color6.histogram-shape { -fx-fill: CHART_COLOR_7; }
+
+.default-color7.histogram-shape { -fx-fill: CHART_COLOR_8; }
+
+.donut-shape {
+    -fx-fill: transparent;
+    -fx-stroke-line-cap: butt;
+}
+
+.default-color0.donut-shape { -fx-stroke: CHART_COLOR_1; }
+
+.default-color1.donut-shape { -fx-stroke: CHART_COLOR_2; }
+
+.default-color2.donut-shape { -fx-stroke: CHART_COLOR_3; }
+
+.default-color3.donut-shape { -fx-stroke: CHART_COLOR_4; }
+
+.default-color4.donut-shape { -fx-stroke: CHART_COLOR_5; }
+
+.default-color5.donut-shape { -fx-stroke: CHART_COLOR_6; }
+
+.default-color6.donut-shape { -fx-stroke: CHART_COLOR_7; }
+
+.default-color7.donut-shape { -fx-stroke: CHART_COLOR_8; }
+
 .axis {
     AXIS_COLOR: -fx-chart-grid-color;
 }
@@ -288,66 +335,66 @@
     -fx-padding: 0.3em;
 }
 
-.default-color0.chart-area-symbol { -fx-background-color: CHART_COLOR_1;}
+.default-color0.chart-area-symbol { -fx-background-color: CHART_COLOR_1; }
 
-.default-color1.chart-area-symbol { -fx-background-color: CHART_COLOR_2;}
+.default-color1.chart-area-symbol { -fx-background-color: CHART_COLOR_2; }
 
-.default-color2.chart-area-symbol { -fx-background-color: CHART_COLOR_3;}
+.default-color2.chart-area-symbol { -fx-background-color: CHART_COLOR_3; }
 
-.default-color3.chart-area-symbol { -fx-background-color: CHART_COLOR_4;}
+.default-color3.chart-area-symbol { -fx-background-color: CHART_COLOR_4; }
 
-.default-color4.chart-area-symbol { -fx-background-color: CHART_COLOR_5;}
+.default-color4.chart-area-symbol { -fx-background-color: CHART_COLOR_5; }
 
-.default-color5.chart-area-symbol { -fx-background-color: CHART_COLOR_6;}
+.default-color5.chart-area-symbol { -fx-background-color: CHART_COLOR_6; }
 
-.default-color6.chart-area-symbol { -fx-background-color: CHART_COLOR_7;}
+.default-color6.chart-area-symbol { -fx-background-color: CHART_COLOR_7; }
 
-.default-color7.chart-area-symbol { -fx-background-color: CHART_COLOR_8;}
+.default-color7.chart-area-symbol { -fx-background-color: CHART_COLOR_8; }
 
-.contributors .default-color0.chart-series-area-fill { -fx-fill: CHART_COLOR_1;}
+.contributors .default-color0.chart-series-area-fill { -fx-fill: CHART_COLOR_1; }
 
-.contributors .default-color1.chart-series-area-fill { -fx-fill: CHART_COLOR_2;}
+.contributors .default-color1.chart-series-area-fill { -fx-fill: CHART_COLOR_2; }
 
-.contributors .default-color2.chart-series-area-fill { -fx-fill: CHART_COLOR_3;}
+.contributors .default-color2.chart-series-area-fill { -fx-fill: CHART_COLOR_3; }
 
-.contributors .default-color3.chart-series-area-fill { -fx-fill: CHART_COLOR_4;}
+.contributors .default-color3.chart-series-area-fill { -fx-fill: CHART_COLOR_4; }
 
-.contributors .default-color4.chart-series-area-fill { -fx-fill: CHART_COLOR_5;}
+.contributors .default-color4.chart-series-area-fill { -fx-fill: CHART_COLOR_5; }
 
-.contributors .default-color5.chart-series-area-fill { -fx-fill: CHART_COLOR_6;}
+.contributors .default-color5.chart-series-area-fill { -fx-fill: CHART_COLOR_6; }
 
-.contributors .default-color6.chart-series-area-fill { -fx-fill: CHART_COLOR_7;}
+.contributors .default-color6.chart-series-area-fill { -fx-fill: CHART_COLOR_7; }
 
-.contributors .default-color7.chart-series-area-fill { -fx-fill: CHART_COLOR_8;}
+.contributors .default-color7.chart-series-area-fill { -fx-fill: CHART_COLOR_8; }
 
-.lines-of-code .default-color0.chart-area-symbol { -fx-background-color: CHART_COLOR_1;}
+.lines-of-code .default-color0.chart-area-symbol { -fx-background-color: CHART_COLOR_1; }
 
-.lines-of-code .default-color0.chart-series-area-fill { -fx-fill: CHART_COLOR_1;}
+.lines-of-code .default-color0.chart-series-area-fill { -fx-fill: CHART_COLOR_1; }
 
-.lines-of-code .default-color0.chart-series-area-line { -fx-stroke: CHART_COLOR_1;}
+.lines-of-code .default-color0.chart-series-area-line { -fx-stroke: CHART_COLOR_1; }
 
-.lines-of-code .default-color1.chart-area-symbol { -fx-background-color: CHART_COLOR_4;}
+.lines-of-code .default-color1.chart-area-symbol { -fx-background-color: CHART_COLOR_4; }
 
-.lines-of-code .default-color1.chart-series-area-fill { -fx-fill: CHART_COLOR_4;}
+.lines-of-code .default-color1.chart-series-area-fill { -fx-fill: CHART_COLOR_4; }
 
-.lines-of-code .default-color1.chart-series-area-line { -fx-stroke: CHART_COLOR_4;}
+.lines-of-code .default-color1.chart-series-area-line { -fx-stroke: CHART_COLOR_4; }
 
-.chart-pie-label-line { -fx-stroke: -fx-chart-label-color;}
+.chart-pie-label-line { -fx-stroke: -fx-chart-label-color; }
 
-.chart-calendar-day.day-0 { -fx-background-color: derive(-fx-background, 7.5%);}
+.chart-calendar-day.day-0 { -fx-background-color: derive(-fx-background, 7.5%); }
 
-.chart-calendar-day.day-1 { -fx-background-color: #566473;}
+.chart-calendar-day.day-1 { -fx-background-color: #566473; }
 
-.chart-calendar-day.day-2 { -fx-background-color: #5c7a99;}
+.chart-calendar-day.day-2 { -fx-background-color: #5c7a99; }
 
-.chart-calendar-day.day-3 { -fx-background-color: #497eb3;}
+.chart-calendar-day.day-3 { -fx-background-color: #497eb3; }
 
-.chart-calendar-day.day-4 { -fx-background-color: #297acc;}
+.chart-calendar-day.day-4 { -fx-background-color: #297acc; }
 
 .graph-view {
 }
 
-.graph-view .commit-node.node-color0 { -fx-fill: -git-active-blue;}
+.graph-view .commit-node.node-color0 { -fx-fill: -git-active-blue; }
 
 .graph-view .commit-node.node-color1 { -fx-fill: CHART_COLOR_1; }
 
@@ -506,13 +553,13 @@
     -fx-fill: derive(-fx-text-base-color, -40%);
 }
 
-.repository-cell.current .label { -fx-text-fill: -git-active-blue;}
+.repository-cell.current .label { -fx-text-fill: -git-active-blue; }
 
-.repository-cell.current .icon { -fx-fill: -git-active-blue;}
+.repository-cell.current .icon { -fx-fill: -git-active-blue; }
 
-.repository-cell.detached .label { -fx-text-fill: -git-red;}
+.repository-cell.detached .label { -fx-text-fill: -git-red; }
 
-.repository-cell.detached .icon { -fx-fill: -git-red;}
+.repository-cell.detached .icon { -fx-fill: -git-red; }
 
 .repository-list-cell {
 }
@@ -729,37 +776,37 @@
     -fx-font-weight: bold;
 }
 
-.label.status-conflict { -fx-text-fill: -git-status-conflict;}
+.label.status-conflict { -fx-text-fill: -git-status-conflict; }
 
-.status-conflict .icon { -fx-fill: -git-status-conflict;}
+.status-conflict .icon { -fx-fill: -git-status-conflict; }
 
-.label.status-added { -fx-text-fill: -git-status-added;}
+.label.status-added { -fx-text-fill: -git-status-added; }
 
-.status-added .icon { -fx-fill: -git-status-added;}
+.status-added .icon { -fx-fill: -git-status-added; }
 
-.label.status-copied { -fx-text-fill: -git-status-copied;}
+.label.status-copied { -fx-text-fill: -git-status-copied; }
 
-.status-copied .icon { -fx-fill: -git-status-copied;}
+.status-copied .icon { -fx-fill: -git-status-copied; }
 
-.label.status-renamed { -fx-text-fill: -git-status-renamed;}
+.label.status-renamed { -fx-text-fill: -git-status-renamed; }
 
-.status-renamed .icon { -fx-fill: -git-status-renamed;}
+.status-renamed .icon { -fx-fill: -git-status-renamed; }
 
-.label.status-modified { -fx-text-fill: -git-status-modified;}
+.label.status-modified { -fx-text-fill: -git-status-modified; }
 
-.status-modified .icon { -fx-fill: -git-status-modified;}
+.status-modified .icon { -fx-fill: -git-status-modified; }
 
-.label.status-removed { -fx-text-fill: -git-status-removed;}
+.label.status-removed { -fx-text-fill: -git-status-removed; }
 
-.status-removed .icon { -fx-fill: -git-status-removed;}
+.status-removed .icon { -fx-fill: -git-status-removed; }
 
-.label.status-missing { -fx-text-fill: -git-status-missing;}
+.label.status-missing { -fx-text-fill: -git-status-missing; }
 
-.status-missing .icon { -fx-fill: -git-status-missing;}
+.status-missing .icon { -fx-fill: -git-status-missing; }
 
-.label.status-untracked { -fx-text-fill: -git-status-untracked;}
+.label.status-untracked { -fx-text-fill: -git-status-untracked; }
 
-.status-untracked .icon { -fx-fill: -git-status-untracked;}
+.status-untracked .icon { -fx-fill: -git-status-untracked; }
 
 .git {
     -fx-spacing: 0.3em;

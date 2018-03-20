@@ -26,8 +26,8 @@ class RemoteService(private val repositoryService: RepositoryService,
 
             override fun failed() {
                 when (exception) {
-                    is BranchBehindException -> behindHandler.invoke()
-                    is TimeoutException -> timeoutHandler.invoke()
+                    is BranchBehindException -> behindHandler()
+                    is TimeoutException -> timeoutHandler()
                     else -> exception.printStackTrace()
                 }
             }
@@ -56,10 +56,10 @@ class RemoteService(private val repositoryService: RepositoryService,
                 when (exception) {
                     is MergeConflictException -> {
                         TinyGit.fireEvent()
-                        conflictHandler.invoke()
+                        conflictHandler()
                     }
-                    is PullException -> errorHandler.invoke(exception.message!!)
-                    is TimeoutException -> timeoutHandler.invoke()
+                    is PullException -> errorHandler(exception.message!!)
+                    is TimeoutException -> timeoutHandler()
                     else -> exception.printStackTrace()
                 }
             }

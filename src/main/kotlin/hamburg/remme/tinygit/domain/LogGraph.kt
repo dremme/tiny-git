@@ -37,14 +37,14 @@ class LogGraph {
             val tag = (0..max).firstOrNull { !tags.contains(it) } ?: max+1
 
             val branch = Branch(tag, commitIndex)
-            backingList.add(branch)
+            backingList += branch
 
             commit.more(branch)
         }
     }
 
     private fun Commit.more(branch: Branch) {
-        branch.add(id)
+        branch += id
         parents.firstOrNull()
                 ?.let {
                     if (!contains(it)) it.peel()?.more(branch) ?: branch.indeterminate(it)

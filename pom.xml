@@ -35,7 +35,7 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+        <sourceDirectory>${project.basedir}/src/hamburg.remme.tinygit.main/kotlin</sourceDirectory>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
             <!-- TODO: add klint -->

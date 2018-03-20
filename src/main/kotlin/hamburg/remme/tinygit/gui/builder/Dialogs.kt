@@ -130,7 +130,7 @@ inline fun fileChooser(window: Window, title: String, block: (Path) -> Unit) {
     TinyGit.state.isModal.set(true)
     chooser.showOpenDialog(window)?.toPath()?.let {
         chooserDir = it
-        block.invoke(it)
+        block(it)
     }
 }
 
@@ -141,6 +141,6 @@ inline fun directoryChooser(window: Window, title: String, block: (Path) -> Unit
     TinyGit.state.isModal.set(true)
     chooser.showDialog(window)?.toPath()?.let {
         chooserDir = it
-        block.invoke(it)
+        block(it)
     }
 }

@@ -1,33 +1,38 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.daysBetween
+import hamburg.remme.tinygit.daysFromOrigin
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.NumStat
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitDiffNumstat
 import hamburg.remme.tinygit.git.gitLog
+import hamburg.remme.tinygit.gui.component.DonutChart
+import hamburg.remme.tinygit.gui.component.HistogramChart
+import hamburg.remme.tinygit.mapParallel
+import hamburg.remme.tinygit.mapValuesParallel
 import hamburg.remme.tinygit.observableList
-import hamburg.remme.tinygit.takeHighest
+import hamburg.remme.tinygit.sortedBy
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.concurrent.Task
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Year
-import javafx.scene.chart.PieChart.Data as PieData
 import javafx.scene.chart.XYChart.Data as XYData
-import javafx.scene.chart.XYChart.Series as XYSeries
 
 class StatsService {
 
     val numberOfAuthors = SimpleIntegerProperty()
     val numberOfFiles = SimpleIntegerProperty()
     val numberOfLines = SimpleIntegerProperty()
-    val contributorsData = observableList<PieData>()
-    val filesData = observableList<PieData>()
-    val commitsData = observableList<XYSeries<LocalDate, Number>>()
+    val contributorsData = observableList<DonutChart.Data>()
+    val filesData = observableList<DonutChart.Data>()
+    val commitsData = observableList<HistogramChart.Series>()
+    val linesData = observableList<HistogramChart.Series>()
     val activityData = observableList<XYData<LocalDate, DayOfWeek>>()
-    val linesAddedData = observableList<XYData<LocalDate, Number>>()
-    val linesRemovedData = observableList<XYData<LocalDate, Number>>()
+    val lastDay = LocalDate.now()!!
+    val firstDay = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)!!
     lateinit var contributorsListener: TaskListener
     lateinit var filesListener: TaskListener
     lateinit var commitsListener: TaskListener
@@ -35,8 +40,6 @@ class StatsService {
     lateinit var linesListener: TaskListener
     private val log = mutableListOf<Commit>()
     private val numStat = mutableListOf<NumStat>()
-    private val lastDay = LocalDate.now()
-    private val firstDay = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)
     private val taskPool = mutableSetOf<Task<*>>()
 
     fun updateNumberOfAuthors() {
@@ -68,12 +71,12 @@ class StatsService {
     }
 
     fun updateContributors() {
-        taskPool += object : Task<List<PieData>>() {
+        taskPool += object : Task<List<DonutChart.Data>>() {
             override fun call() = log
                     .groupingBy { it.authorMail.toLowerCase() }
                     .eachCount()
-                    .takeHighest(8)
-                    .map { (author, value) -> PieData(author, value.toDouble()) }
+                    .sortedBy { it.second }
+                    .map { (author, value) -> DonutChart.Data(author, value.toLong()) }
 
             override fun succeeded() {
                 contributorsData.setAll(value)
@@ -85,12 +88,11 @@ class StatsService {
     }
 
     fun updateCommits() {
-        taskPool += object : Task<List<XYSeries<LocalDate, Number>>>() {
+        taskPool += object : Task<List<HistogramChart.Series>>() {
             override fun call() = log
                     .groupBy { it.authorMail.toLowerCase() }
-                    .mapValues { (_, value) ->
-                        value.map { it.date.toLocalDate() }
-                                .map { it.minusDays(it.dayOfWeek.value - 1L) }
+                    .mapValuesParallel {
+                        it.map { it.date.toLocalDate() }
                                 .groupingBy { it }
                                 .eachCount()
                                 .toList()
@@ -98,9 +100,8 @@ class StatsService {
                     }
                     .toList()
                     .sortedBy { (_, data) -> data.sumBy { it.second } }
-                    .takeLast(8)
                     .map { (author, data) ->
-                        XYSeries(author, observableList(data.map { (date, value) -> XYData<LocalDate, Number>(date, value) }))
+                        HistogramChart.Series(author, data.map { (date, value) -> HistogramChart.Data(date.daysFromOrigin, value.toLong()) })
                     }
 
             override fun succeeded() {
@@ -113,13 +114,14 @@ class StatsService {
     }
 
     fun updateFiles() {
-        taskPool += object : Task<List<PieData>>() {
+        taskPool += object : Task<List<DonutChart.Data>>() {
             override fun call() = numStat
                     .map { it.path }
                     .groupingBy { it.substringAfterLast('.', it.substringAfterLast('/')) }
                     .eachCount()
-                    .takeHighest(8)
-                    .map { (ext, value) -> PieData(ext, value.toDouble()) }
+                    .sortedBy { it.second }
+                    .filter { (_, value) -> value > 0 }
+                    .map { (ext, value) -> DonutChart.Data(ext, value.toLong()) }
 
             override fun succeeded() {
                 filesData.setAll(value)
@@ -132,32 +134,30 @@ class StatsService {
 
     fun updateLines(repository: Repository) {
         taskPool += object : Task<Unit>() {
-            private val added = mutableListOf<XYData<LocalDate, Number>>()
-            private val removed = mutableListOf<XYData<LocalDate, Number>>()
+            private val added = mutableListOf<HistogramChart.Data>()
+            private val removed = mutableListOf<HistogramChart.Data>()
 
-            override fun call() {
-                (0..12).map { firstDay.plusMonths(it.toLong()) }
-                        .map { date -> log.filter { it.date.month == date.month && it.date.year == date.year } }
-                        .map {
-                            val min = it.minBy { it.date }
-                            val max = it.maxBy { it.date }
-                            min to max
-                        }
-                        .map { (first, last) ->
-                            if (!isCancelled && first != null && last != null) gitDiffNumstat(repository, first, last) else emptyList()
-                        }
-                        .map { it.sumBy { it.added } to it.sumBy { it.removed } }
-                        .mapIndexed { i, it -> firstDay.plusMonths(i.toLong()) to it }
-                        .filter { (_, stat) -> stat.first + stat.second > 0 }
-                        .forEach { (date, value) ->
-                            added += XYData<LocalDate, Number>(date, value.first)
-                            removed += XYData<LocalDate, Number>(date, value.second)
-                        }
-            }
+            override fun call() = (0..lastDay.daysBetween(firstDay))
+                    .map { firstDay.plusDays(it) }
+                    .map { date -> log.filter { it.date.toLocalDate() == date } }
+                    .map {
+                        val min = it.minBy { it.date }
+                        val max = it.maxBy { it.date }
+                        min to max
+                    }
+                    .mapParallel { (first, last) ->
+                        if (!isCancelled && first != null && last != null) gitDiffNumstat(repository, first, last) else emptyList()
+                    }
+                    .map { it.sumBy { it.added } to it.sumBy { it.removed } }
+                    .mapIndexed { i, it -> firstDay.plusDays(i.toLong()) to it }
+                    .filter { (_, stat) -> stat.first + stat.second > 0 }
+                    .forEach { (date, value) ->
+                        added += HistogramChart.Data(date.daysFromOrigin, value.first.toLong())
+                        removed += HistogramChart.Data(date.daysFromOrigin, value.second.toLong())
+                    }
 
             override fun succeeded() {
-                linesAddedData.setAll(added)
-                linesRemovedData.setAll(removed)
+                linesData.setAll(HistogramChart.Series("", added), HistogramChart.Series("", removed))
                 linesListener.done()
             }
 

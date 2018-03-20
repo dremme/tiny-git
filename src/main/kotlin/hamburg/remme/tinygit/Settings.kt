@@ -32,7 +32,7 @@ class Settings {
 
     fun save() {
         if (settings == null) settings = Json()
-        suppliers.forEach { it.invoke(settings!!) }
+        suppliers.forEach { it(settings!!) }
         settingsFile.write(yaml.dump(settings))
     }
 

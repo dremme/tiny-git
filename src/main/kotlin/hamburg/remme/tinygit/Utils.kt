@@ -5,7 +5,6 @@ import javafx.application.Platform
 import javafx.beans.binding.IntegerExpression
 import javafx.beans.property.IntegerProperty
 import javafx.collections.FXCollections
-import javafx.collections.ObservableList
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode
 import java.nio.charset.StandardCharsets
@@ -23,6 +22,10 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import kotlin.streams.toList
 
+val TWO_PI = 360.0
+val PI = 180.0
+val HALF_PI = 90.0
+
 val daemonFactory = ThreadFactory { Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } }
 val scheduledPool = Executors.newScheduledThreadPool(1, daemonFactory)!!
 val cachedPool = Executors.newCachedThreadPool(daemonFactory)!!
@@ -37,7 +40,7 @@ val dateFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy")!!
 val shortDateTimeFormat = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
 var logTypeCharacters = 1
-private val weeksOrigin = LocalDate.of(1900, 1, 1)
+private val temporalOrigin = LocalDate.of(1900, 1, 1)
 
 fun overrideTooltips() {
     val tooltip = Tooltip()
@@ -60,8 +63,12 @@ val LocalDate.endOfDay get() = atTime(LocalTime.MAX)!!
 
 val LocalDate.noon get() = atTime(LocalTime.NOON)!!
 
-fun LocalDate.weeksBetween(date: LocalDate) = Math.abs(ChronoUnit.WEEKS.between(weeksOrigin, date)
-        - ChronoUnit.WEEKS.between(weeksOrigin, this))
+val LocalDate.daysFromOrigin get() = ChronoUnit.DAYS.between(temporalOrigin, this)
+
+fun LocalDate.daysBetween(date: LocalDate) = Math.abs(this.daysFromOrigin - date.daysFromOrigin)
+
+fun LocalDate.weeksBetween(date: LocalDate) = Math.abs(ChronoUnit.WEEKS.between(temporalOrigin, date)
+        - ChronoUnit.WEEKS.between(temporalOrigin, this))
 
 fun String.asResource() = TinyGit::class.java.getResource(this).toExternalForm()!!
 
@@ -101,18 +108,26 @@ fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*
 
 fun <T> observableList(items: Collection<T>) = FXCollections.observableArrayList<T>(items)!!
 
-fun <T : Comparable<T>> ObservableList<T>.addSorted(items: Collection<T>) = items.forEach { item ->
+inline fun <T, R> List<T>.mapParallel(block: (T) -> R): List<R> {
+    return map(block)
+}
+
+inline fun <K, V, R> Map<K, V>.mapValuesParallel(block: (V) -> R): Map<K, R> {
+    return mapValues { (_, value) -> block(value) }
+}
+
+fun <T : Comparable<T>> MutableList<T>.addSorted(items: Collection<T>) = items.forEach { item ->
     val index = indexOfFirst { it > item }
     if (index < 0) add(item) else add(index, item)
 }
 
-fun <T> ObservableList<T>.addSorted(items: Collection<T>, comparator: (T, T) -> Int) = items.forEach { item ->
-    val index = indexOfFirst { comparator.invoke(it, item) > 0 }
+fun <T> MutableList<T>.addSorted(items: Collection<T>, comparator: (T, T) -> Int) = items.forEach { item ->
+    val index = indexOfFirst { comparator(it, item) > 0 }
     if (index < 0) add(item) else add(index, item)
 }
 
-fun <K, V : Comparable<V>> Map<K, V>.takeHighest(count: Int): Map<K, V> {
-    return toList().sortedBy { it.second }.takeLast(count).toMap()
+inline fun <K, V : Comparable<V>, R : Comparable<R>> Map<K, V>.sortedBy(crossinline block: (Pair<K, V>) -> R?): Map<K, V> {
+    return toList().sortedBy(block).toMap()
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -142,7 +157,7 @@ fun printError(message: String) {
 
 inline fun <T> measureTime(type: String, message: String, block: () -> T): T {
     val startTime = System.currentTimeMillis()
-    val value = block.invoke()
+    val value = block()
     val totalTime = (System.currentTimeMillis() - startTime) / 1000.0
     val async = if (!Platform.isFxApplicationThread()) "[async]" else ""
     logTypeCharacters = Math.max(logTypeCharacters, type.length)

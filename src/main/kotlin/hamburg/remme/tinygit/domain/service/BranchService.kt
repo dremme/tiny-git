@@ -44,7 +44,7 @@ class BranchService : Refreshable {
 
             override fun failed() {
                 when (exception) {
-                    is CheckoutException -> errorHandler.invoke()
+                    is CheckoutException -> errorHandler()
                     else -> exception.printStackTrace()
                 }
             }
@@ -60,7 +60,7 @@ class BranchService : Refreshable {
 
                 override fun failed() {
                     when (exception) {
-                        is CheckoutException -> errorHandler.invoke()
+                        is CheckoutException -> errorHandler()
                         else -> exception.printStackTrace()
                     }
                 }
@@ -88,7 +88,7 @@ class BranchService : Refreshable {
             gitBranchMove(repository, branch, newName)
             TinyGit.fireEvent()
         } catch (ex: BranchAlreadyExistsException) {
-            branchExistsHandler.invoke()
+            branchExistsHandler()
         }
     }
 
@@ -97,7 +97,7 @@ class BranchService : Refreshable {
             gitBranchDelete(repository, branch, force)
             TinyGit.fireEvent()
         } catch (ex: BranchUnpushedException) {
-            branchUnpushedHandler.invoke()
+            branchUnpushedHandler()
         }
     }
 
@@ -109,8 +109,8 @@ class BranchService : Refreshable {
 
             override fun failed() {
                 when (exception) {
-                    is BranchAlreadyExistsException -> branchExistsHandler.invoke()
-                    is BranchNameInvalidException -> nameInvalidHandler.invoke()
+                    is BranchAlreadyExistsException -> branchExistsHandler()
+                    is BranchNameInvalidException -> nameInvalidHandler()
                     else -> exception.printStackTrace()
                 }
             }

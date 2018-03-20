@@ -17,24 +17,24 @@ fun button(action: Action) = button {
     graphic = action.icon?.invoke()
     action.shortcut?.let { KeyCombination.valueOf(it).displayText }?.let { tooltip = Tooltip(it) }
     action.disable?.let { disabledWhen(it) }
-    setOnAction { action.handler.invoke() }
+    setOnAction { action.handler() }
 }
 
 inline fun button(block: Button.() -> Unit): Button {
     val button = Button()
-    block.invoke(button)
+    block(button)
     return button
 }
 
 inline fun link(block: Hyperlink.() -> Unit): Hyperlink {
     val link = Hyperlink()
-    block.invoke(link)
+    block(link)
     return link
 }
 
 inline fun toolBar(block: ToolBarBuilder.() -> Unit): ToolBar {
     val toolBar = ToolBarBuilder()
-    block.invoke(toolBar)
+    block(toolBar)
     return toolBar
 }
 

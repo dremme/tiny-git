@@ -36,6 +36,6 @@ class Json(map: Map<String, *> = emptyMap<String, Any>()) : LinkedHashMap<String
 
 inline fun json(block: Json.() -> Unit): Json {
     val json = Json()
-    block.invoke(json)
+    block(json)
     return json
 }

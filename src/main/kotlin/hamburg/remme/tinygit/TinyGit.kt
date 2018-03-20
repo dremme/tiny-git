@@ -93,7 +93,7 @@ class TinyGit : Application() {
         }
 
         fun fireEvent() {
-            repositoryService.activeRepository.get()?.let { repository -> listeners.forEach { it.invoke(repository) } }
+            repositoryService.activeRepository.get()?.let { repository -> listeners.forEach { it(repository) } }
         }
 
         fun execute(task: Task<*>) = cachedPool.execute(task)

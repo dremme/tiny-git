@@ -12,13 +12,13 @@ import javafx.scene.input.KeyEvent
 
 inline fun textField(block: TextField.() -> Unit): TextField {
     val textField = TextField()
-    block.invoke(textField)
+    block(textField)
     return textField
 }
 
 inline fun password(block: PasswordField.() -> Unit): PasswordField {
     val password = PasswordField()
-    block.invoke(password)
+    block(password)
     return password
 }
 
@@ -31,25 +31,25 @@ inline fun textArea(block: TextArea.() -> Unit): TextArea {
                     it.isShiftDown, true, it.isAltDown, it.isMetaDown))
         }
     })
-    block.invoke(textArea)
+    block(textArea)
     return textArea
 }
 
 inline fun checkBox(block: CheckBox.() -> Unit): CheckBox {
     val checkBox = CheckBox()
-    block.invoke(checkBox)
+    block(checkBox)
     return checkBox
 }
 
 inline fun <T> comboBox(block: ComboBox<T>.() -> Unit): ComboBox<T> {
     val comboBox = ComboBox<T>()
-    block.invoke(comboBox)
+    block(comboBox)
     return comboBox
 }
 
 inline fun <T> comboBox(items: ObservableList<T>, block: ComboBox<T>.() -> Unit): ComboBox<T> {
     val comboBox = ComboBox<T>(items)
-    block.invoke(comboBox)
+    block(comboBox)
     return comboBox
 }
 
@@ -57,6 +57,6 @@ inline fun autocomplete(items: ObservableList<String>, block: ComboBox<String>.(
     val comboBox = ComboBox<String>(items)
     comboBox.isEditable = true
     comboBox.focusedProperty().addListener { _, _, it -> if (it && comboBox.items.isNotEmpty()) comboBox.show() }
-    block.invoke(comboBox)
+    block(comboBox)
     return comboBox
 }

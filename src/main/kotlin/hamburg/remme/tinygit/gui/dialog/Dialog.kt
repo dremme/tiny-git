@@ -57,13 +57,13 @@ abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = fal
         dialog.isResizable = resizable
         dialog.resultConverter = Callback {
             when {
-                it == null -> cancelAction.invoke()
-                it.isOk() -> okAction.invoke()
-                it.isCancel() -> cancelAction.invoke()
+                it == null -> cancelAction()
+                it.isOk() -> okAction()
+                it.isCancel() -> cancelAction()
                 else -> null
             }
         }
-        dialog.dialogPane.scene.window.focusedProperty().addListener { _, _, it -> if (it) focusAction.invoke() }
+        dialog.dialogPane.scene.window.focusedProperty().addListener { _, _, it -> if (it) focusAction() }
     }
 
     fun show() {

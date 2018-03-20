@@ -42,43 +42,43 @@ fun <T : Node> T.columnSpan(value: Int): T {
 
 inline fun pane(block: PaneBuilder.() -> Unit): Pane {
     val pane = PaneBuilder()
-    block.invoke(pane)
+    block(pane)
     return pane
 }
 
 inline fun stackPane(block: StackPaneBuilder.() -> Unit): StackPane {
     val pane = StackPaneBuilder()
-    block.invoke(pane)
+    block(pane)
     return pane
 }
 
 inline fun splitPane(block: SplitPaneBuilder.() -> Unit): SplitPane {
     val pane = SplitPaneBuilder()
-    block.invoke(pane)
+    block(pane)
     return pane
 }
 
 inline fun scrollPane(block: ScrollPaneBuilder.() -> Unit): ScrollPane {
     val pane = ScrollPaneBuilder()
-    block.invoke(pane)
+    block(pane)
     return pane
 }
 
 inline fun hbox(block: HBoxBuilder.() -> Unit): HBox {
     val box = HBoxBuilder()
-    block.invoke(box)
+    block(box)
     return box
 }
 
 inline fun vbox(block: VBoxBuilder.() -> Unit): VBox {
     val box = VBoxBuilder()
-    block.invoke(box)
+    block(box)
     return box
 }
 
 inline fun grid(numberOfColumns: Int, block: GridPaneBuilder.() -> Unit): GridPane {
     val grid = GridPaneBuilder(numberOfColumns)
-    block.invoke(grid)
+    block(grid)
     return grid
 }
 

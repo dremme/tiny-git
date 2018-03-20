@@ -11,19 +11,19 @@ import javafx.scene.input.KeyCombination
 
 inline fun menuBar(block: MenuBarBuilder.() -> Unit): MenuBar {
     val menuBar = MenuBarBuilder()
-    block.invoke(menuBar)
+    block(menuBar)
     return menuBar
 }
 
 inline fun menu(block: MenuBuilder.() -> Unit): Menu {
     val menu = MenuBuilder()
-    block.invoke(menu)
+    block(menu)
     return menu
 }
 
 inline fun menuItem(block: MenuItemBuilder.() -> Unit): MenuItem {
     val item = MenuItemBuilder()
-    block.invoke(item)
+    block(item)
     return item
 }
 
@@ -33,13 +33,13 @@ fun menuItem(action: Action): MenuItem {
         icon = action.icon?.invoke()
         action.shortcut?.let { accelerator = KeyCombination.valueOf(it) }
         action.disable?.let { disableProperty().bind(it) }
-        setOnAction { action.handler.invoke() }
+        setOnAction { action.handler() }
     }
 }
 
 inline fun contextMenu(block: ContextMenuBuilder.() -> Unit): ContextMenu {
     val menu = ContextMenuBuilder()
-    block.invoke(menu)
+    block(menu)
     return menu
 }
 
@@ -48,7 +48,7 @@ fun contextMenuItem(action: Action): MenuItem {
         text = action.text
         graphic = action.icon?.invoke()
         action.disable?.let { disableProperty().bind(it) }
-        setOnAction { action.handler.invoke() }
+        setOnAction { action.handler() }
     }
 }
 

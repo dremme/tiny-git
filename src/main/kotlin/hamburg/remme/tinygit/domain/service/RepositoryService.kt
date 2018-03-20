@@ -61,10 +61,10 @@ class RepositoryService(private val service: CredentialService) {
 
             override fun succeeded() {
                 add(repository)
-                successHandler.invoke()
+                successHandler()
             }
 
-            override fun failed() = errorHandler.invoke(exception.message!!)
+            override fun failed() = errorHandler(exception.message!!)
         })
     }
 
@@ -72,7 +72,7 @@ class RepositoryService(private val service: CredentialService) {
         if (path.asPath().resolve(".git").exists()) {
             add(Repository(path))
         } else {
-            invalidHandler.invoke()
+            invalidHandler()
         }
     }
 

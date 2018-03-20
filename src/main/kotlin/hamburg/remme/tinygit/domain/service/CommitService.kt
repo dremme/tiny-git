@@ -35,7 +35,7 @@ class CommitService : Refreshable {
                 TinyGit.fireEvent()
             }
 
-            override fun failed() = errorHandler.invoke()
+            override fun failed() = errorHandler()
         })
     }
 

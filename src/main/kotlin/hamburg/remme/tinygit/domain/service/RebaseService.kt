@@ -30,7 +30,7 @@ class RebaseService : Refreshable {
 
             override fun failed() {
                 when (exception) {
-                    is RebaseException -> errorHandler.invoke(exception.message!!)
+                    is RebaseException -> errorHandler(exception.message!!)
                     else -> exception.printStackTrace()
                 }
             }
@@ -46,7 +46,7 @@ class RebaseService : Refreshable {
 
             override fun failed() {
                 when (exception) {
-                    is UnmergedException -> unresolvedHandler.invoke()
+                    is UnmergedException -> unresolvedHandler()
                     else -> exception.printStackTrace()
                 }
             }

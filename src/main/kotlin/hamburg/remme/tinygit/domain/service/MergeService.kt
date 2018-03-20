@@ -27,9 +27,9 @@ class MergeService : Refreshable {
                 when (exception) {
                     is MergeConflictException -> {
                         TinyGit.fireEvent()
-                        conflictHandler.invoke()
+                        conflictHandler()
                     }
-                    is MergeException -> errorHandler.invoke()
+                    is MergeException -> errorHandler()
                     else -> exception.printStackTrace()
                 }
             }
