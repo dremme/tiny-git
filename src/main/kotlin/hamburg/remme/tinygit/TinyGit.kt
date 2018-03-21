@@ -66,7 +66,7 @@ class TinyGit : Application() {
         val credentialService = CredentialService()
         val repositoryService: RepositoryService = RepositoryService(credentialService)
         val remoteService = RemoteService(repositoryService, credentialService).addListeners()
-        val branchService = BranchService().addListeners()
+        val branchService = BranchService(repositoryService, credentialService).addListeners()
         val tagService = TagService().addListeners()
         val workingCopyService = WorkingCopyService().addListeners()
         val divergenceService = DivergenceService().addListeners()

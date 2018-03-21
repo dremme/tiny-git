@@ -15,7 +15,6 @@ private val branchDeleteForce = arrayOf("branch", "--delete", "--force")
 private val checkout = arrayOf("checkout")
 private val checkoutCreate = arrayOf("checkout", "-b")
 private val headCounter = AtomicInteger()
-private const val remotes = "remotes/"
 
 fun gitHead(repository: Repository): Head {
     return Head(headCounter.getAndIncrement().toString(), git(repository, *revParseHead).trim())
@@ -27,8 +26,8 @@ fun gitBranchList(repository: Repository): List<Branch> {
         val branchMatch = "[* ] (\\(.+?\\)|.+?) +([\\da-f]+|-> [-./_\\w]+).*".toRegex().matchEntire(it)!!.groupValues
         val branch = branchMatch[1].parseRef()
         val commitId = branchMatch[2]
-        if (branch != "${remotes}origin/HEAD") {
-            branches += Branch(commitId, branch.substringAfter(remotes), branch.startsWith(remotes))
+        if (branch != "remotes/origin/HEAD") {
+            branches += Branch(commitId, branch.substringAfter("remotes/"), branch.startsWith("remotes/"))
         }
     }
     return branches

@@ -89,7 +89,7 @@ class RepositoryView : VBoxBuilder() {
 
             val canCheckout = Bindings.createBooleanBinding(Callable { treeSelection.isBranch() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
             val canRenameBranch = Bindings.createBooleanBinding(Callable { treeSelection.isLocal() }, selectionModel.selectedItemProperty())
-            val canDeleteBranch = Bindings.createBooleanBinding(Callable { treeSelection.isLocal() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
+            val canDeleteBranch = Bindings.createBooleanBinding(Callable { treeSelection.isBranch() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
             val canApplyStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
             val canDeleteStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
             val checkoutBranch = Action(I18N["repository.checkoutBranch"], { Icons.check() }, disable = canCheckout.not(),
@@ -173,14 +173,23 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun deleteBranch(branch: Branch) {
-        branchService.delete(
+        if (branch.isLocal) deleteLocalBranch(branch) else deleteRemoteBranch(branch)
+    }
+
+    private fun deleteLocalBranch(branch: Branch) {
+        branchService.deleteLocal(
                 branch,
                 false,
                 {
-                    if (confirmWarningAlert(window, I18N["dialog.deleteBranch.header"], I18N["dialog.deleteBranch.button"], I18N["dialog.cannotDeleteBranch.text", branch])) {
-                        branchService.delete(branch, true)
+                    if (confirmWarningAlert(window, I18N["dialog.cannotDeleteBranch.header"], I18N["dialog.cannotDeleteBranch.button"], I18N["dialog.cannotDeleteBranch.text", branch])) {
+                        branchService.deleteLocal(branch, true)
                     }
                 })
+    }
+
+    private fun deleteRemoteBranch(branch: Branch) {
+        if (!confirmWarningAlert(window, I18N["dialog.deleteBranch.header"], I18N["dialog.deleteBranch.button"], I18N["dialog.deleteBranch.text", branch])) return
+        branchService.deleteRemote(branch)
     }
 
     private fun checkout(branch: Branch) {

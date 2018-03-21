@@ -17,6 +17,7 @@ import hamburg.remme.tinygit.git.gitBranchMove
 import hamburg.remme.tinygit.git.gitCheckout
 import hamburg.remme.tinygit.git.gitCheckoutRemote
 import hamburg.remme.tinygit.git.gitHead
+import hamburg.remme.tinygit.git.gitPushDelete
 import hamburg.remme.tinygit.git.gitResetHard
 import hamburg.remme.tinygit.git.gitSquash
 import hamburg.remme.tinygit.observableList
@@ -24,7 +25,8 @@ import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleObjectProperty
 import javafx.concurrent.Task
 
-class BranchService : Refreshable {
+class BranchService(private val repositoryService: RepositoryService,
+                    private val credentialService: CredentialService) : Refreshable {
 
     val head = SimpleObjectProperty<Head>(Head.EMPTY)
     val branches = observableList<Branch>()
@@ -92,13 +94,24 @@ class BranchService : Refreshable {
         }
     }
 
-    fun delete(branch: Branch, force: Boolean, branchUnpushedHandler: () -> Unit = {}) {
+    fun deleteLocal(branch: Branch, force: Boolean, branchUnpushedHandler: () -> Unit = {}) {
         try {
             gitBranchDelete(repository, branch, force)
             TinyGit.fireEvent()
         } catch (ex: BranchUnpushedException) {
             branchUnpushedHandler()
         }
+    }
+
+    fun deleteRemote(branch: Branch) {
+        credentialService.applyCredentials(repositoryService.remote.get())
+        TinyGit.execute(I18N["branch.delete"], object : Task<Unit>() {
+            override fun call() = gitPushDelete(repository, branch)
+
+            override fun succeeded() = TinyGit.fireEvent()
+
+            override fun failed() = exception.printStackTrace()
+        })
     }
 
     fun branch(name: String, branchExistsHandler: () -> Unit, nameInvalidHandler: () -> Unit) {
