@@ -278,6 +278,16 @@
     -fx-font-size: 1.5em;
 }
 
+.diagram-value {
+    -fx-font: 4em "Roboto Light", sans-serif;
+    -fx-alignment: center;
+}
+
+.diagram-description {
+    -fx-font-size: 1.5em;
+    -fx-alignment: center;
+}
+
 .histogram-shape { -fx-stroke: transparent; }
 
 .default-color0.histogram-shape { -fx-fill: CHART_COLOR_1; }
@@ -670,15 +680,6 @@
 
 .stats-view .synopsis > * {
     -fx-alignment: center;
-}
-
-.stats-view .synopsis > * > .header {
-    -fx-font: 3em "Roboto Light", sans-serif;
-    -fx-graphic-text-gap: 1em;
-}
-
-.stats-view .synopsis > * > .header .icon {
-    -fx-font-size: 2em;
 }
 
 .branch-badge {

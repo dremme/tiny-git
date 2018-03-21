@@ -2,7 +2,6 @@ package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.daysBetween
-import hamburg.remme.tinygit.daysFromOrigin
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.NumStat
 import hamburg.remme.tinygit.domain.Repository
@@ -14,7 +13,6 @@ import hamburg.remme.tinygit.mapParallel
 import hamburg.remme.tinygit.mapValuesParallel
 import hamburg.remme.tinygit.observableList
 import hamburg.remme.tinygit.sortedBy
-import javafx.beans.property.SimpleIntegerProperty
 import javafx.concurrent.Task
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -23,9 +21,6 @@ import javafx.scene.chart.XYChart.Data as XYData
 
 class StatsService {
 
-    val numberOfAuthors = SimpleIntegerProperty()
-    val numberOfFiles = SimpleIntegerProperty()
-    val numberOfLines = SimpleIntegerProperty()
     val contributorsData = observableList<DonutChart.Data>()
     val filesData = observableList<DonutChart.Data>()
     val commitsData = observableList<HistogramChart.Series>()
@@ -41,18 +36,6 @@ class StatsService {
     private val log = mutableListOf<Commit>()
     private val numStat = mutableListOf<NumStat>()
     private val taskPool = mutableSetOf<Task<*>>()
-
-    fun updateNumberOfAuthors() {
-        numberOfAuthors.set(log.distinctBy { it.authorMail.toLowerCase() }.size)
-    }
-
-    fun updateNumberOfFiles() {
-        numberOfFiles.set(numStat.size)
-    }
-
-    fun updateNumberOfLines() {
-        numberOfLines.set(numStat.sumBy { it.added + it.removed })
-    }
 
     fun updateActivity() {
         taskPool += object : Task<List<XYData<LocalDate, DayOfWeek>>>() {
@@ -92,16 +75,17 @@ class StatsService {
             override fun call() = log
                     .groupBy { it.authorMail.toLowerCase() }
                     .mapValuesParallel {
-                        it.map { it.date.toLocalDate() }
+                        if (!isCancelled) it.map { it.date.toLocalDate() }
                                 .groupingBy { it }
                                 .eachCount()
                                 .toList()
                                 .sortedBy { it.first }
+                        else emptyList()
                     }
                     .toList()
                     .sortedBy { (_, data) -> data.sumBy { it.second } }
                     .map { (author, data) ->
-                        HistogramChart.Series(author, data.map { (date, value) -> HistogramChart.Data(date.daysFromOrigin, value.toLong()) })
+                        HistogramChart.Series(author, data.map { (date, value) -> HistogramChart.Data(date, value.toLong()) })
                     }
 
             override fun succeeded() {
@@ -139,21 +123,23 @@ class StatsService {
 
             override fun call() = (0..lastDay.daysBetween(firstDay))
                     .map { firstDay.plusDays(it) }
-                    .map { date -> log.filter { it.date.toLocalDate() == date } }
-                    .map {
-                        val min = it.minBy { it.date }
-                        val max = it.maxBy { it.date }
-                        min to max
+                    .map { it.minusDays(it.dayOfWeek.value - 1L) }
+                    .distinct()
+                    .map { date -> date to log.filter { it.date.toLocalDate().minusDays(it.date.dayOfWeek.value - 1L) == date } }
+                    .map { (date, log) ->
+                        val min = log.minBy { it.date }
+                        val max = log.maxBy { it.date }
+                        Triple(date, min, max)
                     }
-                    .mapParallel { (first, last) ->
-                        if (!isCancelled && first != null && last != null) gitDiffNumstat(repository, first, last) else emptyList()
+                    .mapParallel { (date, first, last) ->
+                        date to if (!isCancelled && first != null && last != null) gitDiffNumstat(repository, first, last)
+                        else emptyList()
                     }
-                    .map { it.sumBy { it.added } to it.sumBy { it.removed } }
-                    .mapIndexed { i, it -> firstDay.plusDays(i.toLong()) to it }
-                    .filter { (_, stat) -> stat.first + stat.second > 0 }
-                    .forEach { (date, value) ->
-                        added += HistogramChart.Data(date.daysFromOrigin, value.first.toLong())
-                        removed += HistogramChart.Data(date.daysFromOrigin, value.second.toLong())
+                    .map { (date, stats) -> Triple(date, stats.sumBy { it.added }, stats.sumBy { it.removed }) }
+                    .filter { (_, added, removed) -> added + removed > 0 }
+                    .forEach { (date, added, removed) ->
+                        this.added += HistogramChart.Data(date, added.toLong(), 7)
+                        this.removed += HistogramChart.Data(date, removed.toLong(), 7)
                     }
 
             override fun succeeded() {
@@ -170,9 +156,6 @@ class StatsService {
         cancel()
         log.clear()
         numStat.clear()
-        numberOfAuthors.set(0)
-        numberOfFiles.set(0)
-        numberOfLines.set(0)
         taskPool += object : Task<Unit>() {
             private lateinit var log: List<Commit>
             private lateinit var numStat: List<NumStat>
@@ -185,9 +168,6 @@ class StatsService {
             override fun succeeded() {
                 this@StatsService.log.addAll(log)
                 this@StatsService.numStat.addAll(numStat)
-                updateNumberOfAuthors()
-                updateNumberOfFiles()
-                updateNumberOfLines()
                 updateActivity()
                 updateCommits()
                 updateContributors()

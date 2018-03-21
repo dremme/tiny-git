@@ -3,24 +3,40 @@ package hamburg.remme.tinygit.gui.component
 import hamburg.remme.tinygit.HALF_PI
 import hamburg.remme.tinygit.TWO_PI
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.label
+import javafx.animation.Interpolator
+import javafx.animation.KeyFrame
+import javafx.animation.KeyValue
+import javafx.animation.Timeline
 import javafx.scene.shape.Arc
 import javafx.scene.shape.ArcType
+import javafx.util.Duration
 
 class DonutChart(title: String) : Chart(title) {
 
     private var total = 0.0
     private val data = mutableListOf<Data>()
     private val arcs get() = data.map { it.arc }
+    private val valueLabel = label { addClass("diagram-value") }
+    private val descriptionLabel = label { addClass("diagram-description") }
 
-    fun setData(data: Collection<Data>) {
+    init {
+        chartChildren.addAll(valueLabel, descriptionLabel)
+    }
+
+    fun setData(data: List<Data>, description: (Long) -> String) {
         // Remove old arcs first
         chartChildren.removeAll(arcs)
         // Set new reference list
         this.data.clear()
-        this.data.addAll(data)
+        this.data.addAll(data.takeLast(10))
         this.data.forEachIndexed { i, it -> it.createArc(i) }
         // Set sum of values
         total = this.data.map { it.value }.sum().toDouble()
+        // Set labels with original data
+        val sum = data.map { it.value }.sum() // not this.data!
+        valueLabel.text = sum.toString()
+        descriptionLabel.text = "...${description(sum)}"
         // Add new arcs
         chartChildren.addAll(arcs)
         // Finally request chart layout
@@ -28,30 +44,47 @@ class DonutChart(title: String) : Chart(title) {
     }
 
     override fun layoutChartChildren(top: Double, left: Double, width: Double, height: Double) {
-        val strokeWidth = 25.0
-        val radius = (Math.min(width, height) - strokeWidth) / 2.0
+        val valueHeight = snapSize(valueLabel.prefHeight(width))
+        valueLabel.resizeRelocate(left, top + height / 2 - valueHeight / 2, width, valueHeight)
+
+        val descriptionHeight = snapSize(descriptionLabel.prefHeight(width))
+        descriptionLabel.resizeRelocate(left, top + height / 2 + descriptionHeight, width, descriptionHeight)
+
+        val strokeWidth = Math.max(12.0, Math.min(width, height) / 10)
+        val radius = (Math.min(width, height) - strokeWidth) / 2
         var angle = 0.0
+        val timeline = Timeline()
         data.forEach {
-            val length = TWO_PI * (it.value / total)
-            it.arc.strokeWidth = strokeWidth
-            it.arc.centerX = left + width / 2
-            it.arc.centerY = top + height / 2
-            it.arc.radiusX = radius
-            it.arc.radiusY = radius
-            it.arc.startAngle = -angle + HALF_PI
-            it.arc.length = -length
-            angle += length
+            val arc = it.arc!!
+            if (!it.wasAnimated) {
+                arc.startAngle = HALF_PI
+
+                val length = TWO_PI * (it.value / total)
+                val angleKeyValue = KeyValue(arc.startAngleProperty(), -angle + HALF_PI, Interpolator.EASE_OUT)
+                val lengthKeyValue = KeyValue(arc.lengthProperty(), -length, Interpolator.EASE_OUT)
+                timeline.keyFrames.add(KeyFrame(Duration.millis(1000.0), angleKeyValue, lengthKeyValue))
+
+                angle += length
+                it.wasAnimated = true
+            }
+            arc.strokeWidth = strokeWidth
+            arc.centerX = left + width / 2
+            arc.centerY = top + height / 2
+            arc.radiusX = radius
+            arc.radiusY = radius
         }
+        if (timeline.keyFrames.isNotEmpty()) timeline.play()
     }
 
     class Data(val name: String, val value: Long) {
 
-        lateinit var arc: Arc
+        var arc: Arc? = null
+        var wasAnimated = false
 
         fun createArc(index: Int) {
             arc = Arc()
-            arc.addClass("donut-shape", "default-color${index % 8}")
-            arc.type = ArcType.OPEN
+            arc!!.addClass("donut-shape", "default-color${index % 8}")
+            arc!!.type = ArcType.OPEN
         }
 
     }

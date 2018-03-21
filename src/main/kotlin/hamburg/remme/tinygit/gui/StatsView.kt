@@ -2,7 +2,6 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
-import hamburg.remme.tinygit.daysFromOrigin
 import hamburg.remme.tinygit.domain.service.TaskListener
 import hamburg.remme.tinygit.gui.builder.StackPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -41,12 +40,6 @@ class StatsView : Tab() {
     private val commits: HistogramChart
     private val lines: HistogramChart
     private val activityData = observableList<XYData<LocalDate, DayOfWeek>>() // TODO
-//    private val numberOfAuthors = SimpleIntegerProperty()
-//    private val numberOfFiles = SimpleIntegerProperty()
-//    private val numberOfLines = SimpleIntegerProperty()
-//    private val linesTimeline = Timeline()
-//    private val authorsTimeline = Timeline()
-//    private val filesTimeline = Timeline()
 
     init {
         text = I18N["stats.tab"]
@@ -58,9 +51,6 @@ class StatsView : Tab() {
         statsService.commitsData.addListener(ListChangeListener { updateCommits(it.list) })
         statsService.activityData.addListener(ListChangeListener { updateActivity(it.list) })
         statsService.linesData.addListener(ListChangeListener { updateLines(it.list) })
-//        statsService.numberOfAuthors.addListener { _, _, it -> authorsTimeline.play(numberOfAuthors, it.toInt()) }
-//        statsService.numberOfFiles.addListener { _, _, it -> filesTimeline.play(numberOfFiles, it.toInt()) }
-//        statsService.numberOfLines.addListener { _, _, it -> linesTimeline.play(numberOfLines, it.toInt()) }
 
         contributions = DonutChart(I18N["stats.contributionChart"])
         contributions.prefHeight = 400.0
@@ -74,15 +64,15 @@ class StatsView : Tab() {
 
         commits = HistogramChart(I18N["stats.dailyContributionChart"])
         commits.prefHeight = 300.0
-        commits.lowerBoundX = statsService.firstDay.daysFromOrigin
-        commits.upperBoundX = statsService.lastDay.daysFromOrigin
+        commits.lowerBound = statsService.firstDay
+        commits.upperBound = statsService.lastDay
         val commitsIndicator = ProgressIndicator(commits).columnSpan(2)
         statsService.commitsListener = commitsIndicator
 
         lines = HistogramChart(I18N["stats.locChart"])
         lines.prefHeight = 250.0
-        lines.lowerBoundX = statsService.firstDay.daysFromOrigin
-        lines.upperBoundX = statsService.lastDay.daysFromOrigin
+        lines.lowerBound = statsService.firstDay
+        lines.upperBound = statsService.lastDay
         val linesIndicator = ProgressIndicator(lines).columnSpan(2)
         statsService.linesListener = linesIndicator
 
@@ -113,38 +103,9 @@ class StatsView : Tab() {
                 isFitToWidth = true
                 +grid(2) {
                     columns(50.0, 50.0)
-                    +listOf(
-//                            hbox {
-//                                columnSpan(2)
-//                                addClass("synopsis")
-//                                +vbox {
-//                                    +label {
-//                                        addClass("header")
-//                                        textProperty().bind(Bindings.createStringBinding(Callable { I18N["stats.authors", numberOfAuthors.get()] }, numberOfAuthors))
-//                                        +Icons.user()
-//                                    }
-//                                    +label { +"...${I18N["stats.headAuthors"]}" }
-//                                }
-//                                +vbox {
-//                                    +label {
-//                                        addClass("header")
-//                                        textProperty().bind(Bindings.createStringBinding(Callable { I18N["stats.files", numberOfFiles.get()] }, numberOfFiles))
-//                                        +Icons.file()
-//                                    }
-//                                    +label { +"...${I18N["stats.headFiles"]}" }
-//                                }
-//                                +vbox {
-//                                    +label {
-//                                        addClass("header")
-//                                        textProperty().bind(Bindings.createStringBinding(Callable { I18N["stats.lines", numberOfLines.get()] }, numberOfLines))
-//                                        +Icons.code()
-//                                    }
-//                                    +label { +"...${I18N["stats.headLines"]}" }
-//                                }
-//                            },
-                            activityIndicator,
-                            contributionIndicator,
+                    +listOf(contributionIndicator,
                             filesIndicator,
+                            activityIndicator,
                             commitsIndicator,
                             linesIndicator)
                 }
@@ -162,12 +123,12 @@ class StatsView : Tab() {
     }
 
     private fun updateContributions(data: List<DonutChart.Data>) {
-        contributions.setData(data)
+        contributions.setData(data, { I18N["stats.descContrib", it] })
         data.forEach { it -> Tooltip.install(it.arc, Tooltip("${it.name} (${I18N["stats.commits", it.value]})")) }
     }
 
     private fun updateFiles(data: List<DonutChart.Data>) {
-        files.setData(data)
+        files.setData(data, { I18N["stats.descFiles", it] })
         data.forEach { it -> Tooltip.install(it.arc, Tooltip("${it.name} (${I18N["stats.files", it.value]})")) }
     }
 
@@ -190,12 +151,6 @@ class StatsView : Tab() {
             Tooltip.install(it.node, Tooltip("${it.xValue.format(shortDateFormat)} (${I18N["stats.commits", it.extraValue as Int]})"))
         }
     }
-
-//    private fun Timeline.play(property: IntegerProperty, value: Int) {
-//        stop()
-//        keyFrames.setAll(KeyFrame(Duration.millis(1000.0), KeyValue(property, value, Interpolator.EASE_OUT)))
-//        play()
-//    }
 
     private class ProgressIndicator(content: Node) : StackPaneBuilder(), TaskListener {
 

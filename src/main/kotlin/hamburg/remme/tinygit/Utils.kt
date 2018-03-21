@@ -108,10 +108,12 @@ fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*
 
 fun <T> observableList(items: Collection<T>) = FXCollections.observableArrayList<T>(items)!!
 
+// TODO: parallelize
 inline fun <T, R> List<T>.mapParallel(block: (T) -> R): List<R> {
     return map(block)
 }
 
+// TODO: parallelize
 inline fun <K, V, R> Map<K, V>.mapValuesParallel(block: (V) -> R): Map<K, R> {
     return mapValues { (_, value) -> block(value) }
 }
