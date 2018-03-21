@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit
 
-import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.service.BranchService
 import hamburg.remme.tinygit.domain.service.CommitDetailsService
@@ -117,14 +116,13 @@ class TinyGit : Application() {
 
     init {
         TinyGit.application = this
-        overrideTooltips()
     }
 
     override fun start(stage: Stage) {
         TinyGit.stage = stage
 
         // We terminate here because technical requirements for TinyGit aren't met
-        if (PlatformUtil.isMac() || PlatformUtil.isUnix()) gitIsInstalled() // UNIX workaround
+        if (isMac || isLinux) gitIsInstalled() // UNIX workaround
         if (!gitIsInstalled()) {
             fatalAlert(I18N["error.gitError"], I18N["error.gitNotInstalled"])
             showDocument("https://git-scm.com/downloads")
@@ -137,8 +135,8 @@ class TinyGit : Application() {
             System.exit(-1)
             return
         }
-        if (PlatformUtil.isWindows() && gitGetCredentialHelper().isBlank()) gitSetWincred()
-        if (PlatformUtil.isMac() && gitGetCredentialHelper().isBlank()) gitSetKeychain()
+        if (isWindows && gitGetCredentialHelper().isBlank()) gitSetWincred()
+        if (isMac && gitGetCredentialHelper().isBlank()) gitSetKeychain()
 
         settings.addOnSave {
             it["window"] = json {
@@ -183,7 +181,7 @@ class TinyGit : Application() {
 
     private fun updateTitle(): String {
         val repository = repositoryService.activeRepository.get()?.let {
-            val path = if (PlatformUtil.isMac()) it.path.stripHome() else it.path
+            val path = if (isMac) it.path.stripHome() else it.path
             val rebase = if (rebaseService.isRebasing.get()) "REBASING ${rebaseService.rebaseNext.get()}/${rebaseService.rebaseLast.get()} " else ""
             val merge = if (mergeService.isMerging.get()) "MERGING " else ""
             "${it.shortPath} [$path] $merge$rebase\u2012 "

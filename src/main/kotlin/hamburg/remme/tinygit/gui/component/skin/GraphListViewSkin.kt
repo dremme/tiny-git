@@ -25,14 +25,13 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
         paths.reversed().forEach { pathGroup.children += it }
     }
 
-    override fun layoutGraphChildren(scrollX: Double, scrollY: Double) {
+    // TODO: graph clipping over scrollbars
+    override fun layoutGraphChildren() {
         paths.forEach { it.elements.clear() }
         circleGroup.children.clear()
 
-        val firstCell = flow.firstVisibleCell
-        val lastCell = flow.lastVisibleCell
-
-        if (graphView.isGraphVisible && firstCell != null && lastCell != null) {
+        if (graphView.isGraphVisible && hasCells) {
+            val scrollX = horizontalBar.value
             val cellHeight = (firstCell.index..lastCell.index).map { flow.getVisibleCell(it).height }.average()
 
             graphView.items.forEachIndexed { commitIndex, commit ->
@@ -85,6 +84,8 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
                     }
                 }
             }
+            graphView.graphWidth = SPACING + SPACING * (graphView.logGraph.getHighestTag() + 1)
+        } else if (!hasCells) {
             graphView.graphWidth = SPACING + SPACING * (graphView.logGraph.getHighestTag() + 1)
         } else {
             graphView.graphWidth = 0.0

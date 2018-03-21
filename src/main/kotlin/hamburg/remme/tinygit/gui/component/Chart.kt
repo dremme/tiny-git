@@ -19,9 +19,9 @@ abstract class Chart(val title: String) : Region() {
             val right = snappedRightInset()
             val width = width
             val height = height
-            val contentWidth = snapSize(width - (left + right))
-            val contentHeight = snapSize(height - (top + bottom))
-            layoutChartChildren(snapPosition(top), snapPosition(left), contentWidth, contentHeight)
+            val contentWidth = snapSizeX(width - (left + right))
+            val contentHeight = snapSizeY(height - (top + bottom))
+            layoutChartChildren(snapPositionY(top), snapPositionX(left), contentWidth, contentHeight)
         }
     }
     protected val chartChildren get() = chartContent.children!!

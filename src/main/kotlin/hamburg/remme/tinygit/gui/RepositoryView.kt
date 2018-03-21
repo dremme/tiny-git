@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit.gui
 
-import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.addSorted
@@ -24,6 +23,7 @@ import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
+import hamburg.remme.tinygit.isMac
 import hamburg.remme.tinygit.json
 import hamburg.remme.tinygit.shortName
 import hamburg.remme.tinygit.stripHome
@@ -249,7 +249,7 @@ class RepositoryView : VBoxBuilder() {
         override fun updateItem(item: Repository?, empty: Boolean) {
             super.updateItem(item, empty)
             name.text = item?.shortPath
-            path.text = if (PlatformUtil.isMac()) item?.path?.stripHome() else item?.path
+            path.text = if (isMac) item?.path?.stripHome() else item?.path
         }
 
     }

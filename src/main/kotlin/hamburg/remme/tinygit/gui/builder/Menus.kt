@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.gui.builder
 
-import com.sun.javafx.PlatformUtil
+import hamburg.remme.tinygit.isMac
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Menu
@@ -64,7 +64,7 @@ class MenuItemBuilder : MenuItem() {
         get() = graphic
         set(icon) = when {
             icon == null -> graphic = null
-            PlatformUtil.isMac() -> graphic = null
+            isMac -> graphic = null
         // TODO: buggy; images are super blurry
 //                Platform.runLater {
 //                val offscreenScene = Scene(StackPane((icon)).addClass("platform-parent"))

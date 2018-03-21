@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit.gui
 
-import com.sun.javafx.PlatformUtil
 import de.codecentric.centerdevice.MenuToolkit
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
@@ -41,6 +40,7 @@ import hamburg.remme.tinygit.gui.dialog.CmdDialog
 import hamburg.remme.tinygit.gui.dialog.CmdResultDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
+import hamburg.remme.tinygit.isMac
 import javafx.application.Platform
 import javafx.concurrent.Task
 import javafx.scene.control.SeparatorMenuItem
@@ -104,7 +104,7 @@ class GitView : VBoxBuilder() {
                 { repoService.gc() })
         val branch = Action(I18N["menu.branch"], { Icons.codeFork() }, "Shortcut+B", state.canBranch.not(),
                 { createBranch() })
-        val merge = Action(I18N["menu.merge"], { Icons.codeFork().flipY() }, if (PlatformUtil.isMac()) "Shortcut+Shift+M" else "Shortcut+M", state.canMerge.not(),
+        val merge = Action(I18N["menu.merge"], { Icons.codeFork().flipY() }, if (isMac) "Shortcut+Shift+M" else "Shortcut+M", state.canMerge.not(),
                 handler = { merge() })
         val mergeContinue = Action(I18N["menu.continueMerge"], { Icons.forward() }, disable = state.canMergeContinue.not(),
                 handler = { CommitDialog(window).show() })
@@ -138,7 +138,7 @@ class GitView : VBoxBuilder() {
         val cmd = Action(I18N["menu.command"], { Icons.terminal() }, disable = state.canCmd.not(),
                 handler = { gitCommand() })
 
-        if (PlatformUtil.isMac()) {
+        if (isMac) {
             val toolkit = MenuToolkit.toolkit()
             toolkit.setApplicationMenu(menu {
                 text = "TinyGit"
@@ -159,7 +159,7 @@ class GitView : VBoxBuilder() {
                     ActionGroup(rebase, rebaseContinue, rebaseAbort),
                     ActionGroup(reset, squash),
                     ActionGroup(removeRepo))
-            if (!PlatformUtil.isMac()) {
+            if (!isMac) {
                 file += ActionGroup(quit)
                 repository += ActionGroup(settings)
             }
@@ -173,7 +173,7 @@ class GitView : VBoxBuilder() {
                     *workingCopy.actions,
                     ActionGroup(stash, stashPop),
                     ActionGroup(cmd))
-            if (PlatformUtil.isMac()) {
+            if (isMac) {
                 val toolkit = MenuToolkit.toolkit()
                 +menu {
                     text = I18N["menuBar.window"]

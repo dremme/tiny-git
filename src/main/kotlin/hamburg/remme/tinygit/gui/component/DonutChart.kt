@@ -44,10 +44,10 @@ class DonutChart(title: String) : Chart(title) {
     }
 
     override fun layoutChartChildren(top: Double, left: Double, width: Double, height: Double) {
-        val valueHeight = snapSize(valueLabel.prefHeight(width))
+        val valueHeight = snapSizeY(valueLabel.prefHeight(width))
         valueLabel.resizeRelocate(left, top + height / 2 - valueHeight / 2, width, valueHeight)
 
-        val descriptionHeight = snapSize(descriptionLabel.prefHeight(width))
+        val descriptionHeight = snapSizeY(descriptionLabel.prefHeight(width))
         descriptionLabel.resizeRelocate(left, top + height / 2 + descriptionHeight, width, descriptionHeight)
 
         val strokeWidth = Math.max(12.0, Math.min(width, height) / 10)
