@@ -9,13 +9,33 @@ Analyse your and other repositories with the help of TinyGit's statistics.
 
 ![Stats](image/image2.png)
 
+### Build
+
+Easiest way is to build with the shipped Gradle script. You do not need to install Gradle on your machine.
+Just call
+
+```bash
+chmod +x gradlew
+./gradlew clean assemble
+```
+
+for Mac OS and Linux or
+
+```bash
+gradlew.bat clean assemble
+```
+
+for Windows.
+
+**Warning: Maven is deprecated and to be removed.**
+
 ### Usage
 
 TinyGit runs only with a [Git](https://git-scm.com/downloads) installation on your device.
 
 For Mac OS this should be installed via `brew install git`.
 
-Requires Java 1.8 to be installed. Will not work with Java 9 yet.
+Requires Java 1.8 to be installed. Will **not** work with Java 9 yet.
 
 ```bash
 java -jar tinygit-x.x.x.jar
@@ -34,7 +54,6 @@ java -jar tinygit-x.x.x.jar
 ### Missing Features
 
  - Viewing stashes
- - Resetting branches
  - Tagging commits & push/remove tags
  - Staging/unstaging code blocks
  - Saving split pane dividers
