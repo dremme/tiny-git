@@ -1,11 +1,12 @@
 package hamburg.remme.tinygit.domain.service
 
-import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.domain.Credentials
 import hamburg.remme.tinygit.git.gitCredentialKeychainGet
 import hamburg.remme.tinygit.git.gitCredentialKeychainStore
 import hamburg.remme.tinygit.git.gitCredentialWincredGet
 import hamburg.remme.tinygit.git.gitCredentialWincredStore
+import hamburg.remme.tinygit.isMac
+import hamburg.remme.tinygit.isWindows
 
 class CredentialService {
 
@@ -24,14 +25,14 @@ class CredentialService {
     }
 
     private fun getCredentials(host: String, protocol: String) = when {
-        PlatformUtil.isWindows() -> gitCredentialWincredGet(host, protocol)
-        PlatformUtil.isMac() -> gitCredentialKeychainGet(host, protocol)
+        isWindows -> gitCredentialWincredGet(host, protocol)
+        isMac -> gitCredentialKeychainGet(host, protocol)
         else -> throw RuntimeException("Credentials currently not supported for your OS.")
     }
 
     private fun setCredentials(credentials: Credentials) = when {
-        PlatformUtil.isWindows() -> gitCredentialWincredStore(credentials)
-        PlatformUtil.isMac() -> gitCredentialKeychainStore(credentials)
+        isWindows -> gitCredentialWincredStore(credentials)
+        isMac -> gitCredentialKeychainStore(credentials)
         else -> throw RuntimeException("Credentials currently not supported for your OS.")
     }
 

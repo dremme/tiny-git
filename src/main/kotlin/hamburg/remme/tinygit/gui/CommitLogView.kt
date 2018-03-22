@@ -47,12 +47,12 @@ class CommitLogView : Tab() {
         isClosable = false
 
         // TODO: should be exposed and used in the menu bar as well?!
-        val checkoutCommit = Action(I18N["commitLog.checkout"], { Icons.check() }, disable = state.canCheckoutCommit.not(),
+        val checkoutCommit = Action(I18N["commitLog.checkout"], { Icons.check() }, disabled = state.canCheckoutCommit.not(),
                 handler = { checkoutCommit(graphSelection) })
-        val resetToCommit = Action(I18N["commitLog.reset"], { Icons.refresh() }, disable = state.canResetToCommit.not(),
+        val resetToCommit = Action(I18N["commitLog.reset"], { Icons.refresh() }, disabled = state.canResetToCommit.not(),
                 handler = { resetToCommit(graphSelection) })
         // TODO
-        val tagCommit = Action(I18N["commitLog.tag"], { Icons.tag() }, disable = state.canTagCommit.not(),
+        val tagCommit = Action(I18N["commitLog.tag"], { Icons.tag() }, disabled = state.canTagCommit.not(),
                 handler = { tagCommit(graphSelection) })
 
         graph.items.addListener(ListChangeListener { graph.selectionModel.selectedItem ?: graph.selectionModel.selectFirst() })

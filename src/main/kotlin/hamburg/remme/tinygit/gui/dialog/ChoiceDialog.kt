@@ -2,11 +2,11 @@ package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.gui.builder.addStylesheet
+import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.vbox
 import javafx.application.Platform
 import javafx.scene.control.ComboBox
-import javafx.scene.control.Label
 import javafx.stage.Window
 
 class ChoiceDialog<T>(ok: String, window: Window) : Dialog<T>(window, I18N["dialog.select.title"]) {
@@ -22,7 +22,7 @@ class ChoiceDialog<T>(ok: String, window: Window) : Dialog<T>(window, I18N["dial
         set(value) {
             label.text = value
         }
-    private val label = Label().apply { managedWhen(textProperty().isNotEmpty) }
+    private val label = label { managedWhen(textProperty().isNotEmpty) }
     private val input = ComboBox<T>()
 
     init {

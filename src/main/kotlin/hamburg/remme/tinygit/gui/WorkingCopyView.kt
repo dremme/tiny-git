@@ -36,13 +36,13 @@ class WorkingCopyView : Tab() {
     val actions get() = arrayOf(ActionGroup(updateAll, stageAll, stageSelected), ActionGroup(unstageAll, unstageSelected))
     private val unstageAll = Action(I18N["workingCopy.unstageAll"], { Icons.arrowAltCircleDown() }, "Shortcut+Shift+L", state.canUnstageAll.not(),
             { service.unstage() })
-    private val unstageSelected = Action(I18N["workingCopy.unstageSelected"], { Icons.arrowAltCircleDown() }, disable = state.canUnstageSelected.not(),
+    private val unstageSelected = Action(I18N["workingCopy.unstageSelected"], { Icons.arrowAltCircleDown() }, disabled = state.canUnstageSelected.not(),
             handler = { unstageSelected() })
-    private val updateAll = Action(I18N["workingCopy.updateAll"], { Icons.arrowAltCircleUp() }, disable = state.canUpdateAll.not(),
+    private val updateAll = Action(I18N["workingCopy.updateAll"], { Icons.arrowAltCircleUp() }, disabled = state.canUpdateAll.not(),
             handler = { service.update() })
     private val stageAll = Action(I18N["workingCopy.stageAll"], { Icons.arrowAltCircleUp() }, "Shortcut+Shift+K", state.canStageAll.not(),
             { service.stage() })
-    private val stageSelected = Action(I18N["workingCopy.stageSelected"], { Icons.arrowAltCircleUp() }, disable = state.canStageSelected.not(),
+    private val stageSelected = Action(I18N["workingCopy.stageSelected"], { Icons.arrowAltCircleUp() }, disabled = state.canStageSelected.not(),
             handler = { stageSelected() })
 
     private val staged = FileStatusView(service.staged, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
@@ -60,7 +60,7 @@ class WorkingCopyView : Tab() {
         val deleteKey = KeyCode.DELETE
         val discardKey = KeyCode.D
 
-        val unstageFile = Action("${I18N["workingCopy.unstage"]} (${unstageKey.shortName})", { Icons.arrowAltCircleDown() }, disable = state.canUnstageSelected.not(),
+        val unstageFile = Action("${I18N["workingCopy.unstage"]} (${unstageKey.shortName})", { Icons.arrowAltCircleDown() }, disabled = state.canUnstageSelected.not(),
                 handler = { unstageSelected() })
 
         staged.contextMenu = contextMenu {
@@ -75,11 +75,11 @@ class WorkingCopyView : Tab() {
         }
 
         // TODO: menubar actions?
-        val stageFile = Action("${I18N["workingCopy.stage"]} (${stageKey.shortName})", { Icons.arrowAltCircleUp() }, disable = state.canStageSelected.not(),
+        val stageFile = Action("${I18N["workingCopy.stage"]} (${stageKey.shortName})", { Icons.arrowAltCircleUp() }, disabled = state.canStageSelected.not(),
                 handler = { stageSelected() })
-        val deleteFile = Action("${I18N["workingCopy.delete"]} (${deleteKey.shortName})", { Icons.trash() }, disable = state.canDeleteSelected.not(),
+        val deleteFile = Action("${I18N["workingCopy.delete"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = state.canDeleteSelected.not(),
                 handler = { deleteFile() })
-        val discardChanges = Action("${I18N["workingCopy.discard"]} (${discardKey.shortName})", { Icons.undo() }, disable = state.canDiscardSelected.not(),
+        val discardChanges = Action("${I18N["workingCopy.discard"]} (${discardKey.shortName})", { Icons.undo() }, disabled = state.canDiscardSelected.not(),
                 handler = { discardChanges() })
 
         pending.contextMenu = contextMenu {

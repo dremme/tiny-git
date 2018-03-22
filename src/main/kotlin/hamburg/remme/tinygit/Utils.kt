@@ -1,11 +1,9 @@
 package hamburg.remme.tinygit
 
-import javafx.animation.Timeline
 import javafx.application.Platform
 import javafx.beans.binding.IntegerExpression
 import javafx.beans.property.IntegerProperty
 import javafx.collections.FXCollections
-import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -31,8 +29,6 @@ val scheduledPool = Executors.newScheduledThreadPool(1, daemonFactory)!!
 val cachedPool = Executors.newCachedThreadPool(daemonFactory)!!
 val singlePool = Executors.newFixedThreadPool(1, daemonFactory)!!
 
-val homeDir = System.getProperty("user.home")!!
-
 val weekOfMonthFormat = DateTimeFormatter.ofPattern("'Week' W 'of' MMM ''yy")!!
 val monthOfYearFormat = DateTimeFormatter.ofPattern("MMM ''yy")!!
 val shortDateFormat = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
@@ -41,17 +37,6 @@ val shortDateTimeFormat = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
 var logTypeCharacters = 1
 private val temporalOrigin = LocalDate.of(1900, 1, 1)
-
-fun overrideTooltips() {
-    val tooltip = Tooltip()
-    val fieldBehavior = tooltip.javaClass.getDeclaredField("BEHAVIOR")
-    fieldBehavior.isAccessible = true
-
-    val objBehavior = fieldBehavior.get(tooltip)
-    val fieldTimer = objBehavior.javaClass.getDeclaredField("activationTimer")
-    fieldTimer.isAccessible = true
-    (fieldTimer.get(objBehavior) as Timeline).keyFrames.clear()
-}
 
 fun systemOffset() = ZoneId.systemDefault().rules.getOffset(Instant.now())!!
 
@@ -130,13 +115,6 @@ fun <T> MutableList<T>.addSorted(items: Collection<T>, comparator: (T, T) -> Int
 
 inline fun <K, V : Comparable<V>, R : Comparable<R>> Map<K, V>.sortedBy(crossinline block: (Pair<K, V>) -> R?): Map<K, V> {
     return toList().sortedBy(block).toMap()
-}
-
-@Suppress("UNCHECKED_CAST")
-fun <T> Any.getReflective(property: String): T? {
-    val field = javaClass.getDeclaredField(property)
-    field.isAccessible = true
-    return field.get(this) as? T
 }
 
 fun IntegerProperty.inc() = set(get() + 1)

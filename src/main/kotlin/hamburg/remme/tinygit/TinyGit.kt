@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit
 
-import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.service.BranchService
 import hamburg.remme.tinygit.domain.service.CommitDetailsService
@@ -38,12 +37,6 @@ import java.util.Locale
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
-// TODO: the great clean-up tbd
-// TODO: clean-up nested collection methods
-// TODO: cache stuff in nested collection methods, like find {}
-// TODO: clean-up nested let {} for map {}
-// TODO: instead of also {} and apply {}, use onEach {} at the end of a statement chain
-// TODO: boolean properties (and parameters) should start with 'is'
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
 
@@ -67,7 +60,7 @@ class TinyGit : Application() {
         val credentialService = CredentialService()
         val repositoryService: RepositoryService = RepositoryService(credentialService)
         val remoteService = RemoteService(repositoryService, credentialService).addListeners()
-        val branchService = BranchService().addListeners()
+        val branchService = BranchService(repositoryService, credentialService).addListeners()
         val tagService = TagService().addListeners()
         val workingCopyService = WorkingCopyService().addListeners()
         val divergenceService = DivergenceService().addListeners()
@@ -113,18 +106,15 @@ class TinyGit : Application() {
 
     }
 
-    private val title = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
-
     init {
         TinyGit.application = this
-        overrideTooltips()
     }
 
     override fun start(stage: Stage) {
         TinyGit.stage = stage
 
         // We terminate here because technical requirements for TinyGit aren't met
-        if (PlatformUtil.isMac() || PlatformUtil.isUnix()) gitIsInstalled() // UNIX workaround
+        if (isMac || isLinux) gitIsInstalled() // UNIX workaround
         if (!gitIsInstalled()) {
             fatalAlert(I18N["error.gitError"], I18N["error.gitNotInstalled"])
             showDocument("https://git-scm.com/downloads")
@@ -137,9 +127,24 @@ class TinyGit : Application() {
             System.exit(-1)
             return
         }
-        if (PlatformUtil.isWindows() && gitGetCredentialHelper().isBlank()) gitSetWincred()
-        if (PlatformUtil.isMac() && gitGetCredentialHelper().isBlank()) gitSetKeychain()
+        if (isWindows && gitGetCredentialHelper().isBlank()) gitSetWincred()
+        if (isMac && gitGetCredentialHelper().isBlank()) gitSetKeychain()
 
+        // TODO: move this?
+        credentialService.credentialHandler = { CredentialsDialog(it, stage).showAndWait() }
+
+        initSettings()
+        initWindow()
+        initScaling()
+
+        stage.show()
+
+        scheduledPool.scheduleAtFixedRate({ if (!stage.isFocused && !state.isModal.get()) Platform.runLater { fireEvent() } }, 0, 10, TimeUnit.SECONDS)
+    }
+
+    override fun stop() = settings.save()
+
+    private fun initSettings() {
         settings.addOnSave {
             it["window"] = json {
                 +("x" to stage.x)
@@ -160,10 +165,9 @@ class TinyGit : Application() {
                 stage.isFullScreen = it.getBoolean("fullscreen")!!
             }
         }
+    }
 
-        // TODO: move this?
-        credentialService.credentialHandler = { CredentialsDialog(it, stage).showAndWait() }
-
+    private fun initWindow() {
         stage.focusedProperty().addListener { _, _, it -> if (it) state.isModal.takeIf { it.get() }?.set(false) ?: fireEvent() }
         stage.scene = Scene(GitView())
         stage.scene.stylesheets += "default.css".asResource()
@@ -174,21 +178,20 @@ class TinyGit : Application() {
                 rebaseService.isRebasing,
                 rebaseService.rebaseNext,
                 rebaseService.rebaseLast))
-        stage.show()
-
-        scheduledPool.scheduleAtFixedRate({ if (!stage.isFocused && !state.isModal.get()) Platform.runLater { fireEvent() } }, 0, 10, TimeUnit.SECONDS)
     }
 
-    override fun stop() = settings.save()
+    private fun initScaling() {
+        // TODO
+    }
 
     private fun updateTitle(): String {
         val repository = repositoryService.activeRepository.get()?.let {
-            val path = if (PlatformUtil.isMac()) it.path.stripHome() else it.path
+            val path = if (isMac) it.path.stripHome() else it.path
             val rebase = if (rebaseService.isRebasing.get()) "REBASING ${rebaseService.rebaseNext.get()}/${rebaseService.rebaseLast.get()} " else ""
             val merge = if (mergeService.isMerging.get()) "MERGING " else ""
             "${it.shortPath} [$path] $merge$rebase\u2012 "
         }
-        return "${repository ?: ""}$title"
+        return "${repository ?: ""}TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
     }
 
 }

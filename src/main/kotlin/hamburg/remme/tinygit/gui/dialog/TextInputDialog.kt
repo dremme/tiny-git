@@ -12,7 +12,7 @@ import javafx.scene.control.TextField
 import javafx.scene.layout.Priority
 import javafx.stage.Window
 
-class TextInputDialog(ok: String, textArea: Boolean, window: Window) : Dialog<String>(window, I18N["dialog.input.title"], textArea) {
+class TextInputDialog(ok: String, isTextArea: Boolean, window: Window) : Dialog<String>(window, I18N["dialog.input.title"], isTextArea) {
 
     var defaultValue: String
         get() = throw RuntimeException("Write-only property.")
@@ -25,7 +25,7 @@ class TextInputDialog(ok: String, textArea: Boolean, window: Window) : Dialog<St
             label.text = value
         }
     private val label = Label().apply { managedWhen(textProperty().isNotEmpty) }
-    private val input = if (textArea) textArea { vgrow(Priority.ALWAYS) } else TextField()
+    private val input = if (isTextArea) textArea { vgrow(Priority.ALWAYS) } else TextField()
 
     init {
         Platform.runLater { input.requestFocus() }

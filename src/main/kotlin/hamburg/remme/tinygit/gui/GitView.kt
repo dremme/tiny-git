@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit.gui
 
-import com.sun.javafx.PlatformUtil
 import de.codecentric.centerdevice.MenuToolkit
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
@@ -41,6 +40,7 @@ import hamburg.remme.tinygit.gui.dialog.CmdDialog
 import hamburg.remme.tinygit.gui.dialog.CmdResultDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
+import hamburg.remme.tinygit.isMac
 import javafx.application.Platform
 import javafx.concurrent.Task
 import javafx.scene.control.SeparatorMenuItem
@@ -104,41 +104,41 @@ class GitView : VBoxBuilder() {
                 { repoService.gc() })
         val branch = Action(I18N["menu.branch"], { Icons.codeFork() }, "Shortcut+B", state.canBranch.not(),
                 { createBranch() })
-        val merge = Action(I18N["menu.merge"], { Icons.codeFork().flipY() }, if (PlatformUtil.isMac()) "Shortcut+Shift+M" else "Shortcut+M", state.canMerge.not(),
+        val merge = Action(I18N["menu.merge"], { Icons.codeFork().flipY() }, if (isMac) "Shortcut+Shift+M" else "Shortcut+M", state.canMerge.not(),
                 handler = { merge() })
-        val mergeContinue = Action(I18N["menu.continueMerge"], { Icons.forward() }, disable = state.canMergeContinue.not(),
+        val mergeContinue = Action(I18N["menu.continueMerge"], { Icons.forward() }, disabled = state.canMergeContinue.not(),
                 handler = { CommitDialog(window).show() })
-        val mergeAbort = Action(I18N["menu.abortMerge"], { Icons.timesCircle() }, disable = state.canMergeAbort.not(),
+        val mergeAbort = Action(I18N["menu.abortMerge"], { Icons.timesCircle() }, disabled = state.canMergeAbort.not(),
                 handler = { mergeService.abort() })
         val rebase = Action(I18N["menu.rebase"], { Icons.levelUp().flipX() }, "Shortcut+R", state.canRebase.not(),
                 handler = { rebase() })
-        val rebaseContinue = Action(I18N["menu.continueRebase"], { Icons.forward() }, disable = state.canRebaseContinue.not(),
+        val rebaseContinue = Action(I18N["menu.continueRebase"], { Icons.forward() }, disabled = state.canRebaseContinue.not(),
                 handler = { rebaseContinue() })
-        val rebaseAbort = Action(I18N["menu.abortRebase"], { Icons.timesCircle() }, disable = state.canRebaseAbort.not(),
+        val rebaseAbort = Action(I18N["menu.abortRebase"], { Icons.timesCircle() }, disabled = state.canRebaseAbort.not(),
                 handler = { rebaseService.abort() })
         val stash = Action(I18N["menu.stash"], { Icons.cube() }, "Shortcut+S", state.canStash.not(),
                 { stashService.create() })
         val stashPop = Action(I18N["menu.popStash"], { Icons.cube().flipXY() }, "Shortcut+Shift+S", state.canApplyStash.not(),
                 { stashPop() })
-        val reset = Action(I18N["menu.autoReset"], { Icons.undo() }, disable = state.canReset.not(),
+        val reset = Action(I18N["menu.autoReset"], { Icons.undo() }, disabled = state.canReset.not(),
                 handler = { autoReset() })
-        val squash = Action(I18N["menu.autoSquash"], { Icons.gavel() }, disable = state.canSquash.not(),
+        val squash = Action(I18N["menu.autoSquash"], { Icons.gavel() }, disabled = state.canSquash.not(),
                 handler = { autoSquash() }, count = divergenceService.aheadDefault)
-        val settings = Action(I18N["menu.settings"], { Icons.cog() }, disable = state.canSettings.not(),
+        val settings = Action(I18N["menu.settings"], { Icons.cog() }, disabled = state.canSettings.not(),
                 handler = { SettingsDialog(window).show() })
-        val preferences = Action(I18N["menu.preferences"], shortcut = "Shortcut+Comma", disable = state.canSettings.not(),
+        val preferences = Action(I18N["menu.preferences"], shortcut = "Shortcut+Comma", disabled = state.canSettings.not(),
                 handler = { SettingsDialog(window).show() })
-        val removeRepo = Action(I18N["menu.remove"], { Icons.trash() }, disable = state.canRemove.not(),
+        val removeRepo = Action(I18N["menu.remove"], { Icons.trash() }, disabled = state.canRemove.not(),
                 handler = { removeRepo() })
         // ?
         val github = Action(I18N["menu.star"], { Icons.github() },
                 handler = { TinyGit.showDocument("https://github.com/dremme/tiny-git") })
         val about = Action(I18N["menu.about"], { Icons.questionCircle() },
                 handler = { AboutDialog(window).show() })
-        val cmd = Action(I18N["menu.command"], { Icons.terminal() }, disable = state.canCmd.not(),
+        val cmd = Action(I18N["menu.command"], { Icons.terminal() }, disabled = state.canCmd.not(),
                 handler = { gitCommand() })
 
-        if (PlatformUtil.isMac()) {
+        if (isMac) {
             val toolkit = MenuToolkit.toolkit()
             toolkit.setApplicationMenu(menu {
                 text = "TinyGit"
@@ -159,7 +159,7 @@ class GitView : VBoxBuilder() {
                     ActionGroup(rebase, rebaseContinue, rebaseAbort),
                     ActionGroup(reset, squash),
                     ActionGroup(removeRepo))
-            if (!PlatformUtil.isMac()) {
+            if (!isMac) {
                 file += ActionGroup(quit)
                 repository += ActionGroup(settings)
             }
@@ -173,7 +173,7 @@ class GitView : VBoxBuilder() {
                     *workingCopy.actions,
                     ActionGroup(stash, stashPop),
                     ActionGroup(cmd))
-            if (PlatformUtil.isMac()) {
+            if (isMac) {
                 val toolkit = MenuToolkit.toolkit()
                 +menu {
                     text = I18N["menuBar.window"]

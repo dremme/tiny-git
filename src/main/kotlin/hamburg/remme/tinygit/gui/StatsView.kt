@@ -12,6 +12,7 @@ import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.progressIndicator
 import hamburg.remme.tinygit.gui.builder.scrollPane
 import hamburg.remme.tinygit.gui.builder.toolBar
+import hamburg.remme.tinygit.gui.builder.tooltip
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
@@ -25,7 +26,6 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ListChangeListener
 import javafx.scene.Node
 import javafx.scene.control.Tab
-import javafx.scene.control.Tooltip
 import javafx.scene.layout.Priority
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -86,8 +86,8 @@ class StatsView : Tab() {
             +toolBar {
                 addSpacer()
                 +button {
+                    tooltip(I18N["stats.refresh"])
                     graphic = Icons.refresh()
-                    tooltip = Tooltip(I18N["stats.refresh"])
                     setOnAction { statsService.update(repoService.activeRepository.get()!!) }
                 }
                 +comboBox<CalendarChart.Period> {
@@ -124,31 +124,31 @@ class StatsView : Tab() {
 
     private fun updateContributions(data: List<DonutChart.Data>) {
         contributions.setData(data, { I18N["stats.descContrib", it] })
-        data.forEach { it -> Tooltip.install(it.arc, Tooltip("${it.name} (${I18N["stats.commits", it.value]})")) }
+        data.forEach { it -> it.node?.tooltip("${it.name} (${I18N["stats.commits", it.value]})") }
     }
 
     private fun updateFiles(data: List<DonutChart.Data>) {
         files.setData(data, { I18N["stats.descFiles", it] })
-        data.forEach { it -> Tooltip.install(it.arc, Tooltip("${it.name} (${I18N["stats.files", it.value]})")) }
+        data.forEach { it -> it.node?.tooltip("${it.name} (${I18N["stats.files", it.value]})") }
     }
 
     private fun updateCommits(series: List<HistogramChart.Series>) {
         commits.setSeries(series)
         series.forEach { s ->
-            s.data.forEach { Tooltip.install(it.rect, Tooltip("${s.name} (${I18N["stats.commits", it.yValue]})")) }
+            s.data.forEach { it.node?.tooltip("${s.name} (${I18N["stats.commits", it.yValue]})") }
         }
     }
 
     private fun updateLines(series: List<HistogramChart.Series>) {
         lines.setSeries(series)
-        series[0].data.forEach { it -> Tooltip.install(it.rect, Tooltip("${I18N["stats.added"]} (${I18N["stats.lines", it.yValue]})")) }
-        series[1].data.forEach { it -> Tooltip.install(it.rect, Tooltip("${I18N["stats.removed"]} (${I18N["stats.lines", it.yValue]})")) }
+        series[0].data.forEach { it -> it.node?.tooltip("${I18N["stats.added"]} (${I18N["stats.lines", it.yValue]})") }
+        series[1].data.forEach { it -> it.node?.tooltip("${I18N["stats.removed"]} (${I18N["stats.lines", it.yValue]})") }
     }
 
     private fun updateActivity(data: List<XYData<LocalDate, DayOfWeek>>) {
         activityData.setAll(data)
         activityData.forEach {
-            Tooltip.install(it.node, Tooltip("${it.xValue.format(shortDateFormat)} (${I18N["stats.commits", it.extraValue as Int]})"))
+            it.node.tooltip("${it.xValue.format(shortDateFormat)} (${I18N["stats.commits", it.extraValue as Int]})")
         }
     }
 

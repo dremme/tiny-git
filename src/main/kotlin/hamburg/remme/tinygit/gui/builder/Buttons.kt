@@ -7,7 +7,6 @@ import javafx.scene.control.Button
 import javafx.scene.control.Hyperlink
 import javafx.scene.control.Separator
 import javafx.scene.control.ToolBar
-import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
@@ -15,8 +14,8 @@ import javafx.scene.layout.Priority
 fun button(action: Action) = button {
     text = action.text
     graphic = action.icon?.invoke()
-    action.shortcut?.let { KeyCombination.valueOf(it).displayText }?.let { tooltip = Tooltip(it) }
-    action.disable?.let { disabledWhen(it) }
+    action.shortcut?.let { tooltip(KeyCombination.valueOf(it).displayText) }
+    action.disabled?.let { disabledWhen(it) }
     setOnAction { action.handler() }
 }
 
@@ -61,7 +60,7 @@ class ToolBarBuilder : ToolBar() {
                     +label {
                         addClass("count-badge")
                         alignment(Pos.TOP_RIGHT)
-                        visibleWhen(it.greater0().run { action.disable?.let { and(it.not()) } ?: this })
+                        visibleWhen(it.greater0()) // .run { action.disabled?.let { and(it.not()) } ?: this })
                         isMouseTransparent = true
                         textProperty().bind(it.asString())
                     }

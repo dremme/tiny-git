@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.git
 
+import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
 
 private val remoteGetUrl = arrayOf("remote", "get-url", "origin")
@@ -10,6 +11,7 @@ private val remoteAdd = arrayOf("remote", "add", "origin")
 private val remoteRemove = arrayOf("remote", "remove", "origin")
 private val push = arrayOf("push")
 private val pushForce = arrayOf("push", "--force")
+private val pushDelete = arrayOf("push", "--delete", "origin")
 private val upstream = arrayOf("--set-upstream", "origin")
 
 fun gitGetUrl(repository: Repository): String {
@@ -51,4 +53,8 @@ fun gitPush(repository: Repository, force: Boolean) {
     }
     if (response.contains("$errorSeparator.*tip of your current branch is behind".toRegex(setOf(IC, G)))) throw BranchBehindException()
     else if (response.contains("$fatalSeparator.*timed out".toRegex(setOf(IC, G)))) throw TimeoutException()
+}
+
+fun gitPushDelete(repository: Repository, branch: Branch) {
+    git(repository, *pushDelete, branch.name.substringAfter("origin/"))
 }

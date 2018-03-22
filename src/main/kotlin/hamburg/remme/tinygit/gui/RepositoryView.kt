@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit.gui
 
-import com.sun.javafx.PlatformUtil
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.addSorted
@@ -24,6 +23,7 @@ import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
+import hamburg.remme.tinygit.isMac
 import hamburg.remme.tinygit.json
 import hamburg.remme.tinygit.shortName
 import hamburg.remme.tinygit.stripHome
@@ -89,18 +89,18 @@ class RepositoryView : VBoxBuilder() {
 
             val canCheckout = Bindings.createBooleanBinding(Callable { treeSelection.isBranch() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
             val canRenameBranch = Bindings.createBooleanBinding(Callable { treeSelection.isLocal() }, selectionModel.selectedItemProperty())
-            val canDeleteBranch = Bindings.createBooleanBinding(Callable { treeSelection.isLocal() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
+            val canDeleteBranch = Bindings.createBooleanBinding(Callable { treeSelection.isBranch() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
             val canApplyStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
             val canDeleteStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
-            val checkoutBranch = Action(I18N["repository.checkoutBranch"], { Icons.check() }, disable = canCheckout.not(),
+            val checkoutBranch = Action(I18N["repository.checkoutBranch"], { Icons.check() }, disabled = canCheckout.not(),
                     handler = { checkout(treeSelection as Branch) })
-            val renameBranch = Action("${I18N["repository.renameBranch"]} (${renameKey.shortName})", { Icons.pencil() }, disable = canRenameBranch.not(),
+            val renameBranch = Action("${I18N["repository.renameBranch"]} (${renameKey.shortName})", { Icons.pencil() }, disabled = canRenameBranch.not(),
                     handler = { renameBranch(treeSelection as Branch) })
-            val deleteBranch = Action("${I18N["repository.deleteBranch"]} (${deleteKey.shortName})", { Icons.trash() }, disable = canDeleteBranch.not(),
+            val deleteBranch = Action("${I18N["repository.deleteBranch"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteBranch.not(),
                     handler = { deleteBranch(treeSelection as Branch) })
-            val applyStash = Action(I18N["repository.applyStash"], { Icons.cube() }, disable = canApplyStash.not(),
+            val applyStash = Action(I18N["repository.applyStash"], { Icons.cube() }, disabled = canApplyStash.not(),
                     handler = { applyStash(treeSelection as StashEntry) })
-            val deleteStash = Action("${I18N["repository.deleteStash"]} (${deleteKey.shortName})", { Icons.trash() }, disable = canDeleteStash.not(),
+            val deleteStash = Action("${I18N["repository.deleteStash"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteStash.not(),
                     handler = { deleteStash(treeSelection as StashEntry) })
 
             contextMenu = contextMenu {
@@ -173,14 +173,23 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun deleteBranch(branch: Branch) {
-        branchService.delete(
+        if (branch.isLocal) deleteLocalBranch(branch) else deleteRemoteBranch(branch)
+    }
+
+    private fun deleteLocalBranch(branch: Branch) {
+        branchService.deleteLocal(
                 branch,
                 false,
                 {
-                    if (confirmWarningAlert(window, I18N["dialog.deleteBranch.header"], I18N["dialog.deleteBranch.button"], I18N["dialog.cannotDeleteBranch.text", branch])) {
-                        branchService.delete(branch, true)
+                    if (confirmWarningAlert(window, I18N["dialog.cannotDeleteBranch.header"], I18N["dialog.cannotDeleteBranch.button"], I18N["dialog.cannotDeleteBranch.text", branch])) {
+                        branchService.deleteLocal(branch, true)
                     }
                 })
+    }
+
+    private fun deleteRemoteBranch(branch: Branch) {
+        if (!confirmWarningAlert(window, I18N["dialog.deleteBranch.header"], I18N["dialog.deleteBranch.button"], I18N["dialog.deleteBranch.text", branch])) return
+        branchService.deleteRemote(branch)
     }
 
     private fun checkout(branch: Branch) {
@@ -249,7 +258,7 @@ class RepositoryView : VBoxBuilder() {
         override fun updateItem(item: Repository?, empty: Boolean) {
             super.updateItem(item, empty)
             name.text = item?.shortPath
-            path.text = if (PlatformUtil.isMac()) item?.path?.stripHome() else item?.path
+            path.text = if (isMac) item?.path?.stripHome() else item?.path
         }
 
     }

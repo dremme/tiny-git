@@ -10,7 +10,13 @@ import javafx.scene.shape.Rectangle
 import javafx.util.Duration
 import java.time.LocalDate
 
+private const val COLOR_COUNT = 10
+
 class HistogramChart(title: String) : Chart(title) {
+
+    private val series = mutableListOf<Series>()
+    private val data get() = series.flatMap { it.data }
+    private val rectangles get() = data.map { it.node }
 
     var lowerBound: LocalDate
         get() = throw RuntimeException("Write-only property.")
@@ -25,20 +31,20 @@ class HistogramChart(title: String) : Chart(title) {
     private var lowerBoundX = 0L
     private var upperBoundX = 100L
     private var upperBoundY = 0.0
-    private val series = mutableListOf<Series>()
-    private val data get() = series.flatMap { it.data }
-    private val rectangles get() = data.map { it.rect }
 
     fun setSeries(series: List<Series>) {
         // Remove old rectangles first
         chartChildren.removeAll(rectangles)
         // Set new reference list
         this.series.clear()
-        this.series.addAll(series.takeLast(10))
-        this.series.forEachIndexed { i, it -> it.data.forEach { it.createRect(i) } }
+        this.series.addAll(series.takeLast(COLOR_COUNT))
+        this.series.forEachIndexed { i, it -> it.data.forEach { it.createNode(i) } }
         // Set highest y-value
-        upperBoundY = data.map { it.yValue }.max()?.toDouble() ?: 0.0
-//        upperBoundY = data.groupingBy { it.xValue }.fold(0L, { acc, it -> acc + it.yValue }).maxBy { it.value }?.value?.toDouble() ?: 0.0
+        upperBoundY = data.groupingBy { it.xValue }
+                .fold(0L) { acc, it -> acc + it.yValue }
+                .map { it.value }
+                .max()?.toDouble()
+                ?: 0.0
         // Add new rectangles
         chartChildren.setAll(rectangles)
         // Finally request chart layout
@@ -50,7 +56,7 @@ class HistogramChart(title: String) : Chart(title) {
         val stepX = width / (upperBoundX - lowerBoundX)
         val timeline = Timeline()
         data.forEach {
-            val rect = it.rect!!
+            val rect = it.node as Rectangle
             if (!it.wasAnimated) {
                 rect.y = height
                 rect.height = 0.0
@@ -66,7 +72,7 @@ class HistogramChart(title: String) : Chart(title) {
             }
             val x = left + (it.xValue.daysFromOrigin - lowerBoundX) * stepX
             val w = stepX * it.size
-            rect.x = Math.ceil(x)
+            rect.x = Math.floor(x)
             rect.width = Math.ceil(w)
         }
         if (timeline.keyFrames.isNotEmpty()) timeline.play()
@@ -76,12 +82,11 @@ class HistogramChart(title: String) : Chart(title) {
 
     class Data(val xValue: LocalDate, val yValue: Long, val size: Int = 1) {
 
-        var rect: Rectangle? = null
+        var node: Rectangle? = null
         var wasAnimated = false
 
-        fun createRect(index: Int) {
-            rect = Rectangle()
-            rect!!.addClass("histogram-shape", "default-color${index % 8}")
+        fun createNode(index: Int) {
+            node = Rectangle().apply { addClass("histogram-shape", "default-color${index % COLOR_COUNT}") }
         }
 
     }
