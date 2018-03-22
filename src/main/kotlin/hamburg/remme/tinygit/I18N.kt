@@ -53,12 +53,7 @@ object I18N {
             val bundleName = toBundleName(baseName, locale)
             val resourceName = toResourceName(bundleName, "properties")
             val stream = if (reload) {
-                loader.getResource(resourceName).let {
-                    it.openConnection().let {
-                        it.useCaches = false
-                        it.getInputStream()
-                    }
-                }
+                loader.getResource(resourceName).openConnection().apply { useCaches = false }.getInputStream()
             } else {
                 loader.getResourceAsStream(resourceName)
             }

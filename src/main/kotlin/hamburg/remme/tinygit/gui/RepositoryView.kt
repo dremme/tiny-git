@@ -92,15 +92,15 @@ class RepositoryView : VBoxBuilder() {
             val canDeleteBranch = Bindings.createBooleanBinding(Callable { treeSelection.isBranch() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
             val canApplyStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
             val canDeleteStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
-            val checkoutBranch = Action(I18N["repository.checkoutBranch"], { Icons.check() }, disable = canCheckout.not(),
+            val checkoutBranch = Action(I18N["repository.checkoutBranch"], { Icons.check() }, disabled = canCheckout.not(),
                     handler = { checkout(treeSelection as Branch) })
-            val renameBranch = Action("${I18N["repository.renameBranch"]} (${renameKey.shortName})", { Icons.pencil() }, disable = canRenameBranch.not(),
+            val renameBranch = Action("${I18N["repository.renameBranch"]} (${renameKey.shortName})", { Icons.pencil() }, disabled = canRenameBranch.not(),
                     handler = { renameBranch(treeSelection as Branch) })
-            val deleteBranch = Action("${I18N["repository.deleteBranch"]} (${deleteKey.shortName})", { Icons.trash() }, disable = canDeleteBranch.not(),
+            val deleteBranch = Action("${I18N["repository.deleteBranch"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteBranch.not(),
                     handler = { deleteBranch(treeSelection as Branch) })
-            val applyStash = Action(I18N["repository.applyStash"], { Icons.cube() }, disable = canApplyStash.not(),
+            val applyStash = Action(I18N["repository.applyStash"], { Icons.cube() }, disabled = canApplyStash.not(),
                     handler = { applyStash(treeSelection as StashEntry) })
-            val deleteStash = Action("${I18N["repository.deleteStash"]} (${deleteKey.shortName})", { Icons.trash() }, disable = canDeleteStash.not(),
+            val deleteStash = Action("${I18N["repository.deleteStash"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteStash.not(),
                     handler = { deleteStash(treeSelection as StashEntry) })
 
             contextMenu = contextMenu {

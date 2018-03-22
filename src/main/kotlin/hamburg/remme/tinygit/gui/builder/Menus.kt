@@ -32,7 +32,7 @@ fun menuItem(action: Action): MenuItem {
         text = action.text
         icon = action.icon?.invoke()
         action.shortcut?.let { accelerator = KeyCombination.valueOf(it) }
-        action.disable?.let { disableProperty().bind(it) }
+        action.disabled?.let { disableProperty().bind(it) }
         setOnAction { action.handler() }
     }
 }
@@ -47,7 +47,7 @@ fun contextMenuItem(action: Action): MenuItem {
     return menuItem {
         text = action.text
         graphic = action.icon?.invoke()
-        action.disable?.let { disableProperty().bind(it) }
+        action.disabled?.let { disableProperty().bind(it) }
         setOnAction { action.handler() }
     }
 }

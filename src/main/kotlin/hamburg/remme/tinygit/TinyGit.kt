@@ -37,12 +37,6 @@ import java.util.Locale
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
-// TODO: the great clean-up tbd
-// TODO: clean-up nested collection methods
-// TODO: cache stuff in nested collection methods, like find {}
-// TODO: clean-up nested let {} for map {}
-// TODO: instead of also {} and apply {}, use onEach {} at the end of a statement chain
-// TODO: boolean properties (and parameters) should start with 'is'
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
 
@@ -112,8 +106,6 @@ class TinyGit : Application() {
 
     }
 
-    private val title = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
-
     init {
         TinyGit.application = this
     }
@@ -138,6 +130,21 @@ class TinyGit : Application() {
         if (isWindows && gitGetCredentialHelper().isBlank()) gitSetWincred()
         if (isMac && gitGetCredentialHelper().isBlank()) gitSetKeychain()
 
+        // TODO: move this?
+        credentialService.credentialHandler = { CredentialsDialog(it, stage).showAndWait() }
+
+        initSettings()
+        initWindow()
+        initScaling()
+
+        stage.show()
+
+        scheduledPool.scheduleAtFixedRate({ if (!stage.isFocused && !state.isModal.get()) Platform.runLater { fireEvent() } }, 0, 10, TimeUnit.SECONDS)
+    }
+
+    override fun stop() = settings.save()
+
+    private fun initSettings() {
         settings.addOnSave {
             it["window"] = json {
                 +("x" to stage.x)
@@ -158,10 +165,9 @@ class TinyGit : Application() {
                 stage.isFullScreen = it.getBoolean("fullscreen")!!
             }
         }
+    }
 
-        // TODO: move this?
-        credentialService.credentialHandler = { CredentialsDialog(it, stage).showAndWait() }
-
+    private fun initWindow() {
         stage.focusedProperty().addListener { _, _, it -> if (it) state.isModal.takeIf { it.get() }?.set(false) ?: fireEvent() }
         stage.scene = Scene(GitView())
         stage.scene.stylesheets += "default.css".asResource()
@@ -172,12 +178,11 @@ class TinyGit : Application() {
                 rebaseService.isRebasing,
                 rebaseService.rebaseNext,
                 rebaseService.rebaseLast))
-        stage.show()
-
-        scheduledPool.scheduleAtFixedRate({ if (!stage.isFocused && !state.isModal.get()) Platform.runLater { fireEvent() } }, 0, 10, TimeUnit.SECONDS)
     }
 
-    override fun stop() = settings.save()
+    private fun initScaling() {
+        // TODO
+    }
 
     private fun updateTitle(): String {
         val repository = repositoryService.activeRepository.get()?.let {
@@ -186,7 +191,7 @@ class TinyGit : Application() {
             val merge = if (mergeService.isMerging.get()) "MERGING " else ""
             "${it.shortPath} [$path] $merge$rebase\u2012 "
         }
-        return "${repository ?: ""}$title"
+        return "${repository ?: ""}TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
     }
 
 }

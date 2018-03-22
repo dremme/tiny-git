@@ -4,6 +4,8 @@ import hamburg.remme.tinygit.asResource
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.Node
 import javafx.scene.Parent
+import javafx.scene.control.Tooltip
+import javafx.util.Duration
 
 fun <T : Node> T.addClass(vararg styleClass: String): T {
     this.styleClass += styleClass
@@ -44,5 +46,13 @@ fun <T : Node> T.managedWhen(observable: ObservableBooleanValue): T {
 
 fun <T : Node> T.disabledWhen(observable: ObservableBooleanValue): T {
     disableProperty().bind(observable)
+    return this
+}
+
+fun <T : Node> T.tooltip(text: String): T {
+    val tooltip = Tooltip(text)
+    tooltip.showDelay = Duration.ZERO
+    tooltip.hideDelay = Duration.ZERO
+    Tooltip.install(this, tooltip)
     return this
 }

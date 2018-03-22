@@ -9,10 +9,11 @@ import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
 
+private const val SPACING = 24.0
+private const val RADIUS = 6.0
+
 class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSkinBase(graphView) {
 
-    private val SPACING = 24.0
-    private val RADIUS = 6.0
     private val paths: List<Path>
     private val circleGroup = Group()
 

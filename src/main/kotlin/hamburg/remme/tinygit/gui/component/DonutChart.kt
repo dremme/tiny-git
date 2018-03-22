@@ -12,13 +12,15 @@ import javafx.scene.shape.Arc
 import javafx.scene.shape.ArcType
 import javafx.util.Duration
 
+private const val COLOR_COUNT = 10
+
 class DonutChart(title: String) : Chart(title) {
 
-    private var total = 0.0
     private val data = mutableListOf<Data>()
-    private val arcs get() = data.map { it.arc }
+    private val arcs get() = data.map { it.node }
     private val valueLabel = label { addClass("diagram-value") }
     private val descriptionLabel = label { addClass("diagram-description") }
+    private var total = 0.0
 
     init {
         chartChildren.addAll(valueLabel, descriptionLabel)
@@ -29,8 +31,8 @@ class DonutChart(title: String) : Chart(title) {
         chartChildren.removeAll(arcs)
         // Set new reference list
         this.data.clear()
-        this.data.addAll(data.takeLast(10))
-        this.data.forEachIndexed { i, it -> it.createArc(i) }
+        this.data.addAll(data.takeLast(COLOR_COUNT))
+        this.data.forEachIndexed { i, it -> it.createNode(i) }
         // Set sum of values
         total = this.data.map { it.value }.sum().toDouble()
         // Set labels with original data
@@ -48,14 +50,14 @@ class DonutChart(title: String) : Chart(title) {
         valueLabel.resizeRelocate(left, top + height / 2 - valueHeight / 2, width, valueHeight)
 
         val descriptionHeight = snapSizeY(descriptionLabel.prefHeight(width))
-        descriptionLabel.resizeRelocate(left, top + height / 2 + descriptionHeight, width, descriptionHeight)
+        descriptionLabel.resizeRelocate(left, top + height / 2 + valueHeight / 2, width, descriptionHeight)
 
         val strokeWidth = Math.max(12.0, Math.min(width, height) / 10)
         val radius = (Math.min(width, height) - strokeWidth) / 2
         var angle = 0.0
         val timeline = Timeline()
         data.forEach {
-            val arc = it.arc!!
+            val arc = it.node as Arc
             if (!it.wasAnimated) {
                 arc.startAngle = HALF_PI
 
@@ -78,13 +80,14 @@ class DonutChart(title: String) : Chart(title) {
 
     class Data(val name: String, val value: Long) {
 
-        var arc: Arc? = null
+        var node: Arc? = null
         var wasAnimated = false
 
-        fun createArc(index: Int) {
-            arc = Arc()
-            arc!!.addClass("donut-shape", "default-color${index % 8}")
-            arc!!.type = ArcType.OPEN
+        fun createNode(index: Int) {
+            node = Arc().apply {
+                addClass("donut-shape", "default-color${index % COLOR_COUNT}")
+                type = ArcType.OPEN
+            }
         }
 
     }
