@@ -50,6 +50,38 @@ import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Stage
 
+/**
+ * The application root. Will create the menu depending on the operating system (OS).
+ * Uses [javafx.scene.control.MenuBar.useSystemMenuBar] and [MenuToolkit] for Mac OS.
+ *
+ * The [GitView], as most other components, is singleton-like as it retrieves its data from the singleton
+ * services instanced in [TinyGit].
+ *
+ *
+ * ```
+ *   ╔══════════════════════════════════════════════════════════════════════════════╗
+ *   ║ MenuBar (not on Mac OS)                                                      ║
+ *   ╟──────────────────────────────────────────────────────────────────────────────╢
+ *   ║ ToolBar                                                                      ║
+ *   ╟────────────────┬───────────────┬─────────────────┬───────────┬───────────────╢
+ *   ║ RepositoryView │ CommitLogView │ WorkingCopyView │ StatsView │               ║
+ *   ║                ├───────────────┴─────────────────┴───────────┴───────────────╢
+ *   ║                │                                                             ║
+ *   ║                │                                                             ║
+ *   ║                │                                                             ║
+ *   ║                │                         Tab Content                         ║
+ *   ║                │                                                             ║
+ *   ║                │                                                             ║
+ *   ║                │                                                             ║
+ *   ╚════════════════╧═════════════════════════════════════════════════════════════╝
+ * ```
+ *
+ * @see TinyGit
+ * @see RepositoryView
+ * @see CommitLogView
+ * @see WorkingCopyView
+ * @see StatsView
+ */
 class GitView : VBoxBuilder() {
 
     private val repoService = TinyGit.repositoryService

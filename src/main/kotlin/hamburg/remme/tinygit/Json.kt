@@ -1,5 +1,8 @@
 package hamburg.remme.tinygit
 
+/**
+ * Convenience class for representing JSON data. Is used by the [Settings] class to serialize to YAML.
+ */
 class Json(map: Map<String, *> = emptyMap<String, Any>()) : LinkedHashMap<String, Any>(map) {
 
     @Suppress("UNCHECKED_CAST", "PARAMETER_NAME_CHANGED_ON_OVERRIDE")

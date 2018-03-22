@@ -14,6 +14,11 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleStringProperty
 
+/**
+ * Central application state used mostly for action permissions.
+ *
+ * @todo probably requires some streamlining and clean-up.
+ */
 class State(repositoryService: RepositoryService,
             branchService: BranchService,
             workingCopyService: WorkingCopyService,

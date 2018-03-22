@@ -37,6 +37,10 @@ import java.util.Locale
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
+/**
+ * Will launch [TinyGit] with the given [args].
+ * Will also set the locale to [Locale.ROOT] at the moment.
+ */
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
 
@@ -50,8 +54,24 @@ fun main(args: Array<String>) {
     Application.launch(TinyGit::class.java, *args)
 }
 
+/**
+ * A very small, fast and portable Git GUI. Repositories can be configured with credentials, SSH keys and proxies
+ * separately. No need to toggle the proxy setting of `.gitconfig`.
+ *
+ * The application is structured into sections or views, which are getting their data from services. The class
+ * [GitView] is the root of the main window and initialized menu and tool bars.
+ *
+ * @see Settings
+ * @see State
+ *
+ * @author Dennis Remme (dennis@remme.hamburg)
+ */
 class TinyGit : Application() {
 
+    /**
+     * A singleton holding all the needed services and application states.
+     * Also some convenience functions related to the [TinyGit] class.
+     */
     companion object {
 
         private val listeners = mutableListOf<(Repository) -> Unit>()
@@ -75,24 +95,44 @@ class TinyGit : Application() {
         private lateinit var application: Application
         private lateinit var stage: Stage
 
+        /**
+         * Adds repository and refresh listeners to the [Refreshable].
+         */
         fun <T : Refreshable> T.addListeners(): T {
             repositoryService.activeRepository.addListener { _, _, it -> it?.let { onRepositoryChanged(it) } ?: onRepositoryDeselected() }
             addListener { onRefresh(it) }
             return this
         }
 
+        /**
+         * Adds a repository listener.
+         */
         fun addListener(block: (Repository) -> Unit) {
             listeners += block
         }
 
+        /**
+         * Fires a refresh event.
+         */
         fun fireEvent() {
             repositoryService.activeRepository.get()?.let { repository -> listeners.forEach { it(repository) } }
         }
 
+        /**
+         * Executes a parallel task in the [cachedPool].
+         */
         fun execute(task: Task<*>) = cachedPool.execute(task)
 
+        /**
+         * Executes a parallel task in the [singlePool].
+         */
         fun executeSlowly(task: Task<*>) = singlePool.execute(task)
 
+        /**
+         * Executes a parallel task in the [cachedPool] and will also block the application from UI events.
+         *
+         * @param message the message to display on the application overlay
+         */
         fun execute(message: String, task: Task<*>) {
             task.setOnSucceeded { state.runningProcesses.dec() }
             task.setOnCancelled { state.runningProcesses.dec() }
@@ -102,7 +142,10 @@ class TinyGit : Application() {
             execute(task)
         }
 
-        fun showDocument(uri: String) = application.hostServices.showDocument(uri)
+        /**
+         * Opens the default web browser with the given [url].
+         */
+        fun showDocument(url: String) = application.hostServices.showDocument(url)
 
     }
 

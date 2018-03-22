@@ -8,6 +8,10 @@ import java.util.Locale
 import java.util.PropertyResourceBundle
 import java.util.ResourceBundle
 
+/**
+ * An internationalization singleton which loads `hamburg.remme.tinygit.message` as UTF-8 properties into the
+ * [ResourceBundle]. Supports convenience function for pluralization.
+ */
 object I18N {
 
     private val bundle = ResourceBundle.getBundle("hamburg.remme.tinygit.message", UTF8Support())
