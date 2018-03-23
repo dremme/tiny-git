@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.BranchBehindException
+import hamburg.remme.tinygit.git.FetchException
 import hamburg.remme.tinygit.git.MergeConflictException
 import hamburg.remme.tinygit.git.PullException
 import hamburg.remme.tinygit.git.TimeoutException
@@ -34,14 +35,19 @@ class RemoteService(private val repositoryService: RepositoryService,
         })
     }
 
-    fun fetch() {
+    fun fetch(errorHandler: (String) -> Unit) {
         credentialService.applyCredentials(repositoryService.remote.get())
         TinyGit.execute(I18N["remote.fetch"], object : Task<Unit>() {
             override fun call() = gitFetchPrune(repository)
 
             override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() = exception.printStackTrace()
+            override fun failed() {
+                when (exception) {
+                    is FetchException -> errorHandler(exception.message!!)
+                    else -> exception.printStackTrace()
+                }
+            }
         })
     }
 

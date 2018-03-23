@@ -140,7 +140,7 @@ class CommitLogView : Tab() {
         }
 
         logService.logListener = indicator
-        logService.logErrorHandler = { errorAlert(window, I18N["dialog.cannotFetch.header"], I18N["dialog.cannotFetch.text"]) }
+        logService.logErrorHandler = { errorAlert(window, I18N["dialog.cannotFetch.header"], it) }
     }
 
     private fun checkoutCommit(commit: Commit) {

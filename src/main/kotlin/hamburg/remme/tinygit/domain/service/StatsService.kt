@@ -166,8 +166,8 @@ class StatsService {
             }
 
             override fun succeeded() {
-                this@StatsService.log.addAll(log)
-                this@StatsService.numStat.addAll(numStat)
+                this@StatsService.log += log
+                this@StatsService.numStat += numStat
                 updateActivity()
                 updateCommits()
                 updateContributors()

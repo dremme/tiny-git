@@ -34,9 +34,9 @@ class WorkingCopyService : Refreshable {
 
             override fun succeeded() {
                 staged.addSorted(value.staged.filter { staged.none(it::equals) })
-                staged.removeAll(staged.filter { value.staged.none(it::equals) })
+                staged -= staged.filter { value.staged.none(it::equals) }
                 pending.addSorted(value.pending.filter { pending.none(it::equals) })
-                pending.removeAll(pending.filter { value.pending.none(it::equals) })
+                pending -= pending.filter { value.pending.none(it::equals) }
                 successHandler?.invoke()
             }
         }.also { TinyGit.execute(it) }

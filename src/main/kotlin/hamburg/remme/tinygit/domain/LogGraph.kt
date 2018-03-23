@@ -2,6 +2,8 @@ package hamburg.remme.tinygit.domain
 
 import java.util.concurrent.locks.ReentrantLock
 
+private const val LAST_INDEX = 9999
+
 class LogGraph {
 
     private val lock = ReentrantLock()
@@ -55,14 +57,14 @@ class LogGraph {
 
     private fun CommitIsh.peel() = commits.firstOrNull { it.id == id }
 
-    private inner class Branch(val tag: Int, val start: Int, var end: Int = 9999) : ArrayList<String>() {
+    private inner class Branch(val tag: Int, val start: Int, var end: Int = LAST_INDEX) : ArrayList<String>() {
 
         fun finish(commit: Commit) {
             end = commits.indexOf(commit)
         }
 
         fun finish(commit: CommitIsh) {
-            end = commit.peel()?.let { commits.indexOf(it) } ?: 9999
+            end = commit.peel()?.let { commits.indexOf(it) } ?: LAST_INDEX
         }
 
         fun indeterminate(commit: CommitIsh) {

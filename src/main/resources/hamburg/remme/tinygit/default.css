@@ -264,6 +264,15 @@
     -fx-font-size: 1.5em;
 }
 
+.diagram-axis {
+    -fx-stroke: -fx-chart-label-color;
+}
+
+.diagram-axis-tick {
+    -fx-text-fill: -fx-chart-label-color;
+    -fx-font-size: 0.8em;
+}
+
 .diagram-value {
     -fx-font: 4em "Roboto Light", sans-serif;
     -fx-alignment: center;
@@ -368,6 +377,12 @@
 
 .graph-view .commit-node.node-color7 { -fx-fill: CHART_COLOR_7; }
 
+.graph-view .commit-node.node-color8 { -fx-fill: CHART_COLOR_8; }
+
+.graph-view .commit-node.node-color9 { -fx-fill: CHART_COLOR_9; }
+
+.graph-view .commit-node.node-color10 { -fx-fill: CHART_COLOR_10; }
+
 .graph-view .commit-path {
     -fx-stroke-width: 3px;
 }
@@ -387,6 +402,12 @@
 .graph-view .commit-path.path-color6 { -fx-stroke: CHART_COLOR_6; }
 
 .graph-view .commit-path.path-color7 { -fx-stroke: CHART_COLOR_7; }
+
+.graph-view .commit-path.path-color8 { -fx-stroke: CHART_COLOR_8; }
+
+.graph-view .commit-path.path-color9 { -fx-stroke: CHART_COLOR_9; }
+
+.graph-view .commit-path.path-color10 { -fx-stroke: CHART_COLOR_10; }
 
 .graph-view-cell { -fx-spacing: 0.3em; }
 

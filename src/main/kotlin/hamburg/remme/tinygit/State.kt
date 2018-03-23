@@ -18,6 +18,7 @@ import javafx.beans.property.SimpleStringProperty
  * Central application state used mostly for action permissions.
  *
  * @todo probably requires some streamlining and clean-up.
+ * @todo newly created branches cannot be pushed if there is no divergence
  */
 class State(repositoryService: RepositoryService,
             branchService: BranchService,

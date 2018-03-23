@@ -37,7 +37,7 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
         val lastDay = LocalDate.now()
         val firstDay = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)
 
-        plotChildren.removeAll(placeholders.map { it.node })
+        plotChildren -= placeholders.map { it.node }
         placeholders = (0..ChronoUnit.DAYS.between(firstDay, lastDay))
                 .map { firstDay.plusDays(it) }
                 .map { Data(it, it.dayOfWeek) }

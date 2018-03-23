@@ -131,7 +131,7 @@ class GitView : VBoxBuilder() {
         val pull = Action(I18N["menu.pull"], { Icons.cloudDownload() }, "Shortcut+L", state.canPull.not(),
                 { pull() }, divergenceService.behind)
         val fetch = Action(I18N["menu.fetch"], { Icons.refresh() }, "Shortcut+F", state.canFetch.not(),
-                { remoteService.fetch() })
+                { fetch() })
         val fetchGc = Action(I18N["menu.gc"], { Icons.eraser() }, "Shortcut+Shift+F", state.canGc.not(),
                 { repoService.gc() })
         val branch = Action(I18N["menu.branch"], { Icons.codeFork() }, "Shortcut+B", state.canBranch.not(),
@@ -322,6 +322,10 @@ class GitView : VBoxBuilder() {
                 { errorAlert(window, I18N["dialog.cannotPull.header"], it) },
                 { errorAlert(window, I18N["dialog.pullConflict.header"], I18N["dialog.pullConflict.text"]) },
                 { errorAlert(window, I18N["dialog.timeout.header"], I18N["dialog.timeout.text"]) })
+    }
+
+    private fun fetch() {
+        remoteService.fetch({ errorAlert(window, I18N["dialog.cannotFetch.header"], it) })
     }
 
     private fun push(force: Boolean) {

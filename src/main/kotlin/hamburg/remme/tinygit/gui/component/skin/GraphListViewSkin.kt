@@ -9,8 +9,11 @@ import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
 
+private const val EMPTY_SPACING = 0.0
 private const val SPACING = 24.0
 private const val RADIUS = 6.0
+private const val LAST_INDEX = 9999
+private const val COLOR_COUNT = 11
 
 /**
  * This skin is enhancing the [javafx.scene.control.skin.ListViewSkin] to display a Git log graph style [Path].
@@ -53,11 +56,11 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
                 }
 
                 if (commitIndex >= firstCell.index && commitIndex <= lastCell.index) {
-                    circleGroup.children += Circle(commitX, commitY, RADIUS).addClass("commit-node", "node-color${tag % 8}")
+                    circleGroup.children += Circle(commitX, commitY, RADIUS).addClass("commit-node", "node-color${tag % COLOR_COUNT}")
                 }
 
                 commit.parents.forEach { parent ->
-                    val parentIndex = graphView.items.indexOfFirst { it.id == parent.id }.takeIf { it >= 0 } ?: 9999
+                    val parentIndex = graphView.items.indexOfFirst { it.id == parent.id }.takeIf { it >= 0 } ?: LAST_INDEX
                     val parentTag = graphView.logGraph.getTag(parent)
 
                     if (parentTag >= 0
@@ -70,7 +73,7 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
                             flow.getCell(parentIndex).let { it.layoutY + it.height / 2 }
                         }
 
-                        val path = paths[if (commit.parents.size == 1) tag % 8 else parentTag % 8]
+                        val path = paths[if (commit.parents.size == 1) tag % COLOR_COUNT else parentTag % COLOR_COUNT]
                         path.elements += MoveTo(commitX, commitY)
                         when {
                             tag == parentTag -> {
@@ -96,7 +99,7 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
         } else if (!hasCells) {
             graphView.graphWidth = SPACING + SPACING * (graphView.logGraph.getHighestTag() + 1)
         } else {
-            graphView.graphWidth = 0.0
+            graphView.graphWidth = EMPTY_SPACING
         }
     }
 

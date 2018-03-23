@@ -20,6 +20,7 @@ import hamburg.remme.tinygit.gui.component.CalendarChart
 import hamburg.remme.tinygit.gui.component.DonutChart
 import hamburg.remme.tinygit.gui.component.HistogramChart
 import hamburg.remme.tinygit.gui.component.Icons
+import hamburg.remme.tinygit.monthOfYearFormat
 import hamburg.remme.tinygit.observableList
 import hamburg.remme.tinygit.shortDateFormat
 import javafx.beans.property.SimpleBooleanProperty
@@ -107,15 +108,13 @@ class StatsView : Tab() {
 
         commits = HistogramChart(I18N["stats.dailyContributionChart"])
         commits.prefHeight = 300.0
-        commits.lowerBound = statsService.firstDay
-        commits.upperBound = statsService.lastDay
+        commits.updateBoundsAndTicks()
         val commitsIndicator = ProgressIndicator(commits).columnSpan(2)
         statsService.commitsListener = commitsIndicator
 
         lines = HistogramChart(I18N["stats.locChart"])
         lines.prefHeight = 250.0
-        lines.lowerBound = statsService.firstDay
-        lines.upperBound = statsService.lastDay
+        lines.updateBoundsAndTicks()
         val linesIndicator = ProgressIndicator(lines).columnSpan(2)
         statsService.linesListener = linesIndicator
 
@@ -164,6 +163,13 @@ class StatsView : Tab() {
             if (it) statsService.update(repoService.activeRepository.get()!!)
             else statsService.cancel()
         }
+    }
+
+    private fun HistogramChart.updateBoundsAndTicks() {
+        lowerBound = statsService.firstDay
+        upperBound = statsService.lastDay
+        setTickMarks((0L..12L).map { statsService.firstDay.plusMonths(it) }
+                .map { HistogramChart.TickMark(monthOfYearFormat.format(it), it) })
     }
 
     private fun updateContributions(data: List<DonutChart.Data>) {

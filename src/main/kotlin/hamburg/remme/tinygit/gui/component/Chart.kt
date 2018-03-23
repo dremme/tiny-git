@@ -13,15 +13,7 @@ abstract class Chart(val title: String) : Region() {
     }
     private val chartContent = object : Pane() {
         override fun layoutChildren() {
-            val top = snappedTopInset()
-            val left = snappedLeftInset()
-            val bottom = snappedBottomInset()
-            val right = snappedRightInset()
-            val width = width
-            val height = height
-            val contentWidth = snapSizeX(width - (left + right))
-            val contentHeight = snapSizeY(height - (top + bottom))
-            layoutChartChildren(snapPositionY(top), snapPositionX(left), contentWidth, contentHeight)
+            layoutChartChildren(snapSizeX(width), snapSizeY(height))
         }
     }
     protected val chartChildren get() = chartContent.children!!
@@ -34,11 +26,11 @@ abstract class Chart(val title: String) : Region() {
 
     override fun layoutChildren() {
         var top = snappedTopInset()
-        var left = snappedLeftInset()
-        var bottom = snappedBottomInset()
-        var right = snappedRightInset()
+        val left = snappedLeftInset()
+        val bottom = snappedBottomInset()
+        val right = snappedRightInset()
 
-        val titleHeight = snapSize(titleLabel.prefHeight(width - left - right))
+        val titleHeight = snapSizeY(titleLabel.prefHeight(width - left - right))
         titleLabel.resizeRelocate(left, top, width - left - right, titleHeight)
         top += titleHeight
 
@@ -47,6 +39,6 @@ abstract class Chart(val title: String) : Region() {
 
     protected fun requestChartLayout() = chartContent.requestLayout()
 
-    abstract fun layoutChartChildren(top: Double, left: Double, width: Double, height: Double)
+    abstract fun layoutChartChildren(width: Double, height: Double)
 
 }

@@ -79,7 +79,7 @@ class CommitLogService(private val repositoryService: RepositoryService,
 
             override fun succeeded() {
                 commits.addSorted(value.filter { commits.none(it::equals) })
-                commits.removeAll(commits.filter { value.none(it::equals) })
+                commits -= commits.filter { value.none(it::equals) }
                 logRemote()
             }
         }.also { TinyGit.execute(it) }
@@ -98,7 +98,7 @@ class CommitLogService(private val repositoryService: RepositoryService,
 
             override fun succeeded() {
                 commits.addSorted(value.filter { commits.none(it::equals) })
-                commits.removeAll(commits.filter { value.none(it::equals) })
+                commits -= commits.filter { value.none(it::equals) }
                 TinyGit.fireEvent()
             }
 
