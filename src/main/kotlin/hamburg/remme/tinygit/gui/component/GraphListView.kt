@@ -22,7 +22,10 @@ import javafx.scene.layout.HBox
 import javafx.scene.text.Text
 
 /**
- * @todo
+ * This view has some heavy interaction with [GraphListViewSkin] but is still loosely coupled, as it would
+ * work with the default list skin, just without Git log graph.
+ *
+ * The actual log graph is calculated asynchronously by [TinyGit.commitLogService] when the log changes.
  */
 class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits) {
 
@@ -49,9 +52,14 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
     override fun createDefaultSkin() = GraphListViewSkin(this)
 
     /**
-     * A rather complex list cell.
+     * This rather complex list cell is displaying brief information about the commit.
+     * It will show its ID, commit time, message and author.
      *
-     * @todo
+     * It will also display any branch pointing to the commit.
+     *
+     * The [ListCell] will have a left padding bound to [GraphListView.padding] to leave space for the graph
+     * that is drawn by the [GraphListViewSkin].
+     *
      * @todo branches all have the same color which is not synchronized with the log graph
      */
     private inner class CommitLogListCell : ListCell<Commit>() {

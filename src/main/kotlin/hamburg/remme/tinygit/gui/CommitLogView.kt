@@ -37,6 +37,8 @@ import javafx.scene.text.Text
  * [Commit].
  * This is relying heavily on the [GraphListView] and its skin for displaying the log graph and commit list.
  *
+ * There is also a context menu added to the [GraphListView] for commit related actions.
+ *
  *
  * ```
  *   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓

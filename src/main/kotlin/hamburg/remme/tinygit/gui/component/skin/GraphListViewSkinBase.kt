@@ -8,6 +8,9 @@ import javafx.scene.control.ScrollBar
 import javafx.scene.control.skin.ListViewSkin
 import javafx.scene.control.skin.VirtualFlow
 
+/**
+ * A class for enhancing the [ListViewSkin] with some private fields.
+ */
 abstract class GraphListViewSkinBase(control: GraphListView) : ListViewSkin<Commit>(control) {
 
     @Suppress("UNCHECKED_CAST")
@@ -18,6 +21,9 @@ abstract class GraphListViewSkinBase(control: GraphListView) : ListViewSkin<Comm
     protected val firstCell get() = flow.firstVisibleCell!!
     protected val lastCell get() = flow.lastVisibleCell!!
 
+    /**
+     * The list rendering is handled by the [ListViewSkin] but the graph has to be rendered here.
+     */
     abstract fun layoutGraphChildren()
 
     override fun layoutChildren(x: Double, y: Double, w: Double, h: Double) {

@@ -12,6 +12,14 @@ import javafx.scene.shape.Path
 private const val SPACING = 24.0
 private const val RADIUS = 6.0
 
+/**
+ * This skin is enhancing the [javafx.scene.control.skin.ListViewSkin] to display a Git log graph style [Path].
+ * The cells are still drawn by the default list skin.
+ *
+ * @todo: graph clipping over scrollbars
+ *
+ * @see hamburg.remme.tinygit.domain.LogGraph
+ */
 class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSkinBase(graphView) {
 
     private val paths: List<Path>
@@ -26,7 +34,6 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
         paths.reversed().forEach { pathGroup.children += it }
     }
 
-    // TODO: graph clipping over scrollbars
     override fun layoutGraphChildren() {
         paths.forEach { it.elements.clear() }
         circleGroup.children.clear()
