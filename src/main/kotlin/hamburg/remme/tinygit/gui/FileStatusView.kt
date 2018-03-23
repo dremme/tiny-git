@@ -8,6 +8,33 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
 
+/**
+ * A list of [File]s most likely related to the working copy or a certain commit.
+ * The default [SelectionMode] of the list is [SelectionMode.SINGLE].
+ *
+ *
+ * ```
+ *   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+ *   ┃ * .gitignore               ┃
+ *   ┃ * src/kotlin/Another.kt    ┃
+ *   ┃ * src/kotlin/MyClass.kt    ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+ * ```
+ *
+ *
+ * @see ListView
+ */
 class FileStatusView(list: ObservableList<File>, selectionMode: SelectionMode = SelectionMode.SINGLE) : ListView<File>(list) {
 
     companion object {

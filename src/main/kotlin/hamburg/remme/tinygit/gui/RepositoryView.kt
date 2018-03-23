@@ -42,6 +42,37 @@ import javafx.scene.layout.Priority
 import javafx.util.Callback
 import java.util.concurrent.Callable
 
+/**
+ * Navigational tree view. Active [Repository] can be selected here and modified.
+ * The tree view displays local branches, remote branches, tags and stashes.
+ *
+ * The view will also modify the global state depending on the selected [Repository].
+ *
+ * There are also shortcuts for executing different file actions:
+ *  * `R`   - for renaming local branches
+ *  * `Del` - for deleting branches and stashes
+ * These actions can also be triggered with a context menu.
+ *
+ *
+ * ```
+ *   ┏━━━━━━━━━━━━━━━━━━━┯━━━━━━━━┓
+ *   ┃ ToolBar           │ Button ┃
+ *   ┠───────────────────┴────────┨
+ *   ┃ > Local Branches           ┃
+ *   ┃   > master                 ┃
+ *   ┃ > Remote Branches          ┃
+ *   ┃   > origin/master          ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+ * ```
+ */
 class RepositoryView : VBoxBuilder() {
 
     private val repoService = TinyGit.repositoryService

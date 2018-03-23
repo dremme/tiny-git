@@ -15,6 +15,33 @@ import javafx.beans.binding.Bindings
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 
+/**
+ * Showing details for a specific [hamburg.remme.tinygit.domain.Commit].
+ *
+ *
+ * ```
+ *   ┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
+ *   ┃ Commit: ...       ┃                   ┃
+ *   ┃ Parents: ...      ┃                   ┃
+ *   ┃ Author: ...       ┃                   ┃
+ *   ┃ Date: ...         ┃                   ┃
+ *   ┃                   ┃                   ┃
+ *   ┣━━━━━━━━━━━━━━━━━━━┫                   ┃
+ *   ┃ StatusCountView   ┃ FileDiffView      ┃
+ *   ┠───────────────────┨                   ┃
+ *   ┃                   ┃                   ┃
+ *   ┃                   ┃                   ┃
+ *   ┃ FileStatusView    ┃                   ┃
+ *   ┃                   ┃                   ┃
+ *   ┃                   ┃                   ┃
+ *   ┗━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┛
+ * ```
+ *
+ *
+ * @see hamburg.remme.tinygit.domain.service.CommitDetailsService
+ * @see FileStatusView
+ * @see StatusCountView
+ */
 class CommitDetailsView : SplitPaneBuilder() {
 
     private val logService = TinyGit.commitLogService

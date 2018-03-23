@@ -21,6 +21,9 @@ import javafx.scene.control.ListView
 import javafx.scene.layout.HBox
 import javafx.scene.text.Text
 
+/**
+ * @todo
+ */
 class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits) {
 
     var graphWidth: Double
@@ -45,6 +48,12 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
 
     override fun createDefaultSkin() = GraphListViewSkin(this)
 
+    /**
+     * A rather complex list cell.
+     *
+     * @todo
+     * @todo branches all have the same color which is not synchronized with the log graph
+     */
     private inner class CommitLogListCell : ListCell<Commit>() {
 
         private val MAX_LENGTH = 60
@@ -84,7 +93,6 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
             }
         }
 
-        // TODO: Missing branch colors
         private fun List<Branch>.toBadges(): List<Node> {
             return map {
                 label {

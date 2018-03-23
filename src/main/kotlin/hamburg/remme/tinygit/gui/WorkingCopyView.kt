@@ -27,12 +27,61 @@ import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import java.util.concurrent.Callable
 
+/**
+ * This view is showing the currently state of the working copy and a diff for the selected file.
+ * Only one single diff is ever shown and only files from either the staged or the pending section can be
+ * selected.
+ * Selections will also change the state of [TinyGit.workingCopyService] and [TinyGit.state].
+ *
+ * The [FileDiffView] will always show the most recently selected file.
+ *
+ * Both [FileStatusView]s are [SelectionMode.MULTIPLE], with the [WorkingCopyView] automatically deselecting
+ * all files if a file on the opposing section has been selected.
+ *
+ * There are also shortcuts for executing different file actions:
+ *  * `L`   - for unstaging files
+ *  * `K`   - for staging files
+ *  * `Del` - for deleting files from the machine
+ *  * `D`   - for discarding all changes from the file
+ * These actions can also be triggered with a context menu.
+ *
+ *
+ * ```
+ *   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+ *   ┃ ToolBar                  ┃                          ┃
+ *   ┠──────────────────────────┨                          ┨
+ *   ┃                          ┃                          ┃
+ *   ┃                          ┃                          ┃
+ *   ┃ FileStatusView           ┃                          ┃
+ *   ┃                          ┃                          ┃
+ *   ┃                          ┃                          ┃
+ *   ┣━━━━━━━━━━━━━━━━━━━━━━━━━━┫ FileDiffView             ┃
+ *   ┃ ToolBar                  ┃                          ┃
+ *   ┠──────────────────────────┨                          ┃
+ *   ┃                          ┃                          ┃
+ *   ┃                          ┃                          ┃
+ *   ┃ FileStatusView           ┃                          ┃
+ *   ┃                          ┃                          ┃
+ *   ┃                          ┃                          ┃
+ *   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+ * ```
+ *
+ *
+ * @todo add the actions of the context menu to the menu bar?
+ *
+ * @see FileStatusView
+ * @see FileDiffView
+ * @see StatusCountView
+ */
 class WorkingCopyView : Tab() {
 
     private val service = TinyGit.workingCopyService
     private val state = TinyGit.state
     private val window get() = content.scene.window
 
+    /**
+     * Actions to be used in the [GitView]'s menu bar.
+     */
     val actions get() = arrayOf(ActionGroup(updateAll, stageAll, stageSelected), ActionGroup(unstageAll, unstageSelected))
     private val unstageAll = Action(I18N["workingCopy.unstageAll"], { Icons.arrowAltCircleDown() }, "Shortcut+Shift+L", state.canUnstageAll.not(),
             { service.unstage() })
@@ -74,7 +123,6 @@ class WorkingCopyView : Tab() {
             }
         }
 
-        // TODO: menubar actions?
         val stageFile = Action("${I18N["workingCopy.stage"]} (${stageKey.shortName})", { Icons.arrowAltCircleUp() }, disabled = state.canStageSelected.not(),
                 handler = { stageSelected() })
         val deleteFile = Action("${I18N["workingCopy.delete"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = state.canDeleteSelected.not(),

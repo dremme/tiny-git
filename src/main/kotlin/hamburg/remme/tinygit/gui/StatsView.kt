@@ -31,6 +31,49 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import javafx.scene.chart.XYChart.Data as XYData
 
+/**
+ * Showing various Git statistics using the [TinyGit.statsService].
+ * The query is asynchronous displaying a loading indicator.
+ *
+ * Will contain functionality to change the range of time queried and resolution for the statistics.
+ * Currently the last year from today is shown.
+ *
+ * The view is showing:
+ *  * [DonutChart] with the contributors and their number of commits.
+ *  * [DonutChart] with the number of files by their type.
+ *  * [CalendarChart] showing the number of commits over the time range and day of the week.
+ *  * [HistogramChart] displaying a stacked bar chart with all commits by author.
+ *  * [HistogramChart] displaying a stacked bar chart with the number of added and removed lines.
+ *
+ * **Git stats are very much beta as are the diagrams.**
+ *
+ *
+ * ```
+ *   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+ *   ┃ ToolBar                    ┃
+ *   ┠────────────────────────────┨
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃          Diagrams          ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+ * ```
+ *
+ *
+ * @todo implement time range selection and filtering
+ *
+ * @see DonutChart
+ * @see HistogramChart
+ * @see CalendarChart
+ */
 class StatsView : Tab() {
 
     private val repoService = TinyGit.repositoryService
@@ -90,10 +133,11 @@ class StatsView : Tab() {
                     graphic = Icons.refresh()
                     setOnAction { statsService.update(repoService.activeRepository.get()!!) }
                 }
+                // TODO: implement
                 +comboBox<CalendarChart.Period> {
-                    isDisable = true // TODO: implement changing periods
+                    isDisable = true
                     items.addAll(CalendarChart.Period.values())
-                    valueProperty().addListener { _, _, it -> activity.updateYear(it) } // TODO: implement changing periods
+                    valueProperty().addListener { _, _, it -> activity.updateYear(it) }
                     value = CalendarChart.Period.LAST_YEAR
                 }
             }
@@ -152,6 +196,9 @@ class StatsView : Tab() {
         }
     }
 
+    /**
+     * Wrapping a [Node] to show a progress indicator if needed.
+     */
     private class ProgressIndicator(content: Node) : StackPaneBuilder(), TaskListener {
 
         private val visible = SimpleBooleanProperty()

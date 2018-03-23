@@ -32,6 +32,37 @@ import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 
+/**
+ * Displaying basically the output of `git log`. Each log entry can be selected to display the details of that
+ * [Commit].
+ * This is relying heavily on the [GraphListView] and its skin for displaying the log graph and commit list.
+ *
+ *
+ * ```
+ *   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+ *   ┃ ToolBar                              ┃
+ *   ┠──────────────────────────────────────┨
+ *   ┃                                      ┃
+ *   ┃                                      ┃
+ *   ┃                                      ┃
+ *   ┃ GraphListView                        ┃
+ *   ┃                                      ┃
+ *   ┃                                      ┃
+ *   ┃                                      ┃
+ *   ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+ *   ┃                                      ┃
+ *   ┃ CommitDetailsView                    ┃
+ *   ┃                                      ┃
+ *   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+ * ```
+ *
+ *
+ * @todo should the actions be exposed and used in the menu bar as well?!
+ * @todo loading more commits while scrolling down is buggy
+ *
+ * @see GraphListView
+ * @see CommitDetailsView
+ */
 class CommitLogView : Tab() {
 
     private val state = TinyGit.state
@@ -46,7 +77,6 @@ class CommitLogView : Tab() {
         graphic = Icons.list()
         isClosable = false
 
-        // TODO: should be exposed and used in the menu bar as well?!
         val checkoutCommit = Action(I18N["commitLog.checkout"], { Icons.check() }, disabled = state.canCheckoutCommit.not(),
                 handler = { checkoutCommit(graphSelection) })
         val resetToCommit = Action(I18N["commitLog.reset"], { Icons.refresh() }, disabled = state.canResetToCommit.not(),
@@ -61,9 +91,8 @@ class CommitLogView : Tab() {
             isAutoHide = true
             +ActionGroup(checkoutCommit, resetToCommit)
         }
-        // TODO: too buggy and needy right now.
+//        TODO
 //        graph.setOnScroll {
-//            // TODO: buggy
 //            if (it.deltaY < 0) {
 //                val index = graph.items.size - 1
 //                service.logMore()
@@ -127,6 +156,9 @@ class CommitLogView : Tab() {
         // TODO
     }
 
+    /**
+     * An indicator to be shown in the toolbar while fetching from remote.
+     */
     private class FetchIndicator : HBoxBuilder(), TaskListener {
 
         private val visible = SimpleBooleanProperty()

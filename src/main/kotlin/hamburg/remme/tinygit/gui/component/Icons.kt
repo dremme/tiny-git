@@ -5,6 +5,9 @@ import hamburg.remme.tinygit.gui.builder.stackPane
 import javafx.scene.Node
 import javafx.scene.text.Text
 
+/**
+ * A list of icon factories creating [FontAwesome 5](https://fontawesome.com) icons.
+ */
 object Icons {
 
     fun arrowAltCircleDown() = icon('\uf358')
