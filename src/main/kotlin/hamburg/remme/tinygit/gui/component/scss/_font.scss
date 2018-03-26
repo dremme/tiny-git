@@ -1,0 +1,68 @@
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: normal;
+  src: url('/hamburg/remme/tinygit/font/Roboto-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: "Roboto Bold";
+  font-style: normal;
+  font-weight: bold;
+  src: url('/hamburg/remme/tinygit/font/Roboto-Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: "Roboto Light";
+  font-style: normal;
+  font-weight: 300;
+  src: url('/hamburg/remme/tinygit/font/Roboto-Light.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: "Liberation Mono";
+  font-style: normal;
+  font-weight: normal;
+  src: url('/hamburg/remme/tinygit/font/LiberationMono-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: "Font Awesome 5 Free";
+  font-style: normal;
+  font-weight: normal;
+  src: url('/hamburg/remme/tinygit/font/fa-solid-900.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: "Font Awesome 5 Brands";
+  font-style: normal;
+  font-weight: normal;
+  src: url('/hamburg/remme/tinygit/font/fa-brands-400.ttf') format('truetype');
+}
+
+@mixin font($family, $size:12px, $color: $color-f0) {
+  -fx-font-family: $family, sans-serif;
+  -fx-font-size: $size;
+  -fx-text-fill: $color;
+  -fx-fill: $color;
+}
+
+@mixin fontH0($color: $color-f0) {
+  @include font("Roboto");
+}
+
+@mixin fontH1($color: $color-f0) {
+  @include font("Roboto Bold");
+}
+
+@mixin fontH2($color: $color-f0) {
+  @include font("Roboto Light");
+}
+
+@mixin fontI0($color: $color-f0) {
+  @include font("Font Awesome 5 Free Solid");
+}
+
+@mixin fontI1($color: $color-f0) {
+  @include font("Font Awesome 5 Brands Regular");
+}

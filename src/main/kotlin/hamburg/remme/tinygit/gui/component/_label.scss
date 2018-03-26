@@ -1,0 +1,10 @@
+.text {
+  -fx-bounds-type: logical_vertical_center;
+  -fx-font-smoothing-type: lcd;
+}
+
+.label {
+  @include fontH0;
+
+  -fx-graphic-text-gap: 0;
+}

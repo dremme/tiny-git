@@ -1,0 +1,29 @@
+.menu-bar {
+  -fx-background-color: $color-b1;
+
+  .menu-button {
+    @include pad1;
+
+    &:hover {
+      -fx-background-color: $color-c0;
+    }
+  }
+}
+
+.menu-item {
+  @include pad1;
+
+  &:disabled,
+  &:hover:disabled {
+    @include disabled;
+
+    -fx-background-color: transparent;
+  }
+  &:hover {
+    -fx-background-color: $color-c0;
+  }
+  > .label {
+    @include padR1;
+    @include padL1;
+  }
+}

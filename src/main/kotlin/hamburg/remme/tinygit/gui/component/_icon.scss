@@ -1,0 +1,12 @@
+.icon-wrapper {
+  -fx-min-width: 1em;
+  -fx-min-height: 1em;
+
+  .icon {
+    @include fontI0;
+
+    &.brand {
+      @include fontI1;
+    }
+  }
+}

@@ -11,6 +11,8 @@ import javafx.collections.ObservableList
 import javafx.scene.control.Label
 import javafx.scene.layout.HBox
 
+private const val DEFAULT_STYLE_CLASS = "status-count-view"
+
 /**
  * A list of [File]s which status will be displayed as summary. Often used inside a
  * [javafx.scene.control.ToolBar] and in conjunction with the [FileStatusView].
@@ -75,7 +77,7 @@ class StatusCountView(items: ObservableList<File>) : HBox() {
     }
 
     init {
-        addClass("status-count-view")
+        addClass(DEFAULT_STYLE_CLASS)
         children.addAll(conflicting, added, copied, renamed, modified, removed, missing, untracked)
         items.addListener(ListChangeListener { update(it.list) })
     }

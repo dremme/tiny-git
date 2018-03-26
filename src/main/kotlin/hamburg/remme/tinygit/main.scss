@@ -1,0 +1,35 @@
+// Variables
+@import "./gui/component/scss/spacing";
+@import "./gui/component/scss/color";
+@import "./gui/component/scss/font";
+@import "./gui/component/scss/shadow";
+
+// Components
+@import "./gui/component/label";
+@import "./gui/component/button";
+@import "./gui/component/icon";
+@import "./gui/component/tooltip";
+@import "./gui/component/input";
+@import "./gui/component/split-pane";
+@import "./gui/component/tab-pane";
+@import "./gui/component/list";
+@import "./gui/component/context-menu";
+@import "./gui/component/menu-bar";
+@import "./gui/component/tool-bar";
+@import "./gui/component/dialog";
+
+// Custom Components
+@import "./gui/component/graph-list-view";
+
+// Views
+@import "./gui/git-view";
+@import "./gui/commit-details-view";
+@import "./gui/commit-log-view";
+@import "./gui/working-copy-view";
+@import "./gui/repository-view";
+@import "./gui/status-count-view";
+
+.root {
+  -fx-text-fill: $color-f0;
+  -fx-background-color: $color-b1;
+}

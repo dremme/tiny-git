@@ -31,8 +31,7 @@ class TextInputDialog(ok: String, isTextArea: Boolean, window: Window) : Dialog<
         Platform.runLater { input.requestFocus() }
 
         content = vbox {
-            addStylesheet("input-dialog.css")
-            spacing = 6.0
+            addStylesheet("input-dialog.css") // TODO: replace
             +label
             +input
         }

@@ -27,6 +27,9 @@ import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import java.util.concurrent.Callable
 
+private const val DEFAULT_STYLE_CLASS = "working-copy-view"
+private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
+
 /**
  * This view is showing the currently state of the working copy and a diff for the selected file.
  * Only one single diff is ever shown and only files from either the staged or the pending section can be
@@ -156,10 +159,10 @@ class WorkingCopyView : Tab() {
 
         content = stackPane {
             +splitPane {
-                addClass("working-copy-view")
+                addClass(DEFAULT_STYLE_CLASS)
 
                 +splitPane {
-                    addClass("files")
+                    addClass(CONTENT_STYLE_CLASS)
 
                     +vbox {
                         +toolBar {

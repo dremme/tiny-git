@@ -31,7 +31,6 @@ import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
 import javafx.scene.Scene
 import javafx.scene.image.Image
-import javafx.scene.text.Font
 import javafx.stage.Stage
 import java.util.Locale
 import java.util.concurrent.Callable
@@ -43,14 +42,6 @@ import java.util.concurrent.TimeUnit
  */
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
-
-    Font.loadFont("font/Roboto-Regular.ttf".asResource(), 13.0)
-    Font.loadFont("font/Roboto-Bold.ttf".asResource(), 13.0)
-    Font.loadFont("font/Roboto-Light.ttf".asResource(), 13.0)
-    Font.loadFont("font/LiberationMono-Regular.ttf".asResource(), 12.0)
-    Font.loadFont("font/fa-brands-400.ttf".asResource(), 14.0)
-    Font.loadFont("font/fa-solid-900.ttf".asResource(), 14.0)
-
     Application.launch(TinyGit::class.java, *args)
 }
 
@@ -94,6 +85,10 @@ class TinyGit : Application() {
         val state = State(repositoryService, branchService, workingCopyService, divergenceService, mergeService, rebaseService, stashService, commitLogService)
         private lateinit var application: Application
         private lateinit var stage: Stage
+
+        init {
+            Application.setUserAgentStylesheet("/css/main.css")
+        }
 
         /**
          * Adds repository and refresh listeners to the [Refreshable].
@@ -213,7 +208,6 @@ class TinyGit : Application() {
     private fun initWindow() {
         stage.focusedProperty().addListener { _, _, it -> if (it) state.isModal.takeIf { it.get() }?.set(false) ?: fireEvent() }
         stage.scene = Scene(GitView())
-        stage.scene.stylesheets += "default.css".asResource()
         stage.icons += Image("icon.png".asResource())
         stage.titleProperty().bind(Bindings.createStringBinding(Callable { updateTitle() },
                 repositoryService.activeRepository,

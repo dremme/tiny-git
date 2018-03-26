@@ -58,7 +58,7 @@ class ToolBarBuilder : ToolBar() {
                 +button(action)
                 action.count?.let {
                     +label {
-                        addClass("count-badge")
+                        addClass("count")
                         alignment(Pos.TOP_RIGHT)
                         visibleWhen(it.greater0()) // .run { action.disabled?.let { and(it.not()) } ?: this })
                         isMouseTransparent = true

@@ -1,0 +1,49 @@
+.button,
+.choice-box,
+.combo-box-base {
+  @include fontH0;
+  @include control;
+  @include pad1;
+
+  &:disabled {
+    @include disabled;
+  }
+}
+
+.button {
+  -fx-alignment: center;
+}
+
+.combo-box-base {
+  > .arrow-button {
+    @include padL1;
+
+    > .arrow {
+      -fx-background-color: $color-f0;
+      -fx-padding: 0.166667em 0.333333em 0.166667em 0.333333em;
+      -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+    }
+  }
+  > .list-cell {
+    @include fontH0;
+
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+  }
+}
+
+.combo-box-popup {
+  > * {
+    @include shadow3;
+
+    -fx-background-color: $color-b2;
+  }
+  .list-cell {
+    @include fontH0;
+    @include pad1;
+
+    &:hover {
+      -fx-background-color: $color-c0;
+    }
+  }
+}

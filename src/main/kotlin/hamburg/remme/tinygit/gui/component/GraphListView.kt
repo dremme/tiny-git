@@ -21,6 +21,8 @@ import javafx.scene.control.ListView
 import javafx.scene.layout.HBox
 import javafx.scene.text.Text
 
+private const val DEFAULT_STYLE_CLASS = "graph-list-view"
+
 /**
  * This view has some heavy interaction with [GraphListViewSkin] but is still loosely coupled, as it would
  * work with the default list skin, just without Git log graph.
@@ -43,7 +45,7 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
     private val graphPadding = SimpleObjectProperty<Insets>(Insets.EMPTY)
 
     init {
-        addClass("graph-view")
+        addClass(DEFAULT_STYLE_CLASS)
         setCellFactory { CommitLogListCell() }
         service.head.addListener { _ -> refresh() }
         service.branches.addListener(ListChangeListener { refresh() })
@@ -73,7 +75,6 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
 
         init {
             graphic = vbox {
-                addClass("graph-view-cell")
                 paddingProperty().bind(graphPadding)
                 +hbox {
                     alignment = Pos.CENTER_LEFT
@@ -104,7 +105,7 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
         private fun List<Branch>.toBadges(): List<Node> {
             return map {
                 label {
-                    addClass("branch-badge")
+                    addClass("badge")
                     if (service.isDetached(it)) addClass("detached")
                     else if (service.isHead(it)) addClass("current")
                     +it.name.abbrev()

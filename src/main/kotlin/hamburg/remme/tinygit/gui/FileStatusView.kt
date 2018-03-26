@@ -8,6 +8,8 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
 
+private const val DEFAULT_STYLE_CLASS = "file-status-view"
+
 /**
  * A list of [File]s most likely related to the working copy or a certain commit.
  * The default [SelectionMode] of the list is [SelectionMode.SINGLE].
@@ -51,7 +53,7 @@ class FileStatusView(list: ObservableList<File>, selectionMode: SelectionMode = 
     }
 
     init {
-        addClass("file-status-view")
+        addClass(DEFAULT_STYLE_CLASS)
         setCellFactory { LocalFileListCell() }
         selectionModel.selectionMode = selectionMode
     }

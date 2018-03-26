@@ -20,7 +20,7 @@ class CredentialsDialog(host: String, window: Window) : Dialog<Credentials>(wind
 
         header = I18N["dialog.credentials.header", host]
         content = vbox {
-            addStylesheet("input-dialog.css")
+            addStylesheet("input-dialog.css") // TODO: replace
             spacing = 6.0
             +username
             +password

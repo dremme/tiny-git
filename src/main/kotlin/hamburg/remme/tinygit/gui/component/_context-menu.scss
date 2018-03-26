@@ -1,0 +1,10 @@
+.context-menu {
+  @include shadow3;
+
+  -fx-background-color: $color-b2;
+
+  .separator .line {
+    -fx-border-color: $color-c0;
+    -fx-border-width: 2 0 0 0;
+  }
+}

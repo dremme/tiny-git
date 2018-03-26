@@ -25,7 +25,7 @@ class CmdDialog(repository: Repository, window: Window) : Dialog<Array<String>>(
         header = I18N["dialog.cmd.header"]
         graphic = Icons.terminal()
         content = vbox {
-            addStylesheet("input-dialog.css")
+            addStylesheet("input-dialog.css") // TODO: replace
             spacing = 6.0
             +label { +"${I18N["dialog.cmd.text", repository.path]}:" }
             +hbox {

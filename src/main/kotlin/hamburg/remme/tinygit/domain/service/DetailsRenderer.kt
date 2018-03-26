@@ -31,15 +31,15 @@ class DetailsRenderer {
                         margin: 0;
                         width: 100%;
                         height: 100%;
-                        font: 13px "Roboto", sans-serif;
+                        font: 12px "Roboto", sans-serif;
                         color: white;
-                        background-color: #3c3f41;
+                        background-color: #263238;
                     }
                     table {
-                        padding: 8px;
+                        padding: 0.5em;
                         position: absolute;
                         min-width: 100%;
-                        font-size: 13px;
+                        font-size: 12px;
                     }
                     .label {
                         font-weight: bold;

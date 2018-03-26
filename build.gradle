@@ -1,18 +1,26 @@
+import io.bit3.jsass.Compiler
+import io.bit3.jsass.Options
+
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
+
 buildscript {
-    ext.kotlin_version = '1.2.30'
+    ext.kotlin_version = "1.2.31"
 
     repositories {
         mavenCentral()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "io.bit3:jsass:5.5.6"
     }
 }
 
-group 'hamburg.remme'
-version '1.0-SNAPSHOT'
+group "hamburg.remme"
+version "1.0-SNAPSHOT"
 
-apply plugin: 'kotlin'
+apply plugin: "kotlin"
 
 repositories {
     mavenCentral()
@@ -24,13 +32,49 @@ dependencies {
     compile "org.yaml:snakeyaml:1.18"
 }
 
+sourceSets {
+    main {
+        java { srcDir "src/main/generated" }
+        resources {
+            srcDirs("src/main/resources", "src/main/java", "src/main/generated")
+            include "**/*.css"
+            include "**/*.png"
+            include "**/*.properties"
+            include "**/*.ttf"
+        }
+    }
+}
+
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
 jar {
     manifest {
-        attributes 'Main-Class': 'hamburg.remme.tinygit.TinyGitKt'
+        attributes "Main-Class": "hamburg.remme.tinygit.TinyGitKt"
     }
+    from sourceSets.main.output.classesDirs
+    from sourceSets.main.output.resourcesDir
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+task compileSCSS {
+    def inputFile = file("src/main/kotlin/hamburg/remme/tinygit/main.scss").toURI()
+    def outputFile = file("src/main/generated/css/main.css").toURI()
+
+    def compiler = new Compiler()
+    def options = new Options()
+    def output = compiler.compileFile(inputFile, outputFile, options)
+
+    // Remove the charset declaration that confuses the JavaFX CSS parser.
+    def css = output.getCss().replace("@charset \"UTF-8\";", "")
+
+    // Note: At this point, outputFile does not yet exist. So write it now...
+    def target = Paths.get(outputFile)
+    Files.createDirectories(target.parent)
+    Files.write(target, css.getBytes(StandardCharsets.UTF_8))
+}
+
+assemble.doLast {
+    compileSCSS
 }

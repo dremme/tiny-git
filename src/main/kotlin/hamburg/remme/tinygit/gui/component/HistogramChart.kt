@@ -120,6 +120,7 @@ class HistogramChart(title: String) : Chart(title) {
                 rect.y = height
                 rect.height = 0.0
 
+                // TODO: they prob need some snap here
                 val h = Math.max(MIN_HEIGHT, height * (it.yValue / upperBoundY))
                 val y = height - h - (slots[it.xValue] ?: 0.0)
                 timeline.keyFrames += KeyFrame(Duration.millis(1000.0),

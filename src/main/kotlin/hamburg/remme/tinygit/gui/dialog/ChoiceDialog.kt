@@ -29,8 +29,7 @@ class ChoiceDialog<T>(ok: String, window: Window) : Dialog<T>(window, I18N["dial
         Platform.runLater { input.requestFocus() }
 
         content = vbox {
-            addStylesheet("input-dialog.css")
-            spacing = 6.0
+            addStylesheet("input-dialog.css") // TODO: replace
             +label
             +input
         }

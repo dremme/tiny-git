@@ -16,7 +16,7 @@ class CmdResultDialog(result: String, window: Window) : Dialog<Unit>(window, I18
         header = I18N["dialog.cmdResult.header"]
         graphic = Icons.terminal()
         content = vbox {
-            addStylesheet("input-dialog.css")
+            addStylesheet("input-dialog.css") // TODO: replace
             addClass("git")
             +textArea {
                 vgrow(Priority.ALWAYS)

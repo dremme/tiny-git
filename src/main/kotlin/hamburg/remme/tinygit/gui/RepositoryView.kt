@@ -42,6 +42,9 @@ import javafx.scene.layout.Priority
 import javafx.util.Callback
 import java.util.concurrent.Callable
 
+private const val DEFAULT_STYLE_CLASS = "repository-view"
+private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
+
 /**
  * Navigational tree view. Active [Repository] can be selected here and modified.
  * The tree view displays local branches, remote branches, tags and stashes.
@@ -84,7 +87,7 @@ class RepositoryView : VBoxBuilder() {
     private val treeSelection @Suppress("UNNECESSARY_SAFE_CALL") get() = tree?.selectionModel?.selectedItem?.value
 
     init {
-        addClass("repository-view")
+        addClass(DEFAULT_STYLE_CLASS)
 
         val repository = comboBox<Repository>(repoService.existingRepositories) {
             buttonCell = RepositoryValueCell()
@@ -107,6 +110,7 @@ class RepositoryView : VBoxBuilder() {
         val stash = RootTreeItem(Icons.cubes(), I18N["repository.stash"])
 
         tree = tree {
+            addClass(CONTENT_STYLE_CLASS)
             vgrow(Priority.ALWAYS)
             setCellFactory { RepositoryEntryTreeCell() }
 
@@ -272,16 +276,11 @@ class RepositoryView : VBoxBuilder() {
     private class RepositoryListCell : ListCell<Repository>() {
 
         private val name = Label()
-        private val path = Label().addClass("repository-path")
+        private val path = Label()
 
         init {
-            addClass("repository-list-cell")
             graphic = vbox {
-                spacing = 2.0 // TODO: CSS?
-                +hbox {
-                    spacing = 6.0 // TODO: CSS?
-                    +name
-                }
+                +name
                 +path
             }
         }
@@ -306,7 +305,7 @@ class RepositoryView : VBoxBuilder() {
                     item is Tag -> item(Icons.tag(), item.name)
                     item is StashEntry -> item(Icons.cube(), item.message)
                     else -> throw RuntimeException()
-                }.addClass("repository-cell")
+                }
             }
         }
 

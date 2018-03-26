@@ -1,0 +1,48 @@
+.text-input {
+  @include fontH0;
+  @include pad2;
+
+  -fx-border-color: $color-c0;
+  -fx-border-width: 0 0 2 0;
+
+  &:focused {
+    -fx-border-color: $color-f1;
+  }
+}
+
+.check-box {
+  @include fontH0;
+  @include pad2;
+
+  &:hover:selected > .box,
+  &:selected:focused > .box,
+  &:selected > .box {
+    -fx-background-color: $color-f1;
+
+    > .mark {
+      -fx-background-color: $color-b1;
+    }
+  }
+  &:focused > .box,
+  &:hover > .box {
+    -fx-background-color: $color-c1;
+
+    > .mark {
+      -fx-background-color: $color-c1;
+    }
+  }
+  &:disabled {
+    @include disabled;
+  }
+  > .box {
+    -fx-background-color: $color-c0;
+    -fx-padding: 0.3em 0.25em 0.4em 0.25em;
+
+    > .mark {
+      -fx-background-color: $color-c0;
+      -fx-padding: 0.3em 0.4em 0.3em 0.4em;
+      -fx-shape: "M39.363,79L16,55.49l11.347-11.419L39.694,56.49L72.983,23L84,34.085L39.363,79z";
+      //-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 1, 0, 1, 1);
+    }
+  }
+}

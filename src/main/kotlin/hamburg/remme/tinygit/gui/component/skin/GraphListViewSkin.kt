@@ -9,6 +9,8 @@ import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
 
+private const val PATH_STYLE_CLASS = "path-color"
+private const val NODE_STYLE_CLASS = "node-color"
 private const val EMPTY_SPACING = 0.0
 private const val SPACING = 24.0
 private const val RADIUS = 6.0
@@ -33,7 +35,7 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
         pathGroup.isManaged = false
         circleGroup.isManaged = false
         children.addAll(pathGroup, circleGroup)
-        paths = (0..7).map { Path().addClass("commit-path", "path-color$it") }
+        paths = (0..COLOR_COUNT).map { Path().addClass("$PATH_STYLE_CLASS$it") }
         paths.reversed().forEach { pathGroup.children += it }
     }
 
@@ -56,7 +58,7 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
                 }
 
                 if (commitIndex >= firstCell.index && commitIndex <= lastCell.index) {
-                    circleGroup.children += Circle(commitX, commitY, RADIUS).addClass("commit-node", "node-color${tag % COLOR_COUNT}")
+                    circleGroup.children += Circle(commitX, commitY, RADIUS).addClass("$NODE_STYLE_CLASS${tag % COLOR_COUNT}")
                 }
 
                 commit.parents.forEach { parent ->
@@ -95,9 +97,9 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
                     }
                 }
             }
-            graphView.graphWidth = SPACING + SPACING * (graphView.logGraph.getHighestTag() + 1)
+            graphView.graphWidth = SPACING / 2 + SPACING * (graphView.logGraph.getHighestTag() + 1)
         } else if (!hasCells) {
-            graphView.graphWidth = SPACING + SPACING * (graphView.logGraph.getHighestTag() + 1)
+            graphView.graphWidth = SPACING / 2 + SPACING * (graphView.logGraph.getHighestTag() + 1)
         } else {
             graphView.graphWidth = EMPTY_SPACING
         }

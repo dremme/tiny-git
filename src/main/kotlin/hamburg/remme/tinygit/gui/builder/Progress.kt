@@ -9,8 +9,6 @@ import javafx.util.Duration
 
 fun progressIndicator(size: Double): Node {
     return hbox {
-        spacing = size / 3
-        alignment = Pos.CENTER
         +Circle(size).addClass("progress-circle").attachAnimation(0.0)
         +Circle(size).addClass("progress-circle").attachAnimation(500.0)
         +Circle(size).addClass("progress-circle").attachAnimation(1000.0)

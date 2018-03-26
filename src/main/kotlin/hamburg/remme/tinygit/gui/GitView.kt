@@ -50,6 +50,9 @@ import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 import javafx.stage.Stage
 
+private const val DEFAULT_STYLE_CLASS = "git-view"
+private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
+
 /**
  * The application root. Will create the menu depending on the operating system (OS).
  * Uses [javafx.scene.control.MenuBar.useSystemMenuBar] and [MenuToolkit] for Mac OS.
@@ -95,7 +98,7 @@ class GitView : VBoxBuilder() {
     private val window get() = scene.window
 
     init {
-        addClass("git-view")
+        addClass(DEFAULT_STYLE_CLASS)
 
         val repositoryView = RepositoryView()
         val commitLog = CommitLogView()
@@ -259,7 +262,7 @@ class GitView : VBoxBuilder() {
         +stackPane {
             vgrow(Priority.ALWAYS)
             +splitPane {
-                addClass("content")
+                addClass(CONTENT_STYLE_CLASS)
                 +repositoryView
                 +tabs
                 Platform.runLater { setDividerPosition(0, 0.20) }

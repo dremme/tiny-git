@@ -62,7 +62,7 @@ class CalendarChart(data: ObservableList<Data<LocalDate, DayOfWeek>>) : XYChart<
 
         val value = item.extraValue as Int
         val styleclass = if (value >= quarters[0]) 4 else if (value >= quarters[1]) 3 else if (value >= quarters[2]) 2 else 1
-        item.node.styleClass.setAll("chart-calendar-day", "day-$styleclass")
+        item.node.addClass("chart-calendar-day", "day-$styleclass")
 
         if (shouldAnimate()) {
             item.node.opacity = 0.0

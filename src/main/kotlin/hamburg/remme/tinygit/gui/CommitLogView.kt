@@ -32,6 +32,9 @@ import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
 import javafx.scene.text.Text
 
+private const val DEFAULT_STYLE_CLASS = "commit-log-view"
+private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
+
 /**
  * Displaying basically the output of `git log`. Each log entry can be selected to display the details of that
  * [Commit].
@@ -110,6 +113,8 @@ class CommitLogView : Tab() {
 
         val indicator = FetchIndicator()
         content = vbox {
+            addClass(DEFAULT_STYLE_CLASS)
+
             +toolBar {
                 +indicator
                 addSpacer()
@@ -126,7 +131,7 @@ class CommitLogView : Tab() {
             +stackPane {
                 vgrow(Priority.ALWAYS)
                 +splitPane {
-                    addClass("log-view")
+                    addClass(CONTENT_STYLE_CLASS)
                     vgrow(Priority.ALWAYS)
                     +graph
                     +CommitDetailsView()
@@ -168,8 +173,6 @@ class CommitLogView : Tab() {
         init {
             visibleWhen(visible)
             managedWhen(visibleProperty())
-            spacing = 6.0
-            alignment = Pos.CENTER
             +progressIndicator(6.0)
             +label { +I18N["commitLog.fetching"] }
         }
