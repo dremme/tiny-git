@@ -177,13 +177,13 @@
       -fx-fill: $light-green-accent;
     }
     .status-copied .icon {
-      -fx-fill: $amber-accent;
+      -fx-fill: $yellow-accent;
     }
     .status-renamed .icon {
-      -fx-fill: $amber-accent;
+      -fx-fill: $yellow-accent;
     }
     .status-modified .icon {
-      -fx-fill: $amber-accent;
+      -fx-fill: $yellow-accent;
     }
     .status-missing .icon {
       -fx-fill: $brown-accent;
@@ -224,24 +224,24 @@
     }
   }
   .status-copied {
-    -fx-text-fill: $amber-accent;
+    -fx-text-fill: $yellow-accent;
 
     .icon {
-      -fx-fill: $amber-accent;
+      -fx-fill: $yellow-accent;
     }
   }
   .status-renamed {
-    -fx-text-fill: $amber-accent;
+    -fx-text-fill: $yellow-accent;
 
     .icon {
-      -fx-fill: $amber-accent;
+      -fx-fill: $yellow-accent;
     }
   }
   .status-modified {
-    -fx-text-fill: $amber-accent;
+    -fx-text-fill: $yellow-accent;
 
     .icon {
-      -fx-fill: $amber-accent;
+      -fx-fill: $yellow-accent;
     }
   }
   .status-missing {

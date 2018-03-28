@@ -19,7 +19,7 @@ class DiffRenderer {
                         margin: 0;
                         font: ${fontSize}px "Liberation Mono", monospace;
                         color: rgba(255, 255, 255, 0.9);
-                        background-color: #263238;
+                        background-color: #37474F;
                     }
                     body {
                     }
@@ -35,14 +35,14 @@ class DiffRenderer {
                         display: inline-block;
                     }
                     .h {
-                        color: rgba(255, 255, 255, 0.9);
-                        background-color: #335066;
+                        color: rgba(255, 255, 255, 0.8);
+                        background-color: #546E7A;
                     }
                     .a {
-                        background-color: #336636;
+                        background-color: #426643;
                     }
                     .r {
-                        background-color: #663333;
+                        background-color: #664242;
                     }
                     .l-num,
                     .r-num {
