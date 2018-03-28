@@ -27,6 +27,10 @@
     }
   }
   &__progress.overlay {
+    -fx-background-color: radial-gradient(center 50% 50%, radius 100%,
+            rgba($background-color, 1.0),
+            rgba($background-color, 0.5));
+
     .text {
       @extend %fontBold;
       @extend %textShadow;
