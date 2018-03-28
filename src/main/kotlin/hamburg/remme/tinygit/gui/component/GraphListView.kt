@@ -18,10 +18,16 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
-import javafx.scene.layout.HBox
-import javafx.scene.text.Text
 
 private const val DEFAULT_STYLE_CLASS = "graph-list-view"
+private const val COMMIT_STYLE_CLASS = "commitId"
+private const val DATE_STYLE_CLASS = "date"
+private const val BRANCHES_STYLE_CLASS = "branches"
+private const val MESSAGE_STYLE_CLASS = "message"
+private const val AUTHOR_STYLE_CLASS = "author"
+private const val BADGE_STYLE_CLASS = "badge"
+private const val DETACHED_STYLE_CLASS = "detached"
+private const val CURRENT_STYLE_CLASS = "current"
 
 /**
  * This view has some heavy interaction with [GraphListViewSkin] but is still loosely coupled, as it would
@@ -67,11 +73,17 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
     private inner class CommitLogListCell : ListCell<Commit>() {
 
         private val MAX_LENGTH = 60
-        private val commitId = Text().addClass("commitId")
-        private val date = Text().addClass("date")
-        private val badges = HBox().addClass("branches")
-        private val message = Text().addClass("message")
-        private val author = Text().addClass("author")
+        private val commitId = label { addClass(COMMIT_STYLE_CLASS) }
+        private val date = label {
+            addClass(DATE_STYLE_CLASS)
+            +Icons.calendar()
+        }
+        private val badges = hbox { addClass(BRANCHES_STYLE_CLASS) }
+        private val message = label { addClass(MESSAGE_STYLE_CLASS) }
+        private val author = label {
+            addClass(AUTHOR_STYLE_CLASS)
+            +Icons.user()
+        }
 
         init {
             graphic = vbox {
@@ -98,16 +110,16 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
                 date.text = c.date.format(shortDateTimeFormat)
                 badges.children.setAll(service.branches.filter { it.id == c.id }.toBadges())
                 message.text = c.shortMessage
-                author.text = " ― ${c.authorName}"
+                author.text = c.authorName
             }
         }
 
         private fun List<Branch>.toBadges(): List<Node> {
             return map {
                 label {
-                    addClass("badge")
-                    if (service.isDetached(it)) addClass("detached")
-                    else if (service.isHead(it)) addClass("current")
+                    addClass(BADGE_STYLE_CLASS)
+                    if (service.isDetached(it)) addClass(DETACHED_STYLE_CLASS)
+                    else if (service.isHead(it)) addClass(CURRENT_STYLE_CLASS)
                     +it.name.abbrev()
                     +if (service.isDetached(it)) Icons.locationArrow() else Icons.codeFork()
                 }

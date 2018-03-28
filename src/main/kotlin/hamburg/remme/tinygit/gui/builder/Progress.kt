@@ -1,17 +1,21 @@
 package hamburg.remme.tinygit.gui.builder
 
+import hamburg.remme.tinygit.fontSize
 import javafx.animation.Interpolator
 import javafx.animation.ScaleTransition
-import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.shape.Circle
 import javafx.util.Duration
 
+private const val DEFAULT_STYLE_CLASS = "progress"
+private const val CIRCLE_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__circle"
+
 fun progressIndicator(size: Double): Node {
     return hbox {
-        +Circle(size).addClass("progress-circle").attachAnimation(0.0)
-        +Circle(size).addClass("progress-circle").attachAnimation(500.0)
-        +Circle(size).addClass("progress-circle").attachAnimation(1000.0)
+        addClass(DEFAULT_STYLE_CLASS)
+        +Circle(size * fontSize).addClass(CIRCLE_STYLE_CLASS).attachAnimation(0.0)
+        +Circle(size * fontSize).addClass(CIRCLE_STYLE_CLASS).attachAnimation(500.0)
+        +Circle(size * fontSize).addClass(CIRCLE_STYLE_CLASS).attachAnimation(1000.0)
     }
 }
 

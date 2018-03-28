@@ -5,10 +5,13 @@ import hamburg.remme.tinygit.gui.builder.label
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 
+private const val DEFAULT_STYLE_CLASS = "chart"
+private const val TITLE_STYLE_CLASS = "title"
+
 abstract class Chart(val title: String) : Region() {
 
     private val titleLabel = label {
-        addClass("diagram-title")
+        addClass(TITLE_STYLE_CLASS)
         +title
     }
     private val chartContent = object : Pane() {
@@ -19,7 +22,7 @@ abstract class Chart(val title: String) : Region() {
     protected val chartChildren get() = chartContent.children!!
 
     init {
-        addClass("diagram") // chart is taken by modena.css
+        addClass(DEFAULT_STYLE_CLASS)
         chartContent.isManaged = false
         children.addAll(titleLabel, chartContent)
     }

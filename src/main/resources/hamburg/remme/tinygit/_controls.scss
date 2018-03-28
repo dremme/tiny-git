@@ -1,0 +1,823 @@
+/*
+ * This is based on the modena.css structure, but implements its own styles.
+ *
+ * Some parts may be largely copied.
+ *
+ *
+ *   Windows 12px -> 1 em | Mac 13px -> 1em
+ * ------------------------------------------
+ *    1px -> 0.083333em -> 1.08px ~ 2px
+ *    2px -> 0.166667em -> 2.16px ~ 3px
+ *    3px  = 0.25em
+ *    4px  = 0.333333em
+ *    5px  = 0.416667em
+ *    6px  = 0.5em
+ *    7px  = 0.583333em
+ *    8px  = 0.666667em
+ *    9px  = 0.75em
+ *   10px  = 0.833333em
+ *   11px  = 0.916667em
+ *   12px  = 1em
+ */
+
+/*******************************************************************************
+ *                                                                             *
+ * Variables                                                                   *
+ *                                                                             *
+ *******************************************************************************/
+
+$background-color: #263238;
+$pane-color: #37474F;
+$warning: #FFEA00;
+$error: #FF1744;
+
+$accent: #00E5FF;
+$red-accent: #FF5252;
+$pink-accent: #FF4081;
+$purple-accent: #E040FB;
+$deep-purple-accent: #B388FF;
+$indigo-accent: #536DFE;
+$blue-accent: #448AFF;
+$light-blue-accent: #40C4FF;
+$cyan-accent: #18FFFF;
+$teal-accent: #64FFDA;
+$green-accent: #69F0AE;
+$light-green-accent: #B2FF59;
+$lime-accent: #EEFF41;
+$yellow-accent: #FFFF00;
+$amber-accent: #FFD740;
+$orange-accent: #FFAB40;
+$deep-orange-accent: #FF6E40;
+$brown-accent: #8D6E63;
+$accent-colors: $teal-accent, $green-accent, $deep-orange-accent, $cyan-accent, $light-green-accent, $orange-accent, $indigo-accent, $deep-purple-accent, $light-blue-accent, $purple-accent, $lime-accent, $amber-accent, $blue-accent, $pink-accent, $red-accent, $yellow-accent;
+
+$control-color: #546E7A;
+$control-hover-color: lighten($control-color, 6%);
+$control-focus-color: lighten($control-color, 6%);
+$control-accent-color: $accent;
+
+$control-default-color: #00838F;
+$control-default-hover-color: lighten($control-default-color, 6%);
+$control-default-focus-color: lighten($control-default-color, 6%);
+
+$tab-color: #263238;
+$tab-hover-color: lighten($tab-color, 6%);
+$tab-focus-color: lighten($tab-color, 6%);
+
+$menu-color: $background-color;
+$menu-hover-color: lighten($menu-color, 6%);
+$menu-focus-color: lighten($menu-color, 6%);
+
+$cell-color: $background-color;
+$cell-odd-color: lighten($cell-color, 1.5%);
+$cell-hover-color: lighten($cell-color, 6%);
+$cell-focus-color: lighten($cell-color, 6%);
+$cell-selected-color: rgba($accent, 0.1);
+
+$text-color: rgba(white, 0.9);
+$text-accent-color: $accent;
+$text-dark-color: rgba(black, 0.9);
+
+$px1: 1em / $font-size;
+$px2: 2em / $font-size;
+$px3: 3em / $font-size;
+$px4: 4em / $font-size;
+$px5: 5em / $font-size;
+$px6: 6em / $font-size;
+$px7: 7em / $font-size;
+$px8: 8em / $font-size;
+$px9: 9em / $font-size;
+$px10: 10em / $font-size;
+$px11: 11em / $font-size;
+$px12: 1em;
+$px16: 16em / $font-size;
+
+/*******************************************************************************
+ *                                                                             *
+ * Abstract Classes                                                            *
+ *                                                                             *
+ *******************************************************************************/
+
+%fontRegular {
+  -fx-font-family: "Roboto", sans-serif;
+}
+
+%fontBold {
+  -fx-font-family: "Roboto Bold", sans-serif;
+}
+
+%fontLight {
+  -fx-font-family: "Roboto Light", sans-serif;
+}
+
+%fontMono {
+  -fx-font-family: "Liberation Mono", monospace;
+}
+
+%controlPaddings {
+  -fx-padding: $px6 $px12 $px6 $px12;
+}
+
+%menuPaddings {
+  -fx-padding: $px6 $px12 $px6 $px12;
+}
+
+%menuItemPaddings {
+  -fx-padding: $px8 $px16 $px8 $px16;
+}
+
+%cellPaddings {
+  -fx-padding: $px6 $px12 $px6 $px12;
+}
+
+%tabPaddings {
+  -fx-padding: $px12;
+}
+
+%iconGap {
+  -fx-graphic-text-gap: $px6;
+}
+
+%textShadow {
+  -fx-effect: dropshadow(three-pass-box, rgba(black, 0.5), $px2, 0, 0, $px2);
+}
+
+%popupShadow {
+  -fx-effect: dropshadow(three-pass-box, rgba(black, 0.4), 2em, 0, 0, 1em);
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * CSS Styles for core infrastructure bits.  The .root section provides the    *
+ * overall default colors used by the rest of the sections.                    *
+ *                                                                             *
+ ******************************************************************************/
+
+.root {
+  -fx-background-color: inherit;
+  -fx-background-radius: inherit;
+  -fx-background-insets: inherit;
+  -fx-padding: inherit;
+
+  /***************************************************************************
+   *                                                                         *
+   * Set the default background color for the scene                          *
+   *                                                                         *
+   **************************************************************************/
+  -fx-background-color: $background-color;
+
+  /* Make popups transparent */
+  &.popup {
+    -fx-background-color: transparent;
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Common Styles                                                               *
+ *                                                                             *
+ * These are styles that give a standard look to a whole range of controls     *
+ *                                                                             *
+ ******************************************************************************/
+
+/* ====   TEXT NODES IN CONTROLS   ========================================== */
+
+.text {
+  /* This adjusts text alignment within the bounds of text nodes so that
+     the text is always vertically centered within the bounds. Based on
+     the cap height of the text. */
+  -fx-bounds-type: logical_vertical_center;
+  /* Enable LCD text rendering */
+  -fx-font-smoothing-type: lcd;
+}
+
+/* ====   BUTTON LIKE THINGS   ============================================== */
+
+.button,
+.combo-box-base {
+  @extend %controlPaddings;
+  @extend %fontRegular;
+  @extend %iconGap;
+  -fx-text-fill: $text-color;
+  -fx-background-color: $control-color;
+  -fx-cursor: hand;
+
+  &:hover {
+    -fx-background-color: $control-hover-color;
+  }
+  &:focused {
+    -fx-background-color: $control-focus-color;
+  }
+}
+
+.button {
+  -fx-alignment: center;
+}
+
+.check-box {
+  @extend %fontRegular;
+  -fx-cursor: hand;
+
+  > .box {
+    @extend %controlPaddings;
+    -fx-background-color: $control-color;
+  }
+  &:hover {
+    > .box {
+      -fx-background-color: $control-hover-color;
+    }
+  }
+  &:focused {
+    > .box {
+      -fx-background-color: $control-focus-color;
+    }
+  }
+}
+
+/* ====   DISABLED THINGS   ================================================= */
+
+.button,
+.menu-button,
+.menu-item,
+.check-box,
+.combo-box-base {
+  &:disabled {
+    -fx-opacity: 0.3;
+  }
+}
+
+/* ====   MARKS   =========================================================== */
+
+// TODO
+.check-box:selected > .box > .mark {
+  -fx-background-color: $background-color;
+}
+
+/* ====   ARROWS   ========================================================== */
+
+.combo-box-base > .arrow-button > .arrow {
+  -fx-padding: $px2 $px4 $px2 $px4;
+  -fx-background-color: $text-color;
+  -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Label                                                                       *
+ *                                                                             *
+ ******************************************************************************/
+
+.label {
+  @extend %fontRegular;
+  @extend %iconGap;
+  -fx-text-fill: $text-color;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Button & ToggleButton                                                       *
+ *                                                                             *
+ ******************************************************************************/
+
+/* ====   DEFAULT   ========================================================= */
+
+.button:default {
+  -fx-background-color: $control-default-color;
+
+  &:hover {
+    -fx-background-color: $control-default-hover-color;
+  }
+  &:focused {
+    -fx-background-color: $control-default-focus-color;
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * CheckBox                                                                    *
+ *                                                                             *
+ ******************************************************************************/
+
+// TODO
+.check-box {
+  -fx-label-padding: 0 0 0 $px6;
+  -fx-text-fill: $text-color;
+
+  > .box {
+    -fx-padding: $px2;
+
+    > .mark {
+      -fx-background-color: null;
+      -fx-padding: $px6;
+      -fx-shape: "M39.363,79L16,55.49l11.347-11.419L39.694,56.49L72.983,23L84,34.085L39.363,79z";
+    }
+  }
+  &:selected > .box {
+    -fx-background-color: $text-accent-color;
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Hyperlink                                                                   *
+ *                                                                             *
+ ******************************************************************************/
+
+.hyperlink {
+  -fx-text-fill: $text-color;
+  -fx-cursor: hand;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * ToolBar                                                                     *
+ *                                                                             *
+ ******************************************************************************/
+
+.tool-bar {
+  -fx-padding: 0 $px12 0 $px12;
+  -fx-spacing: $px6;
+  -fx-background-color: $pane-color;
+  -fx-border-color: $background-color; /* TODO: do we really want this border? */
+  -fx-border-width: 0 0 $px1 0;
+
+  > .container > .separator {
+    -fx-padding: 0 $px6 0 $px6;
+  }
+  .count {
+    @extend %fontBold;
+    -fx-padding: $px1 $px3 $px1 $px3;
+    -fx-text-fill: $text-dark-color;
+    -fx-alignment: center;
+    -fx-background-color: $text-accent-color;
+    -fx-background-radius: 10em;
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * ScrollBar                                                                   *
+ *                                                                             *
+ ******************************************************************************/
+
+// TODO: focus?
+.scroll-bar {
+  -fx-padding: $px3;
+  -fx-background-color: $pane-color;
+
+  > .thumb {
+    -fx-background-color: $control-color;
+    -fx-background-radius: $px3;
+
+    &:hover {
+      -fx-background-color: $control-hover-color;
+    }
+  }
+  > .increment-button,
+  > .decrement-button {
+    -fx-background-color: null;
+  }
+  &:horizontal {
+    > .increment-button,
+    > .decrement-button {
+      -fx-background-color: null;
+      -fx-padding: $px3 0 $px3 0;
+    }
+  }
+  &:vertical {
+    > .increment-button,
+    > .decrement-button {
+      -fx-background-color: null;
+      -fx-padding: 0 $px3 0 $px3;
+    }
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * ScrollPane                                                                  *
+ *                                                                             *
+ ******************************************************************************/
+
+/* This is so we get all the corners, even those of the VirtualFlow. */
+* > .corner {
+  -fx-background-color: $pane-color;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Text COMMON                                                                 *
+ *                                                                             *
+ ******************************************************************************/
+
+.text-area,
+.text-field {
+  @extend %controlPaddings;
+  @extend %fontRegular;
+  -fx-text-fill: $text-color;
+  -fx-prompt-text-fill: rgba($text-color, 0.5);
+  -fx-highlight-fill: rgba($text-accent-color, 0.3);
+  -fx-highlight-text-fill: $text-accent-color;
+  -fx-cursor: text;
+  -fx-border-color: $control-color;
+
+  &:hover {
+    -fx-border-color: $control-focus-color;
+  }
+  &:focused {
+    -fx-border-color: $control-focus-color;
+  }
+}
+
+.text-area:readonly,
+.text-field:readonly {
+  -fx-border-color: null;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * ProgressIndicator                                                           *
+ *                                                                             *
+ ******************************************************************************/
+
+.progress {
+  -fx-alignment: center;
+  -fx-spacing: 0; // TODO
+
+  &__circle {
+    -fx-fill: $text-color;
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * PopupMenu                                                                   *
+ *                                                                             *
+ ******************************************************************************/
+
+.context-menu {
+  @extend %popupShadow;
+  -fx-background-color: $background-color;
+
+  .separator .line {
+    -fx-border-color: rgba(white, 0.15);
+    -fx-border-width: 0 0 1 0;
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * MenuBar                                                                     *
+ *                                                                             *
+ ******************************************************************************/
+
+.menu-bar {
+  -fx-padding: 0 $px12 0 $px12;
+
+  > .container > .menu-button {
+    @extend %menuPaddings;
+    -fx-background-color: $menu-color;
+
+    &:hover {
+      -fx-background-color: $menu-hover-color;
+    }
+    &:focused {
+      -fx-background-color: $menu-focus-color;
+    }
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * MenuItem                                                                    *
+ *                                                                             *
+ ******************************************************************************/
+
+.menu-item {
+  @extend %menuItemPaddings;
+
+  &:disabled {
+    &:hover,
+    &:focused {
+      -fx-background-color: null;
+    }
+  }
+  &:hover {
+    -fx-background-color: $menu-hover-color;
+  }
+  &:focused {
+    -fx-background-color: $menu-focus-color;
+  }
+  > .label {
+    -fx-padding: 0 0 0 $px12;
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * TabPane                                                                     *
+ *                                                                             *
+ ******************************************************************************/
+
+.tab-pane > .tab-header-area > .headers-region > .tab {
+  @extend %tabPaddings;
+  -fx-background-color: $tab-color;
+  -fx-border-color: transparent;
+  -fx-border-width: 0 0 2 0;
+
+  &:hover {
+    -fx-background-color: $tab-hover-color; // TODO
+  }
+  &:focused {
+    -fx-background-color: $tab-focus-color; // TODO
+  }
+  .tab-label {
+    @extend %fontRegular;
+    -fx-text-fill: $text-color;
+    -fx-graphic-text-gap: $px12;
+
+    .icon-wrapper {
+      -fx-font-size: $px16;
+    }
+  }
+  &:selected {
+    -fx-border-color: $control-accent-color;
+
+    .tab-label {
+      -fx-text-fill: $text-accent-color;
+
+      .icon {
+        -fx-fill: $text-accent-color;
+      }
+    }
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * ComboBox                                                                    *
+ *                                                                             *
+ ******************************************************************************/
+
+.combo-box-base:showing > .arrow-button > .arrow {
+  -fx-rotate: 180;
+}
+
+.combo-box > .list-cell {
+  -fx-padding: 0;
+  -fx-text-fill: $text-color;
+  -fx-background-color: null;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Editable ComboBox                                                           *
+ *                                                                             *
+ * The editable ComboBox TextBox inherits its properties from the TextBox      *
+ * Control. Only the properties with values that are different from the        *
+ * TextBox are specified here.                                                 *
+ *                                                                             *
+ ******************************************************************************/
+
+.combo-box-base:editable {
+  -fx-background-color: null;
+  -fx-border-color: $control-color;
+
+  .text-field {
+    -fx-padding: 0;
+    -fx-border-color: null;
+  }
+}
+
+/* -------------- STYLES FOR THE DEFAULT LISTVIEW-BASED COMBOBOX ------------- */
+
+.combo-box-popup {
+  > .list-view {
+    @extend %popupShadow;
+    -fx-background-color: $background-color;
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * SplitPane                                                                   *
+ *                                                                             *
+ ******************************************************************************/
+
+.split-pane > .split-pane-divider {
+  -fx-padding: 0 $px4 0 0;
+  -fx-background-color: $control-color;
+
+  &:hover {
+    -fx-background-color: $control-hover-color;
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * List, Tree, Table COMMON                                                    *
+ *                                                                             *
+ ******************************************************************************/
+
+.list-cell,
+.tree-cell {
+  @extend %cellPaddings;
+  @extend %fontRegular;
+  @extend %iconGap;
+  -fx-background-color: $background-color;
+  -fx-text-fill: $text-color;
+
+  &:filled {
+    &:hover {
+      -fx-background-color: $cell-hover-color;
+    }
+    &:focused {
+      -fx-background-color: $cell-focus-color;
+    }
+    &:selected {
+      -fx-text-fill: $text-accent-color;
+      -fx-background-color: $cell-selected-color;
+
+      .icon {
+        -fx-fill: $text-accent-color;
+      }
+    }
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * ListView and ListCell                                                       *
+ *                                                                             *
+ ******************************************************************************/
+
+.list-cell:odd {
+  -fx-background-color: $cell-odd-color;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * TreeView and TreeCell                                                       *
+ *                                                                             *
+ ******************************************************************************/
+
+.tree-cell {
+  > .tree-disclosure-node {
+    -fx-padding: $px4 $px6 $px4 $px8;
+    -fx-background-color: transparent;
+
+    > .arrow {
+      -fx-background-color: $text-color;
+      -fx-padding: 0.333333em 0.229em 0.333333em 0.229em; /* original value */
+      -fx-shape: "M 0 -3.5 L 4 0 L 0 3.5 z";
+    }
+  }
+  /* TODO: this is very buggy */
+  &:expanded > .tree-disclosure-node > .arrow {
+    -fx-rotate: 90;
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Tooltip                                                                     *
+ *                                                                             *
+ ******************************************************************************/
+
+.tooltip {
+  @extend %popupShadow;
+  -fx-padding: $px10;
+  -fx-text-fill: $text-color;
+  -fx-background-color: rgba(black, 0.75);
+  -fx-background-radius: $px6;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Icons                                                                       *
+ *                                                                             *
+ ******************************************************************************/
+
+.icon-wrapper {
+  -fx-min-width: 1em;
+  -fx-min-height: 1em;
+
+  .icon {
+    -fx-fill: $text-color;
+    -fx-font-family: "Font Awesome 5 Free";
+
+    &.brand {
+      -fx-font-family: "Font Awesome 5 Brands"
+    }
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Charts                                                                      *
+ *                                                                             *
+ ******************************************************************************/
+
+.chart {
+  -fx-padding: 2em;
+
+  .title {
+    -fx-padding: $px6 0;
+    -fx-alignment: center;
+    -fx-font-size: $px16;
+  }
+  &.donut {
+    .label.value {
+      @extend %fontLight;
+      -fx-alignment: center;
+      -fx-font-size: 4em;
+    }
+    .description {
+      -fx-alignment: center;
+    }
+    .shape {
+      -fx-fill: transparent;
+      -fx-stroke-line-cap: butt;
+    }
+  }
+  &.histogram {
+    .axis {
+      -fx-stroke: $text-color;
+    }
+    .tick {
+      -fx-font-size: 0.9em;
+    }
+  }
+  @for $i from 1 through 16 {
+    &.donut .shape.arc-color#{$i - 1} {
+      -fx-stroke: nth($accent-colors, $i);
+    }
+    &.histogram .shape.rectangle-color#{$i - 1} {
+      -fx-fill: nth($accent-colors, $i);
+    }
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Dialog                                                                      *
+ *                                                                             *
+ ******************************************************************************/
+
+.dialog-pane {
+  .header-panel {
+    -fx-padding: 1em;
+    -fx-background-color: $pane-color;
+
+    .label {
+      -fx-font-size: $px16;
+      -fx-wrap-text: true;
+    }
+    .graphic-container {
+      -fx-padding: 0 0 0 3em;
+
+      .icon-wrapper {
+        -fx-font-size: 3em;
+
+        &.info > .icon {
+          // TODO
+        }
+        &.warning > .icon {
+          -fx-fill: $warning;
+        }
+        &.error > .icon {
+          -fx-fill: $error;
+        }
+      }
+    }
+  }
+  > .content.label {
+    -fx-padding: 1em;
+  }
+  > .content {
+    -fx-padding: 1em;
+  }
+  > .button-bar > .container {
+    -fx-padding: 1em;
+    -fx-spacing: 0 !important; /* TODO: not working, hard-coded in ButtonBar */
+  }
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Overlay                                                                     *
+ *                                                                             *
+ ******************************************************************************/
+
+.overlay {
+  -fx-font-size: 2em;
+  -fx-background-color: $background-color;
+
+  .label {
+    @extend %fontLight;
+    -fx-text-fill: $text-color;
+  }
+  &__shortcut.label {
+    -fx-text-fill: $text-accent-color;
+  }
+}

@@ -1,5 +1,6 @@
 import io.bit3.jsass.Compiler
 import io.bit3.jsass.Options
+import io.bit3.jsass.OutputStyle
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -58,21 +59,32 @@ jar {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
-task compileSCSS {
-    def inputFile = file("src/main/kotlin/hamburg/remme/tinygit/main.scss").toURI()
-    def outputFile = file("src/main/generated/css/main.css").toURI()
-
+void parseSCSS(inputPath, outputPath) {
     def compiler = new Compiler()
     def options = new Options()
-    def output = compiler.compileFile(inputFile, outputFile, options)
+    options.outputStyle = OutputStyle.COMPRESSED
+    options.sourceComments = false
 
-    // Remove the charset declaration that confuses the JavaFX CSS parser.
+    def inputFile = file(inputPath).toURI()
+    def outputFile = file(outputPath).toURI()
+
+    def output = compiler.compileFile(inputFile, outputFile, options)
+    // Has to be removed for JavaFX
     def css = output.getCss().replace("@charset \"UTF-8\";", "")
 
-    // Note: At this point, outputFile does not yet exist. So write it now...
     def target = Paths.get(outputFile)
     Files.createDirectories(target.parent)
     Files.write(target, css.getBytes(StandardCharsets.UTF_8))
+}
+
+task compileSCSS {
+    def winInputPath = "src/main/resources/hamburg/remme/tinygit/main-windows.scss"
+    def winOutputPath = "src/main/generated/css/main-windows.css"
+    parseSCSS(winInputPath, winOutputPath)
+
+    def macInputPath = "src/main/resources/hamburg/remme/tinygit/main-mac.scss"
+    def macOutputPath = "src/main/generated/css/main-mac.css"
+    parseSCSS(macInputPath, macOutputPath)
 }
 
 assemble.doLast {

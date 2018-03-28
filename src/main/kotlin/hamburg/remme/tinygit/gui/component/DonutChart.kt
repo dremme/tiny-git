@@ -12,17 +12,23 @@ import javafx.scene.shape.Arc
 import javafx.scene.shape.ArcType
 import javafx.util.Duration
 
-private const val COLOR_COUNT = 10
+private const val DEFAULT_STYLE_CLASS = "donut"
+private const val VALUE_STYLE_CLASS = "value"
+private const val DESCR_STYLE_CLASS = "description"
+private const val SHAPE_STYLE_CLASS = "shape"
+private const val ARC_STYLE_CLASS = "arc-color"
+private const val COLOR_COUNT = 16
 
 class DonutChart(title: String) : Chart(title) {
 
     private val data = mutableListOf<Data>()
     private val arcs get() = data.map { it.node }
-    private val valueLabel = label { addClass("diagram-value") }
-    private val descriptionLabel = label { addClass("diagram-description") }
+    private val valueLabel = label { addClass(VALUE_STYLE_CLASS) }
+    private val descriptionLabel = label { addClass(DESCR_STYLE_CLASS) }
     private var total = 0.0
 
     init {
+        addClass(DEFAULT_STYLE_CLASS)
         chartChildren.addAll(valueLabel, descriptionLabel)
     }
 
@@ -85,7 +91,7 @@ class DonutChart(title: String) : Chart(title) {
 
         fun createNode(index: Int) {
             node = Arc().apply {
-                addClass("donut-shape", "default-color${index % COLOR_COUNT}")
+                addClass(SHAPE_STYLE_CLASS, "$ARC_STYLE_CLASS${index % COLOR_COUNT}")
                 type = ArcType.OPEN
             }
         }

@@ -1,13 +1,15 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.I18N
-import hamburg.remme.tinygit.gui.builder.addStylesheet
+import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.vbox
 import javafx.application.Platform
 import javafx.scene.control.ComboBox
 import javafx.stage.Window
+
+private const val DEFAULT_STYLE_CLASS = "choice-dialog"
 
 class ChoiceDialog<T>(ok: String, window: Window) : Dialog<T>(window, I18N["dialog.select.title"]) {
 
@@ -29,7 +31,7 @@ class ChoiceDialog<T>(ok: String, window: Window) : Dialog<T>(window, I18N["dial
         Platform.runLater { input.requestFocus() }
 
         content = vbox {
-            addStylesheet("input-dialog.css") // TODO: replace
+            addClass(DEFAULT_STYLE_CLASS)
             +label
             +input
         }

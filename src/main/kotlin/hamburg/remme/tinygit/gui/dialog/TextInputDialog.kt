@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.I18N
-import hamburg.remme.tinygit.gui.builder.addStylesheet
+import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.textArea
 import hamburg.remme.tinygit.gui.builder.vbox
@@ -11,6 +11,8 @@ import javafx.scene.control.Label
 import javafx.scene.control.TextField
 import javafx.scene.layout.Priority
 import javafx.stage.Window
+
+private const val DEFAULT_STYLE_CLASS = "text-dialog"
 
 class TextInputDialog(ok: String, isTextArea: Boolean, window: Window) : Dialog<String>(window, I18N["dialog.input.title"], isTextArea) {
 
@@ -31,7 +33,7 @@ class TextInputDialog(ok: String, isTextArea: Boolean, window: Window) : Dialog<
         Platform.runLater { input.requestFocus() }
 
         content = vbox {
-            addStylesheet("input-dialog.css") // TODO: replace
+            addClass(DEFAULT_STYLE_CLASS)
             +label
             +input
         }

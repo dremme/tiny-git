@@ -1,24 +1,12 @@
 package hamburg.remme.tinygit.gui.builder
 
-import hamburg.remme.tinygit.asResource
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.Node
-import javafx.scene.Parent
 import javafx.scene.control.Tooltip
 import javafx.util.Duration
 
 fun <T : Node> T.addClass(vararg styleClass: String): T {
     this.styleClass += styleClass
-    return this
-}
-
-fun <T : Node> T.addStyle(style: String): T {
-    this.style += style.takeIf { it.endsWith(';') } ?: "$style;"
-    return this
-}
-
-fun <T : Parent> T.addStylesheet(stylesheet: String): T {
-    this.stylesheets += stylesheet.asResource()
     return this
 }
 
@@ -51,8 +39,7 @@ fun <T : Node> T.disabledWhen(observable: ObservableBooleanValue): T {
 
 fun <T : Node> T.tooltip(text: String): T {
     val tooltip = Tooltip(text)
-    tooltip.showDelay = Duration.ZERO
-    tooltip.hideDelay = Duration.ZERO
+    tooltip.showDelay = Duration.millis(250.0)
     Tooltip.install(this, tooltip)
     return this
 }

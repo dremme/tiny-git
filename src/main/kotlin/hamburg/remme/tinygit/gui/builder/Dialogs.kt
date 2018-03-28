@@ -2,7 +2,6 @@ package hamburg.remme.tinygit.gui.builder
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asPath
-import hamburg.remme.tinygit.asResource
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.gui.dialog.ChoiceDialog
 import hamburg.remme.tinygit.gui.dialog.TextInputDialog
@@ -18,6 +17,9 @@ import javafx.stage.Window
 import java.nio.file.Path
 
 var chooserDir = homeDir.asPath() // TODO: persist?
+private const val INFO_STYLE_CLASS = "info"
+private const val WARNING_STYLE_CLASS = "warning"
+private const val ERROR_STYLE_CLASS = "error"
 
 fun ButtonType.isOk() = buttonData == ButtonBar.ButtonData.OK_DONE
 
@@ -28,7 +30,7 @@ fun confirmAlert(window: Window, header: String, ok: String, text: String): Bool
             Alert.AlertType.CONFIRMATION,
             header,
             text,
-            Icons.questionCircle().addClass("info"),
+            Icons.questionCircle().addClass(INFO_STYLE_CLASS),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
             ButtonType.CANCEL)
     TinyGit.state.isModal.set(true)
@@ -40,7 +42,7 @@ fun confirmWarningAlert(window: Window, header: String, ok: String, text: String
             Alert.AlertType.CONFIRMATION,
             header,
             text,
-            Icons.exclamationTriangle().addClass("warning"),
+            Icons.exclamationTriangle().addClass(WARNING_STYLE_CLASS),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
             ButtonType.CANCEL)
     TinyGit.state.isModal.set(true)
@@ -52,7 +54,7 @@ fun errorAlert(window: Window, header: String, text: String) {
             Alert.AlertType.ERROR,
             header,
             text,
-            Icons.exclamationTriangle().addClass("error"),
+            Icons.timesCircle().addClass(ERROR_STYLE_CLASS),
             ButtonType.OK)
     TinyGit.state.isModal.set(true)
     alert.showAndWait()
@@ -60,9 +62,8 @@ fun errorAlert(window: Window, header: String, text: String) {
 
 fun fatalAlert(header: String, text: String) {
     val alert = Alert(Alert.AlertType.ERROR, text, ButtonType.OK)
-    alert.dialogPane.scene.stylesheets += "default.css".asResource()
     alert.headerText = header
-    alert.graphic = Icons.exclamationTriangle().addClass("error")
+    alert.graphic = Icons.timesCircle().addClass(ERROR_STYLE_CLASS)
     alert.showAndWait()
 }
 

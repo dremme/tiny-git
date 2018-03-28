@@ -13,19 +13,21 @@ import javafx.scene.control.Label
 import javafx.scene.image.Image
 import javafx.stage.Window
 
-// TODO: should be wider
+private const val DEFAULT_STYLE_CLASS = "about-dialog"
+private const val AUTHOR_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__author"
+
 class AboutDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.about.title"]) {
 
     init {
         +DialogButton(DialogButton.CLOSE)
 
         header = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
-        image = Image("icon-small.png".asResource())
+        image = Image("icon.png".asResource())
         content = grid(2) {
-            addClass("about-view")
+            addClass(DEFAULT_STYLE_CLASS)
 
             val author = label {
-                addClass("author")
+                addClass(AUTHOR_STYLE_CLASS)
                 columnSpan(2)
                 +"Dennis Remme"
             }

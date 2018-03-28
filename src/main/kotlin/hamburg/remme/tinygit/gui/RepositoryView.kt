@@ -44,6 +44,12 @@ import java.util.concurrent.Callable
 
 private const val DEFAULT_STYLE_CLASS = "repository-view"
 private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
+private const val PATH_STYLE_CLASS = "path"
+private const val REPO_VALUE_STYLE_CLASS = "repository-value-cell"
+private const val REPO_LIST_STYLE_CLASS = "repository-list-cell"
+private const val REPO_TREE_STYLE_CLASS = "repository-tree-cell"
+private const val CURRENT_STYLE_CLASS = "current"
+private const val DETACHED_STYLE_CLASS = "detached"
 
 /**
  * Navigational tree view. Active [Repository] can be selected here and modified.
@@ -266,6 +272,10 @@ class RepositoryView : VBoxBuilder() {
 
     private class RepositoryValueCell : ListCell<Repository>() {
 
+        init {
+            addClass(REPO_VALUE_STYLE_CLASS)
+        }
+
         override fun updateItem(item: Repository?, empty: Boolean) {
             super.updateItem(item, empty)
             text = item?.shortPath
@@ -276,9 +286,10 @@ class RepositoryView : VBoxBuilder() {
     private class RepositoryListCell : ListCell<Repository>() {
 
         private val name = Label()
-        private val path = Label()
+        private val path = Label().addClass(PATH_STYLE_CLASS)
 
         init {
+            addClass(REPO_LIST_STYLE_CLASS)
             graphic = vbox {
                 +name
                 +path
@@ -294,6 +305,10 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private inner class RepositoryEntryTreeCell : TreeCell<Any>() {
+
+        init {
+            addClass(REPO_TREE_STYLE_CLASS)
+        }
 
         override fun updateItem(item: Any?, empty: Boolean) {
             super.updateItem(item, empty)
@@ -318,9 +333,9 @@ class RepositoryView : VBoxBuilder() {
             +if (branchService.isDetached(branch)) Icons.locationArrow() else Icons.codeFork()
             +Label(branch.name)
             if (branchService.isDetached(branch)) {
-                addClass("detached")
+                addClass(DETACHED_STYLE_CLASS)
             } else if (branchService.isHead(branch)) {
-                addClass("current")
+                addClass(CURRENT_STYLE_CLASS)
             }
             if (branchService.isHead(branch)) +Icons.check()
         }

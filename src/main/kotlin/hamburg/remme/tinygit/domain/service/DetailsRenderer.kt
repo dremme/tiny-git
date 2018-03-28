@@ -3,9 +3,13 @@ package hamburg.remme.tinygit.domain.service
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.dateTimeFormat
 import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.fontSize
 import hamburg.remme.tinygit.htmlEncode
 import hamburg.remme.tinygit.htmlEncodeAll
 
+/**
+ * @todo: make table grid spacings 1em
+ */
 class DetailsRenderer {
 
     fun render(commit: Commit?): String {
@@ -31,15 +35,17 @@ class DetailsRenderer {
                         margin: 0;
                         width: 100%;
                         height: 100%;
-                        font: 12px "Roboto", sans-serif;
-                        color: white;
+                        font: ${fontSize}px "Roboto", sans-serif;
+                        color: rgba(255, 255, 255, 0.9);
                         background-color: #263238;
                     }
                     table {
-                        padding: 0.5em;
+                        padding: 0;
+                        border-spacing: 1em;
+                        border-collapse: separate;
                         position: absolute;
                         min-width: 100%;
-                        font-size: 12px;
+                        font-size: ${fontSize}px;
                     }
                     .label {
                         font-weight: bold;
@@ -48,7 +54,7 @@ class DetailsRenderer {
             </head>
             <body>
                 <table>
-                    <tr><td class="label">${I18N["commitDetails.commit"]}:</td><td>${commit.id} [${commit.shortId}]</td></tr>
+                    <tr><td class="label">${I18N["commitDetails.commit"]}:</td><td>${commit.shortId} (${commit.id})</td></tr>
                     <tr><td class="label">${I18N["commitDetails.parents"]}:</td><td>${commit.shortParents.joinToString()}</td></tr>
                     <tr><td class="label">${I18N["commitDetails.author"]}:</td><td>${commit.author.htmlEncode()}</td></tr>
                     <tr><td class="label">${I18N["commitDetails.date"]}:</td><td>${commit.date.format(dateTimeFormat)}</td></tr>

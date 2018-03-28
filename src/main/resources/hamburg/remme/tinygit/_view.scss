@@ -1,0 +1,261 @@
+.git-view {
+  > .tool-bar {
+    -fx-padding: $px6 $px12 $px6 $px12;
+
+    .button {
+      -fx-content-display: top;
+      -fx-background-color: transparent;
+
+      &:hover {
+        -fx-background-color: lighten($pane-color, 6%);
+      }
+      &:focused {
+        -fx-background-color: lighten($pane-color, 6%);
+      }
+      .icon-wrapper {
+        -fx-font-size: $px16;
+      }
+    }
+  }
+  &__content {
+  }
+  &__info {
+    > *,
+    > * > * {
+      -fx-alignment: center;
+      -fx-spacing: 1em;
+    }
+  }
+  &__progress.overlay {
+    .text {
+      @extend %fontBold;
+      @extend %textShadow;
+    }
+    .progress__circle {
+      @extend %textShadow;
+      -fx-fill: rgba($text-accent-color, 0.5)
+    }
+  }
+}
+
+.repository-view {
+  .repository-list-cell {
+    .path {
+      -fx-text-fill: rgba($text-color, 0.5);
+    }
+    &:selected {
+      .label {
+        -fx-text-fill: $text-accent-color;
+      }
+      .path {
+        -fx-text-fill: rgba($text-accent-color, 0.5);
+      }
+    }
+  }
+  .repository-tree-cell:filled {
+    > * {
+      -fx-spacing: $px6;
+    }
+    &:selected .current,
+    &:selected .detached,
+    &:selected {
+      .label {
+        -fx-text-fill: $text-accent-color;
+      }
+      .icon {
+        -fx-fill: $text-accent-color;
+      }
+    }
+    .current {
+      // TODO: pick color
+    }
+    .detached {
+      .label {
+        -fx-text-fill: $error;
+      }
+      .icon {
+        -fx-fill: $error;
+      }
+    }
+  }
+}
+
+.commit-log-view {
+  &__content {
+    -fx-orientation: vertical;
+  }
+  &__indicator {
+    -fx-alignment: center;
+    -fx-spacing: $px6;
+  }
+}
+
+.commit-details-view {
+  &__content {
+    -fx-orientation: vertical;
+  }
+}
+
+.working-copy-view {
+  &__content {
+  }
+  &__files {
+    -fx-orientation: vertical;
+  }
+}
+
+.graph-list-view {
+  &__path {
+    -fx-stroke-width: $px3;
+  }
+  @for $i from 1 through 16 {
+    &__path-color#{$i - 1} {
+      -fx-stroke: nth($accent-colors, $i);
+    }
+    &__node-color#{$i - 1} {
+      -fx-fill: nth($accent-colors, $i);
+    }
+  }
+  .commitId {
+    @extend %fontBold;
+    -fx-fill: $text-color;
+  }
+  .author {
+    -fx-opacity: 0.5;
+  }
+  .branches {
+    -fx-spacing: $px6;
+  }
+  .list-cell {
+    > * {
+      -fx-spacing: $px6;
+
+      > * {
+        -fx-spacing: $px12;
+      }
+    }
+    .badge {
+      -fx-padding: $px2 $px4 $px2 $px4;
+      -fx-graphic-text-gap: $px2;
+      -fx-text-fill: $text-dark-color;
+      -fx-background-color: $text-accent-color;
+      -fx-background-radius: $px2;
+      -fx-opacity: 0.5;
+
+      .icon {
+        -fx-fill: $text-dark-color;
+      }
+      &.detached {
+        -fx-background-color: $error;
+        -fx-opacity: 1;
+      }
+      &.current {
+        // TODO: color
+        -fx-opacity: 1;
+      }
+    }
+    &:selected {
+      .commitId,
+      .date,
+      .message,
+      .author {
+        -fx-text-fill: $text-accent-color;
+      }
+    }
+  }
+}
+
+.file-status-view {
+  .list-cell {
+    .status-conflict .icon {
+      -fx-fill: $orange-accent;
+    }
+    .status-untracked .icon {
+      -fx-fill: $deep-purple-accent;
+    }
+    .status-added .icon {
+      -fx-fill: $light-green-accent;
+    }
+    .status-copied .icon {
+      -fx-fill: $amber-accent;
+    }
+    .status-renamed .icon {
+      -fx-fill: $amber-accent;
+    }
+    .status-modified .icon {
+      -fx-fill: $amber-accent;
+    }
+    .status-missing .icon {
+      -fx-fill: $brown-accent;
+    }
+    .status-removed .icon {
+      -fx-fill: $red-accent;
+    }
+  }
+}
+
+.status-count-view {
+  -fx-padding: $px6 0 $px6 0; /* same left/right as %controlPaddings */
+  -fx-alignment: center;
+  -fx-spacing: 1em;
+
+  .label {
+    @extend %iconGap;
+  }
+  .status-conflict {
+    -fx-text-fill: $orange-accent;
+
+    .icon {
+      -fx-fill: $orange-accent;
+    }
+  }
+  .status-untracked {
+    -fx-text-fill: $deep-purple-accent;
+
+    .icon {
+      -fx-fill: $deep-purple-accent;
+    }
+  }
+  .status-added {
+    -fx-text-fill: $light-green-accent;
+
+    .icon {
+      -fx-fill: $light-green-accent;
+    }
+  }
+  .status-copied {
+    -fx-text-fill: $amber-accent;
+
+    .icon {
+      -fx-fill: $amber-accent;
+    }
+  }
+  .status-renamed {
+    -fx-text-fill: $amber-accent;
+
+    .icon {
+      -fx-fill: $amber-accent;
+    }
+  }
+  .status-modified {
+    -fx-text-fill: $amber-accent;
+
+    .icon {
+      -fx-fill: $amber-accent;
+    }
+  }
+  .status-missing {
+    -fx-text-fill: $brown-accent;
+
+    .icon {
+      -fx-fill: $brown-accent;
+    }
+  }
+  .status-removed {
+    -fx-text-fill: $red-accent;
+
+    .icon {
+      -fx-fill: $red-accent;
+    }
+  }
+}

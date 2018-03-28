@@ -8,6 +8,14 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
 
+const val CONFLICT_STYLE_CLASS = "status-conflict"
+const val UNTRACKED_STYLE_CLASS = "status-untracked"
+const val ADDED_STYLE_CLASS = "status-added"
+const val COPIED_STYLE_CLASS = "status-copied"
+const val RENAMED_STYLE_CLASS = "status-renamed"
+const val MODIFIED_STYLE_CLASS = "status-modified"
+const val MISSING_STYLE_CLASS = "status-missing"
+const val REMOVED_STYLE_CLASS = "status-removed"
 private const val DEFAULT_STYLE_CLASS = "file-status-view"
 
 /**
@@ -64,14 +72,14 @@ class FileStatusView(list: ObservableList<File>, selectionMode: SelectionMode = 
             super.updateItem(item, empty)
             text = item?.path
             graphic = when {
-                item?.status == File.Status.CONFLICT -> conflictIcon().addClass("status-conflict")
-                item?.status == File.Status.ADDED && !item.isCached -> untrackedIcon().addClass("status-untracked")
-                item?.status == File.Status.ADDED -> addedIcon().addClass("status-added")
-                item?.status == File.Status.COPIED -> copiedIcon().addClass("status-copied")
-                item?.status == File.Status.RENAMED -> renamedIcon().addClass("status-renamed")
-                item?.status == File.Status.MODIFIED -> modifiedIcon().addClass("status-modified")
-                item?.status == File.Status.REMOVED && !item.isCached -> missingIcon().addClass("status-missing")
-                item?.status == File.Status.REMOVED -> removedIcon().addClass("status-removed")
+                item?.status == File.Status.CONFLICT -> conflictIcon().addClass(CONFLICT_STYLE_CLASS)
+                item?.status == File.Status.ADDED && !item.isCached -> untrackedIcon().addClass(UNTRACKED_STYLE_CLASS)
+                item?.status == File.Status.ADDED -> addedIcon().addClass(ADDED_STYLE_CLASS)
+                item?.status == File.Status.COPIED -> copiedIcon().addClass(COPIED_STYLE_CLASS)
+                item?.status == File.Status.RENAMED -> renamedIcon().addClass(RENAMED_STYLE_CLASS)
+                item?.status == File.Status.MODIFIED -> modifiedIcon().addClass(MODIFIED_STYLE_CLASS)
+                item?.status == File.Status.REMOVED && !item.isCached -> missingIcon().addClass(MISSING_STYLE_CLASS)
+                item?.status == File.Status.REMOVED -> removedIcon().addClass(REMOVED_STYLE_CLASS)
                 else -> null
             }
         }

@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.I18N
+import hamburg.remme.tinygit.fontSize
 import hamburg.remme.tinygit.htmlEncodeAll
 
 // TODO: implement word diff
@@ -16,9 +17,9 @@ class DiffRenderer {
                     html, body {
                         padding: 0;
                         margin: 0;
-                        font: 13px "Liberation Mono", monospace;
-                        color: #ccc;
-                        background-color: #3c3f41;
+                        font: ${fontSize}px "Liberation Mono", monospace;
+                        color: rgba(255, 255, 255, 0.9);
+                        background-color: #263238;
                     }
                     body {
                     }
@@ -27,26 +28,26 @@ class DiffRenderer {
                         min-width: 100%;
                     }
                     .c {
-                        padding: 4px 8px;
+                        padding: 0.5em 1em;
                         white-space: nowrap;
                     }
                     .c > div {
                         display: inline-block;
                     }
                     .h {
-                        color: #aaa;
-                        background-color: #354b57;
+                        color: rgba(255, 255, 255, 0.9);
+                        background-color: #335066;
                     }
                     .a {
-                        background-color: #36593b;
+                        background-color: #336636;
                     }
                     .r {
-                        background-color: #593636;
+                        background-color: #663333;
                     }
                     .l-num,
                     .r-num {
-                        padding: 0 4px;
-                        width: ${lineBuilder.numWidth * 15 + 8}px;
+                        padding: 0 0.5em;
+                        width: ${lineBuilder.numWidth + 0.5}em;
                         text-align: right;
                     }
                 </style>

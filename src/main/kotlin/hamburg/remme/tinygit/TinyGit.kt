@@ -31,6 +31,7 @@ import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
 import javafx.scene.Scene
 import javafx.scene.image.Image
+import javafx.scene.text.Font
 import javafx.stage.Stage
 import java.util.Locale
 import java.util.concurrent.Callable
@@ -39,9 +40,22 @@ import java.util.concurrent.TimeUnit
 /**
  * Will launch [TinyGit] with the given [args].
  * Will also set the locale to [Locale.ROOT] at the moment.
+ *
+ * @todo: fix DPI issues for Linux
  */
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
+
+    // Will load needed fonts and set the font size depending on the OS
+    // This might be a solution to the DPI issues on Linux, e.g. Ubuntu
+    System.setProperty("com.sun.javafx.fontSize", fontSize.toString())
+    Font.loadFont("font/Roboto-Regular.ttf".asResource(), fontSize.toDouble())
+    Font.loadFont("font/Roboto-Bold.ttf".asResource(), fontSize.toDouble())
+    Font.loadFont("font/Roboto-Light.ttf".asResource(), fontSize.toDouble())
+    Font.loadFont("font/LiberationMono-Regular.ttf".asResource(), fontSize.toDouble())
+    Font.loadFont("font/fa-brands-400.ttf".asResource(), fontSize.toDouble())
+    Font.loadFont("font/fa-solid-900.ttf".asResource(), fontSize.toDouble())
+
     Application.launch(TinyGit::class.java, *args)
 }
 
@@ -85,10 +99,6 @@ class TinyGit : Application() {
         val state = State(repositoryService, branchService, workingCopyService, divergenceService, mergeService, rebaseService, stashService, commitLogService)
         private lateinit var application: Application
         private lateinit var stage: Stage
-
-        init {
-            Application.setUserAgentStylesheet("/css/main.css")
-        }
 
         /**
          * Adds repository and refresh listeners to the [Refreshable].
@@ -146,6 +156,8 @@ class TinyGit : Application() {
 
     init {
         TinyGit.application = this
+        if (isMac) Application.setUserAgentStylesheet("/css/main-mac.css")
+        else Application.setUserAgentStylesheet("/css/main-windows.css")
     }
 
     override fun start(stage: Stage) {
@@ -173,7 +185,6 @@ class TinyGit : Application() {
 
         initSettings()
         initWindow()
-        initScaling()
 
         stage.show()
 
@@ -215,10 +226,6 @@ class TinyGit : Application() {
                 rebaseService.isRebasing,
                 rebaseService.rebaseNext,
                 rebaseService.rebaseLast))
-    }
-
-    private fun initScaling() {
-        // TODO
     }
 
     private fun updateTitle(): String {

@@ -4,6 +4,8 @@ import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.gui.builder.SplitPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.label
+import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.toolBar
@@ -13,10 +15,10 @@ import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.builder.webView
 import javafx.beans.binding.Bindings
 import javafx.scene.layout.Priority
-import javafx.scene.text.Text
 
 private const val DEFAULT_STYLE_CLASS = "commit-details-view"
 private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
+private const val OVERLAY_STYLE_CLASS = "overlay"
 
 /**
  * Showing details for a specific [hamburg.remme.tinygit.domain.Commit].
@@ -68,9 +70,10 @@ class CommitDetailsView : SplitPaneBuilder() {
                     +files
                 }
                 +stackPane {
-                    addClass("overlay")
+                    addClass(OVERLAY_STYLE_CLASS)
                     visibleWhen(Bindings.isEmpty(files.items))
-                    +Text(I18N["commitDetails.noChanges"])
+                    managedWhen(visibleProperty())
+                    +label { +I18N["commitDetails.noChanges"] }
                 }
             }
         }

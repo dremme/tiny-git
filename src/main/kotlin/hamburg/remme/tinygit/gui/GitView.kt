@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.gui
 import de.codecentric.centerdevice.MenuToolkit
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.git.defaultBranches
 import hamburg.remme.tinygit.git.git
 import hamburg.remme.tinygit.git.gitLogExclusive
@@ -47,11 +48,14 @@ import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TabPane
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Priority
-import javafx.scene.text.Text
 import javafx.stage.Stage
 
 private const val DEFAULT_STYLE_CLASS = "git-view"
 private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
+private const val INFO_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__info"
+private const val PROGRESS_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__progress"
+private const val OVERLAY_STYLE_CLASS = "overlay"
+private const val SHORTCUT_STYLE_CLASS = "${OVERLAY_STYLE_CLASS}__shortcut"
 
 /**
  * The application root. Will create the menu depending on the operating system (OS).
@@ -260,39 +264,49 @@ class GitView : VBoxBuilder() {
             +cmd
         }
         +stackPane {
+            addClass(CONTENT_STYLE_CLASS)
             vgrow(Priority.ALWAYS)
             +splitPane {
-                addClass(CONTENT_STYLE_CLASS)
                 +repositoryView
                 +tabs
                 Platform.runLater { setDividerPosition(0, 0.20) }
             }
             +stackPane {
-                addClass("overlay")
+                addClass(OVERLAY_STYLE_CLASS, INFO_STYLE_CLASS)
                 visibleWhen(state.showGlobalInfo)
+                managedWhen(visibleProperty())
                 +vbox {
-                    addClass("box")
                     +hbox {
                         +Icons.folderOpen()
-                        +Text(I18N["gitView.addRepositoryInfo"])
-                        +Text(KeyCombination.valueOf(addRepo.shortcut).displayText).addClass("shortcut")
+                        +label { +I18N["gitView.addRepositoryInfo"] }
+                        +label {
+                            addClass(SHORTCUT_STYLE_CLASS)
+                            +KeyCombination.valueOf(addRepo.shortcut).displayText
+                        }
                     }
                     +hbox {
                         +Icons.clone()
-                        +Text(I18N["gitView.cloneRepositoryInfo"])
-                        +Text(KeyCombination.valueOf(cloneRepo.shortcut).displayText).addClass("shortcut")
+                        +label { +I18N["gitView.cloneRepositoryInfo"] }
+                        +label {
+                            addClass(SHORTCUT_STYLE_CLASS)
+                            +KeyCombination.valueOf(cloneRepo.shortcut).displayText
+                        }
                     }
                     +hbox {
                         +Icons.folder()
-                        +Text(I18N["gitView.newRepositoryInfo"])
-                        +Text(KeyCombination.valueOf(newRepo.shortcut).displayText).addClass("shortcut")
+                        +label { +I18N["gitView.newRepositoryInfo"] }
+                        +label {
+                            addClass(SHORTCUT_STYLE_CLASS)
+                            +KeyCombination.valueOf(newRepo.shortcut).displayText
+                        }
                     }
                 }
             }
             +stackPane {
-                addClass("progress-overlay")
+                addClass(OVERLAY_STYLE_CLASS, PROGRESS_STYLE_CLASS)
                 visibleWhen(state.showGlobalOverlay)
-                +progressIndicator(48.0)
+                managedWhen(visibleProperty())
+                +progressIndicator(4.0)
                 +label { textProperty().bind(state.processText) }
             }
         }
@@ -356,7 +370,7 @@ class GitView : VBoxBuilder() {
 
     private fun merge() {
         val current = branchService.head.get()
-        val branches = branchService.branches.filter { it != current }
+        val branches = branchService.branches.filter { it != current }.sortedByDefault()
         choiceDialog(window, I18N["dialog.merge.header"], I18N["dialog.merge.button"], Icons.codeFork().flipY(), branches) {
             mergeService.merge(
                     it,
@@ -367,7 +381,14 @@ class GitView : VBoxBuilder() {
 
     private fun rebase() {
         val current = branchService.head.get()
-        val branches = branchService.branches.filter { it != current }.sortedWith(Comparator { a, b ->
+        val branches = branchService.branches.filter { it != current }.sortedByDefault()
+        choiceDialog(window, I18N["dialog.rebase.header"], I18N["dialog.rebase.button"], Icons.levelUp().flipX(), branches) {
+            rebaseService.rebase(it, { errorAlert(window, I18N["dialog.cannotRebase.header"], it) })
+        }
+    }
+
+    private fun List<Branch>.sortedByDefault(): List<Branch> {
+        return sortedWith(Comparator { a, b ->
             when {
                 defaultBranches.contains(a.name) && defaultBranches.contains(b.name) -> a.compareTo(b)
                 defaultBranches.contains(a.name) -> -1
@@ -375,9 +396,6 @@ class GitView : VBoxBuilder() {
                 else -> a.compareTo(b)
             }
         })
-        choiceDialog(window, I18N["dialog.rebase.header"], I18N["dialog.rebase.button"], Icons.levelUp().flipX(), branches) {
-            rebaseService.rebase(it, { errorAlert(window, I18N["dialog.cannotRebase.header"], it) })
-        }
     }
 
     private fun rebaseContinue() {

@@ -20,56 +20,56 @@ private const val DEFAULT_STYLE_CLASS = "status-count-view"
 class StatusCountView(items: ObservableList<File>) : HBox() {
 
     private val conflicting = label {
-        addClass("status-conflict")
+        addClass(CONFLICT_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.conflicting"])
         isVisible = false
         +FileStatusView.conflictIcon()
     }
     private val added = label {
-        addClass("status-added")
+        addClass(ADDED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.added"])
         isVisible = false
         +FileStatusView.addedIcon()
     }
     private val copied = label {
-        addClass("status-copied")
+        addClass(COPIED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.copied"])
         isVisible = false
         +FileStatusView.copiedIcon()
     }
     private val renamed = label {
-        addClass("status-renamed")
+        addClass(RENAMED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.renamed"])
         isVisible = false
         +FileStatusView.renamedIcon()
     }
     private val modified = label {
-        addClass("status-modified")
+        addClass(MODIFIED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.modified"])
         isVisible = false
         +FileStatusView.modifiedIcon()
     }
     private val removed = label {
-        addClass("status-removed")
+        addClass(REMOVED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.removed"])
         isVisible = false
         +FileStatusView.removedIcon()
     }
     private val missing = label {
-        addClass("status-missing")
+        addClass(MISSING_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.missing"])
         isVisible = false
         +FileStatusView.missingIcon()
     }
     private val untracked = label {
-        addClass("status-untracked")
+        addClass(UNTRACKED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.untracked"])
         isVisible = false

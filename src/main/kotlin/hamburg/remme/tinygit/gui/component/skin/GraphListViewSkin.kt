@@ -9,13 +9,15 @@ import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
 
-private const val PATH_STYLE_CLASS = "path-color"
-private const val NODE_STYLE_CLASS = "node-color"
+private const val DEFAULT_STYLE_CLASS = "graph-list-view"
+private const val PATH_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__path"
+private const val PATH_COLOR_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__path-color"
+private const val NODE_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__node-color"
 private const val EMPTY_SPACING = 0.0
 private const val SPACING = 24.0
 private const val RADIUS = 6.0
 private const val LAST_INDEX = 9999
-private const val COLOR_COUNT = 11
+private const val COLOR_COUNT = 16
 
 /**
  * This skin is enhancing the [javafx.scene.control.skin.ListViewSkin] to display a Git log graph style [Path].
@@ -35,7 +37,7 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
         pathGroup.isManaged = false
         circleGroup.isManaged = false
         children.addAll(pathGroup, circleGroup)
-        paths = (0..COLOR_COUNT).map { Path().addClass("$PATH_STYLE_CLASS$it") }
+        paths = (0 until COLOR_COUNT).map { Path().addClass(PATH_STYLE_CLASS, "$PATH_COLOR_STYLE_CLASS$it") }
         paths.reversed().forEach { pathGroup.children += it }
     }
 

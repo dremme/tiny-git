@@ -211,7 +211,7 @@ class StatsView : Tab() {
 
         init {
             +content.visibleWhen(visible.not())
-            +progressIndicator(16.0).visibleWhen(visible)
+            +progressIndicator(2.0).visibleWhen(visible)
         }
 
         override fun started() = visible.set(true)

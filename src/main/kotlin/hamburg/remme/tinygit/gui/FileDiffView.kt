@@ -35,7 +35,7 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
         <head>
             <style>
                 html, body {
-                    background-color: #3c3f41;
+                    background-color: #263238;
                 }
             </style>
         </head>

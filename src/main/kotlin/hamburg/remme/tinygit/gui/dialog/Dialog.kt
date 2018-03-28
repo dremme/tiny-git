@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.TinyGit
-import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.fontSize
 import hamburg.remme.tinygit.gui.builder.disabledWhen
 import hamburg.remme.tinygit.gui.builder.imageView
 import hamburg.remme.tinygit.gui.builder.isCancel
@@ -27,11 +27,10 @@ abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = fal
         get() = throw RuntimeException("Write-only property.")
         set(value) {
             dialog.graphic = imageView {
-                addClass("icon")
                 image = value
                 isSmooth = true
-                fitWidth = 35.0
-                fitHeight = 35.0
+                fitWidth = fontSize * 3.0
+                fitHeight = fontSize * 3.0
             }
         }
     var graphic: Node

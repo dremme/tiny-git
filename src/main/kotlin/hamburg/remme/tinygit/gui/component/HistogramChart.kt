@@ -15,7 +15,12 @@ import javafx.scene.shape.Rectangle
 import javafx.util.Duration
 import java.time.LocalDate
 
-private const val COLOR_COUNT = 10
+private const val DEFAULT_STYLE_CLASS = "histogram"
+private const val AXIS_STYLE_CLASS = "axis"
+private const val TICK_STYLE_CLASS = "tick"
+private const val SHAPE_STYLE_CLASS = "shape"
+private const val RECT_STYLE_CLASS = "rectangle-color"
+private const val COLOR_COUNT = 16
 private const val MIN_HEIGHT = 2.0 // TODO: could cause issues
 private const val TICK_MARK_LENGTH = 5.0
 private const val TICK_MARK_GAP = 2.0
@@ -31,7 +36,7 @@ class HistogramChart(title: String) : Chart(title) {
         }
     }
     private val plotContentClip = Rectangle()
-    private val xAxis = Path().addClass("diagram-axis")
+    private val xAxis = Path().addClass(AXIS_STYLE_CLASS)
 
     var lowerBound: LocalDate
         get() = throw RuntimeException("Write-only property.")
@@ -48,6 +53,7 @@ class HistogramChart(title: String) : Chart(title) {
     private var upperBoundY = 0.0
 
     init {
+        addClass(DEFAULT_STYLE_CLASS)
         plotContentClip.isManaged = false
         plotContentClip.isSmooth = false
         plotContent.clip = plotContentClip
@@ -87,9 +93,9 @@ class HistogramChart(title: String) : Chart(title) {
     override fun layoutChartChildren(width: Double, height: Double) {
         val stepX = width / (upperBoundX - lowerBoundX)
 
-        val labelHeight = snapSizeY(tickMarks.map { it.label.prefHeight(width) }.max() ?: 0.0)
-        val xAxisHeight = 1.0 + TICK_MARK_LENGTH + TICK_MARK_GAP + labelHeight
-        val y = height - xAxisHeight
+        val labelHeight = tickMarks.map { it.label.prefHeight(width) }.max() ?: 0.0
+        val xAxisHeight = snapSizeY(TICK_MARK_LENGTH + TICK_MARK_GAP + labelHeight)
+        val y = snapPositionY(height - xAxisHeight)
         xAxis.elements.setAll(MoveTo(0.0, 0.0), LineTo(width, 0.0))
         xAxis.relocate(0.0, y)
 
@@ -120,9 +126,8 @@ class HistogramChart(title: String) : Chart(title) {
                 rect.y = height
                 rect.height = 0.0
 
-                // TODO: they prob need some snap here
-                val h = Math.max(MIN_HEIGHT, height * (it.yValue / upperBoundY))
-                val y = height - h - (slots[it.xValue] ?: 0.0)
+                val h = snapSizeY(Math.max(MIN_HEIGHT, height * (it.yValue / upperBoundY)))
+                val y = snapPositionY(height - h - (slots[it.xValue] ?: 0.0))
                 timeline.keyFrames += KeyFrame(Duration.millis(1000.0),
                         KeyValue(rect.yProperty(), y, Interpolator.EASE_OUT),
                         KeyValue(rect.heightProperty(), h, Interpolator.EASE_OUT))
@@ -141,7 +146,7 @@ class HistogramChart(title: String) : Chart(title) {
     class TickMark(val name: String, val xValue: LocalDate) {
 
         val label = label {
-            addClass("diagram-axis-tick")
+            addClass(TICK_STYLE_CLASS)
             +name
         }
 
@@ -155,7 +160,7 @@ class HistogramChart(title: String) : Chart(title) {
         var wasAnimated = false
 
         fun createNode(index: Int) {
-            node = Rectangle().apply { addClass("histogram-shape", "default-color${index % COLOR_COUNT}") }
+            node = Rectangle().apply { addClass(SHAPE_STYLE_CLASS, "$RECT_STYLE_CLASS${index % COLOR_COUNT}") }
         }
 
     }
