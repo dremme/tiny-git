@@ -1,12 +1,14 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.atStartOfWeek
 import hamburg.remme.tinygit.daysBetween
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.NumStat
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitDiffNumstat
 import hamburg.remme.tinygit.git.gitLog
+import hamburg.remme.tinygit.gui.component.CalendarChart
 import hamburg.remme.tinygit.gui.component.DonutChart
 import hamburg.remme.tinygit.gui.component.HistogramChart
 import hamburg.remme.tinygit.mapParallel
@@ -14,7 +16,6 @@ import hamburg.remme.tinygit.mapValuesParallel
 import hamburg.remme.tinygit.observableList
 import hamburg.remme.tinygit.sortedBy
 import javafx.concurrent.Task
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Year
 import javafx.scene.chart.XYChart.Data as XYData
@@ -25,7 +26,7 @@ class StatsService {
     val filesData = observableList<DonutChart.Data>()
     val commitsData = observableList<HistogramChart.Series>()
     val linesData = observableList<HistogramChart.Series>()
-    val activityData = observableList<XYData<LocalDate, DayOfWeek>>()
+    val activityData = observableList<CalendarChart.Data>()
     val lastDay = LocalDate.now()!!
     val firstDay = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)!!
     lateinit var contributorsListener: TaskListener
@@ -38,11 +39,11 @@ class StatsService {
     private val taskPool = mutableSetOf<Task<*>>()
 
     fun updateActivity() {
-        taskPool += object : Task<List<XYData<LocalDate, DayOfWeek>>>() {
+        taskPool += object : Task<List<CalendarChart.Data>>() {
             override fun call() = log
                     .groupingBy { it.date.toLocalDate() }
                     .eachCount()
-                    .map { (date, value) -> XYData(date, date.dayOfWeek, value) }
+                    .map { (date, value) -> CalendarChart.Data(date, value) }
 
             override fun succeeded() {
                 activityData.setAll(value)
@@ -123,9 +124,9 @@ class StatsService {
 
             override fun call() = (0..lastDay.daysBetween(firstDay))
                     .map { firstDay.plusDays(it) }
-                    .map { it.minusDays(it.dayOfWeek.value - 1L) }
+                    .map { it.atStartOfWeek() }
                     .distinct()
-                    .map { date -> date to log.filter { it.date.toLocalDate().minusDays(it.date.dayOfWeek.value - 1L) == date } }
+                    .map { date -> date to log.filter { it.date.toLocalDate().atStartOfWeek() == date } }
                     .map { (date, log) ->
                         val min = log.minBy { it.date }
                         val max = log.maxBy { it.date }

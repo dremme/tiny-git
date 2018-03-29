@@ -91,6 +91,7 @@ $px10: 10em / $font-size;
 $px11: 11em / $font-size;
 $px12: 1em;
 $px16: 16em / $font-size;
+$px28: 28em / $font-size;
 
 /*******************************************************************************
  *                                                                             *
@@ -198,6 +199,7 @@ $px16: 16em / $font-size;
   @extend %controlPaddings;
   @extend %fontRegular;
   @extend %iconGap;
+  -fx-pref-height: $px28;
   -fx-text-fill: $text-color;
   -fx-background-color: $control-color;
   -fx-cursor: hand;
@@ -216,6 +218,7 @@ $px16: 16em / $font-size;
 
 .check-box {
   @extend %fontRegular;
+  -fx-pref-height: $px28;
   -fx-cursor: hand;
 
   > .box {
@@ -722,7 +725,7 @@ $px16: 16em / $font-size;
   -fx-padding: 2em;
 
   .title {
-    -fx-padding: $px6 0;
+    -fx-padding: 0 0 $px6 0;
     -fx-alignment: center;
     -fx-font-size: $px16;
   }
@@ -740,6 +743,7 @@ $px16: 16em / $font-size;
       -fx-stroke-line-cap: butt;
     }
   }
+  &.calendar,
   &.histogram {
     .axis {
       -fx-stroke: $text-color;
@@ -754,6 +758,23 @@ $px16: 16em / $font-size;
     }
     &.histogram .shape.rectangle-color#{$i - 1} {
       -fx-fill: nth($accent-colors, $i);
+    }
+  }
+  &.calendar .shape {
+    &.rectangle-color0 {
+      -fx-fill: #01579B;
+    }
+    &.rectangle-color1 {
+      -fx-fill: #0288D1;
+    }
+    &.rectangle-color2 {
+      -fx-fill: #03A9F4;
+    }
+    &.rectangle-color3 {
+      -fx-fill: #4FC3F7;
+    }
+    &.rectangle-color4 {
+      -fx-fill: #B3E5FC;
     }
   }
 }

@@ -35,7 +35,7 @@ abstract class Chart(val title: String) : Region() {
 
         val titleHeight = snapSizeY(titleLabel.prefHeight(width - left - right))
         titleLabel.resizeRelocate(left, top, width - left - right, titleHeight)
-        top += titleHeight
+        top += titleHeight + titleLabel.insets.top + titleLabel.insets.bottom // TODO: with insets?
 
         chartContent.resizeRelocate(left, top, width - left - right, height - top - bottom)
     }

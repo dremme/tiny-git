@@ -27,7 +27,7 @@ private const val TICK_MARK_GAP = 2.0
 
 class HistogramChart(title: String) : Chart(title) {
 
-    private val tickMarks = mutableListOf<TickMark>()
+    private val tickMarks = mutableListOf<TickMark<LocalDate>>()
     private val series = mutableListOf<Series>()
     private val data get() = series.flatMap { it.data }
     private val rectangles get() = data.map { it.node }
@@ -80,7 +80,7 @@ class HistogramChart(title: String) : Chart(title) {
         requestChartLayout()
     }
 
-    fun setTickMarks(tickMarks: List<TickMark>) {
+    fun setTickMarks(tickMarks: List<TickMark<LocalDate>>) {
         // Remove old labels
         chartChildren -= this.tickMarks.map { it.label }
         // Set new reference list
@@ -100,7 +100,7 @@ class HistogramChart(title: String) : Chart(title) {
         xAxis.relocate(0.0, y)
 
         tickMarks.forEach {
-            val x = snapPositionX((it.xValue.daysFromOrigin - lowerBoundX) * stepX)
+            val x = snapPositionX((it.value.daysFromOrigin - lowerBoundX) * stepX)
             val w = snapSizeX(it.label.prefWidth(height))
             val h = snapSizeY(it.label.prefHeight(width))
             xAxis.elements.addAll(MoveTo(x, 0.0), LineTo(x, TICK_MARK_LENGTH))
@@ -110,10 +110,10 @@ class HistogramChart(title: String) : Chart(title) {
         plotContentClip.x = 0.0
         plotContentClip.y = 0.0
         plotContentClip.width = width
-        plotContentClip.height = y
-        plotContent.resizeRelocate(0.0, 0.0, width, y)
+        plotContentClip.height = height - xAxisHeight
+        plotContent.resizeRelocate(0.0, 0.0, width, height - xAxisHeight)
 
-        layoutPlotChildren(width, y)
+        layoutPlotChildren(width, height - xAxisHeight)
     }
 
     private fun layoutPlotChildren(width: Double, height: Double) {
@@ -143,7 +143,7 @@ class HistogramChart(title: String) : Chart(title) {
         if (timeline.keyFrames.isNotEmpty()) timeline.play()
     }
 
-    class TickMark(val name: String, val xValue: LocalDate) {
+    class TickMark<out T>(val name: String, val value: T) {
 
         val label = label {
             addClass(TICK_STYLE_CLASS)

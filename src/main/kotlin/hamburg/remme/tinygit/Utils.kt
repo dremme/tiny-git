@@ -32,7 +32,10 @@ const val PI = 180.0
  * Constant for 90°. Degrees of pi/2.
  */
 const val HALF_PI = 90.0
-
+/**
+ * **Warning: do not use this!**
+ */
+var logTypeCharacters = 1
 private val daemonFactory = ThreadFactory { Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } }
 /**
  * Single-threaded scheduler with standard daemon thread factory.
@@ -47,7 +50,7 @@ val cachedPool = Executors.newCachedThreadPool(daemonFactory)!!
  */
 val singlePool = Executors.newFixedThreadPool(1, daemonFactory)!!
 
-val weekOfMonthFormat = DateTimeFormatter.ofPattern("'Week' W 'of' MMM ''yy")!!
+val dayOfWeekFormat = DateTimeFormatter.ofPattern("EEE")!!
 val monthOfYearFormat = DateTimeFormatter.ofPattern("MMM ''yy")!!
 val shortDateFormat = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
 val dateFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy")!!
@@ -57,16 +60,26 @@ val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!
  * The timezone offset of the local machine.
  */
 val systemOffset get() = ZoneId.systemDefault().rules.getOffset(Instant.now())!!
-val LocalDate.startOfDay get() = atStartOfDay()!!
-val LocalDate.endOfDay get() = atTime(LocalTime.MAX)!!
-val LocalDate.noon get() = atTime(LocalTime.NOON)!!
+/**
+ * The number of days since 1900-01-01.
+ */
 val LocalDate.daysFromOrigin get() = ChronoUnit.DAYS.between(temporalOrigin, this)
 private val temporalOrigin = LocalDate.of(1900, 1, 1)
 
 /**
- * **Warning: do not use this!**
+ * Returns a [LocalDate] which is equal to the Monday of its week.
  */
-var logTypeCharacters = 1
+fun LocalDate.atStartOfWeek() = minusDays(dayOfWeek.value - 1L)!!
+
+/**
+ * Returns a [LocalDateTime] which is equal to the end of the day, its last nanosecond.
+ */
+fun LocalDate.atEndOfDay() = atTime(LocalTime.MAX)!!
+
+/**
+ * Returns a [LocalDateTime] which is equal to the middle of the day.
+ */
+fun LocalDate.atNoon() = atTime(LocalTime.NOON)!!
 
 /**
  * A UTC based [LocalDateTime] from a given [epochSecond].
