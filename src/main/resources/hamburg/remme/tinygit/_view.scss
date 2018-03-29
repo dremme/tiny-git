@@ -3,6 +3,7 @@
     -fx-padding: $px6 $px12 $px6 $px12;
 
     .button {
+      -fx-pref-height: inherit;
       -fx-content-display: top;
       -fx-background-color: transparent;
 
