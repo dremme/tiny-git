@@ -16,7 +16,9 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.Callable
 import java.util.concurrent.Executors
+import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.ThreadFactory
 import kotlin.streams.toList
 
@@ -49,6 +51,10 @@ val cachedPool = Executors.newCachedThreadPool(daemonFactory)!!
  * Single-threaded thread pool with standard daemon thread factory.
  */
 val singlePool = Executors.newFixedThreadPool(1, daemonFactory)!!
+/**
+ * A thread pool for fork-join operations.
+ */
+val forkJoinPool = ForkJoinPool.commonPool()
 
 val dayOfWeekFormat = DateTimeFormatter.ofPattern("EEE")!!
 val monthOfYearFormat = DateTimeFormatter.ofPattern("MMM ''yy")!!
@@ -199,14 +205,22 @@ fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*
  */
 fun <T> observableList(items: Collection<T>) = FXCollections.observableArrayList<T>(items)!!
 
-// TODO: parallelize
-inline fun <T, R> List<T>.mapParallel(block: (T) -> R): List<R> {
-    return map(block)
+/**
+ * [List.map] but parallel using a [ForkJoinPool].
+ */
+inline fun <T, R> List<T>.mapParallel(crossinline block: (T) -> R): List<R> {
+    return map { forkJoinPool.submit(Callable { block(it) }) }
+            .onEach { it.fork() }
+            .map { it.join() }
 }
 
-// TODO: parallelize
-inline fun <K, V, R> Map<K, V>.mapValuesParallel(block: (V) -> R): Map<K, R> {
-    return mapValues { (_, value) -> block(value) }
+/**
+ * [Map.mapValues] but parallel using a [ForkJoinPool].
+ */
+inline fun <K, V, R> Map<K, V>.mapValuesParallel(crossinline block: (V) -> R): Map<K, R> {
+    return mapValues { (_, it) -> forkJoinPool.submit(Callable { block(it) }) }
+            .onEach { (_, it) -> it.fork() }
+            .mapValues { (_, it) -> it.join() }
 }
 
 /**
