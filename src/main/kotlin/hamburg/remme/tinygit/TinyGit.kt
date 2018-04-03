@@ -218,7 +218,7 @@ class TinyGit : Application() {
 
     private fun initWindow() {
         stage.focusedProperty().addListener { _, _, it -> if (it) state.isModal.takeIf { it.get() }?.set(false) ?: fireEvent() }
-        stage.scene = Scene(GitView())
+        stage.scene = Scene(GitView(stage))
         stage.icons += Image("icon.png".asResource())
         stage.titleProperty().bind(Bindings.createStringBinding(Callable { updateTitle() },
                 repositoryService.activeRepository,

@@ -3,6 +3,8 @@ package hamburg.remme.tinygit.gui
 import de.codecentric.centerdevice.MenuToolkit
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.initMacApp
+import hamburg.remme.tinygit.createMacWindow
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.git.defaultBranches
 import hamburg.remme.tinygit.git.git
@@ -22,9 +24,7 @@ import hamburg.remme.tinygit.gui.builder.flipY
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
-import hamburg.remme.tinygit.gui.builder.menu
 import hamburg.remme.tinygit.gui.builder.menuBar
-import hamburg.remme.tinygit.gui.builder.menuItem
 import hamburg.remme.tinygit.gui.builder.progressIndicator
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
@@ -44,7 +44,6 @@ import hamburg.remme.tinygit.gui.dialog.SettingsDialog
 import hamburg.remme.tinygit.isMac
 import javafx.application.Platform
 import javafx.concurrent.Task
-import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TabPane
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Priority
@@ -89,7 +88,7 @@ private const val SHORTCUT_STYLE_CLASS = "${OVERLAY_STYLE_CLASS}__shortcut"
  * @see WorkingCopyView
  * @see StatsView
  */
-class GitView : VBoxBuilder() {
+class GitView(private val window: Stage) : VBoxBuilder() {
 
     private val repoService = TinyGit.repositoryService
     private val branchService = TinyGit.branchService
@@ -99,7 +98,6 @@ class GitView : VBoxBuilder() {
     private val remoteService = TinyGit.remoteService
     private val stashService = TinyGit.stashService
     private val state = TinyGit.state
-    private val window get() = scene.window
 
     init {
         addClass(DEFAULT_STYLE_CLASS)
@@ -177,19 +175,7 @@ class GitView : VBoxBuilder() {
         val cmd = Action(I18N["menu.command"], { Icons.terminal() }, disabled = state.canCmd.not(),
                 handler = { gitCommand() })
 
-        if (isMac) {
-            val toolkit = MenuToolkit.toolkit()
-            toolkit.setApplicationMenu(menu {
-                text = "TinyGit"
-                +menuItem(preferences)
-                +SeparatorMenuItem()
-                +toolkit.createHideMenuItem("TinyGit")
-                +toolkit.createHideOthersMenuItem()
-                +toolkit.createUnhideAllMenuItem()
-                +SeparatorMenuItem()
-                +toolkit.createQuitMenuItem("TinyGit")
-            })
-        }
+        if (isMac) initMacApp(preferences)
         +menuBar {
             isUseSystemMenuBar = true
             val file = mutableListOf(ActionGroup(cloneRepo, newRepo, addRepo))
@@ -212,28 +198,7 @@ class GitView : VBoxBuilder() {
                     *workingCopy.actions,
                     ActionGroup(stash, stashPop),
                     ActionGroup(cmd))
-            if (isMac) {
-                val toolkit = MenuToolkit.toolkit()
-                +menu {
-                    text = I18N["menuBar.window"]
-                    +toolkit.createMinimizeMenuItem()
-                    +toolkit.createZoomMenuItem()
-                    +menuItem {
-                        shortcut = "Shortcut+Ctrl+F"
-                        text = I18N["menu.enterFullscreen"]
-                        setOnAction {
-                            val stage = window as Stage
-                            if (stage.isFullScreen) {
-                                text = I18N["menu.enterFullscreen"]
-                                stage.isFullScreen = false
-                            } else {
-                                text = I18N["menu.exitFullscreen"]
-                                stage.isFullScreen = true
-                            }
-                        }
-                    }
-                }
-            }
+            if (isMac) +createMacWindow(window)
             +ActionCollection(I18N["menuBar.help"], ActionGroup(github, about))
         }
         +toolBar {
