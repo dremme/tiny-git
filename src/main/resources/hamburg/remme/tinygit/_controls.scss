@@ -586,6 +586,12 @@ $px28: 28em / $font-size;
   -fx-background-color: null;
   -fx-border-color: $control-color;
 
+  &:hover {
+    -fx-border-color: $control-focus-color;
+  }
+  &:focused {
+    -fx-border-color: $control-focus-color;
+  }
   .text-field {
     -fx-padding: 0;
     -fx-border-color: null;

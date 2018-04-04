@@ -23,6 +23,29 @@ import javafx.util.Callback
  *
  * Also contains a [ComboBox] to control the number of context lines for the shown diff.
  *
+ *
+ * ```
+ *   ┏━━━━━━━━━━━━┯━━━━━━━━━━━━━━━┓
+ *   ┃            │ Context Lines ┃
+ *   ┠────────────┴───────────────┨
+ *   ┃  @@ -1,1 +1,1 @@           ┃
+ *   ┃ +foo                       ┃
+ *   ┃ -bar                       ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┃                            ┃
+ *   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+ * ```
+ *
+ *
+ * @todo: get style from JavaFX CSS
+ *
  * @see hamburg.remme.tinygit.domain.service.DiffService
  * @see hamburg.remme.tinygit.domain.service.DiffRenderer
  */

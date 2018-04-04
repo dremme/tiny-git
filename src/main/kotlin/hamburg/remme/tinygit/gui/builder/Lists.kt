@@ -11,6 +11,8 @@ inline fun <T> tree(block: TreeViewBuilder<T>.() -> Unit): TreeView<T> {
 
 class TreeViewBuilder<T> : TreeView<T>() {
 
+    val selectedValue get() = selectionModel.selectedItem?.value
+
     init {
         isShowRoot = false
         root = TreeItem()

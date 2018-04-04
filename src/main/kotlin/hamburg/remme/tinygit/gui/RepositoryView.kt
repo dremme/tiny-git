@@ -81,6 +81,9 @@ private const val DETACHED_STYLE_CLASS = "detached"
  *   ┃                            ┃
  *   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
  * ```
+ *
+ *
+ * @todo: expand arrow are oftentimes buggy or completely broken
  */
 class RepositoryView : VBoxBuilder() {
 
@@ -90,7 +93,6 @@ class RepositoryView : VBoxBuilder() {
     private val stashService = TinyGit.stashService
     private val window get() = scene.window
     private val tree: TreeView<Any>
-    private val treeSelection @Suppress("UNNECESSARY_SAFE_CALL") get() = tree?.selectionModel?.selectedItem?.value
 
     init {
         addClass(DEFAULT_STYLE_CLASS)
@@ -128,21 +130,21 @@ class RepositoryView : VBoxBuilder() {
             val renameKey = KeyCode.R
             val deleteKey = KeyCode.DELETE
 
-            val canCheckout = Bindings.createBooleanBinding(Callable { treeSelection.isBranch() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
-            val canRenameBranch = Bindings.createBooleanBinding(Callable { treeSelection.isLocal() }, selectionModel.selectedItemProperty())
-            val canDeleteBranch = Bindings.createBooleanBinding(Callable { treeSelection.isBranch() && !treeSelection.isHead() }, selectionModel.selectedItemProperty())
-            val canApplyStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
-            val canDeleteStash = Bindings.createBooleanBinding(Callable { treeSelection.isStash() }, selectionModel.selectedItemProperty())
+            val canCheckout = Bindings.createBooleanBinding(Callable { selectedValue.isBranch() && !selectedValue.isHead() }, selectionModel.selectedItemProperty())
+            val canRenameBranch = Bindings.createBooleanBinding(Callable { selectedValue.isLocal() }, selectionModel.selectedItemProperty())
+            val canDeleteBranch = Bindings.createBooleanBinding(Callable { selectedValue.isBranch() && !selectedValue.isHead() }, selectionModel.selectedItemProperty())
+            val canApplyStash = Bindings.createBooleanBinding(Callable { selectedValue.isStash() }, selectionModel.selectedItemProperty())
+            val canDeleteStash = Bindings.createBooleanBinding(Callable { selectedValue.isStash() }, selectionModel.selectedItemProperty())
             val checkoutBranch = Action(I18N["repository.checkoutBranch"], { Icons.check() }, disabled = canCheckout.not(),
-                    handler = { checkout(treeSelection as Branch) })
+                    handler = { checkout(selectedValue as Branch) })
             val renameBranch = Action("${I18N["repository.renameBranch"]} (${renameKey.shortName})", { Icons.pencil() }, disabled = canRenameBranch.not(),
-                    handler = { renameBranch(treeSelection as Branch) })
+                    handler = { renameBranch(selectedValue as Branch) })
             val deleteBranch = Action("${I18N["repository.deleteBranch"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteBranch.not(),
-                    handler = { deleteBranch(treeSelection as Branch) })
+                    handler = { deleteBranch(selectedValue as Branch) })
             val applyStash = Action(I18N["repository.applyStash"], { Icons.cube() }, disabled = canApplyStash.not(),
-                    handler = { applyStash(treeSelection as StashEntry) })
+                    handler = { applyStash(selectedValue as StashEntry) })
             val deleteStash = Action("${I18N["repository.deleteStash"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteStash.not(),
-                    handler = { deleteStash(treeSelection as StashEntry) })
+                    handler = { deleteStash(selectedValue as StashEntry) })
 
             contextMenu = contextMenu {
                 isAutoHide = true
@@ -151,17 +153,17 @@ class RepositoryView : VBoxBuilder() {
             }
             setOnKeyPressed {
                 if (!it.isShortcutDown) when (it.code) {
-                    renameKey -> if (canRenameBranch.get()) renameBranch(treeSelection as Branch)
+                    renameKey -> if (canRenameBranch.get()) renameBranch(selectedValue as Branch)
                     deleteKey -> {
-                        if (canDeleteBranch.get()) deleteBranch(treeSelection as Branch)
-                        if (canDeleteStash.get()) deleteStash(treeSelection as StashEntry)
+                        if (canDeleteBranch.get()) deleteBranch(selectedValue as Branch)
+                        if (canDeleteStash.get()) deleteStash(selectedValue as StashEntry)
                     }
                     else -> Unit
                 }
             }
             setOnMouseClicked {
                 if (it.button == MouseButton.PRIMARY && it.clickCount == 2) {
-                    if (canCheckout.get()) checkout(treeSelection as Branch)
+                    if (canCheckout.get()) checkout(selectedValue as Branch)
                 }
             }
         }
@@ -171,6 +173,7 @@ class RepositoryView : VBoxBuilder() {
         branchService.branches.addListener(ListChangeListener {
             localBranches.children.updateEntries(it.list.filter { it.isLocal })
             remoteBranches.children.updateEntries(it.list.filter { it.isRemote })
+            ensureHeadSelection()
         })
         tagService.tags.addListener(ListChangeListener { tags.children.updateEntries(it.list) })
         stashService.stashEntries.addListener(ListChangeListener { stash.children.updateEntries(it.list) })
@@ -202,6 +205,15 @@ class RepositoryView : VBoxBuilder() {
                     b1.compareTo(b2)
                 })
         removeAll(filter { entry -> updatedList.none { it == entry.value } })
+    }
+
+    private fun ensureHeadSelection() {
+        if (tree.selectionModel.isEmpty || tree.selectionModel.selectedItem?.value !is Branch) {
+            val headItem = tree.root.children.flatMap { it.children }
+                    .filter { it.value is Branch }
+                    .find { branchService.isHead(it.value as Branch) }
+            tree.selectionModel.select(headItem)
+        }
     }
 
     private fun renameBranch(branch: Branch) {

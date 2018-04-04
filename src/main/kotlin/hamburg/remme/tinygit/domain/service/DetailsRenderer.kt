@@ -8,7 +8,7 @@ import hamburg.remme.tinygit.htmlEncode
 import hamburg.remme.tinygit.htmlEncodeAll
 
 /**
- * @todo: make table grid spacings 1em
+ * @todo: get style from JavaFX CSS
  */
 class DetailsRenderer {
 

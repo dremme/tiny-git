@@ -25,6 +25,9 @@ private const val MIN_HEIGHT = 2.0 // TODO: could cause issues
 private const val TICK_MARK_LENGTH = 5.0
 private const val TICK_MARK_GAP = 2.0
 
+/**
+ * @todo: find abstraction between this and [CalendarChart], especially tick marks and axes
+ */
 class HistogramChart(title: String) : Chart(title) {
 
     private val tickMarks = mutableListOf<TickMark<LocalDate>>()
@@ -100,10 +103,11 @@ class HistogramChart(title: String) : Chart(title) {
         xAxis.relocate(0.0, y)
 
         tickMarks.forEach {
-            val x = snapPositionX((it.value.daysFromOrigin - lowerBoundX) * stepX)
+            var x = snapPositionX((it.value.daysFromOrigin - lowerBoundX) * stepX)
             val w = snapSizeX(it.label.prefWidth(height))
             val h = snapSizeY(it.label.prefHeight(width))
             xAxis.elements.addAll(MoveTo(x, 0.0), LineTo(x, TICK_MARK_LENGTH))
+            x -= if (x + w > width) w - 4.0 else 4.0
             it.label.resizeRelocate(x, y + TICK_MARK_LENGTH + TICK_MARK_GAP, w, h)
         }
 

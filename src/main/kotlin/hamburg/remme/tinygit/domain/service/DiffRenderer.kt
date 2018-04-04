@@ -4,7 +4,10 @@ import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.fontSize
 import hamburg.remme.tinygit.htmlEncodeAll
 
-// TODO: implement word diff
+/**
+ * @todo: get style from JavaFX CSS
+ * @todo: word diff renderer
+ */
 class DiffRenderer {
 
     fun render(rawDiff: String): String {

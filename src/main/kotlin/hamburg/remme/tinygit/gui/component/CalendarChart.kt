@@ -28,7 +28,7 @@ private const val TICK_MARK_LENGTH = 5.0
 private const val TICK_MARK_GAP = 2.0
 
 /**
- * @todo: find abstract between this and [HistogramChart], especially tick marks and axes
+ * @todo: find abstraction between this and [HistogramChart], especially tick marks and axes
  */
 class CalendarChart(title: String) : Chart(title) {
 
@@ -115,11 +115,12 @@ class CalendarChart(title: String) : Chart(title) {
         xAxis.elements.clear()
 
         tickMarks.forEach {
-            val relativeDay = Math.max(0, it.value.atStartOfWeek().daysFromOrigin - lowerBoundX)
-            val x = snapPositionX(relativeDay * stepX + yAxisWidth)
+            val value = Math.max(0, it.value.atStartOfWeek().daysFromOrigin - lowerBoundX)
+            var x = snapPositionX(value * stepX + yAxisWidth)
             val w = snapSizeX(it.label.prefWidth(contentHeight))
             val h = snapSizeY(it.label.prefHeight(contentWidth))
             xAxis.elements.addAll(MoveTo(x, height - xAxisHeight), LineTo(x, height - xAxisHeight + TICK_MARK_LENGTH))
+            x -= if (x + w > width) w - 4.0 else 4.0
             it.label.resizeRelocate(x, height - xAxisHeight + TICK_MARK_LENGTH + TICK_MARK_GAP, w, h)
         }
         dowMarks.forEach {
