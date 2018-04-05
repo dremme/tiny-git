@@ -56,7 +56,7 @@ class RepositoryService(private val service: CredentialService) {
               successHandler: () -> Unit,
               errorHandler: (String) -> Unit) {
         service.applyCredentials(url)
-        TinyGit.execute(I18N["repository.clone"], object : Task<Unit>() {
+        TinyGit.run(I18N["repository.clone"], object : Task<Unit>() {
             override fun call() = gitClone(repository, proxy, url)
 
             override fun succeeded() {
@@ -79,7 +79,7 @@ class RepositoryService(private val service: CredentialService) {
     fun remove(repository: Repository) = allRepositories.remove(repository)
 
     fun gc() {
-        TinyGit.execute(I18N["repository.gc"], object : Task<Unit>() {
+        TinyGit.run(I18N["repository.gc"], object : Task<Unit>() {
             override fun call() = gitGc(activeRepository.get()!!)
 
             override fun succeeded() = TinyGit.fireEvent()

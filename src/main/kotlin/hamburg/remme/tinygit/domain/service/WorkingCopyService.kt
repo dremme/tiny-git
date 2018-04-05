@@ -1,12 +1,12 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.delete
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.Status
+import hamburg.remme.tinygit.execute
 import hamburg.remme.tinygit.exists
 import hamburg.remme.tinygit.git.gitAdd
 import hamburg.remme.tinygit.git.gitAddUpdate
@@ -39,7 +39,7 @@ class WorkingCopyService : Refreshable {
                 pending -= pending.filter { value.pending.none(it::equals) }
                 successHandler?.invoke()
             }
-        }.also { TinyGit.execute(it) }
+        }.execute()
     }
 
     fun stage() {

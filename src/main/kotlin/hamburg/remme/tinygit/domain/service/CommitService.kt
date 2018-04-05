@@ -24,7 +24,7 @@ class CommitService : Refreshable {
     }
 
     fun commit(message: String, amend: Boolean, errorHandler: () -> Unit) {
-        TinyGit.execute(I18N["commit.committing"], object : Task<Unit>() {
+        TinyGit.run(I18N["commit.committing"], object : Task<Unit>() {
             override fun call() {
                 if (amend) gitCommitAmend(repository, message)
                 else gitCommit(repository, message)

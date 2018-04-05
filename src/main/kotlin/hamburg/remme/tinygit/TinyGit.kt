@@ -35,7 +35,6 @@ import javafx.scene.text.Font
 import javafx.stage.Stage
 import java.util.Locale
 import java.util.concurrent.Callable
-import java.util.concurrent.TimeUnit
 
 /**
  * Will launch [TinyGit] with the given [args].
@@ -119,32 +118,23 @@ class TinyGit : Application() {
         /**
          * Fires a refresh event.
          */
-        fun fireEvent() {
+        fun fireEvent() = Platform.runLater {
             repositoryService.activeRepository.get()?.let { repository -> listeners.forEach { it(repository) } }
         }
 
         /**
-         * Executes a parallel task in the [cachedPool].
-         */
-        fun execute(task: Task<*>) = cachedPool.execute(task)
-
-        /**
-         * Executes a parallel task in the [singlePool].
-         */
-        fun executeSlowly(task: Task<*>) = singlePool.execute(task)
-
-        /**
-         * Executes a parallel task in the [cachedPool] and will also block the application from UI events.
+         * Runs a parallel task in the [cachedPool] and will also block the application from UI events.
+         * A [message] is shown as application overlay.
          *
-         * @param message the message to display on the application overlay
+         * @see [Task.execute]
          */
-        fun execute(message: String, task: Task<*>) {
+        fun run(message: String, task: Task<*>) {
             task.setOnSucceeded { state.runningProcesses.dec() }
             task.setOnCancelled { state.runningProcesses.dec() }
             task.setOnFailed { state.runningProcesses.dec() }
             state.processText.set(message)
             state.runningProcesses.inc()
-            execute(task)
+            task.execute()
         }
 
         /**
@@ -188,7 +178,7 @@ class TinyGit : Application() {
 
         stage.show()
 
-        scheduledPool.scheduleAtFixedRate({ if (!stage.isFocused && !state.isModal.get()) Platform.runLater { fireEvent() } }, 0, 10, TimeUnit.SECONDS)
+        ({ if (!stage.isFocused && !state.isModal.get()) fireEvent() }).schedule(10000)
     }
 
     override fun stop() = settings.save()

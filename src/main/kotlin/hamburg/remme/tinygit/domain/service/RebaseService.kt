@@ -23,7 +23,7 @@ class RebaseService : Refreshable {
     private lateinit var repository: Repository
 
     fun rebase(branch: Branch, errorHandler: (String) -> Unit) {
-        TinyGit.execute(I18N["rebase.rebasing"], object : Task<Unit>() {
+        TinyGit.run(I18N["rebase.rebasing"], object : Task<Unit>() {
             override fun call() = gitRebase(repository, branch)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -39,7 +39,7 @@ class RebaseService : Refreshable {
 
     // continue is a keyword in Kotlin and `continue` is an ugly function name
     fun doContinue(unresolvedHandler: () -> Unit) {
-        TinyGit.execute(I18N["rebase.rebasing"], object : Task<Unit>() {
+        TinyGit.run(I18N["rebase.rebasing"], object : Task<Unit>() {
             override fun call() = gitRebaseContinue(repository)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -54,7 +54,7 @@ class RebaseService : Refreshable {
     }
 
     fun abort() {
-        TinyGit.execute(I18N["rebase.abort"], object : Task<Unit>() {
+        TinyGit.run(I18N["rebase.abort"], object : Task<Unit>() {
             override fun call() = gitRebaseAbort(repository)
 
             override fun succeeded() = TinyGit.fireEvent()

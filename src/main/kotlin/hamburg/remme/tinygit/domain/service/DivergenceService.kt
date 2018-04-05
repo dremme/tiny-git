@@ -1,8 +1,8 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Divergence
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.execute
 import hamburg.remme.tinygit.git.gitDivergence
 import hamburg.remme.tinygit.git.gitDivergenceExclusive
 import javafx.beans.property.SimpleIntegerProperty
@@ -48,7 +48,7 @@ class DivergenceService : Refreshable {
                 ahead.set(divergence.ahead)
                 behind.set(divergence.behind)
             }
-        }.also { TinyGit.execute(it) }
+        }.execute()
     }
 
 }

@@ -6,6 +6,7 @@ import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.LogGraph
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.execute
 import hamburg.remme.tinygit.git.FetchException
 import hamburg.remme.tinygit.git.gitFetch
 import hamburg.remme.tinygit.git.gitLog
@@ -82,7 +83,7 @@ class CommitLogService(private val repositoryService: RepositoryService,
                 commits -= commits.filter { value.none(it::equals) }
                 logRemote()
             }
-        }.also { TinyGit.execute(it) }
+        }.execute()
     }
 
     private fun logRemote() {
@@ -90,6 +91,7 @@ class CommitLogService(private val repositoryService: RepositoryService,
         credentialService.applyCredentials(repositoryService.remote.get())
         remoteTask = object : Task<List<Commit>>() {
             override fun call(): List<Commit> {
+                Platform.runLater { logListener.started() }
                 gitFetch(repository)
                 val log = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, 0, max)
                 logGraph.recreate(log)
@@ -110,10 +112,7 @@ class CommitLogService(private val repositoryService: RepositoryService,
             }
 
             override fun done() = Platform.runLater { logListener.done() }
-        }.also {
-            logListener.started()
-            TinyGit.execute(it)
-        }
+        }.execute()
     }
 
     enum class Scope(val isAll: Boolean, private val description: String) {

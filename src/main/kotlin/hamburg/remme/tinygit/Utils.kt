@@ -4,6 +4,7 @@ import javafx.application.Platform
 import javafx.beans.binding.IntegerExpression
 import javafx.beans.property.IntegerProperty
 import javafx.collections.FXCollections
+import javafx.concurrent.Task
 import javafx.scene.input.KeyCode
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -20,6 +21,7 @@ import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.ThreadFactory
+import java.util.concurrent.TimeUnit
 import kotlin.streams.toList
 
 /**
@@ -42,19 +44,11 @@ private val daemonFactory = ThreadFactory { Executors.defaultThreadFactory().new
 /**
  * Single-threaded scheduler with standard daemon thread factory.
  */
-val scheduledPool = Executors.newScheduledThreadPool(1, daemonFactory)!!
+private val scheduledPool = Executors.newScheduledThreadPool(1, daemonFactory)!!
 /**
  * Openly cached thread pool with standard daemon thread factory.
  */
-val cachedPool = Executors.newCachedThreadPool(daemonFactory)!!
-/**
- * Single-threaded thread pool with standard daemon thread factory.
- */
-val singlePool = Executors.newFixedThreadPool(1, daemonFactory)!!
-/**
- * A thread pool for fork-join operations.
- */
-val forkJoinPool = ForkJoinPool.commonPool()
+private val cachedPool = Executors.newCachedThreadPool(daemonFactory)!!
 
 val dayOfWeekFormat = DateTimeFormatter.ofPattern("EEE")!!
 val monthOfYearFormat = DateTimeFormatter.ofPattern("MMM ''yy")!!
@@ -71,6 +65,21 @@ val systemOffset get() = ZoneId.systemDefault().rules.getOffset(Instant.now())!!
  */
 val LocalDate.daysFromOrigin get() = ChronoUnit.DAYS.between(temporalOrigin, this)
 private val temporalOrigin = LocalDate.of(1900, 1, 1)
+
+/**
+ * Executes the task in parallel using the [cachedPool].
+ */
+fun <V> Task<V>.execute(): Task<V> {
+    cachedPool.execute(this)
+    return this
+}
+
+/**
+ * Repeatedly calls the function at the given [period].
+ */
+fun (() -> Unit).schedule(period: Long) {
+    scheduledPool.scheduleAtFixedRate(this, 0, period, TimeUnit.MILLISECONDS)
+}
 
 /**
  * Returns a [LocalDate] which is equal to the Monday of its week.
@@ -209,7 +218,7 @@ fun <T> observableList(items: Collection<T>) = FXCollections.observableArrayList
  * [List.map] but parallel using a [ForkJoinPool].
  */
 inline fun <T, R> List<T>.mapParallel(crossinline block: (T) -> R): List<R> {
-    return map { forkJoinPool.submit(Callable { block(it) }) }
+    return map { ForkJoinPool.commonPool().submit(Callable { block(it) }) }
             .onEach { it.fork() }
             .map { it.join() }
 }
@@ -218,7 +227,7 @@ inline fun <T, R> List<T>.mapParallel(crossinline block: (T) -> R): List<R> {
  * [Map.mapValues] but parallel using a [ForkJoinPool].
  */
 inline fun <K, V, R> Map<K, V>.mapValuesParallel(crossinline block: (V) -> R): Map<K, R> {
-    return mapValues { (_, it) -> forkJoinPool.submit(Callable { block(it) }) }
+    return mapValues { (_, it) -> ForkJoinPool.commonPool().submit(Callable { block(it) }) }
             .onEach { (_, it) -> it.fork() }
             .mapValues { (_, it) -> it.join() }
 }

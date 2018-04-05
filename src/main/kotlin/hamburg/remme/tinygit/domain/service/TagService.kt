@@ -1,8 +1,8 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.Tag
+import hamburg.remme.tinygit.execute
 import hamburg.remme.tinygit.git.gitTagList
 import hamburg.remme.tinygit.observableList
 import javafx.concurrent.Task
@@ -36,7 +36,7 @@ class TagService : Refreshable {
             override fun succeeded() {
                 tags.setAll(value)
             }
-        }.also { TinyGit.execute(it) }
+        }.execute()
     }
 
 }

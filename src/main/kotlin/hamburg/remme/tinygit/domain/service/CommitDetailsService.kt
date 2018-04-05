@@ -1,9 +1,9 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.execute
 import hamburg.remme.tinygit.git.gitDiffTree
 import hamburg.remme.tinygit.observableList
 import javafx.beans.property.SimpleStringProperty
@@ -45,7 +45,7 @@ class CommitDetailsService(service: CommitLogService) : Refreshable {
                     commitDetails.set(detailsRenderer.render(it))
                     commitStatus.setAll(value)
                 }
-            }.also { TinyGit.execute(it) }
+            }.execute()
         } ?: commitStatus.clear()
     }
 

@@ -18,7 +18,7 @@ class MergeService : Refreshable {
     private lateinit var repository: Repository
 
     fun merge(branch: Branch, conflictHandler: () -> Unit, errorHandler: () -> Unit) {
-        TinyGit.execute(I18N["merge.merging"], object : Task<Unit>() {
+        TinyGit.run(I18N["merge.merging"], object : Task<Unit>() {
             override fun call() = gitMerge(repository, branch)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -37,7 +37,7 @@ class MergeService : Refreshable {
     }
 
     fun abort() {
-        TinyGit.execute(I18N["merge.abort"], object : Task<Unit>() {
+        TinyGit.run(I18N["merge.abort"], object : Task<Unit>() {
             override fun call() = gitMergeAbort(repository)
 
             override fun succeeded() = TinyGit.fireEvent()

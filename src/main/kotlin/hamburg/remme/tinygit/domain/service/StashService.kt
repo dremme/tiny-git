@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
+import hamburg.remme.tinygit.execute
 import hamburg.remme.tinygit.git.StashConflictException
 import hamburg.remme.tinygit.git.gitStash
 import hamburg.remme.tinygit.git.gitStashApply
@@ -22,7 +23,7 @@ class StashService : Refreshable {
     private var task: Task<*>? = null
 
     fun create() {
-        TinyGit.execute(I18N["stash.create"], object : Task<Unit>() {
+        TinyGit.run(I18N["stash.create"], object : Task<Unit>() {
             override fun call() = gitStash(repository)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -32,7 +33,7 @@ class StashService : Refreshable {
     }
 
     fun apply(stashEntry: StashEntry, conflictHandler: () -> Unit) {
-        TinyGit.execute(I18N["stash.apply"], object : Task<Unit>() {
+        TinyGit.run(I18N["stash.apply"], object : Task<Unit>() {
             override fun call() = gitStashApply(repository, stashEntry)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -50,7 +51,7 @@ class StashService : Refreshable {
     }
 
     fun pop(conflictHandler: () -> Unit) {
-        TinyGit.execute(I18N["stash.pop"], object : Task<Unit>() {
+        TinyGit.run(I18N["stash.pop"], object : Task<Unit>() {
             override fun call() = gitStashPop(repository)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -68,7 +69,7 @@ class StashService : Refreshable {
     }
 
     fun drop(stashEntry: StashEntry) {
-        TinyGit.execute(I18N["stash.drop"], object : Task<Unit>() {
+        TinyGit.run(I18N["stash.drop"], object : Task<Unit>() {
             override fun call() = gitStashDrop(repository, stashEntry)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -100,7 +101,7 @@ class StashService : Refreshable {
             override fun succeeded() {
                 stashEntries.setAll(value)
             }
-        }.also { TinyGit.execute(it) }
+        }.execute()
     }
 
 }

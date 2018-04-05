@@ -6,6 +6,7 @@ import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.Head
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.execute
 import hamburg.remme.tinygit.git.BranchAlreadyExistsException
 import hamburg.remme.tinygit.git.BranchNameInvalidException
 import hamburg.remme.tinygit.git.BranchUnpushedException
@@ -39,7 +40,7 @@ class BranchService(private val repositoryService: RepositoryService,
     fun isDetached(branch: Branch) = branch.name == "HEAD"
 
     fun checkoutCommit(commit: Commit, errorHandler: () -> Unit) {
-        TinyGit.execute(I18N["branch.checkoutCommit"], object : Task<Unit>() {
+        TinyGit.run(I18N["branch.checkoutCommit"], object : Task<Unit>() {
             override fun call() = gitCheckout(repository, commit)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -55,7 +56,7 @@ class BranchService(private val repositoryService: RepositoryService,
 
     fun checkoutLocal(branch: Branch, errorHandler: () -> Unit) {
         if (branch != head.get()) {
-            TinyGit.execute(I18N["branch.checkoutLocal"], object : Task<Unit>() {
+            TinyGit.run(I18N["branch.checkoutLocal"], object : Task<Unit>() {
                 override fun call() = gitCheckout(repository, branch)
 
                 override fun succeeded() = TinyGit.fireEvent()
@@ -71,7 +72,7 @@ class BranchService(private val repositoryService: RepositoryService,
     }
 
     fun checkoutRemote(branch: Branch, errorHandler: () -> Unit) {
-        TinyGit.execute(I18N["branch.checkoutRemote"], object : Task<Unit>() {
+        TinyGit.run(I18N["branch.checkoutRemote"], object : Task<Unit>() {
             override fun call() = gitCheckoutRemote(repository, branch)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -105,7 +106,7 @@ class BranchService(private val repositoryService: RepositoryService,
 
     fun deleteRemote(branch: Branch) {
         credentialService.applyCredentials(repositoryService.remote.get())
-        TinyGit.execute(I18N["branch.delete"], object : Task<Unit>() {
+        TinyGit.run(I18N["branch.delete"], object : Task<Unit>() {
             override fun call() = gitPushDelete(repository, branch)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -115,7 +116,7 @@ class BranchService(private val repositoryService: RepositoryService,
     }
 
     fun branch(name: String, branchExistsHandler: () -> Unit, nameInvalidHandler: () -> Unit) {
-        TinyGit.execute(I18N["branch.create"], object : Task<Unit>() {
+        TinyGit.run(I18N["branch.create"], object : Task<Unit>() {
             override fun call() = gitBranch(repository, name)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -131,7 +132,7 @@ class BranchService(private val repositoryService: RepositoryService,
     }
 
     fun reset(commit: Commit) {
-        TinyGit.execute(I18N["branch.reset"], object : Task<Unit>() {
+        TinyGit.run(I18N["branch.reset"], object : Task<Unit>() {
             override fun call() = gitResetHard(repository, commit)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -141,7 +142,7 @@ class BranchService(private val repositoryService: RepositoryService,
     }
 
     fun autoReset() {
-        TinyGit.execute(I18N["branch.autoReset"], object : Task<Unit>() {
+        TinyGit.run(I18N["branch.autoReset"], object : Task<Unit>() {
             override fun call() = gitResetHard(repository, head.get())
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -151,7 +152,7 @@ class BranchService(private val repositoryService: RepositoryService,
     }
 
     fun autoSquash(baseId: String, message: String) {
-        TinyGit.execute(I18N["branch.autoSquash"], object : Task<Unit>() {
+        TinyGit.run(I18N["branch.autoSquash"], object : Task<Unit>() {
             override fun call() = gitSquash(repository, baseId, message)
 
             override fun succeeded() = TinyGit.fireEvent()
@@ -191,7 +192,7 @@ class BranchService(private val repositoryService: RepositoryService,
                 this@BranchService.head.set(head)
                 this@BranchService.branches.setAll(branches)
             }
-        }.also { TinyGit.execute(it) }
+        }.execute()
     }
 
 }

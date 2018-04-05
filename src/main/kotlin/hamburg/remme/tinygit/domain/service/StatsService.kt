@@ -1,11 +1,11 @@
 package hamburg.remme.tinygit.domain.service
 
-import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.atStartOfWeek
 import hamburg.remme.tinygit.daysBetween
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.NumStat
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.execute
 import hamburg.remme.tinygit.git.gitDiffNumstat
 import hamburg.remme.tinygit.git.gitLog
 import hamburg.remme.tinygit.gui.component.CalendarChart
@@ -15,6 +15,7 @@ import hamburg.remme.tinygit.mapParallel
 import hamburg.remme.tinygit.mapValuesParallel
 import hamburg.remme.tinygit.observableList
 import hamburg.remme.tinygit.sortedBy
+import javafx.application.Platform
 import javafx.concurrent.Task
 import java.time.LocalDate
 import java.time.Year
@@ -51,7 +52,7 @@ class StatsService {
             }
 
             override fun failed() = exception.printStackTrace()
-        }.also { TinyGit.executeSlowly(it) }
+        }.execute()
     }
 
     fun updateContributors() {
@@ -68,7 +69,7 @@ class StatsService {
             }
 
             override fun failed() = exception.printStackTrace()
-        }.also { TinyGit.executeSlowly(it) }
+        }.execute()
     }
 
     fun updateCommits() {
@@ -95,7 +96,7 @@ class StatsService {
             }
 
             override fun failed() = exception.printStackTrace()
-        }.also { TinyGit.executeSlowly(it) }
+        }.execute()
     }
 
     fun updateFiles() {
@@ -114,7 +115,7 @@ class StatsService {
             }
 
             override fun failed() = exception.printStackTrace()
-        }.also { TinyGit.executeSlowly(it) }
+        }.execute()
     }
 
     fun updateLines(repository: Repository) {
@@ -149,19 +150,26 @@ class StatsService {
             }
 
             override fun failed() = exception.printStackTrace()
-        }.also { TinyGit.executeSlowly(it) }
+        }.execute()
     }
 
-    // TODO: really?
     fun update(repository: Repository) {
         cancel()
         log.clear()
         numStat.clear()
+
         taskPool += object : Task<Unit>() {
             private lateinit var log: List<Commit>
             private lateinit var numStat: List<NumStat>
 
             override fun call() {
+                Platform.runLater {
+                    contributorsListener.started()
+                    filesListener.started()
+                    commitsListener.started()
+                    activityListener.started()
+                    linesListener.started()
+                }
                 log = gitLog(repository, firstDay, lastDay)
                 numStat = gitDiffNumstat(repository, log.last(), log[0])
             }
@@ -175,14 +183,7 @@ class StatsService {
                 updateFiles()
                 updateLines(repository)
             }
-        }.also {
-            contributorsListener.started()
-            filesListener.started()
-            commitsListener.started()
-            activityListener.started()
-            linesListener.started()
-            TinyGit.execute(it)
-        }
+        }.execute()
     }
 
     fun cancel() {
