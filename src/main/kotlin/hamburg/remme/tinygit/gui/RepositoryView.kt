@@ -17,6 +17,7 @@ import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.contextMenu
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
+import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.builder.tree
 import hamburg.remme.tinygit.gui.builder.vbox
@@ -297,8 +298,8 @@ class RepositoryView : VBoxBuilder() {
 
     private class RepositoryListCell : ListCell<Repository>() {
 
-        private val name = Label()
-        private val path = Label().addClass(PATH_STYLE_CLASS)
+        private val name = label {}
+        private val path = label { addClass(PATH_STYLE_CLASS) }
 
         init {
             addClass(REPO_LIST_STYLE_CLASS)

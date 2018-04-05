@@ -140,7 +140,7 @@ class CommitLogView : Tab() {
                     addClass(OVERLAY_STYLE_CLASS)
                     visibleWhen(Bindings.isEmpty(graph.items))
                     managedWhen(visibleProperty())
-                    +label { +I18N["commitLog.noCommits"] }
+                    +label { text = I18N["commitLog.noCommits"] }
                 }
             }
         }
@@ -176,7 +176,7 @@ class CommitLogView : Tab() {
             visibleWhen(visible)
             managedWhen(visibleProperty())
             +progressIndicator(0.5)
-            +label { +I18N["commitLog.fetching"] }
+            +label { text = I18N["commitLog.fetching"] }
         }
 
         override fun started() = visible.set(true)

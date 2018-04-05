@@ -2,13 +2,13 @@ package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.gui.builder.addClass
+import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.textArea
+import hamburg.remme.tinygit.gui.builder.textField
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import javafx.application.Platform
-import javafx.scene.control.Label
-import javafx.scene.control.TextField
 import javafx.scene.layout.Priority
 import javafx.stage.Window
 
@@ -26,8 +26,8 @@ class TextInputDialog(ok: String, isTextArea: Boolean, window: Window) : Dialog<
         set(value) {
             label.text = value
         }
-    private val label = Label().apply { managedWhen(textProperty().isNotEmpty) }
-    private val input = if (isTextArea) textArea { vgrow(Priority.ALWAYS) } else TextField()
+    private val label = label { managedWhen(textProperty().isNotEmpty) }
+    private val input = if (isTextArea) textArea { vgrow(Priority.ALWAYS) } else textField {}
 
     init {
         Platform.runLater { input.requestFocus() }

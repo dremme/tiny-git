@@ -4,7 +4,6 @@ import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asResource
 import hamburg.remme.tinygit.gui.builder.addClass
-import hamburg.remme.tinygit.gui.builder.columnSpan
 import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.link
@@ -28,15 +27,14 @@ class AboutDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.about.titl
 
             val author = label {
                 addClass(AUTHOR_STYLE_CLASS)
-                columnSpan(2)
-                +"Dennis Remme"
+                text = "Dennis Remme"
             }
             val link = link {
-                text = "remme.hamburg"
+                text = "www.remme.hamburg"
                 setOnAction { TinyGit.showDocument("https://remme.hamburg") }
             }
 
-            +listOf(author,
+            +listOf(Icons.coffee(), author,
                     Icons.envelope(), Label("dennis@remme.hamburg"),
                     Icons.globe(), link)
         }

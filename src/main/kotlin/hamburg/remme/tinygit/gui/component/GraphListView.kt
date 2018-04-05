@@ -76,13 +76,13 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
         private val commitId = label { addClass(COMMIT_STYLE_CLASS) }
         private val date = label {
             addClass(DATE_STYLE_CLASS)
-            +Icons.calendar()
+            graphic = Icons.calendar()
         }
         private val badges = hbox { addClass(BRANCHES_STYLE_CLASS) }
         private val message = label { addClass(MESSAGE_STYLE_CLASS) }
         private val author = label {
             addClass(AUTHOR_STYLE_CLASS)
-            +Icons.user()
+            graphic = Icons.user()
         }
 
         init {
@@ -120,8 +120,8 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
                     addClass(BADGE_STYLE_CLASS)
                     if (service.isDetached(it)) addClass(DETACHED_STYLE_CLASS)
                     else if (service.isHead(it)) addClass(CURRENT_STYLE_CLASS)
-                    +it.name.abbrev()
-                    +if (service.isDetached(it)) Icons.locationArrow() else Icons.codeFork()
+                    text = it.name.abbrev()
+                    graphic = if (service.isDetached(it)) Icons.locationArrow() else Icons.codeFork()
                 }
             }
         }

@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.domain.File
+import hamburg.remme.tinygit.gui.builder.HBoxBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
@@ -9,7 +10,6 @@ import hamburg.remme.tinygit.gui.builder.tooltip
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.scene.control.Label
-import javafx.scene.layout.HBox
 
 private const val DEFAULT_STYLE_CLASS = "status-count-view"
 
@@ -17,68 +17,75 @@ private const val DEFAULT_STYLE_CLASS = "status-count-view"
  * A list of [File]s which status will be displayed as summary. Often used inside a
  * [javafx.scene.control.ToolBar] and in conjunction with the [FileStatusView].
  */
-class StatusCountView(items: ObservableList<File>) : HBox() {
+class StatusCountView(items: ObservableList<File>) : HBoxBuilder() {
 
     private val conflicting = label {
         addClass(CONFLICT_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.conflicting"])
         isVisible = false
-        +FileStatusView.conflictIcon()
+        graphic = FileStatusView.conflictIcon()
     }
     private val added = label {
         addClass(ADDED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.added"])
         isVisible = false
-        +FileStatusView.addedIcon()
+        graphic = FileStatusView.addedIcon()
     }
     private val copied = label {
         addClass(COPIED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.copied"])
         isVisible = false
-        +FileStatusView.copiedIcon()
+        graphic = FileStatusView.copiedIcon()
     }
     private val renamed = label {
         addClass(RENAMED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.renamed"])
         isVisible = false
-        +FileStatusView.renamedIcon()
+        graphic = FileStatusView.renamedIcon()
     }
     private val modified = label {
         addClass(MODIFIED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.modified"])
         isVisible = false
-        +FileStatusView.modifiedIcon()
+        graphic = FileStatusView.modifiedIcon()
     }
     private val removed = label {
         addClass(REMOVED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.removed"])
         isVisible = false
-        +FileStatusView.removedIcon()
+        graphic = FileStatusView.removedIcon()
     }
     private val missing = label {
         addClass(MISSING_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.missing"])
         isVisible = false
-        +FileStatusView.missingIcon()
+        graphic = FileStatusView.missingIcon()
     }
     private val untracked = label {
         addClass(UNTRACKED_STYLE_CLASS)
         managedWhen(visibleProperty())
         tooltip(I18N["status.untracked"])
         isVisible = false
-        +FileStatusView.untrackedIcon()
+        graphic = FileStatusView.untrackedIcon()
     }
 
     init {
         addClass(DEFAULT_STYLE_CLASS)
-        children.addAll(conflicting, added, copied, renamed, modified, removed, missing, untracked)
+        +conflicting
+        +added
+        +copied
+        +renamed
+        +modified
+        +removed
+        +missing
+        +untracked
         items.addListener(ListChangeListener { update(it.list) })
     }
 

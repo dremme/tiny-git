@@ -20,6 +20,7 @@ object Icons {
     fun cloudDownload() = icon('\uf381')
     fun cloudUpload() = icon('\uf382')
     fun codeFork() = icon('\uf126')
+    fun coffee() = icon('\uf0f4')
     fun cog() = icon('\uf013')
     fun cube() = icon('\uf1b2')
     fun cubes() = icon('\uf1b3')

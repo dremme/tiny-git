@@ -195,7 +195,7 @@ class WorkingCopyView : Tab() {
                 addClass(OVERLAY_STYLE_CLASS)
                 visibleWhen(Bindings.isEmpty(staged.items).and(Bindings.isEmpty(pending.items)))
                 managedWhen(visibleProperty())
-                +label { +I18N["workingCopy.nothingToCommit"] }
+                +label { text = I18N["workingCopy.nothingToCommit"] }
             }
         }
 

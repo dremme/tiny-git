@@ -28,10 +28,10 @@ class CmdDialog(repository: Repository, window: Window) : Dialog<Array<String>>(
         graphic = Icons.terminal()
         content = vbox {
             addClass(DEFAULT_STYLE_CLASS)
-            +label { +"${I18N["dialog.cmd.text", repository.path]}:" }
+            +label { text = "${I18N["dialog.cmd.text", repository.path]}:" }
             +hbox {
                 addClass(CONTENT_STYLE_CLASS)
-                +label { +"git" }
+                +label { text = "git" }
                 +input
             }
         }

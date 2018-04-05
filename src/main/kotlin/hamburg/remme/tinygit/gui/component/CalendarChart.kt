@@ -168,7 +168,7 @@ class CalendarChart(title: String) : Chart(title) {
 
         val label = label {
             addClass(TICK_STYLE_CLASS)
-            +name
+            text = name
         }
 
     }

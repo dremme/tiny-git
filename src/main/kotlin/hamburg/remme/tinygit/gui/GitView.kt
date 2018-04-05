@@ -3,7 +3,6 @@ package hamburg.remme.tinygit.gui
 import de.codecentric.centerdevice.MenuToolkit
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
-import hamburg.remme.tinygit.initMacApp
 import hamburg.remme.tinygit.createMacWindow
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.git.defaultBranches
@@ -41,6 +40,7 @@ import hamburg.remme.tinygit.gui.dialog.CmdDialog
 import hamburg.remme.tinygit.gui.dialog.CmdResultDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
+import hamburg.remme.tinygit.initMacApp
 import hamburg.remme.tinygit.isMac
 import javafx.application.Platform
 import javafx.concurrent.Task
@@ -243,26 +243,26 @@ class GitView(private val window: Stage) : VBoxBuilder() {
                 +vbox {
                     +hbox {
                         +Icons.folderOpen()
-                        +label { +I18N["gitView.addRepositoryInfo"] }
+                        +label { text = I18N["gitView.addRepositoryInfo"] }
                         +label {
                             addClass(SHORTCUT_STYLE_CLASS)
-                            +KeyCombination.valueOf(addRepo.shortcut).displayText
+                            text = KeyCombination.valueOf(addRepo.shortcut).displayText
                         }
                     }
                     +hbox {
                         +Icons.clone()
-                        +label { +I18N["gitView.cloneRepositoryInfo"] }
+                        +label { text = I18N["gitView.cloneRepositoryInfo"] }
                         +label {
                             addClass(SHORTCUT_STYLE_CLASS)
-                            +KeyCombination.valueOf(cloneRepo.shortcut).displayText
+                            text = KeyCombination.valueOf(cloneRepo.shortcut).displayText
                         }
                     }
                     +hbox {
                         +Icons.folder()
-                        +label { +I18N["gitView.newRepositoryInfo"] }
+                        +label { text = I18N["gitView.newRepositoryInfo"] }
                         +label {
                             addClass(SHORTCUT_STYLE_CLASS)
-                            +KeyCombination.valueOf(newRepo.shortcut).displayText
+                            text = KeyCombination.valueOf(newRepo.shortcut).displayText
                         }
                     }
                 }

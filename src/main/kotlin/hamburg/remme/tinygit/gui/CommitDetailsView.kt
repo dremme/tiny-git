@@ -73,7 +73,7 @@ class CommitDetailsView : SplitPaneBuilder() {
                     addClass(OVERLAY_STYLE_CLASS)
                     visibleWhen(Bindings.isEmpty(files.items))
                     managedWhen(visibleProperty())
-                    +label { +I18N["commitDetails.noChanges"] }
+                    +label { text = I18N["commitDetails.noChanges"] }
                 }
             }
         }

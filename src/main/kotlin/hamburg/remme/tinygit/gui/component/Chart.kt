@@ -8,11 +8,11 @@ import javafx.scene.layout.Region
 private const val DEFAULT_STYLE_CLASS = "chart"
 private const val TITLE_STYLE_CLASS = "title"
 
-abstract class Chart(val title: String) : Region() {
+abstract class Chart(title: String) : Region() {
 
     private val titleLabel = label {
         addClass(TITLE_STYLE_CLASS)
-        +title
+        text = title
     }
     private val chartContent = object : Pane() {
         override fun layoutChildren() {
