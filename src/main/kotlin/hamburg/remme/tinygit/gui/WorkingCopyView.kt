@@ -9,6 +9,8 @@ import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.contextMenu
 import hamburg.remme.tinygit.gui.builder.errorAlert
+import hamburg.remme.tinygit.gui.builder.label
+import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
 import hamburg.remme.tinygit.gui.builder.toolBar
@@ -24,8 +26,12 @@ import javafx.scene.control.SelectionMode
 import javafx.scene.control.Tab
 import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
-import javafx.scene.text.Text
 import java.util.concurrent.Callable
+
+private const val DEFAULT_STYLE_CLASS = "working-copy-view"
+private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
+private const val FILES_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__files"
+private const val OVERLAY_STYLE_CLASS = "overlay"
 
 /**
  * This view is showing the currently state of the working copy and a diff for the selected file.
@@ -155,11 +161,13 @@ class WorkingCopyView : Tab() {
                 selectedStaged.selectedItemProperty(), selectedPending.selectedItemProperty()))
 
         content = stackPane {
+            addClass(DEFAULT_STYLE_CLASS)
+
             +splitPane {
-                addClass("working-copy-view")
+                addClass(CONTENT_STYLE_CLASS)
 
                 +splitPane {
-                    addClass("files")
+                    addClass(FILES_STYLE_CLASS)
 
                     +vbox {
                         +toolBar {
@@ -184,9 +192,10 @@ class WorkingCopyView : Tab() {
                 +fileDiff
             }
             +stackPane {
-                addClass("overlay")
+                addClass(OVERLAY_STYLE_CLASS)
                 visibleWhen(Bindings.isEmpty(staged.items).and(Bindings.isEmpty(pending.items)))
-                +Text(I18N["workingCopy.nothingToCommit"])
+                managedWhen(visibleProperty())
+                +label { text = I18N["workingCopy.nothingToCommit"] }
             }
         }
 

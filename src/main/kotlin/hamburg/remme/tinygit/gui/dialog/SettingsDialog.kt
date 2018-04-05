@@ -19,6 +19,8 @@ import hamburg.remme.tinygit.gui.builder.textField
 import javafx.scene.control.Label
 import javafx.stage.Window
 
+private const val DEFAULT_STYLE_CLASS = "settings-dialog"
+
 class SettingsDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.settings.title"]) {
 
     private val service = TinyGit.repositoryService
@@ -57,7 +59,7 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.setting
         }
 
         content = grid(2) {
-            addClass("settings-view")
+            addClass(DEFAULT_STYLE_CLASS)
             +listOf(Label("${I18N["dialog.settings.remote"]}:"), remote,
                     Label("${I18N["dialog.settings.location"]}:"), location,
                     Label("${I18N["dialog.settings.userName"]}:"), userName,

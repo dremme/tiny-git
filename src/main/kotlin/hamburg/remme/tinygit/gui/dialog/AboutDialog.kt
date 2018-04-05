@@ -4,7 +4,6 @@ import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asResource
 import hamburg.remme.tinygit.gui.builder.addClass
-import hamburg.remme.tinygit.gui.builder.columnSpan
 import hamburg.remme.tinygit.gui.builder.grid
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.link
@@ -13,28 +12,29 @@ import javafx.scene.control.Label
 import javafx.scene.image.Image
 import javafx.stage.Window
 
-// TODO: should be wider
+private const val DEFAULT_STYLE_CLASS = "about-dialog"
+private const val AUTHOR_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__author"
+
 class AboutDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.about.title"]) {
 
     init {
         +DialogButton(DialogButton.CLOSE)
 
         header = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
-        image = Image("icon-small.png".asResource())
+        image = Image("icon.png".asResource())
         content = grid(2) {
-            addClass("about-view")
+            addClass(DEFAULT_STYLE_CLASS)
 
             val author = label {
-                addClass("author")
-                columnSpan(2)
-                +"Dennis Remme"
+                addClass(AUTHOR_STYLE_CLASS)
+                text = "Dennis Remme"
             }
             val link = link {
-                text = "remme.hamburg"
+                text = "www.remme.hamburg"
                 setOnAction { TinyGit.showDocument("https://remme.hamburg") }
             }
 
-            +listOf(author,
+            +listOf(Icons.coffee(), author,
                     Icons.envelope(), Label("dennis@remme.hamburg"),
                     Icons.globe(), link)
         }

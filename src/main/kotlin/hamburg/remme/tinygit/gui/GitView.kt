@@ -3,6 +3,8 @@ package hamburg.remme.tinygit.gui
 import de.codecentric.centerdevice.MenuToolkit
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.createMacWindow
+import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.git.defaultBranches
 import hamburg.remme.tinygit.git.git
 import hamburg.remme.tinygit.git.gitLogExclusive
@@ -21,9 +23,7 @@ import hamburg.remme.tinygit.gui.builder.flipY
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
-import hamburg.remme.tinygit.gui.builder.menu
 import hamburg.remme.tinygit.gui.builder.menuBar
-import hamburg.remme.tinygit.gui.builder.menuItem
 import hamburg.remme.tinygit.gui.builder.progressIndicator
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
@@ -40,15 +40,21 @@ import hamburg.remme.tinygit.gui.dialog.CmdDialog
 import hamburg.remme.tinygit.gui.dialog.CmdResultDialog
 import hamburg.remme.tinygit.gui.dialog.CommitDialog
 import hamburg.remme.tinygit.gui.dialog.SettingsDialog
+import hamburg.remme.tinygit.initMacApp
 import hamburg.remme.tinygit.isMac
 import javafx.application.Platform
 import javafx.concurrent.Task
-import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TabPane
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Priority
-import javafx.scene.text.Text
 import javafx.stage.Stage
+
+private const val DEFAULT_STYLE_CLASS = "git-view"
+private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
+private const val INFO_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__info"
+private const val PROGRESS_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__progress"
+private const val OVERLAY_STYLE_CLASS = "overlay"
+private const val SHORTCUT_STYLE_CLASS = "${OVERLAY_STYLE_CLASS}__shortcut"
 
 /**
  * The application root. Will create the menu depending on the operating system (OS).
@@ -82,7 +88,7 @@ import javafx.stage.Stage
  * @see WorkingCopyView
  * @see StatsView
  */
-class GitView : VBoxBuilder() {
+class GitView(private val window: Stage) : VBoxBuilder() {
 
     private val repoService = TinyGit.repositoryService
     private val branchService = TinyGit.branchService
@@ -92,10 +98,9 @@ class GitView : VBoxBuilder() {
     private val remoteService = TinyGit.remoteService
     private val stashService = TinyGit.stashService
     private val state = TinyGit.state
-    private val window get() = scene.window
 
     init {
-        addClass("git-view")
+        addClass(DEFAULT_STYLE_CLASS)
 
         val repositoryView = RepositoryView()
         val commitLog = CommitLogView()
@@ -170,19 +175,7 @@ class GitView : VBoxBuilder() {
         val cmd = Action(I18N["menu.command"], { Icons.terminal() }, disabled = state.canCmd.not(),
                 handler = { gitCommand() })
 
-        if (isMac) {
-            val toolkit = MenuToolkit.toolkit()
-            toolkit.setApplicationMenu(menu {
-                text = "TinyGit"
-                +menuItem(preferences)
-                +SeparatorMenuItem()
-                +toolkit.createHideMenuItem("TinyGit")
-                +toolkit.createHideOthersMenuItem()
-                +toolkit.createUnhideAllMenuItem()
-                +SeparatorMenuItem()
-                +toolkit.createQuitMenuItem("TinyGit")
-            })
-        }
+        if (isMac) initMacApp(preferences)
         +menuBar {
             isUseSystemMenuBar = true
             val file = mutableListOf(ActionGroup(cloneRepo, newRepo, addRepo))
@@ -205,28 +198,7 @@ class GitView : VBoxBuilder() {
                     *workingCopy.actions,
                     ActionGroup(stash, stashPop),
                     ActionGroup(cmd))
-            if (isMac) {
-                val toolkit = MenuToolkit.toolkit()
-                +menu {
-                    text = I18N["menuBar.window"]
-                    +toolkit.createMinimizeMenuItem()
-                    +toolkit.createZoomMenuItem()
-                    +menuItem {
-                        shortcut = "Shortcut+Ctrl+F"
-                        text = I18N["menu.enterFullscreen"]
-                        setOnAction {
-                            val stage = window as Stage
-                            if (stage.isFullScreen) {
-                                text = I18N["menu.enterFullscreen"]
-                                stage.isFullScreen = false
-                            } else {
-                                text = I18N["menu.exitFullscreen"]
-                                stage.isFullScreen = true
-                            }
-                        }
-                    }
-                }
-            }
+            if (isMac) +createMacWindow(window)
             +ActionCollection(I18N["menuBar.help"], ActionGroup(github, about))
         }
         +toolBar {
@@ -257,39 +229,49 @@ class GitView : VBoxBuilder() {
             +cmd
         }
         +stackPane {
+            addClass(CONTENT_STYLE_CLASS)
             vgrow(Priority.ALWAYS)
             +splitPane {
-                addClass("content")
                 +repositoryView
                 +tabs
                 Platform.runLater { setDividerPosition(0, 0.20) }
             }
             +stackPane {
-                addClass("overlay")
+                addClass(OVERLAY_STYLE_CLASS, INFO_STYLE_CLASS)
                 visibleWhen(state.showGlobalInfo)
+                managedWhen(visibleProperty())
                 +vbox {
-                    addClass("box")
                     +hbox {
                         +Icons.folderOpen()
-                        +Text(I18N["gitView.addRepositoryInfo"])
-                        +Text(KeyCombination.valueOf(addRepo.shortcut).displayText).addClass("shortcut")
+                        +label { text = I18N["gitView.addRepositoryInfo"] }
+                        +label {
+                            addClass(SHORTCUT_STYLE_CLASS)
+                            text = KeyCombination.valueOf(addRepo.shortcut).displayText
+                        }
                     }
                     +hbox {
                         +Icons.clone()
-                        +Text(I18N["gitView.cloneRepositoryInfo"])
-                        +Text(KeyCombination.valueOf(cloneRepo.shortcut).displayText).addClass("shortcut")
+                        +label { text = I18N["gitView.cloneRepositoryInfo"] }
+                        +label {
+                            addClass(SHORTCUT_STYLE_CLASS)
+                            text = KeyCombination.valueOf(cloneRepo.shortcut).displayText
+                        }
                     }
                     +hbox {
                         +Icons.folder()
-                        +Text(I18N["gitView.newRepositoryInfo"])
-                        +Text(KeyCombination.valueOf(newRepo.shortcut).displayText).addClass("shortcut")
+                        +label { text = I18N["gitView.newRepositoryInfo"] }
+                        +label {
+                            addClass(SHORTCUT_STYLE_CLASS)
+                            text = KeyCombination.valueOf(newRepo.shortcut).displayText
+                        }
                     }
                 }
             }
             +stackPane {
-                addClass("progress-overlay")
+                addClass(OVERLAY_STYLE_CLASS, PROGRESS_STYLE_CLASS)
                 visibleWhen(state.showGlobalOverlay)
-                +progressIndicator(48.0)
+                managedWhen(visibleProperty())
+                +progressIndicator(4.0)
                 +label { textProperty().bind(state.processText) }
             }
         }
@@ -353,7 +335,7 @@ class GitView : VBoxBuilder() {
 
     private fun merge() {
         val current = branchService.head.get()
-        val branches = branchService.branches.filter { it != current }
+        val branches = branchService.branches.filter { it != current }.sortedByDefault()
         choiceDialog(window, I18N["dialog.merge.header"], I18N["dialog.merge.button"], Icons.codeFork().flipY(), branches) {
             mergeService.merge(
                     it,
@@ -364,7 +346,14 @@ class GitView : VBoxBuilder() {
 
     private fun rebase() {
         val current = branchService.head.get()
-        val branches = branchService.branches.filter { it != current }.sortedWith(Comparator { a, b ->
+        val branches = branchService.branches.filter { it != current }.sortedByDefault()
+        choiceDialog(window, I18N["dialog.rebase.header"], I18N["dialog.rebase.button"], Icons.levelUp().flipX(), branches) {
+            rebaseService.rebase(it, { errorAlert(window, I18N["dialog.cannotRebase.header"], it) })
+        }
+    }
+
+    private fun List<Branch>.sortedByDefault(): List<Branch> {
+        return sortedWith(Comparator { a, b ->
             when {
                 defaultBranches.contains(a.name) && defaultBranches.contains(b.name) -> a.compareTo(b)
                 defaultBranches.contains(a.name) -> -1
@@ -372,9 +361,6 @@ class GitView : VBoxBuilder() {
                 else -> a.compareTo(b)
             }
         })
-        choiceDialog(window, I18N["dialog.rebase.header"], I18N["dialog.rebase.button"], Icons.levelUp().flipX(), branches) {
-            rebaseService.rebase(it, { errorAlert(window, I18N["dialog.cannotRebase.header"], it) })
-        }
     }
 
     private fun rebaseContinue() {

@@ -1,0 +1,61 @@
+.about-dialog {
+  -fx-min-width: 25em;
+  -fx-vgap: $px12;
+  -fx-hgap: $px12;
+
+  &__author {
+    @extend %fontBold; // TODO: not working??
+  }
+}
+
+.credentials-dialog,
+.text-dialog,
+.choice-dialog {
+  -fx-min-width: 25em;
+  -fx-spacing: $px12;
+}
+
+.choice-dialog {
+  .combo-box {
+    -fx-min-width: 23em;
+  }
+}
+
+.settings-dialog,
+.clone-dialog {
+  -fx-hgap: $px12;
+  -fx-vgap: $px12;
+
+  > .label {
+    @extend %fontBold; // TODO: not working??
+  }
+}
+
+.command-result-dialog,
+.command-dialog {
+  -fx-min-width: 25em;
+}
+
+.command-dialog {
+  -fx-spacing: $px12;
+
+  &__content {
+    -fx-alignment: center;
+    -fx-spacing: $px4;
+
+    .text-input,
+    .label {
+      @extend %fontMono;
+    }
+  }
+}
+
+.command-result-dialog {
+  .text-area {
+    @extend %fontMono;
+  }
+}
+
+.commit-dialog {
+  -fx-spacing: $px12;
+}

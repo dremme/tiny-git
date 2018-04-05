@@ -8,32 +8,46 @@ import javafx.scene.shape.CubicCurveTo
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
+import javafx.scene.shape.Rectangle
 
+private const val DEFAULT_STYLE_CLASS = "graph-list-view"
+private const val PATH_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__path"
+private const val PATH_COLOR_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__path-color"
+private const val NODE_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__node-color"
 private const val EMPTY_SPACING = 0.0
 private const val SPACING = 24.0
 private const val RADIUS = 6.0
 private const val LAST_INDEX = 9999
-private const val COLOR_COUNT = 11
+private const val COLOR_COUNT = 16
 
 /**
  * This skin is enhancing the [javafx.scene.control.skin.ListViewSkin] to display a Git log graph style [Path].
  * The cells are still drawn by the default list skin.
- *
- * @todo: graph clipping over scrollbars
  *
  * @see hamburg.remme.tinygit.domain.LogGraph
  */
 class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSkinBase(graphView) {
 
     private val paths: List<Path>
+    private val pathsClip = Rectangle()
     private val circleGroup = Group()
+    private val circleClip = Rectangle()
 
     init {
+        pathsClip.isManaged = false
+        pathsClip.isSmooth = false
+        circleClip.isManaged = false
+        circleClip.isSmooth = false
+
         val pathGroup = Group()
+        pathGroup.clip = pathsClip
         pathGroup.isManaged = false
+
         circleGroup.isManaged = false
+        circleGroup.clip = circleClip
+
         children.addAll(pathGroup, circleGroup)
-        paths = (0..7).map { Path().addClass("commit-path", "path-color$it") }
+        paths = (0 until COLOR_COUNT).map { Path().addClass(PATH_STYLE_CLASS, "$PATH_COLOR_STYLE_CLASS$it") }
         paths.reversed().forEach { pathGroup.children += it }
     }
 
@@ -42,6 +56,13 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
         circleGroup.children.clear()
 
         if (graphView.isGraphVisible && hasCells) {
+            pathsClip.width = flow.width
+            pathsClip.height = flow.height
+            if (horizontalBar.isVisible) pathsClip.height -= horizontalBar.height
+            if (verticalBar.isVisible) pathsClip.width -= verticalBar.width
+            circleClip.width = pathsClip.width
+            circleClip.height = pathsClip.height
+
             val scrollX = horizontalBar.value
             val cellHeight = (firstCell.index..lastCell.index).map { flow.getVisibleCell(it).height }.average()
 
@@ -56,7 +77,7 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
                 }
 
                 if (commitIndex >= firstCell.index && commitIndex <= lastCell.index) {
-                    circleGroup.children += Circle(commitX, commitY, RADIUS).addClass("commit-node", "node-color${tag % COLOR_COUNT}")
+                    circleGroup.children += Circle(commitX, commitY, RADIUS).addClass("$NODE_STYLE_CLASS${tag % COLOR_COUNT}")
                 }
 
                 commit.parents.forEach { parent ->
@@ -95,9 +116,9 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
                     }
                 }
             }
-            graphView.graphWidth = SPACING + SPACING * (graphView.logGraph.getHighestTag() + 1)
+            graphView.graphWidth = SPACING / 2 + SPACING * (graphView.logGraph.getHighestTag() + 1)
         } else if (!hasCells) {
-            graphView.graphWidth = SPACING + SPACING * (graphView.logGraph.getHighestTag() + 1)
+            graphView.graphWidth = SPACING / 2 + SPACING * (graphView.logGraph.getHighestTag() + 1)
         } else {
             graphView.graphWidth = EMPTY_SPACING
         }

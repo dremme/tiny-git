@@ -40,16 +40,21 @@ import java.util.concurrent.TimeUnit
 /**
  * Will launch [TinyGit] with the given [args].
  * Will also set the locale to [Locale.ROOT] at the moment.
+ *
+ * @todo: fix DPI issues for Linux
  */
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
 
-    Font.loadFont("font/Roboto-Regular.ttf".asResource(), 13.0)
-    Font.loadFont("font/Roboto-Bold.ttf".asResource(), 13.0)
-    Font.loadFont("font/Roboto-Light.ttf".asResource(), 13.0)
-    Font.loadFont("font/LiberationMono-Regular.ttf".asResource(), 12.0)
-    Font.loadFont("font/fa-brands-400.ttf".asResource(), 14.0)
-    Font.loadFont("font/fa-solid-900.ttf".asResource(), 14.0)
+    // Will load needed fonts and set the font size depending on the OS
+    // This might be a solution to the DPI issues on Linux, e.g. Ubuntu
+    System.setProperty("com.sun.javafx.fontSize", fontSize.toString())
+    Font.loadFont("font/Roboto-Regular.ttf".asResource(), fontSize.toDouble())
+    Font.loadFont("font/Roboto-Bold.ttf".asResource(), fontSize.toDouble())
+    Font.loadFont("font/Roboto-Light.ttf".asResource(), fontSize.toDouble())
+    Font.loadFont("font/LiberationMono-Regular.ttf".asResource(), fontSize.toDouble())
+    Font.loadFont("font/fa-brands-400.ttf".asResource(), fontSize.toDouble())
+    Font.loadFont("font/fa-solid-900.ttf".asResource(), fontSize.toDouble())
 
     Application.launch(TinyGit::class.java, *args)
 }
@@ -151,6 +156,8 @@ class TinyGit : Application() {
 
     init {
         TinyGit.application = this
+        if (isMac) Application.setUserAgentStylesheet("/css/main-mac.css")
+        else Application.setUserAgentStylesheet("/css/main-windows.css")
     }
 
     override fun start(stage: Stage) {
@@ -178,7 +185,6 @@ class TinyGit : Application() {
 
         initSettings()
         initWindow()
-        initScaling()
 
         stage.show()
 
@@ -212,8 +218,7 @@ class TinyGit : Application() {
 
     private fun initWindow() {
         stage.focusedProperty().addListener { _, _, it -> if (it) state.isModal.takeIf { it.get() }?.set(false) ?: fireEvent() }
-        stage.scene = Scene(GitView())
-        stage.scene.stylesheets += "default.css".asResource()
+        stage.scene = Scene(GitView(stage))
         stage.icons += Image("icon.png".asResource())
         stage.titleProperty().bind(Bindings.createStringBinding(Callable { updateTitle() },
                 repositoryService.activeRepository,
@@ -221,10 +226,6 @@ class TinyGit : Application() {
                 rebaseService.isRebasing,
                 rebaseService.rebaseNext,
                 rebaseService.rebaseLast))
-    }
-
-    private fun initScaling() {
-        // TODO
     }
 
     private fun updateTitle(): String {

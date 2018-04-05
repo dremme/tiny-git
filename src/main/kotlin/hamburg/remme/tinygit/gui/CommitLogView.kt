@@ -27,10 +27,13 @@ import hamburg.remme.tinygit.gui.component.Icons
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ListChangeListener
-import javafx.geometry.Pos
 import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
-import javafx.scene.text.Text
+
+private const val DEFAULT_STYLE_CLASS = "commit-log-view"
+private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
+private const val INDICATOR_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__indicator"
+private const val OVERLAY_STYLE_CLASS = "overlay"
 
 /**
  * Displaying basically the output of `git log`. Each log entry can be selected to display the details of that
@@ -110,6 +113,8 @@ class CommitLogView : Tab() {
 
         val indicator = FetchIndicator()
         content = vbox {
+            addClass(DEFAULT_STYLE_CLASS)
+
             +toolBar {
                 +indicator
                 addSpacer()
@@ -126,15 +131,16 @@ class CommitLogView : Tab() {
             +stackPane {
                 vgrow(Priority.ALWAYS)
                 +splitPane {
-                    addClass("log-view")
+                    addClass(CONTENT_STYLE_CLASS)
                     vgrow(Priority.ALWAYS)
                     +graph
                     +CommitDetailsView()
                 }
                 +stackPane {
-                    addClass("overlay")
+                    addClass(OVERLAY_STYLE_CLASS)
                     visibleWhen(Bindings.isEmpty(graph.items))
-                    +Text(I18N["commitLog.noCommits"])
+                    managedWhen(visibleProperty())
+                    +label { text = I18N["commitLog.noCommits"] }
                 }
             }
         }
@@ -166,12 +172,11 @@ class CommitLogView : Tab() {
         private val visible = SimpleBooleanProperty()
 
         init {
+            addClass(INDICATOR_STYLE_CLASS)
             visibleWhen(visible)
             managedWhen(visibleProperty())
-            spacing = 6.0
-            alignment = Pos.CENTER
-            +progressIndicator(6.0)
-            +label { +I18N["commitLog.fetching"] }
+            +progressIndicator(0.5)
+            +label { text = I18N["commitLog.fetching"] }
         }
 
         override fun started() = visible.set(true)

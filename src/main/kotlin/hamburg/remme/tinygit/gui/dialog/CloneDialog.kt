@@ -19,6 +19,8 @@ import javafx.application.Platform
 import javafx.scene.control.Label
 import javafx.stage.Window
 
+private const val DEFAULT_STYLE_CLASS = "clone-dialog"
+
 class CloneDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.clone.title"]) {
 
     private val service = TinyGit.repositoryService
@@ -57,7 +59,7 @@ class CloneDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.clone.titl
         }
 
         content = grid(3) {
-            addClass("settings-view")
+            addClass(DEFAULT_STYLE_CLASS)
             +listOf(Label("${I18N["dialog.clone.remote"]}:"), url,
                     Label("${I18N["dialog.clone.location"]}:"), location, locationSet,
                     Label("${I18N["dialog.clone.userName"]}:"), userName,

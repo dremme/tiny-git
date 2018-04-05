@@ -21,15 +21,12 @@ import hamburg.remme.tinygit.gui.component.DonutChart
 import hamburg.remme.tinygit.gui.component.HistogramChart
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.monthOfYearFormat
-import hamburg.remme.tinygit.observableList
 import hamburg.remme.tinygit.shortDateFormat
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ListChangeListener
 import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
-import java.time.DayOfWeek
-import java.time.LocalDate
 import javafx.scene.chart.XYChart.Data as XYData
 
 /**
@@ -83,7 +80,7 @@ class StatsView : Tab() {
     private val files: DonutChart
     private val commits: HistogramChart
     private val lines: HistogramChart
-    private val activityData = observableList<XYData<LocalDate, DayOfWeek>>() // TODO
+    private val activity: CalendarChart
 
     init {
         text = I18N["stats.tab"]
@@ -118,9 +115,9 @@ class StatsView : Tab() {
         val linesIndicator = ProgressIndicator(lines).columnSpan(2)
         statsService.linesListener = linesIndicator
 
-        val activity = CalendarChart(activityData)
+        activity = CalendarChart(I18N["stats.activityChart"])
         activity.prefHeight = 250.0
-        activity.title = I18N["stats.activityChart"]
+        activity.updateBoundsAndTicks()
         val activityIndicator = ProgressIndicator(activity).columnSpan(2)
         statsService.activityListener = activityIndicator
 
@@ -133,11 +130,11 @@ class StatsView : Tab() {
                     setOnAction { statsService.update(repoService.activeRepository.get()!!) }
                 }
                 // TODO: implement
-                +comboBox<CalendarChart.Period> {
+                +comboBox<Any> {
                     isDisable = true
-                    items.addAll(CalendarChart.Period.values())
-                    valueProperty().addListener { _, _, it -> activity.updateYear(it) }
-                    value = CalendarChart.Period.LAST_YEAR
+//                    items.addAll(CalendarChart.Period.values())
+//                    valueProperty().addListener { _, _, it -> activity.updateYear(it) }
+//                    value = CalendarChart.Period.LAST_YEAR
                 }
             }
             +scrollPane {
@@ -172,6 +169,13 @@ class StatsView : Tab() {
                 .map { HistogramChart.TickMark(monthOfYearFormat.format(it), it) })
     }
 
+    private fun CalendarChart.updateBoundsAndTicks() {
+        lowerBound = statsService.firstDay
+        upperBound = statsService.lastDay
+        setTickMarks((0L..12L).map { statsService.firstDay.plusMonths(it) }
+                .map { CalendarChart.TickMark(monthOfYearFormat.format(it), it) })
+    }
+
     private fun updateContributions(data: List<DonutChart.Data>) {
         contributions.setData(data, { I18N["stats.descContrib", it] })
         data.forEach { it -> it.node?.tooltip("${it.name} (${I18N["stats.commits", it.value]})") }
@@ -184,9 +188,7 @@ class StatsView : Tab() {
 
     private fun updateCommits(series: List<HistogramChart.Series>) {
         commits.setSeries(series)
-        series.forEach { s ->
-            s.data.forEach { it.node?.tooltip("${s.name} (${I18N["stats.commits", it.yValue]})") }
-        }
+        series.forEach { s -> s.data.forEach { it.node?.tooltip("${s.name} (${I18N["stats.commits", it.yValue]})") } }
     }
 
     private fun updateLines(series: List<HistogramChart.Series>) {
@@ -195,11 +197,9 @@ class StatsView : Tab() {
         series[1].data.forEach { it -> it.node?.tooltip("${I18N["stats.removed"]} (${I18N["stats.lines", it.yValue]})") }
     }
 
-    private fun updateActivity(data: List<XYData<LocalDate, DayOfWeek>>) {
-        activityData.setAll(data)
-        activityData.forEach {
-            it.node.tooltip("${it.xValue.format(shortDateFormat)} (${I18N["stats.commits", it.extraValue as Int]})")
-        }
+    private fun updateActivity(data: List<CalendarChart.Data>) {
+        activity.setData(data)
+        data.forEach { it.node?.tooltip("${it.xValue.format(shortDateFormat)} (${I18N["stats.commits", it.yValue]})") }
     }
 
     /**
@@ -211,7 +211,7 @@ class StatsView : Tab() {
 
         init {
             +content.visibleWhen(visible.not())
-            +progressIndicator(16.0).visibleWhen(visible)
+            +progressIndicator(2.0).visibleWhen(visible)
         }
 
         override fun started() = visible.set(true)

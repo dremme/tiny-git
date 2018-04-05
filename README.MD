@@ -27,8 +27,6 @@ gradlew.bat clean assemble
 
 for Windows.
 
-**Warning: Maven is deprecated and to be removed.**
-
 ### Usage
 
 TinyGit runs only with a [Git](https://git-scm.com/downloads) installation on your device.

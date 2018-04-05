@@ -15,6 +15,8 @@ import javafx.application.Platform
 import javafx.scene.layout.Priority
 import javafx.stage.Window
 
+private const val DEFAULT_STYLE_CLASS = "commit-dialog"
+
 // TODO: show something on empty commit / merge commit
 class CommitDialog(window: Window)
     : Dialog<Unit>(window, if (TinyGit.mergeService.isMerging.get()) I18N["dialog.commit.mergeTitle"] else I18N["dialog.commit.title"], true) {
@@ -44,7 +46,7 @@ class CommitDialog(window: Window)
         }
 
         content = vbox {
-            addClass("commit-view")
+            addClass(DEFAULT_STYLE_CLASS)
 
             +splitPane {
                 vgrow(Priority.ALWAYS)

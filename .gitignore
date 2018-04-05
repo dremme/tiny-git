@@ -1,6 +1,8 @@
 build
 out
 target
+test
+generated
 .gradle
 .idea
 *.iml

@@ -5,11 +5,14 @@ import hamburg.remme.tinygit.gui.builder.label
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 
-abstract class Chart(val title: String) : Region() {
+private const val DEFAULT_STYLE_CLASS = "chart"
+private const val TITLE_STYLE_CLASS = "title"
+
+abstract class Chart(title: String) : Region() {
 
     private val titleLabel = label {
-        addClass("diagram-title")
-        +title
+        addClass(TITLE_STYLE_CLASS)
+        text = title
     }
     private val chartContent = object : Pane() {
         override fun layoutChildren() {
@@ -19,7 +22,7 @@ abstract class Chart(val title: String) : Region() {
     protected val chartChildren get() = chartContent.children!!
 
     init {
-        addClass("diagram") // chart is taken by modena.css
+        addClass(DEFAULT_STYLE_CLASS)
         chartContent.isManaged = false
         children.addAll(titleLabel, chartContent)
     }
@@ -32,7 +35,7 @@ abstract class Chart(val title: String) : Region() {
 
         val titleHeight = snapSizeY(titleLabel.prefHeight(width - left - right))
         titleLabel.resizeRelocate(left, top, width - left - right, titleHeight)
-        top += titleHeight
+        top += titleHeight + titleLabel.insets.top + titleLabel.insets.bottom // TODO: with insets?
 
         chartContent.resizeRelocate(left, top, width - left - right, height - top - bottom)
     }

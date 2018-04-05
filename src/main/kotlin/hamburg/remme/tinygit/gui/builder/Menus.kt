@@ -52,6 +52,9 @@ fun contextMenuItem(action: Action): MenuItem {
     }
 }
 
+/**
+ * @todo: find icon solution for Mac OS
+ */
 class MenuItemBuilder : MenuItem() {
 
     var shortcut: String
@@ -59,23 +62,13 @@ class MenuItemBuilder : MenuItem() {
         set(value) {
             accelerator = KeyCombination.valueOf(value)
         }
-
     var icon: Node?
         get() = graphic
-        set(icon) = when {
-            icon == null -> graphic = null
-            isMac -> graphic = null
-        // TODO: buggy; images are super blurry
-//                Platform.runLater {
-//                val offscreenScene = Scene(StackPane((icon)).addClass("platform-parent"))
-//                offscreenScene.stylesheets += "platform-icons.css".asResource()
-//                offscreenScene.fill = Color.TRANSPARENT
-//                val offscreenStage = Stage()
-//                offscreenStage.scene = offscreenScene
-//                offscreenStage.initStyle(StageStyle.UNDECORATED)
-//                graphic = ImageView(offscreenScene.snapshot(null))
-//            }
-            else -> graphic = icon
+        set(icon) {
+            graphic = when {
+                isMac -> null
+                else -> icon
+            }
         }
 
 }
