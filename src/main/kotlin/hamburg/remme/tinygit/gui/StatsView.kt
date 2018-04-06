@@ -32,7 +32,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.chart.XYChart.Data as XYData
 
 /**
- * Showing various Git statistics using the [TinyGit.statsService].
+ * Showing various Git statistics using the [StatsService].
  * The query is asynchronous displaying a loading indicator.
  *
  * Will contain functionality to change the range of time queried and resolution for the statistics.

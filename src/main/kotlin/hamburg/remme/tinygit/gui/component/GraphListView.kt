@@ -3,8 +3,10 @@ package hamburg.remme.tinygit.gui.component
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.domain.Tag
 import hamburg.remme.tinygit.domain.service.BranchService
 import hamburg.remme.tinygit.domain.service.CommitLogService
+import hamburg.remme.tinygit.domain.service.TagService
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
@@ -27,15 +29,21 @@ private const val DATE_STYLE_CLASS = "date"
 private const val BRANCHES_STYLE_CLASS = "branches"
 private const val MESSAGE_STYLE_CLASS = "message"
 private const val AUTHOR_STYLE_CLASS = "author"
-private const val BADGE_STYLE_CLASS = "badge"
+private const val BRANCH_BADGE_STYLE_CLASS = "branch-badge"
+private const val TAG_BADGE_STYLE_CLASS = "tag-badge"
 private const val DETACHED_STYLE_CLASS = "detached"
 private const val CURRENT_STYLE_CLASS = "current"
+private const val MAX_LENGTH = 60
 
 /**
  * This view has some heavy interaction with [GraphListViewSkin] but is still loosely coupled, as it would
  * work with the default list skin, just without Git log graph.
  *
- * The actual log graph is calculated asynchronously by [TinyGit.commitLogService] when the log changes.
+ * The actual log graph is calculated asynchronously by [CommitLogService] when the log changes.
+ *
+ * @todo: clean this class up, there is only ever one instance of this
+ * @todo: skin should not extend ListViewSkin but wrap a [ListView]
+ * @todo: this class should be a control
  */
 class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits) {
 
@@ -46,7 +54,8 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
         get() = graphVisible.get()
         set(value) = graphVisible.set(value)
     val logGraph = TinyGit.get<CommitLogService>().logGraph
-    private val service = TinyGit.get<BranchService>()
+    private val branchService = TinyGit.get<BranchService>()
+    private val tagService = TinyGit.get<TagService>()
     private val graphVisible = object : SimpleBooleanProperty(true) {
         override fun invalidated() = refresh()
     }
@@ -55,8 +64,9 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
     init {
         addClass(DEFAULT_STYLE_CLASS)
         setCellFactory { CommitLogListCell() }
-        service.head.addListener { _ -> refresh() }
-        service.branches.addListener(ListChangeListener { refresh() })
+        branchService.head.addListener { _ -> refresh() }
+        branchService.branches.addListener(ListChangeListener { refresh() })
+        tagService.tags.addListener(ListChangeListener { refresh() })
     }
 
     override fun createDefaultSkin() = GraphListViewSkin(this)
@@ -74,7 +84,6 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
      */
     private inner class CommitLogListCell : ListCell<Commit>() {
 
-        private val MAX_LENGTH = 60
         private val commitId = label { addClass(COMMIT_STYLE_CLASS) }
         private val date = label {
             addClass(DATE_STYLE_CLASS)
@@ -110,20 +119,31 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
             item?.let { c ->
                 commitId.text = c.shortId
                 date.text = c.date.format(shortDateTimeFormat)
-                badges.children.setAll(service.branches.filter { it.id == c.id }.toBadges())
+                badges.children.setAll(tagService.tags.filter { it.id == c.id }.toTagBadges())
+                badges.children.addAll(branchService.branches.filter { it.id == c.id }.toBranchBadges())
                 message.text = c.shortMessage
                 author.text = c.authorName
             }
         }
 
-        private fun List<Branch>.toBadges(): List<Node> {
+        private fun List<Branch>.toBranchBadges(): List<Node> {
             return map {
                 label {
-                    addClass(BADGE_STYLE_CLASS)
-                    if (service.isDetached(it)) addClass(DETACHED_STYLE_CLASS)
-                    else if (service.isHead(it)) addClass(CURRENT_STYLE_CLASS)
+                    addClass(BRANCH_BADGE_STYLE_CLASS)
+                    if (branchService.isDetached(it)) addClass(DETACHED_STYLE_CLASS)
+                    else if (branchService.isHead(it)) addClass(CURRENT_STYLE_CLASS)
                     text = it.name.abbrev()
-                    graphic = if (service.isDetached(it)) Icons.locationArrow() else Icons.codeFork()
+                    graphic = if (branchService.isDetached(it)) Icons.locationArrow() else Icons.codeFork()
+                }
+            }
+        }
+
+        private fun List<Tag>.toTagBadges(): List<Node> {
+            return map {
+                label {
+                    addClass(TAG_BADGE_STYLE_CLASS)
+                    text = it.name
+                    graphic = Icons.tag()
                 }
             }
         }

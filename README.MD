@@ -43,18 +43,18 @@ java -XX:+UseParallelGC -jar tinygit-x.x.x.jar
 
  - Creating and cloning Git repositories
  - Separate settings for each repository
- - Working with stashes
  - Working with branches
+ - Working with stashes
+ - Working with tags
  - Automatic squashing of feature branches
  - Automatic reset if a branch diverged from remote branch
  - Repository statistics
 
 ### Missing Features
 
+ - Word-by-word diff
  - Viewing stashes
- - Tagging commits & push/remove tags
  - Staging/unstaging code blocks
  - Saving split pane dividers
  - Opening selected file in explorer/finder
  - Opening pull requests
- - High DPI scaling

@@ -39,7 +39,7 @@ private const val OVERLAY_STYLE_CLASS = "overlay"
  * This view is showing the currently state of the working copy and a diff for the selected file.
  * Only one single diff is ever shown and only files from either the staged or the pending section can be
  * selected.
- * Selections will also change the state of [TinyGit.workingCopyService] and [TinyGit.state].
+ * Selections will also change the state of [WorkingCopyService] and [State].
  *
  * The [FileDiffView] will always show the most recently selected file.
  *

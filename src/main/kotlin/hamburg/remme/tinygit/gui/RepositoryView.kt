@@ -139,14 +139,18 @@ class RepositoryView : VBoxBuilder() {
             val canCheckout = Bindings.createBooleanBinding(Callable { selectedValue.isBranch() && !selectedValue.isHead() }, selectionModel.selectedItemProperty())
             val canRenameBranch = Bindings.createBooleanBinding(Callable { selectedValue.isLocal() }, selectionModel.selectedItemProperty())
             val canDeleteBranch = Bindings.createBooleanBinding(Callable { selectedValue.isBranch() && !selectedValue.isHead() }, selectionModel.selectedItemProperty())
+            val canDeleteTag = Bindings.createBooleanBinding(Callable { selectedValue.isTag() }, selectionModel.selectedItemProperty())
             val canApplyStash = Bindings.createBooleanBinding(Callable { selectedValue.isStash() }, selectionModel.selectedItemProperty())
             val canDeleteStash = Bindings.createBooleanBinding(Callable { selectedValue.isStash() }, selectionModel.selectedItemProperty())
+
             val checkoutBranch = Action(I18N["repository.checkoutBranch"], { Icons.check() }, disabled = canCheckout.not(),
                     handler = { checkout(selectedValue as Branch) })
             val renameBranch = Action("${I18N["repository.renameBranch"]} (${renameKey.shortName})", { Icons.pencil() }, disabled = canRenameBranch.not(),
                     handler = { renameBranch(selectedValue as Branch) })
             val deleteBranch = Action("${I18N["repository.deleteBranch"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteBranch.not(),
                     handler = { deleteBranch(selectedValue as Branch) })
+            val deleteTag = Action("${I18N["repository.deleteTag"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteTag.not(),
+                    handler = { deleteTag(selectedValue as Tag) })
             val applyStash = Action(I18N["repository.applyStash"], { Icons.cube() }, disabled = canApplyStash.not(),
                     handler = { applyStash(selectedValue as StashEntry) })
             val deleteStash = Action("${I18N["repository.deleteStash"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteStash.not(),
@@ -155,6 +159,7 @@ class RepositoryView : VBoxBuilder() {
             contextMenu = contextMenu {
                 isAutoHide = true
                 +ActionGroup(checkoutBranch, renameBranch, deleteBranch)
+                +ActionGroup(deleteTag)
                 +ActionGroup(applyStash, deleteStash)
             }
             setOnKeyPressed {
@@ -214,7 +219,7 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun ensureHeadSelection() {
-        if (tree.selectionModel.isEmpty || tree.selectionModel.selectedItem?.value !is Branch) {
+        if (tree.selectionModel.isEmpty || tree.selectionModel.selectedItem?.value is Root) {
             val headItem = tree.root.children.flatMap { it.children }
                     .filter { it.value is Branch }
                     .find { branchService.isHead(it.value as Branch) }
@@ -267,6 +272,11 @@ class RepositoryView : VBoxBuilder() {
                 { errorAlert(TinyGit.window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) })
     }
 
+    private fun deleteTag(tag: Tag) {
+        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.deleteTag.header"], I18N["dialog.deleteTag.button"], I18N["dialog.deleteTag.text", tag])) return
+        tagService.delete(tag)
+    }
+
     private fun applyStash(stashEntry: StashEntry) {
         stashService.apply(stashEntry, { errorAlert(TinyGit.window, I18N["dialog.cannotApply.header"], I18N["dialog.cannotApply.text"]) })
     }
@@ -281,6 +291,8 @@ class RepositoryView : VBoxBuilder() {
     private fun Any?.isLocal() = this is Branch && isLocal
 
     private fun Any?.isHead() = this is Branch && branchService.isHead(this)
+
+    private fun Any?.isTag() = this is Tag
 
     private fun Any?.isStash() = this is StashEntry
 

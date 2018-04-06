@@ -20,7 +20,7 @@ import javafx.util.Callback
 
 /**
  * Rendering a file's diff between certain commits or the working copy.
- * Relies heavily on the [TinyGit.diffService] and its renderer.
+ * Relies heavily on the [DiffService] and its renderer.
  *
  * Also contains a [ComboBox] to control the number of context lines for the shown diff.
  *
@@ -47,8 +47,7 @@ import javafx.util.Callback
  *
  * @todo: get style from JavaFX CSS
  *
- * @see hamburg.remme.tinygit.domain.service.DiffService
- * @see hamburg.remme.tinygit.domain.service.DiffRenderer
+ * @see DiffService
  */
 class FileDiffView(private val file: ObservableObjectValue<File?>,
                    private val commit: ObservableObjectValue<Commit?> = SimpleObjectProperty()) : VBoxBuilder() {

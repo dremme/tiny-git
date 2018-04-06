@@ -32,6 +32,7 @@ $warning: #FFEA00;
 $error: #FF1744;
 
 $accent: #00E5FF;
+$accent-alt: #1DE9B6;
 $red-accent: #FF8A80;
 $pink-accent: #FF80AB;
 $purple-accent: #EA80FC;
@@ -76,6 +77,7 @@ $cell-selected-color: rgba($accent, 0.1);
 
 $text-color: rgba(white, 0.9);
 $text-accent-color: $accent;
+$text-accent-alt-color: $accent-alt;
 $text-dark-color: rgba(black, 0.9);
 
 $px1: 1em / $font-size;

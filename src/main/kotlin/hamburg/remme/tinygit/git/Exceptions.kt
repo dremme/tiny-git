@@ -27,3 +27,5 @@ class RebaseException(message: String) : RuntimeException(message)
 class UnmergedException : RuntimeException()
 
 class StashConflictException : RuntimeException()
+
+class TagAlreadyExistsException : RuntimeException()

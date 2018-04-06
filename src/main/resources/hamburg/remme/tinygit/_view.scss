@@ -139,17 +139,21 @@
         -fx-spacing: $px12;
       }
     }
-    .badge {
+    .branch-badge,
+    .tag-badge {
       -fx-padding: $px2 $px4 $px2 $px4;
       -fx-graphic-text-gap: $px2;
       -fx-text-fill: $text-dark-color;
-      -fx-background-color: $text-accent-color;
       -fx-background-radius: $px2;
-      -fx-opacity: 0.5;
 
       .icon {
         -fx-fill: $text-dark-color;
       }
+    }
+    .branch-badge {
+      -fx-background-color: $text-accent-color;
+      -fx-opacity: 0.5;
+
       &.detached {
         -fx-background-color: $error;
         -fx-opacity: 1;
@@ -158,6 +162,9 @@
         // TODO: color
         -fx-opacity: 1;
       }
+    }
+    .tag-badge {
+      -fx-background-color: $text-accent-alt-color;
     }
     &:selected {
       .commitId,

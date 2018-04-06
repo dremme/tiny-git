@@ -7,6 +7,7 @@ import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.service.BranchService
 import hamburg.remme.tinygit.domain.service.CommitLogService
+import hamburg.remme.tinygit.domain.service.TagService
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.HBoxBuilder
@@ -20,6 +21,7 @@ import hamburg.remme.tinygit.gui.builder.managedWhen
 import hamburg.remme.tinygit.gui.builder.progressIndicator
 import hamburg.remme.tinygit.gui.builder.splitPane
 import hamburg.remme.tinygit.gui.builder.stackPane
+import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
@@ -75,6 +77,7 @@ class CommitLogView : Tab() {
     private val state = TinyGit.get<State>()
     private val logService = TinyGit.get<CommitLogService>()
     private val branchService = TinyGit.get<BranchService>()
+    private val tagService = TinyGit.get<TagService>()
     private val graph = GraphListView(logService.commits)
     private val graphSelection get() = graph.selectionModel.selectedItem
 
@@ -87,7 +90,6 @@ class CommitLogView : Tab() {
                 handler = { checkoutCommit(graphSelection) })
         val resetToCommit = Action(I18N["commitLog.reset"], { Icons.refresh() }, disabled = state.canResetToCommit.not(),
                 handler = { resetToCommit(graphSelection) })
-        // TODO
         val tagCommit = Action(I18N["commitLog.tag"], { Icons.tag() }, disabled = state.canTagCommit.not(),
                 handler = { tagCommit(graphSelection) })
 
@@ -95,7 +97,7 @@ class CommitLogView : Tab() {
         graph.selectionModel.selectedItemProperty().addListener { _, _, it -> logService.activeCommit.set(it) }
         graph.contextMenu = contextMenu {
             isAutoHide = true
-            +ActionGroup(checkoutCommit, resetToCommit)
+            +ActionGroup(checkoutCommit, resetToCommit, tagCommit)
         }
 //        TODO
 //        graph.setOnScroll {
@@ -162,7 +164,12 @@ class CommitLogView : Tab() {
     }
 
     private fun tagCommit(commit: Commit) {
-        // TODO
+        textInputDialog(TinyGit.window, I18N["dialog.tag.header"], I18N["dialog.tag.button"], Icons.tag()) {
+            tagService.tag(
+                    commit,
+                    it,
+                    { errorAlert(TinyGit.window, I18N["dialog.cannotTag.header"], I18N["dialog.cannotTag.text", it]) })
+        }
     }
 
     /**
