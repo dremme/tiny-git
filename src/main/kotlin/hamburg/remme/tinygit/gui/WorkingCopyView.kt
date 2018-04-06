@@ -1,8 +1,10 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.I18N
+import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.File
+import hamburg.remme.tinygit.domain.service.WorkingCopyService
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -81,9 +83,8 @@ private const val OVERLAY_STYLE_CLASS = "overlay"
  */
 class WorkingCopyView : Tab() {
 
-    private val service = TinyGit.workingCopyService
-    private val state = TinyGit.state
-    private val window get() = content.scene.window
+    private val service = TinyGit.get<WorkingCopyService>()
+    private val state = TinyGit.get<State>()
 
     /**
      * Actions to be used in the [GitView]'s menu bar.
@@ -213,19 +214,19 @@ class WorkingCopyView : Tab() {
     }
 
     private fun deleteFile() {
-        if (!confirmWarningAlert(window, I18N["dialog.deleteFiles.header"], I18N["dialog.deleteFiles.button"],
+        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.deleteFiles.header"], I18N["dialog.deleteFiles.button"],
                         I18N["dialog.deleteFiles.text", I18N["workingCopy.selectedFiles", selectedPending.selectedItems.size]])) return
         val selected = getIndex(selectedPending)
         service.delete { setIndex(selectedPending, selected) }
     }
 
     private fun discardChanges() {
-        if (!confirmWarningAlert(window, I18N["dialog.discardChanges.header"], I18N["dialog.discardChanges.button"],
+        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.discardChanges.header"], I18N["dialog.discardChanges.button"],
                         I18N["dialog.discardChanges.text", I18N["workingCopy.selectedFiles", selectedPending.selectedItems.size]])) return
         val selected = getIndex(selectedPending)
         service.discardChanges(
                 { setIndex(selectedPending, selected) },
-                { errorAlert(window, I18N["dialog.cannotDiscard.header"], it) })
+                { errorAlert(TinyGit.window, I18N["dialog.cannotDiscard.header"], it) })
     }
 
     private fun getIndex(selectionModel: MultipleSelectionModel<File>): Int {

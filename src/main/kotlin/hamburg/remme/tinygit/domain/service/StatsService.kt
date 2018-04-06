@@ -1,5 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.Service
+import hamburg.remme.tinygit.TaskListener
 import hamburg.remme.tinygit.atStartOfWeek
 import hamburg.remme.tinygit.daysBetween
 import hamburg.remme.tinygit.domain.Commit
@@ -21,6 +23,7 @@ import java.time.LocalDate
 import java.time.Year
 import javafx.scene.chart.XYChart.Data as XYData
 
+@Service
 class StatsService {
 
     val contributorsData = observableList<DonutChart.Data>()

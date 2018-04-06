@@ -1,5 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.Refreshable
+import hamburg.remme.tinygit.Service
 import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.delete
@@ -17,6 +19,7 @@ import hamburg.remme.tinygit.git.gitStatus
 import hamburg.remme.tinygit.observableList
 import javafx.concurrent.Task
 
+@Service
 class WorkingCopyService : Refreshable {
 
     val staged = observableList<File>()

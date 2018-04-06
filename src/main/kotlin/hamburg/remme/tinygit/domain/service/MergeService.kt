@@ -1,6 +1,8 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.I18N
+import hamburg.remme.tinygit.Refreshable
+import hamburg.remme.tinygit.Service
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
@@ -12,6 +14,7 @@ import hamburg.remme.tinygit.git.gitMergeAbort
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.concurrent.Task
 
+@Service
 class MergeService : Refreshable {
 
     val isMerging = SimpleBooleanProperty(false)

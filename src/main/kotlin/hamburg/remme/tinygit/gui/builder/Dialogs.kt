@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.builder
 
+import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.gui.component.Icons
@@ -33,7 +34,7 @@ fun confirmAlert(window: Window, header: String, ok: String, text: String): Bool
             Icons.questionCircle().addClass(INFO_STYLE_CLASS),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
             ButtonType.CANCEL)
-    TinyGit.state.isModal.set(true)
+    TinyGit.get<State>().isModal.set(true)
     return alert.showAndWait().get().isOk()
 }
 
@@ -45,7 +46,7 @@ fun confirmWarningAlert(window: Window, header: String, ok: String, text: String
             Icons.exclamationTriangle().addClass(WARNING_STYLE_CLASS),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
             ButtonType.CANCEL)
-    TinyGit.state.isModal.set(true)
+    TinyGit.get<State>().isModal.set(true)
     return alert.showAndWait().get().isOk()
 }
 
@@ -56,7 +57,7 @@ fun errorAlert(window: Window, header: String, text: String) {
             text,
             Icons.timesCircle().addClass(ERROR_STYLE_CLASS),
             ButtonType.OK)
-    TinyGit.state.isModal.set(true)
+    TinyGit.get<State>().isModal.set(true)
     alert.showAndWait()
 }
 
@@ -128,7 +129,7 @@ inline fun fileChooser(window: Window, title: String, block: (Path) -> Unit) {
     val chooser = FileChooser()
     chooser.title = title
     chooser.initialDirectory = chooserDir.toFile()
-    TinyGit.state.isModal.set(true)
+    TinyGit.get<State>().isModal.set(true)
     chooser.showOpenDialog(window)?.toPath()?.let {
         chooserDir = it
         block(it)
@@ -139,7 +140,7 @@ inline fun directoryChooser(window: Window, title: String, block: (Path) -> Unit
     val chooser = DirectoryChooser()
     chooser.title = title
     chooser.initialDirectory = chooserDir.toFile()
-    TinyGit.state.isModal.set(true)
+    TinyGit.get<State>().isModal.set(true)
     chooser.showDialog(window)?.toPath()?.let {
         chooserDir = it
         block(it)

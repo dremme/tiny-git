@@ -7,6 +7,7 @@ import org.yaml.snakeyaml.representer.Representer
 /**
  * Class for loading and saving [Json] from/to a YAML file located in the [homeDir].
  */
+@Service
 class Settings {
 
     private val yaml = Yaml(Representer().apply { propertyUtils.setSkipMissingProperties(true) },

@@ -1,12 +1,17 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.I18N
+import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
 import hamburg.remme.tinygit.domain.Tag
+import hamburg.remme.tinygit.domain.service.BranchService
+import hamburg.remme.tinygit.domain.service.RepositoryService
+import hamburg.remme.tinygit.domain.service.StashService
+import hamburg.remme.tinygit.domain.service.TagService
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
@@ -88,11 +93,11 @@ private const val DETACHED_STYLE_CLASS = "detached"
  */
 class RepositoryView : VBoxBuilder() {
 
-    private val repoService = TinyGit.repositoryService
-    private val branchService = TinyGit.branchService
-    private val tagService = TinyGit.tagService
-    private val stashService = TinyGit.stashService
-    private val window get() = scene.window
+    private val repoService = TinyGit.get<RepositoryService>()
+    private val branchService = TinyGit.get<BranchService>()
+    private val tagService = TinyGit.get<TagService>()
+    private val stashService = TinyGit.get<StashService>()
+    private val settings = TinyGit.get<Settings>()
     private val tree: TreeView<Any>
 
     init {
@@ -109,7 +114,7 @@ class RepositoryView : VBoxBuilder() {
             +repository
             +button {
                 graphic = Icons.cog()
-                setOnAction { SettingsDialog(window).show() }
+                setOnAction { SettingsDialog(TinyGit.window).show() }
             }
         }
 
@@ -179,7 +184,7 @@ class RepositoryView : VBoxBuilder() {
         tagService.tags.addListener(ListChangeListener { tags.children.updateEntries(it.list) })
         stashService.stashEntries.addListener(ListChangeListener { stash.children.updateEntries(it.list) })
 
-        TinyGit.settings.addOnSave {
+        settings.addOnSave {
             it["repositorySelection"] = json { +("path" to repository.value.path) }
             it["tree"] = tree.root.children.map {
                 json {
@@ -188,7 +193,7 @@ class RepositoryView : VBoxBuilder() {
                 }
             }
         }
-        TinyGit.settings.load { settings ->
+        settings.load { settings ->
             settings["repositorySelection"]
                     ?.let { repository.selectionModel.select(Repository(it.getString("path")!!)) }
                     ?: repository.selectionModel.selectFirst()
@@ -218,11 +223,11 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun renameBranch(branch: Branch) {
-        textInputDialog(window, I18N["dialog.renameBranch.header"], I18N["dialog.renameBranch.button"], Icons.pencil(), branch.name) { name ->
+        textInputDialog(TinyGit.window, I18N["dialog.renameBranch.header"], I18N["dialog.renameBranch.button"], Icons.pencil(), branch.name) { name ->
             branchService.rename(
                     branch,
                     name,
-                    { errorAlert(window, I18N["dialog.cannotRenameBranch.header"], I18N["dialog.cannotRenameBranch.text", name]) })
+                    { errorAlert(TinyGit.window, I18N["dialog.cannotRenameBranch.header"], I18N["dialog.cannotRenameBranch.text", name]) })
         }
     }
 
@@ -235,14 +240,14 @@ class RepositoryView : VBoxBuilder() {
                 branch,
                 false,
                 {
-                    if (confirmWarningAlert(window, I18N["dialog.cannotDeleteBranch.header"], I18N["dialog.cannotDeleteBranch.button"], I18N["dialog.cannotDeleteBranch.text", branch])) {
+                    if (confirmWarningAlert(TinyGit.window, I18N["dialog.cannotDeleteBranch.header"], I18N["dialog.cannotDeleteBranch.button"], I18N["dialog.cannotDeleteBranch.text", branch])) {
                         branchService.deleteLocal(branch, true)
                     }
                 })
     }
 
     private fun deleteRemoteBranch(branch: Branch) {
-        if (!confirmWarningAlert(window, I18N["dialog.deleteBranch.header"], I18N["dialog.deleteBranch.button"], I18N["dialog.deleteBranch.text", branch])) return
+        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.deleteBranch.header"], I18N["dialog.deleteBranch.button"], I18N["dialog.deleteBranch.text", branch])) return
         branchService.deleteRemote(branch)
     }
 
@@ -253,21 +258,21 @@ class RepositoryView : VBoxBuilder() {
     private fun checkoutLocal(branch: Branch) {
         branchService.checkoutLocal(
                 branch,
-                { errorAlert(window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) })
+                { errorAlert(TinyGit.window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) })
     }
 
     private fun checkoutRemote(branch: Branch) {
         branchService.checkoutRemote(
                 branch,
-                { errorAlert(window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) })
+                { errorAlert(TinyGit.window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) })
     }
 
     private fun applyStash(stashEntry: StashEntry) {
-        stashService.apply(stashEntry, { errorAlert(window, I18N["dialog.cannotApply.header"], I18N["dialog.cannotApply.text"]) })
+        stashService.apply(stashEntry, { errorAlert(TinyGit.window, I18N["dialog.cannotApply.header"], I18N["dialog.cannotApply.text"]) })
     }
 
     private fun deleteStash(stashEntry: StashEntry) {
-        if (!confirmWarningAlert(window, I18N["dialog.deleteStash.header"], I18N["dialog.deleteStash.button"], I18N["dialog.deleteStash.text", stashEntry])) return
+        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.deleteStash.header"], I18N["dialog.deleteStash.button"], I18N["dialog.deleteStash.text", stashEntry])) return
         stashService.drop(stashEntry)
     }
 

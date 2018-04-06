@@ -75,10 +75,10 @@ fun <V> Task<V>.execute(): Task<V> {
 }
 
 /**
- * Repeatedly calls the function at the given [period].
+ * Repeatedly calls given [block] at the given [period].
  */
-fun (() -> Unit).schedule(period: Long) {
-    scheduledPool.scheduleAtFixedRate(this, 0, period, TimeUnit.MILLISECONDS)
+fun schedule(period: Long, block: () -> Unit) {
+    scheduledPool.scheduleAtFixedRate(block, 0, period, TimeUnit.MILLISECONDS)
 }
 
 /**

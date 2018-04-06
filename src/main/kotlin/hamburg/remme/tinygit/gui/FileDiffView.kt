@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.File
+import hamburg.remme.tinygit.domain.service.DiffService
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
 import hamburg.remme.tinygit.gui.builder.comboBox
 import hamburg.remme.tinygit.gui.builder.toolBar
@@ -64,7 +65,7 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
         </head>
         </html>
     """
-    private val diffService = TinyGit.diffService
+    private val diffService = TinyGit.get<DiffService>()
     private val contextLines: ComboBox<Int>
     private val engine: WebEngine
     private var diff = empty

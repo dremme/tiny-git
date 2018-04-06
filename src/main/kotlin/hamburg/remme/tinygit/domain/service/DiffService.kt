@@ -1,10 +1,13 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.Refreshable
+import hamburg.remme.tinygit.Service
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitDiff
 
+@Service
 class DiffService : Refreshable {
 
     private val renderer = DiffRenderer()

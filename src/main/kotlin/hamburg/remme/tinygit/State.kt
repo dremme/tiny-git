@@ -20,6 +20,7 @@ import javafx.beans.property.SimpleStringProperty
  * @todo probably requires some streamlining and clean-up.
  * @todo newly created branches cannot be pushed if there is no divergence
  */
+@Service
 class State(repositoryService: RepositoryService,
             branchService: BranchService,
             workingCopyService: WorkingCopyService,

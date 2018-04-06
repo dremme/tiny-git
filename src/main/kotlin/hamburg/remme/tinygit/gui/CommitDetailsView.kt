@@ -2,6 +2,8 @@ package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.service.CommitDetailsService
+import hamburg.remme.tinygit.domain.service.CommitLogService
 import hamburg.remme.tinygit.gui.builder.SplitPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.label
@@ -43,14 +45,15 @@ private const val OVERLAY_STYLE_CLASS = "overlay"
  * ```
  *
  *
- * @see hamburg.remme.tinygit.domain.service.CommitDetailsService
+ * @see CommitLogService
+ * @see CommitDetailsService
  * @see FileStatusView
  * @see StatusCountView
  */
 class CommitDetailsView : SplitPaneBuilder() {
 
-    private val logService = TinyGit.commitLogService
-    private val detailsService = TinyGit.commitDetailsService
+    private val logService = TinyGit.get<CommitLogService>()
+    private val detailsService = TinyGit.get<CommitDetailsService>()
 
     init {
         addClass(DEFAULT_STYLE_CLASS)

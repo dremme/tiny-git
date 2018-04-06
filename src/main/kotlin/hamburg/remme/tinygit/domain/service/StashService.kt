@@ -1,6 +1,8 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.I18N
+import hamburg.remme.tinygit.Refreshable
+import hamburg.remme.tinygit.Service
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.StashEntry
@@ -15,6 +17,7 @@ import hamburg.remme.tinygit.observableList
 import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
 
+@Service
 class StashService : Refreshable {
 
     val stashEntries = observableList<StashEntry>()

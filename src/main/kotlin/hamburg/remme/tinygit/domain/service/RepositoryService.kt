@@ -1,6 +1,8 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.I18N
+import hamburg.remme.tinygit.Service
+import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.asPath
 import hamburg.remme.tinygit.domain.Repository
@@ -19,7 +21,8 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.concurrent.Task
 
-class RepositoryService(private val service: CredentialService) {
+@Service
+class RepositoryService(settings: Settings, private val service: CredentialService) {
 
     private val allRepositories = observableList<Repository>()
     val existingRepositories = allRepositories.filtered { it.path.asPath().exists() }!!
@@ -33,13 +36,13 @@ class RepositoryService(private val service: CredentialService) {
     val usedProxies = observableList<String>()
 
     init {
-        TinyGit.settings.addOnSave {
+        settings.addOnSave {
             it["repositories"] = allRepositories.map { json { +("path" to it.path) } }
             it["usedNames"] = usedNames
             it["usedEmails"] = usedEmails
             it["usedProxies"] = usedProxies
         }
-        TinyGit.settings.load {
+        settings.load {
             it.getList("repositories")?.map { Repository(it.getString("path")!!) }?.let { allRepositories.setAll(it) }
             it.getStringList("usedNames")?.let { usedNames.setAll(it) }
             it.getStringList("usedEmails")?.let { usedEmails.setAll(it) }

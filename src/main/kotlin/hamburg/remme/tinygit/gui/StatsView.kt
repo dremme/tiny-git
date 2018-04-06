@@ -1,8 +1,10 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.I18N
+import hamburg.remme.tinygit.TaskListener
 import hamburg.remme.tinygit.TinyGit
-import hamburg.remme.tinygit.domain.service.TaskListener
+import hamburg.remme.tinygit.domain.service.RepositoryService
+import hamburg.remme.tinygit.domain.service.StatsService
 import hamburg.remme.tinygit.gui.builder.StackPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.button
@@ -74,8 +76,8 @@ import javafx.scene.chart.XYChart.Data as XYData
  */
 class StatsView : Tab() {
 
-    private val repoService = TinyGit.repositoryService
-    private val statsService = TinyGit.statsService
+    private val repoService = TinyGit.get<RepositoryService>()
+    private val statsService = TinyGit.get<StatsService>()
     private val contributions: DonutChart
     private val files: DonutChart
     private val commits: HistogramChart

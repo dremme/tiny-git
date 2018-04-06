@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.Service
 import hamburg.remme.tinygit.domain.Credentials
 import hamburg.remme.tinygit.git.gitCredentialKeychainGet
 import hamburg.remme.tinygit.git.gitCredentialKeychainStore
@@ -8,6 +9,7 @@ import hamburg.remme.tinygit.git.gitCredentialWincredStore
 import hamburg.remme.tinygit.isMac
 import hamburg.remme.tinygit.isWindows
 
+@Service
 class CredentialService {
 
     lateinit var credentialHandler: (String) -> Credentials?

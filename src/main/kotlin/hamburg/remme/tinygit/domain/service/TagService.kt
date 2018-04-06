@@ -1,5 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.Refreshable
+import hamburg.remme.tinygit.Service
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.domain.Tag
 import hamburg.remme.tinygit.execute
@@ -7,6 +9,7 @@ import hamburg.remme.tinygit.git.gitTagList
 import hamburg.remme.tinygit.observableList
 import javafx.concurrent.Task
 
+@Service
 class TagService : Refreshable {
 
     val tags = observableList<Tag>()

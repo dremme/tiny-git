@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.gui.dialog
 
+import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.fontSize
 import hamburg.remme.tinygit.gui.builder.disabledWhen
@@ -47,7 +48,8 @@ abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = fal
     protected var okAction: () -> T? = { null }
     protected var cancelAction: () -> T? = { null }
     protected var focusAction: () -> Unit = { }
-    private val dialog: FXDialog<T> = FXDialog()
+    private val dialog = FXDialog<T>()
+    private val state = TinyGit.get<State>()
 
     init {
         dialog.initModality(Modality.WINDOW_MODAL)
@@ -62,16 +64,16 @@ abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = fal
                 else -> null
             }
         }
-        dialog.dialogPane.scene.window.focusedProperty().addListener { _, _, it -> if (it) focusAction() }
+        dialogWindow.focusedProperty().addListener { _, _, it -> if (it) focusAction() }
     }
 
     fun show() {
-        TinyGit.state.isModal.set(true)
+        state.isModal.set(true)
         dialog.show()
     }
 
     fun showAndWait(): T? {
-        TinyGit.state.isModal.set(true)
+        state.isModal.set(true)
         return dialog.showAndWait().orElse(null)
     }
 

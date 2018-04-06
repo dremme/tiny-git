@@ -2,6 +2,7 @@ package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.git.gitGetProxy
 import hamburg.remme.tinygit.git.gitGetUserEmail
 import hamburg.remme.tinygit.git.gitGetUserName
@@ -23,7 +24,7 @@ private const val DEFAULT_STYLE_CLASS = "settings-dialog"
 
 class SettingsDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.settings.title"]) {
 
-    private val service = TinyGit.repositoryService
+    private val service = TinyGit.get<RepositoryService>()
     private val repository = service.activeRepository.get()!!
     private val originalUrl = service.remote.get()!!
     private val originalName = gitGetUserName(repository)

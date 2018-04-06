@@ -1,10 +1,12 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.I18N
+import hamburg.remme.tinygit.State
+import hamburg.remme.tinygit.TaskListener
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.domain.service.BranchService
 import hamburg.remme.tinygit.domain.service.CommitLogService
-import hamburg.remme.tinygit.domain.service.TaskListener
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
 import hamburg.remme.tinygit.gui.builder.HBoxBuilder
@@ -70,10 +72,9 @@ private const val OVERLAY_STYLE_CLASS = "overlay"
  */
 class CommitLogView : Tab() {
 
-    private val state = TinyGit.state
-    private val logService = TinyGit.commitLogService
-    private val branchService = TinyGit.branchService
-    private val window get() = content.scene.window
+    private val state = TinyGit.get<State>()
+    private val logService = TinyGit.get<CommitLogService>()
+    private val branchService = TinyGit.get<BranchService>()
     private val graph = GraphListView(logService.commits)
     private val graphSelection get() = graph.selectionModel.selectedItem
 
@@ -146,17 +147,17 @@ class CommitLogView : Tab() {
         }
 
         logService.logListener = indicator
-        logService.logErrorHandler = { errorAlert(window, I18N["dialog.cannotFetch.header"], it) }
+        logService.logErrorHandler = { errorAlert(TinyGit.window, I18N["dialog.cannotFetch.header"], it) }
     }
 
     private fun checkoutCommit(commit: Commit) {
         branchService.checkoutCommit(
                 commit,
-                { errorAlert(window, I18N["dialog.cannotCheckout.header"], I18N["dialog.cannotCheckout.text"]) })
+                { errorAlert(TinyGit.window, I18N["dialog.cannotCheckout.header"], I18N["dialog.cannotCheckout.text"]) })
     }
 
     private fun resetToCommit(commit: Commit) {
-        if (!confirmWarningAlert(window, I18N["dialog.resetBranch.header"], I18N["dialog.resetBranch.button"], I18N["dialog.resetBranch.text", commit.shortId])) return
+        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.resetBranch.header"], I18N["dialog.resetBranch.button"], I18N["dialog.resetBranch.text", commit.shortId])) return
         branchService.reset(commit)
     }
 

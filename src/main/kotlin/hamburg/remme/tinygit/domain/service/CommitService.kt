@@ -1,6 +1,8 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.I18N
+import hamburg.remme.tinygit.Refreshable
+import hamburg.remme.tinygit.Service
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.gitCommit
@@ -10,6 +12,7 @@ import hamburg.remme.tinygit.git.gitMergeMessage
 import javafx.beans.property.SimpleStringProperty
 import javafx.concurrent.Task
 
+@Service
 class CommitService : Refreshable {
 
     val message = SimpleStringProperty("")

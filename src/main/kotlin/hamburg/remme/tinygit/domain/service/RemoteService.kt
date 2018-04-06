@@ -1,6 +1,8 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.I18N
+import hamburg.remme.tinygit.Refreshable
+import hamburg.remme.tinygit.Service
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.git.BranchBehindException
@@ -13,6 +15,7 @@ import hamburg.remme.tinygit.git.gitPull
 import hamburg.remme.tinygit.git.gitPush
 import javafx.concurrent.Task
 
+@Service
 class RemoteService(private val repositoryService: RepositoryService,
                     private val credentialService: CredentialService) : Refreshable {
 

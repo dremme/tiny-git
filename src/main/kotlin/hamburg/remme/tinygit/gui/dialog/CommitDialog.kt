@@ -2,6 +2,9 @@ package hamburg.remme.tinygit.gui.dialog
 
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.service.CommitService
+import hamburg.remme.tinygit.domain.service.MergeService
+import hamburg.remme.tinygit.domain.service.WorkingCopyService
 import hamburg.remme.tinygit.gui.FileDiffView
 import hamburg.remme.tinygit.gui.FileStatusView
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -18,12 +21,12 @@ import javafx.stage.Window
 private const val DEFAULT_STYLE_CLASS = "commit-dialog"
 
 // TODO: show something on empty commit / merge commit
-class CommitDialog(window: Window)
-    : Dialog<Unit>(window, if (TinyGit.mergeService.isMerging.get()) I18N["dialog.commit.mergeTitle"] else I18N["dialog.commit.title"], true) {
+// TODO: title depending on merge or new commit
+class CommitDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.commit.title"], true) {
 
-    private val mergeService = TinyGit.mergeService
-    private val commitService = TinyGit.commitService
-    private val workingService = TinyGit.workingCopyService
+    private val mergeService = TinyGit.get<MergeService>()
+    private val commitService = TinyGit.get<CommitService>()
+    private val workingService = TinyGit.get<WorkingCopyService>()
 
     init {
         val files = FileStatusView(workingService.staged)

@@ -28,11 +28,11 @@ class Json(map: Map<String, *> = emptyMap<String, Any>()) : LinkedHashMap<String
     fun getDoubleList(property: String) = (super.get(property) as? List<*>)?.map { it as Double }
 
     operator fun Pair<String, Any>.unaryPlus() {
-        put(first, second)
+        this@Json += this
     }
 
     operator fun String.unaryMinus() {
-        remove(this)
+        this@Json -= this
     }
 
 }

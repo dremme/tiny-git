@@ -1,6 +1,9 @@
 package hamburg.remme.tinygit.domain.service
 
 import hamburg.remme.tinygit.I18N
+import hamburg.remme.tinygit.Refreshable
+import hamburg.remme.tinygit.Service
+import hamburg.remme.tinygit.TaskListener
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.addSorted
 import hamburg.remme.tinygit.domain.Commit
@@ -16,6 +19,7 @@ import javafx.application.Platform
 import javafx.beans.property.SimpleObjectProperty
 import javafx.concurrent.Task
 
+@Service
 class CommitLogService(private val repositoryService: RepositoryService,
                        private val credentialService: CredentialService) : Refreshable {
 

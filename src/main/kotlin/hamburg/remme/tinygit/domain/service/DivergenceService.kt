@@ -1,5 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.Refreshable
+import hamburg.remme.tinygit.Service
 import hamburg.remme.tinygit.domain.Divergence
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.execute
@@ -8,6 +10,7 @@ import hamburg.remme.tinygit.git.gitDivergenceExclusive
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.concurrent.Task
 
+@Service
 class DivergenceService : Refreshable {
 
     val aheadDefault = SimpleIntegerProperty()

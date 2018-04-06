@@ -1,22 +1,10 @@
 package hamburg.remme.tinygit
 
 import hamburg.remme.tinygit.domain.Repository
-import hamburg.remme.tinygit.domain.service.BranchService
-import hamburg.remme.tinygit.domain.service.CommitDetailsService
-import hamburg.remme.tinygit.domain.service.CommitLogService
-import hamburg.remme.tinygit.domain.service.CommitService
 import hamburg.remme.tinygit.domain.service.CredentialService
-import hamburg.remme.tinygit.domain.service.DiffService
-import hamburg.remme.tinygit.domain.service.DivergenceService
 import hamburg.remme.tinygit.domain.service.MergeService
 import hamburg.remme.tinygit.domain.service.RebaseService
-import hamburg.remme.tinygit.domain.service.Refreshable
-import hamburg.remme.tinygit.domain.service.RemoteService
 import hamburg.remme.tinygit.domain.service.RepositoryService
-import hamburg.remme.tinygit.domain.service.StashService
-import hamburg.remme.tinygit.domain.service.StatsService
-import hamburg.remme.tinygit.domain.service.TagService
-import hamburg.remme.tinygit.domain.service.WorkingCopyService
 import hamburg.remme.tinygit.git.gitGetCredentialHelper
 import hamburg.remme.tinygit.git.gitIsInstalled
 import hamburg.remme.tinygit.git.gitSetKeychain
@@ -33,8 +21,11 @@ import javafx.scene.Scene
 import javafx.scene.image.Image
 import javafx.scene.text.Font
 import javafx.stage.Stage
+import javafx.stage.Window
+import java.util.Collections
 import java.util.Locale
 import java.util.concurrent.Callable
+import kotlin.reflect.KClass
 
 /**
  * Will launch [TinyGit] with the given [args].
@@ -73,50 +64,71 @@ fun main(args: Array<String>) {
 class TinyGit : Application() {
 
     /**
-     * A singleton holding all the needed services and application states.
+     * A singleton holding all the needed services and application states. It uses component scan to gather classes
+     * and instantiate them. Dependency injection is supported via constructor injection.
+     *
      * Also some convenience functions related to the [TinyGit] class.
+     *
+     * @todo: really cast the main [Stage] to [Window]?
+     *
+     * @see Service
+     * @see Refreshable
      */
     companion object {
 
+        /**
+         * @see [get]
+         */
+        val servicesUnmodifiable: Map<KClass<*>, Any> get() = Collections.unmodifiableMap(services)
+        /**
+         * The primary window of the application
+         */
+        val window: Window get() = stage
+        private val services = findAll<Service>().createSingletonMap()
         private val listeners = mutableListOf<(Repository) -> Unit>()
-        val settings = Settings()
-        val statsService = StatsService()
-        val credentialService = CredentialService()
-        val repositoryService: RepositoryService = RepositoryService(credentialService)
-        val remoteService = RemoteService(repositoryService, credentialService).addListeners()
-        val branchService = BranchService(repositoryService, credentialService).addListeners()
-        val tagService = TagService().addListeners()
-        val workingCopyService = WorkingCopyService().addListeners()
-        val divergenceService = DivergenceService().addListeners()
-        val mergeService = MergeService().addListeners()
-        val rebaseService = RebaseService().addListeners()
-        val stashService = StashService().addListeners()
-        val commitLogService = CommitLogService(repositoryService, credentialService).addListeners()
-        val commitDetailsService = CommitDetailsService(commitLogService).addListeners()
-        val commitService = CommitService().addListeners()
-        val diffService = DiffService().addListeners()
-        val state = State(repositoryService, branchService, workingCopyService, divergenceService, mergeService, rebaseService, stashService, commitLogService)
+        private val settings = get<Settings>()
+        private val credentialService = get<CredentialService>()
+        private val repositoryService = get<RepositoryService>()
+        private val mergeService = get<MergeService>()
+        private val rebaseService = get<RebaseService>()
+        private val state = get<State>()
         private lateinit var application: Application
         private lateinit var stage: Stage
 
-        /**
-         * Adds repository and refresh listeners to the [Refreshable].
-         */
-        fun <T : Refreshable> T.addListeners(): T {
-            repositoryService.activeRepository.addListener { _, _, it -> it?.let { onRepositoryChanged(it) } ?: onRepositoryDeselected() }
-            addListener { onRefresh(it) }
-            return this
+        init {
+            services.mapNotNull { (_, it) -> it as? Refreshable }
+                    .forEach { refreshable ->
+                        repositoryService.activeRepository.addListener { _, _, it ->
+                            it?.let { refreshable.onRepositoryChanged(it) }
+                                    ?: refreshable.onRepositoryDeselected()
+                        }
+                        addListener { refreshable.onRefresh(it) }
+                    }
         }
 
         /**
-         * Adds a repository listener.
+         * Returns a singleton-like instance of the given [KClass]. This may only succeed if the class has been
+         * instantiated by the component scan.
+         *
+         * @throws IllegalArgumentException if there is no instance of type [KClass]
+         * @throws ClassCastException if the instance is not of type [KClass]
+         *
+         * @see Service
+         */
+        @Suppress("UNCHECKED_CAST")
+        inline fun <reified T> get() = servicesUnmodifiable[T::class]!! as T
+
+        /**
+         * Adds a refresh listener. Will only be called if the active repository is not `null`.
+         *
+         * @todo: find a way to get rid of this
          */
         fun addListener(block: (Repository) -> Unit) {
             listeners += block
         }
 
         /**
-         * Fires a refresh event.
+         * Fires a refresh event. Will only trigger if the active repository is not `null`.
          */
         fun fireEvent() = Platform.runLater {
             repositoryService.activeRepository.get()?.let { repository -> listeners.forEach { it(repository) } }
@@ -150,8 +162,8 @@ class TinyGit : Application() {
         else Application.setUserAgentStylesheet("/css/main-windows.css")
     }
 
-    override fun start(stage: Stage) {
-        TinyGit.stage = stage
+    override fun start(primaryStage: Stage) {
+        TinyGit.stage = primaryStage
 
         // We terminate here because technical requirements for TinyGit aren't met
         if (isMac || isLinux) gitIsInstalled() // UNIX workaround
@@ -170,18 +182,17 @@ class TinyGit : Application() {
         if (isWindows && gitGetCredentialHelper().isBlank()) gitSetWincred()
         if (isMac && gitGetCredentialHelper().isBlank()) gitSetKeychain()
 
-        // TODO: move this?
-        credentialService.credentialHandler = { CredentialsDialog(it, stage).showAndWait() }
-
+        initHandlers()
         initSettings()
         initWindow()
-
-        stage.show()
-
-        ({ if (!stage.isFocused && !state.isModal.get()) fireEvent() }).schedule(10000)
+        showWindow()
     }
 
     override fun stop() = settings.save()
+
+    private fun initHandlers() {
+        credentialService.credentialHandler = { CredentialsDialog(it, stage).showAndWait() }
+    }
 
     private fun initSettings() {
         settings.addOnSave {
@@ -208,7 +219,7 @@ class TinyGit : Application() {
 
     private fun initWindow() {
         stage.focusedProperty().addListener { _, _, it -> if (it) state.isModal.takeIf { it.get() }?.set(false) ?: fireEvent() }
-        stage.scene = Scene(GitView(stage))
+        stage.scene = Scene(GitView())
         stage.icons += Image("icon.png".asResource())
         stage.titleProperty().bind(Bindings.createStringBinding(Callable { updateTitle() },
                 repositoryService.activeRepository,
@@ -216,6 +227,11 @@ class TinyGit : Application() {
                 rebaseService.isRebasing,
                 rebaseService.rebaseNext,
                 rebaseService.rebaseLast))
+    }
+
+    private fun showWindow() {
+        stage.show()
+        schedule(10000) { if (!stage.isFocused && !state.isModal.get()) fireEvent() }
     }
 
     private fun updateTitle(): String {

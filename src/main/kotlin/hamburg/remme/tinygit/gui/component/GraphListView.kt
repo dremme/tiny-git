@@ -3,6 +3,8 @@ package hamburg.remme.tinygit.gui.component
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
 import hamburg.remme.tinygit.domain.Commit
+import hamburg.remme.tinygit.domain.service.BranchService
+import hamburg.remme.tinygit.domain.service.CommitLogService
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
@@ -43,8 +45,8 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
     var isGraphVisible
         get() = graphVisible.get()
         set(value) = graphVisible.set(value)
-    val logGraph = TinyGit.commitLogService.logGraph
-    private val service = TinyGit.branchService
+    val logGraph = TinyGit.get<CommitLogService>().logGraph
+    private val service = TinyGit.get<BranchService>()
     private val graphVisible = object : SimpleBooleanProperty(true) {
         override fun invalidated() = refresh()
     }

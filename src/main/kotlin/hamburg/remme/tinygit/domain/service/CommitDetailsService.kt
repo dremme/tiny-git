@@ -1,5 +1,7 @@
 package hamburg.remme.tinygit.domain.service
 
+import hamburg.remme.tinygit.Refreshable
+import hamburg.remme.tinygit.Service
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.Repository
@@ -9,6 +11,7 @@ import hamburg.remme.tinygit.observableList
 import javafx.beans.property.SimpleStringProperty
 import javafx.concurrent.Task
 
+@Service
 class CommitDetailsService(service: CommitLogService) : Refreshable {
 
     val commitStatus = observableList<File>()

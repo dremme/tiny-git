@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.gui.dialog
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Repository
+import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.git.gitSetUserEmail
 import hamburg.remme.tinygit.git.gitSetUserName
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -23,7 +24,7 @@ private const val DEFAULT_STYLE_CLASS = "clone-dialog"
 
 class CloneDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.clone.title"]) {
 
-    private val service = TinyGit.repositoryService
+    private val service = TinyGit.get<RepositoryService>()
 
     init {
         val url = textField {

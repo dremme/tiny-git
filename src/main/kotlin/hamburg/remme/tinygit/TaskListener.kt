@@ -1,4 +1,4 @@
-package hamburg.remme.tinygit.domain.service
+package hamburg.remme.tinygit
 
 interface TaskListener {
 
