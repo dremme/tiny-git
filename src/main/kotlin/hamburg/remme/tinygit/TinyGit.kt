@@ -115,8 +115,8 @@ class TinyGit : Application() {
          *
          * @see Service
          */
-        @Suppress("UNCHECKED_CAST")
-        inline fun <reified T> get() = servicesUnmodifiable[T::class]!! as T
+        inline fun <reified T> get() = servicesUnmodifiable[T::class] as? T
+                ?: throw IllegalArgumentException("No instance of type '${T::class.java.name}' available.")
 
         /**
          * Adds a refresh listener. Will only be called if the active repository is not `null`.

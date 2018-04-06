@@ -1,17 +1,13 @@
 package hamburg.remme.tinygit
 
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner
+import org.reflections.Reflections
 import kotlin.reflect.KClass
 
 /**
  * Finds all [KClass]es annotated with the given [Annotation].
  */
 inline fun <reified T : Annotation> findAll(): List<KClass<*>> {
-    val classes = mutableListOf<KClass<*>>()
-    FastClasspathScanner(TinyGit::class.java.packageName)
-            .matchClassesWithAnnotation(T::class.java, { classes += it.kotlin })
-            .scan(Runtime.getRuntime().availableProcessors())
-    return classes
+    return Reflections("hamburg.remme.tinygit").getTypesAnnotatedWith(T::class.java).map { it.kotlin }
 }
 
 /**
