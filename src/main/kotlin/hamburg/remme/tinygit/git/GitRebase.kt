@@ -62,4 +62,4 @@ private fun Path.parseMerge(): Rebase {
     return Rebase(done, done + todo)
 }
 
-private fun List<String>.parseLines() = filterNot { it.isBlank() || it.startsWith("#") }.size
+private fun Sequence<String>.parseLines() = filterNot { it.isBlank() || it.startsWith("#") }.count()

@@ -29,9 +29,10 @@ import kotlin.reflect.KClass
 
 /**
  * Will launch [TinyGit] with the given [args].
- * Will also set the locale to [Locale.ROOT] at the moment.
+ * Will also set the locale to [Locale.ROOT] and font size to [fontSize] at the moment.
  *
  * @todo: fix DPI issues for Linux
+ * @todo: use functions like [List.mapTo] to save some memory
  */
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
@@ -77,14 +78,14 @@ class TinyGit : Application() {
     companion object {
 
         /**
-         * @see [get]
+         * @see [TinyGit.get]
          */
         val servicesUnmodifiable: Map<KClass<*>, Any> get() = Collections.unmodifiableMap(services)
         /**
          * The primary window of the application
          */
         val window: Window get() = stage
-        private val services = findAll<Service>().createSingletonMap()
+        private val services = createDependencyMap(scanAnnotation<Service>())
         private val listeners = mutableListOf<(Repository) -> Unit>()
         private val settings = get<Settings>()
         private val credentialService = get<CredentialService>()

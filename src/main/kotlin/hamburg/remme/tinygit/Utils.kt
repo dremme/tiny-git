@@ -6,6 +6,7 @@ import javafx.beans.property.IntegerProperty
 import javafx.collections.FXCollections
 import javafx.concurrent.Task
 import javafx.scene.input.KeyCode
+import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -22,7 +23,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
-import kotlin.streams.toList
 
 /**
  * Constant for 360°. Degrees of 2*pi.
@@ -107,12 +107,6 @@ fun localDateTime(epochSecond: Long) = LocalDateTime.ofEpochSecond(epochSecond, 
 fun LocalDate.daysBetween(date: LocalDate) = Math.abs(this.daysFromOrigin - date.daysFromOrigin)
 
 /**
- * Absolute number of weeks between two [LocalDate]s.
- */
-fun LocalDate.weeksBetween(date: LocalDate) = Math.abs(ChronoUnit.WEEKS.between(temporalOrigin, date)
-        - ChronoUnit.WEEKS.between(temporalOrigin, this))
-
-/**
  * A local resource as externalized URL, e.g.
  *
  * ```kotlin
@@ -134,9 +128,34 @@ fun String.asPath() = Paths.get(this)!!
 fun String.asFile() = asPath().toFile()!!
 
 /**
+ * Creates a [java.io.File] from the [URI].
+ */
+fun URI.asFile() = Paths.get(this).toFile()!!
+
+/**
  * @return `true` if the [Path] exists on the machine.
  */
 fun Path.exists() = Files.exists(this)
+
+/**
+ * @return `true` if the [Path] is a directory.
+ */
+fun Path.isDirectory() = Files.isDirectory(this)
+
+/**
+ * @return `true` if the [Path] is a file (a regular file only, e.g. not a symbolic link).
+ */
+fun Path.isFile() = Files.isRegularFile(this)
+
+/**
+ * @return `true` if the [Path] has the given [ext]ension.
+ */
+fun Path.extensionEquals(ext: String) = isFile() && toString().toLowerCase().endsWith(ext.toLowerCase())
+
+/**
+ * A [Sequence] of files and directories contained in the [Path].
+ */
+fun Path.walk() = Files.walk(this).iterator().asSequence()
 
 /**
  * Deletes the [Path]. May throw an error if deletion is not permitted.
@@ -151,10 +170,10 @@ fun Path.delete() = Files.delete(this)
 fun Path.read() = Files.readAllBytes(this).toString(StandardCharsets.UTF_8)
 
 /**
- * Reads all lines and returns a [List] of strings.
+ * Reads all lines and returns a [Sequence] of strings.
  * May return an empty list if the [Path] is empty.
  */
-fun Path.readLines() = Files.lines(this).use { it.toList() }
+fun Path.readLines() = Files.lines(this).use { it.iterator().asSequence() }
 
 /**
  * Reads only the first line of the [Path].

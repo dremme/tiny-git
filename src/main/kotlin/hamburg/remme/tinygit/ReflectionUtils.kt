@@ -1,26 +1,76 @@
 package hamburg.remme.tinygit
 
-import org.reflections.Reflections
+import java.lang.reflect.Parameter
+import java.util.LinkedList
 import kotlin.reflect.KClass
 
+const val BASE_PACKAGE = "hamburg.remme.tinygit"
+const val BASE_PATH = "hamburg/remme/tinygit"
+const val CLASS_EXTENSION = ".class"
 /**
- * Finds all [KClass]es annotated with the given [Annotation].
+ * The default [ClassLoader] retrieved from [Thread.currentThread].
  */
-inline fun <reified T : Annotation> findAll(): List<KClass<*>> {
-    return Reflections("hamburg.remme.tinygit").getTypesAnnotatedWith(T::class.java).map { it.kotlin }
+val classLoader = Thread.currentThread().contextClassLoader!!
+/**
+ * The primary constructor of the [KClass] based on the Kotlin language.
+ */
+val KClass<*>.primaryConstructor get() = java.constructors[0]!!
+/**
+ * The [Parameter]s of the primary constructor.
+ * @see KClass.primaryConstructor
+ */
+val KClass<*>.primaryParameters: List<Parameter> get() = primaryConstructor.parameters.toList()
+
+/**
+ * **Warning: don't use this if you don't know what you are doing!**
+ *
+ * Scans the class-path for [Class]es and returns them as [Sequence].
+ */
+fun scanClassPath(): Sequence<Class<*>> {
+    return (if (isJar()) jarClasses() else fileClasses())
+            .map { it.toString().substringAfter("$BASE_PATH/").replace('/', '.') }
+            .map { "$BASE_PACKAGE.$it" }
+            .map { it.substring(0, it.length - CLASS_EXTENSION.length) }
+            .map { Class.forName(it, false, classLoader) }
 }
 
 /**
+ * **Warning: don't use this if you don't know what you are doing!**
+ */
+private fun jarClasses() = jarFile().entries().asSequence()
+        .map { it.name }
+        .filter { it.startsWith(BASE_PATH) }
+        .filter { it.endsWith(CLASS_EXTENSION) }
+
+/**
+ * **Warning: don't use this if you don't know what you are doing!**
+ */
+private fun fileClasses() = classLoader.getResources(BASE_PATH).asSequence()
+        .flatMap { it.file.asPath().walk() }
+        .filter { it.extensionEquals(CLASS_EXTENSION) }
+
+/**
+ * **Warning: don't use this if you don't know what you are doing!**
+ *
+ * Finds all [KClass]es in the class-path annotated with the [Annotation].
+ */
+inline fun <reified T : Annotation> scanAnnotation() = scanClassPath()
+        .filter { it.isAnnotationPresent(T::class.java) }
+        .map { it.kotlin }
+        .toList()
+
+/**
+ * **Warning: don't use this if you don't know what you are doing!**
+ *
  * Creates a [Map] containing values that are instances of their respective [KClass] key.
  * Any dependencies between the classes will be resolved automatically.
- * They are instantiated in order of their dependency tree.
+ * They are instantiated in order of their dependencies using a topological sorting.
  */
-fun List<KClass<*>>.createSingletonMap(): Map<KClass<*>, Any> {
+fun createDependencyMap(classes: List<KClass<*>>): Map<KClass<*>, Any> {
     val dependencyMap = mutableMapOf<KClass<*>, Any>()
-    sortedByDependencies().forEach {
-        val constructor = it.java.constructors[0]
-        val arguments = constructor.parameters.map { dependencyMap[it.type.kotlin] }
-        dependencyMap += it to constructor.newInstance(*arguments.toTypedArray())
+    classes.sortedByDependencies().forEach {
+        val arguments = it.primaryParameters.map { dependencyMap[it.type.kotlin] }
+        dependencyMap += it to it.primaryConstructor.newInstance(*arguments.toTypedArray())
     }
     return dependencyMap
 }
@@ -28,22 +78,48 @@ fun List<KClass<*>>.createSingletonMap(): Map<KClass<*>, Any> {
 /**
  * Sorts the list in order of the classes dependency tree.
  */
-private fun List<KClass<*>>.sortedByDependencies() = sortedWith(Comparator { s1, s2 ->
-    val param1 = s1.java.constructors[0].parameters
-    val param2 = s2.java.constructors[0].parameters
-    when {
-    // Both constructors have 0 parameters
-        param1.isEmpty() && param2.isEmpty() -> 0
-    // One has 0 parameters
-        param1.isEmpty() && param2.isNotEmpty() -> -1
-        param1.isNotEmpty() && param2.isEmpty() -> 1
-    // Both classes depend on each other -> cyclic dependency
-        param1.any { it.type.kotlin == s2 } && param2.any { it.type.kotlin == s1 }
-        -> throw RuntimeException("Cyclic dependency between $s1 and $s2 detected.")
-    // One class has the other one as dependency
-        param2.any { it.type.kotlin == s1 } -> -1
-        param1.any { it.type.kotlin == s2 } -> 1
-    // No dependencies between the two
-        else -> 0
+private fun List<KClass<*>>.sortedByDependencies(): List<KClass<*>> {
+    val graph = mutableSetOf<ClassNode>()
+    forEach { graph.getOrCreate(it).neighbors += it.primaryParameters.map { graph.getOrCreate(it.type.kotlin) } }
+    return topologicalSort(graph).map { it.value }
+}
+
+private fun MutableSet<ClassNode>.getOrCreate(klass: KClass<*>) = find { it.value == klass } ?: ClassNode(klass).also { this += it }
+
+/**
+ * Implemented as topological sort like here:
+ * https://en.wikipedia.org/wiki/Topological_sorting
+ *
+ * @todo: maybe use depth-first sorting instead
+ */
+private fun topologicalSort(graph: Set<ClassNode>): List<ClassNode> {
+    val indegree = mutableMapOf<ClassNode, Int>()
+    graph.forEach { indegree[it] = 0 }
+    graph.flatMap { it.neighbors }.forEach { indegree[it] = indegree[it]!! + 1 }
+
+    val sorted = mutableListOf<ClassNode>()
+    val queue = LinkedList<ClassNode>()
+
+    graph.filter { indegree[it] == 0 }.forEach {
+        queue.offer(it)
+        sorted.add(0, it)
     }
-})
+
+    while (queue.isNotEmpty()) {
+        queue.poll().neighbors.forEach {
+            indegree[it] = indegree[it]!! - 1
+            if (indegree[it] == 0) {
+                queue.offer(it)
+                sorted.add(0, it)
+            }
+        }
+    }
+
+    if (sorted.size != graph.size) throw RuntimeException("Cyclic dependencies detected.")
+    return sorted
+}
+
+/**
+ * A directed graph node used in [topologicalSort].
+ */
+private class ClassNode(val value: KClass<*>, val neighbors: MutableList<ClassNode> = mutableListOf())
