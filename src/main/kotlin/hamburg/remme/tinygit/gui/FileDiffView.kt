@@ -7,16 +7,29 @@ import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.domain.service.DiffService
 import hamburg.remme.tinygit.gui.builder.VBoxBuilder
 import hamburg.remme.tinygit.gui.builder.comboBox
+import hamburg.remme.tinygit.gui.builder.listCell
+import hamburg.remme.tinygit.gui.builder.listCellFactory
 import hamburg.remme.tinygit.gui.builder.toolBar
 import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.webView
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableObjectValue
 import javafx.scene.control.ComboBox
-import javafx.scene.control.ListCell
 import javafx.scene.layout.Priority
 import javafx.scene.web.WebEngine
-import javafx.util.Callback
+
+//language=HTML
+private const val EMPTY_DIFF = """
+        <html>
+        <head>
+            <style>
+                html, body {
+                    background-color: #263238;
+                }
+            </style>
+        </head>
+        </html>
+    """
 
 /**
  * Rendering a file's diff between certain commits or the working copy.
@@ -52,28 +65,16 @@ import javafx.util.Callback
 class FileDiffView(private val file: ObservableObjectValue<File?>,
                    private val commit: ObservableObjectValue<Commit?> = SimpleObjectProperty()) : VBoxBuilder() {
 
-    //language=HTML
-    private val empty = """
-        <html>
-        <head>
-            <style>
-                html, body {
-                    background-color: #263238;
-                }
-            </style>
-        </head>
-        </html>
-    """
     private val diffService = TinyGit.get<DiffService>()
     private val contextLines: ComboBox<Int>
     private val engine: WebEngine
-    private var diff = empty
+    private var diff = EMPTY_DIFF
 
     init {
         contextLines = comboBox {
             items.addAll(0, 1, 3, 6, 12, 25, 50, 100)
-            buttonCell = ContextLinesListCell()
-            cellFactory = Callback { ContextLinesListCell() }
+            buttonCell = listCell<Int> { text = I18N["fileDiff.lines", it ?: 0] }
+            cellFactory = listCellFactory<Int> { text = I18N["fileDiff.lines", it ?: 0] }
             value = 3
             valueProperty().addListener { _ -> update() }
         }
@@ -104,23 +105,12 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
             } else {
                 diffService.diff(file.get()!!, contextLines.value)
             }
-            if (diff != newDiff) {
-                diff = newDiff
-                engine.loadContent(diff)
-            }
+            if (newDiff != diff) engine.loadContent(newDiff)
+            diff = newDiff
         } else {
-            diff = empty
+            diff = EMPTY_DIFF
             engine.loadContent(diff)
         }
-    }
-
-    private class ContextLinesListCell : ListCell<Int>() {
-
-        override fun updateItem(item: Int?, empty: Boolean) {
-            super.updateItem(item, empty)
-            text = item?.let { I18N["fileDiff.lines", it] }
-        }
-
     }
 
 }

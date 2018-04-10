@@ -23,6 +23,7 @@ import hamburg.remme.tinygit.gui.builder.contextMenu
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
+import hamburg.remme.tinygit.gui.builder.listCell
 import hamburg.remme.tinygit.gui.builder.textInputDialog
 import hamburg.remme.tinygit.gui.builder.tree
 import hamburg.remme.tinygit.gui.builder.vbox
@@ -104,7 +105,7 @@ class RepositoryView : VBoxBuilder() {
         addClass(DEFAULT_STYLE_CLASS)
 
         val repository = comboBox<Repository>(repoService.existingRepositories) {
-            buttonCell = RepositoryValueCell()
+            buttonCell = listCell<Repository> { text = it?.shortPath }.addClass(REPO_VALUE_STYLE_CLASS)
             cellFactory = Callback { RepositoryListCell() }
             selectionModel.selectedItemProperty().addListener { _, _, it -> repoService.activeRepository.set(it) }
             prefWidth = Int.MAX_VALUE.toDouble()
@@ -126,7 +127,7 @@ class RepositoryView : VBoxBuilder() {
         tree = tree {
             addClass(CONTENT_STYLE_CLASS)
             vgrow(Priority.ALWAYS)
-            setCellFactory { RepositoryEntryTreeCell() }
+            cellFactory = Callback { RepositoryTreeCell() }
 
             +localBranches
             +remoteBranches
@@ -300,19 +301,6 @@ class RepositoryView : VBoxBuilder() {
 
     private class RootTreeItem(icon: Node, text: String) : TreeItem<Any>(Root(icon, text))
 
-    private class RepositoryValueCell : ListCell<Repository>() {
-
-        init {
-            addClass(REPO_VALUE_STYLE_CLASS)
-        }
-
-        override fun updateItem(item: Repository?, empty: Boolean) {
-            super.updateItem(item, empty)
-            text = item?.shortPath
-        }
-
-    }
-
     private class RepositoryListCell : ListCell<Repository>() {
 
         private val name = label {}
@@ -334,7 +322,7 @@ class RepositoryView : VBoxBuilder() {
 
     }
 
-    private inner class RepositoryEntryTreeCell : TreeCell<Any>() {
+    private inner class RepositoryTreeCell : TreeCell<Any>() {
 
         init {
             addClass(REPO_TREE_STYLE_CLASS)

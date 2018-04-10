@@ -21,6 +21,7 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
+import javafx.util.Callback
 
 private const val DEFAULT_STYLE_CLASS = "graph-list-view"
 private const val COMMIT_STYLE_CLASS = "commitId"
@@ -50,7 +51,7 @@ class GraphListView : ListView<Commit>(TinyGit.get<CommitLogService>().commits) 
 
     init {
         addClass(DEFAULT_STYLE_CLASS)
-        setCellFactory { GraphListCell() }
+        cellFactory = Callback { GraphListCell() }
         branchService.head.addListener { _ -> refresh() }
         branchService.branches.addListener(ListChangeListener { refresh() })
         tagService.tags.addListener(ListChangeListener { refresh() })

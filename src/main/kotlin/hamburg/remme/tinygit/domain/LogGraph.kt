@@ -2,12 +2,10 @@ package hamburg.remme.tinygit.domain
 
 import java.util.concurrent.locks.ReentrantLock
 
-private const val LAST_INDEX = 9999
-
 class LogGraph {
 
     private val lock = ReentrantLock()
-    private val backingList = mutableListOf<Branch>()
+    private val backingList = mutableListOf<LogBranch>()
     private lateinit var commits: List<Commit>
 
     fun recreate(commits: List<Commit>) = synchronized(lock) {
@@ -38,33 +36,33 @@ class LogGraph {
             val max = tags.max() ?: 0
             val tag = (0..max).firstOrNull { !tags.contains(it) } ?: max+1
 
-            val branch = Branch(tag, commitIndex)
+            val branch = LogBranch(tag, commitIndex)
             backingList += branch
 
             commit.more(branch)
         }
     }
 
-    private fun Commit.more(branch: Branch) {
+    private fun Commit.more(branch: LogBranch) {
         branch += id
-        parents.firstOrNull()
-                ?.let {
-                    if (!contains(it)) it.peel()?.more(branch) ?: branch.indeterminate(it)
-                    else branch.finish(it)
-                }
-                ?: branch.finish(this)
+        val parent = parents.firstOrNull()
+        if (parent == null) branch.finish(this)
+        else if (!contains(parent)) parent.peel()?.more(branch) ?: branch.indeterminate(parent)
+        else branch.finish(parent)
     }
 
     private fun CommitIsh.peel() = commits.firstOrNull { it.id == id }
 
-    private inner class Branch(val tag: Int, val start: Int, var end: Int = LAST_INDEX) : ArrayList<String>() {
+    private inner class LogBranch(val tag: Int, val start: Int) : ArrayList<String>() {
+
+        var end = 9999 // arbitrary end; TODO: should prob be higher
 
         fun finish(commit: Commit) {
             end = commits.indexOf(commit)
         }
 
         fun finish(commit: CommitIsh) {
-            end = commit.peel()?.let { commits.indexOf(it) } ?: LAST_INDEX
+            commit.peel()?.let { end = commits.indexOf(it) }
         }
 
         fun indeterminate(commit: CommitIsh) {

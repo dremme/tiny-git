@@ -7,6 +7,7 @@ import javafx.collections.ObservableList
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
+import javafx.util.Callback
 
 const val CONFLICT_STYLE_CLASS = "status-conflict"
 const val UNTRACKED_STYLE_CLASS = "status-untracked"
@@ -62,7 +63,7 @@ class FileStatusView(list: ObservableList<File>, selectionMode: SelectionMode = 
 
     init {
         addClass(DEFAULT_STYLE_CLASS)
-        setCellFactory { LocalFileListCell() }
+        cellFactory = Callback { LocalFileListCell() }
         selectionModel.selectionMode = selectionMode
     }
 
