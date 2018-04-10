@@ -1,7 +1,6 @@
-package hamburg.remme.tinygit.gui.component.skin
+package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.domain.Commit
-import hamburg.remme.tinygit.gui.component.GraphListView
 import javafx.application.Platform
 import javafx.geometry.Orientation
 import javafx.scene.control.IndexedCell

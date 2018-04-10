@@ -1,7 +1,8 @@
-package hamburg.remme.tinygit.gui.component.skin
+package hamburg.remme.tinygit.gui
 
+import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.domain.service.CommitLogService
 import hamburg.remme.tinygit.gui.builder.addClass
-import hamburg.remme.tinygit.gui.component.GraphListView
 import javafx.scene.Group
 import javafx.scene.shape.Circle
 import javafx.scene.shape.CubicCurveTo
@@ -26,8 +27,9 @@ private const val COLOR_COUNT = 16
  *
  * @see hamburg.remme.tinygit.domain.LogGraph
  */
-class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSkinBase(graphView) {
+class GraphListViewSkin(private val control: GraphListView) : GraphListViewSkinBase(control) {
 
+    private val logGraph = TinyGit.get<CommitLogService>().logGraph
     private val paths: List<Path>
     private val pathsClip = Rectangle()
     private val circleGroup = Group()
@@ -55,7 +57,7 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
         paths.forEach { it.elements.clear() }
         circleGroup.children.clear()
 
-        if (graphView.isGraphVisible && hasCells) {
+        if (control.isGraphVisible && hasCells) {
             pathsClip.width = flow.width
             pathsClip.height = flow.height
             if (horizontalBar.isVisible) pathsClip.height -= horizontalBar.height
@@ -66,8 +68,8 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
             val scrollX = horizontalBar.value
             val cellHeight = (firstCell.index..lastCell.index).map { flow.getVisibleCell(it).height }.average()
 
-            graphView.items.forEachIndexed { commitIndex, commit ->
-                val tag = graphView.logGraph.getTag(commit)
+            skinnable.items.forEachIndexed { commitIndex, commit ->
+                val tag = logGraph.getTag(commit)
 
                 val commitX = SPACING + SPACING * tag - scrollX
                 val commitY = if (commitIndex < firstCell.index) {
@@ -81,8 +83,8 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
                 }
 
                 commit.parents.forEach { parent ->
-                    val parentIndex = graphView.items.indexOfFirst { it.id == parent.id }.takeIf { it >= 0 } ?: LAST_INDEX
-                    val parentTag = graphView.logGraph.getTag(parent)
+                    val parentIndex = skinnable.items.indexOfFirst { it.id == parent.id }.takeIf { it >= 0 } ?: LAST_INDEX
+                    val parentTag = logGraph.getTag(parent)
 
                     if (parentTag >= 0
                             && !(commitIndex < firstCell.index && parentIndex < firstCell.index)
@@ -116,11 +118,11 @@ class GraphListViewSkin(private val graphView: GraphListView) : GraphListViewSki
                     }
                 }
             }
-            graphView.graphWidth = SPACING / 2 + SPACING * (graphView.logGraph.getHighestTag() + 1)
+            control.graphWidth = SPACING / 2 + SPACING * (logGraph.getHighestTag() + 1)
         } else if (!hasCells) {
-            graphView.graphWidth = SPACING / 2 + SPACING * (graphView.logGraph.getHighestTag() + 1)
+            control.graphWidth = SPACING / 2 + SPACING * (logGraph.getHighestTag() + 1)
         } else {
-            graphView.graphWidth = EMPTY_SPACING
+            control.graphWidth = EMPTY_SPACING
         }
     }
 

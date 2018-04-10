@@ -1,4 +1,4 @@
-package hamburg.remme.tinygit.gui.component
+package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.Branch
@@ -11,12 +11,11 @@ import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.vbox
-import hamburg.remme.tinygit.gui.component.skin.GraphListViewSkin
+import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.shortDateTimeFormat
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ListChangeListener
-import javafx.collections.ObservableList
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -41,29 +40,17 @@ private const val MAX_LENGTH = 60
  *
  * The actual log graph is calculated asynchronously by [CommitLogService] when the log changes.
  *
- * @todo: clean this class up, there is only ever one instance of this
- * @todo: skin should not extend ListViewSkin but wrap a [ListView]
- * @todo: this class should be a control
+ * @todo: skin should not extend ListViewSkin but wrap a [ListView]?!
+ * @todo: this class should be a control?!
  */
-class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits) {
+class GraphListView : ListView<Commit>(TinyGit.get<CommitLogService>().commits) {
 
-    var graphWidth: Double
-        get() = graphPadding.get().left
-        set(value) = graphPadding.set(Insets(0.0, 0.0, 0.0, value))
-    var isGraphVisible
-        get() = graphVisible.get()
-        set(value) = graphVisible.set(value)
-    val logGraph = TinyGit.get<CommitLogService>().logGraph
     private val branchService = TinyGit.get<BranchService>()
     private val tagService = TinyGit.get<TagService>()
-    private val graphVisible = object : SimpleBooleanProperty(true) {
-        override fun invalidated() = refresh()
-    }
-    private val graphPadding = SimpleObjectProperty<Insets>(Insets.EMPTY)
 
     init {
         addClass(DEFAULT_STYLE_CLASS)
-        setCellFactory { CommitLogListCell() }
+        setCellFactory { GraphListCell() }
         branchService.head.addListener { _ -> refresh() }
         branchService.branches.addListener(ListChangeListener { refresh() })
         tagService.tags.addListener(ListChangeListener { refresh() })
@@ -71,18 +58,34 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
 
     override fun createDefaultSkin() = GraphListViewSkin(this)
 
+    /* --------------------------------------------------
+     * GRAPH VISIBLE
+     * -------------------------------------------------- */
+    private val graphVisibleProperty = SimpleBooleanProperty(true)
+    var isGraphVisible: Boolean
+        get() = graphVisibleProperty.get()
+        set(value) = graphVisibleProperty.set(value)
+
+    /* --------------------------------------------------
+     * GRAPH PADDING
+     * -------------------------------------------------- */
+    private val graphWidthProperty = SimpleObjectProperty<Insets>()
+    var graphWidth: Double
+        get() = graphWidthProperty.get().left
+        set(value) = graphWidthProperty.set(Insets(0.0, 0.0, 0.0, value))
+
     /**
      * This rather complex list cell is displaying brief information about the commit.
      * It will show its ID, commit time, message and author.
      *
      * It will also display any branch pointing to the commit.
      *
-     * The [ListCell] will have a left padding bound to [GraphListView.padding] to leave space for the graph
-     * that is drawn by the [GraphListViewSkin].
+     * The [ListCell] will have a left padding bound to [GraphListView.graphVisibleProperty] to leave space for the
+     * graph that is drawn by the [GraphListViewSkin].
      *
      * @todo branches all have the same color which is not synchronized with the log graph
      */
-    private inner class CommitLogListCell : ListCell<Commit>() {
+    private inner class GraphListCell : ListCell<Commit>() {
 
         private val commitId = label { addClass(COMMIT_STYLE_CLASS) }
         private val date = label {
@@ -98,7 +101,7 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
 
         init {
             graphic = vbox {
-                paddingProperty().bind(graphPadding)
+                paddingProperty().bind(graphWidthProperty)
                 +hbox {
                     alignment = Pos.CENTER_LEFT
                     +commitId
