@@ -93,6 +93,18 @@
     -fx-alignment: center;
     -fx-spacing: $px6;
   }
+  &__search {
+    .icon-wrapper {
+      -fx-max-height: 1em;
+      -fx-max-width: 1em;
+    }
+    .text-field {
+      -fx-padding: $px4 0 $px4 1.5em;
+      -fx-pref-width: 40em;
+      -fx-border-color: transparent;
+      -fx-border-width: 0;
+    }
+  }
 }
 
 .commit-details-view {
@@ -143,11 +155,11 @@
     .tag-badge {
       -fx-padding: $px2 $px4 $px2 $px4;
       -fx-graphic-text-gap: $px2;
-      -fx-text-fill: $text-dark-color;
+      -fx-text-fill: rgba($text-dark-color, 0.8);
       -fx-background-radius: $px2;
 
       .icon {
-        -fx-fill: $text-dark-color;
+        -fx-fill: rgba($text-dark-color, 0.8);
       }
     }
     .branch-badge {

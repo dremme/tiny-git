@@ -39,13 +39,14 @@ fun main(args: Array<String>) {
 
     // Will load needed fonts and set the font size depending on the OS
     // This might be a solution to the DPI issues on Linux, e.g. Ubuntu
-    System.setProperty("com.sun.javafx.fontSize", fontSize.toString())
-    Font.loadFont("font/Roboto-Regular.ttf".asResource(), fontSize.toDouble())
-    Font.loadFont("font/Roboto-Bold.ttf".asResource(), fontSize.toDouble())
-    Font.loadFont("font/Roboto-Light.ttf".asResource(), fontSize.toDouble())
-    Font.loadFont("font/LiberationMono-Regular.ttf".asResource(), fontSize.toDouble())
-    Font.loadFont("font/fa-brands-400.ttf".asResource(), fontSize.toDouble())
-    Font.loadFont("font/fa-solid-900.ttf".asResource(), fontSize.toDouble())
+    val prefFontSize = if (isMac) 13 else 12
+    System.setProperty("com.sun.javafx.fontSize", prefFontSize.toString())
+    Font.loadFont("font/Roboto-Regular.ttf".asResource(), fontSize)
+    Font.loadFont("font/Roboto-Bold.ttf".asResource(), fontSize)
+    Font.loadFont("font/Roboto-Light.ttf".asResource(), fontSize)
+    Font.loadFont("font/LiberationMono-Regular.ttf".asResource(), fontSize)
+    Font.loadFont("font/fa-brands-400.ttf".asResource(), fontSize)
+    Font.loadFont("font/fa-solid-900.ttf".asResource(), fontSize)
 
     Application.launch(TinyGit::class.java, *args)
 }

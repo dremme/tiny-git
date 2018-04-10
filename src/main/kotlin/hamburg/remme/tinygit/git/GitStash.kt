@@ -15,12 +15,12 @@ fun gitStash(repository: Repository) {
 
 fun gitStashApply(repository: Repository, stashEntry: StashEntry) {
     val response = git(repository, *stashApply, stashEntry.id).trim()
-    if (response.lines().any { it.toLowerCase().startsWith("conflict") }) throw StashConflictException()
+    if (response.lines().any { it.startsWith("conflict", true) }) throw StashConflictException()
 }
 
 fun gitStashPop(repository: Repository) {
     val response = git(repository, *stashPop).trim()
-    if (response.lines().any { it.toLowerCase().startsWith("conflict") }) throw StashConflictException()
+    if (response.lines().any { it.startsWith("conflict", true) }) throw StashConflictException()
 }
 
 fun gitStashDrop(repository: Repository, stashEntry: StashEntry) {

@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.service.CommitLogService
 import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.scene.Group
+import javafx.scene.control.skin.ListViewSkin
 import javafx.scene.shape.Circle
 import javafx.scene.shape.CubicCurveTo
 import javafx.scene.shape.LineTo
@@ -22,10 +23,12 @@ private const val LAST_INDEX = 9999
 private const val COLOR_COUNT = 16
 
 /**
- * This skin is enhancing the [javafx.scene.control.skin.ListViewSkin] to display a Git log graph style [Path].
+ * This skin is enhancing the [ListViewSkin] to display a Git log graph style [Path].
  * The cells are still drawn by the default list skin.
  *
- * @see hamburg.remme.tinygit.domain.LogGraph
+ * The actual log graph is calculated asynchronously by [CommitLogService] when the log changes.
+ *
+ * @see CommitLogService.logGraph
  */
 class GraphListViewSkin(private val control: GraphListView) : GraphListViewSkinBase(control) {
 

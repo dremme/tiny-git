@@ -4,6 +4,8 @@ import javafx.application.Platform
 import javafx.beans.binding.IntegerExpression
 import javafx.beans.property.IntegerProperty
 import javafx.collections.FXCollections
+import javafx.collections.ObservableList
+import javafx.collections.transformation.FilteredList
 import javafx.concurrent.Task
 import javafx.scene.input.KeyCode
 import java.net.URI
@@ -150,7 +152,7 @@ fun Path.isFile() = Files.isRegularFile(this)
 /**
  * @return `true` if the [Path] has the given [ext]ension.
  */
-fun Path.extensionEquals(ext: String) = isFile() && toString().toLowerCase().endsWith(ext.toLowerCase())
+fun Path.extensionEquals(ext: String) = isFile() && toString().endsWith(ext, true)
 
 /**
  * A [Sequence] of files and directories contained in the [Path].
@@ -224,14 +226,21 @@ fun String.htmlEncodeSpaces() = replace(" ", "&nbsp;")
 fun String.htmlEncodeAll() = htmlEncode().htmlEncodeTabs().htmlEncodeSpaces()
 
 /**
- * Creates a new [javafx.collections.ObservableList] from the given [items].
+ * Creates a new [ObservableList] from the given [items].
  */
 fun <T> observableList(vararg items: T) = FXCollections.observableArrayList<T>(*items)!!
 
 /**
- * Creates a new [javafx.collections.ObservableList] from the given [items].
+ * Creates a new [ObservableList] from the given [items].
  */
 fun <T> observableList(items: Collection<T>) = FXCollections.observableArrayList<T>(items)!!
+
+/**
+ * Returns a filterable view backed by this list.
+ *
+ * @see FilteredList
+ */
+fun <T> ObservableList<T>.asFilteredList() = FilteredList(this)
 
 /**
  * [List.map] but parallel using a [ForkJoinPool].

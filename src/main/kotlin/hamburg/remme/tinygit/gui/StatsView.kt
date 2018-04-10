@@ -85,7 +85,7 @@ class StatsView : Tab() {
     private val activity: CalendarChart
 
     init {
-        text = I18N["stats.tab"]
+        text = "${I18N["stats.tab"]} (beta)"
         graphic = Icons.chartPie()
         isClosable = false
 

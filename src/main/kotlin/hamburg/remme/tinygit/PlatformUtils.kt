@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit
 
+import javafx.scene.text.Font
 import java.util.jar.JarFile
 
 /**
@@ -21,10 +22,8 @@ val isMac = operatingSystem.startsWith("Mac")
 val isLinux = operatingSystem.startsWith("Linux")
 /**
  * The OS default font size.
- *
- * @todo: maybe has to be initialized for high DPI Linux in a separate way.
  */
-val fontSize = if (isMac) 13 else 12
+val fontSize = Font.getDefault().size
 
 /**
  * `true` if the application is executing from within a JAR file.

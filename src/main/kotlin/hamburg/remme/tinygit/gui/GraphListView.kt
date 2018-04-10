@@ -16,6 +16,7 @@ import hamburg.remme.tinygit.shortDateTimeFormat
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ListChangeListener
+import javafx.collections.ObservableList
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -39,12 +40,12 @@ private const val MAX_LENGTH = 60
  * This view has some heavy interaction with [GraphListViewSkin] but is still loosely coupled, as it would
  * work with the default list skin, just without Git log graph.
  *
- * The actual log graph is calculated asynchronously by [CommitLogService] when the log changes.
+ * The commits argument should be [CommitLogService.commits] or a filtered view of it.
  *
  * @todo: skin should not extend ListViewSkin but wrap a [ListView]?!
  * @todo: this class should be a control?!
  */
-class GraphListView : ListView<Commit>(TinyGit.get<CommitLogService>().commits) {
+class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits) {
 
     private val branchService = TinyGit.get<BranchService>()
     private val tagService = TinyGit.get<TagService>()
