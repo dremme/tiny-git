@@ -48,6 +48,8 @@ class DetailsRenderer {
                         font-size: ${fontSize}px;
                     }
                     .label {
+                        width: 1px;
+                        white-space: nowrap;
                         font-weight: bold;
                     }
                 </style>
