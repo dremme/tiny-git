@@ -26,13 +26,11 @@ val KClass<*>.primaryParameters: List<Parameter> get() = primaryConstructor.para
  *
  * Scans the class-path for [Class]es and returns them as [Sequence].
  */
-fun scanClassPath(): Sequence<Class<*>> {
-    return (if (isJar()) jarClasses() else fileClasses())
-            .map { it.toString().substringAfter("$BASE_PATH/").replace('/', '.') }
-            .map { "$BASE_PACKAGE.$it" }
-            .map { it.substring(0, it.length - CLASS_EXTENSION.length) }
-            .map { Class.forName(it, false, classLoader) }
-}
+fun scanClassPath() = (if (isJar()) jarClasses() else fileClasses())
+        .map { it.toString().substringAfter("$BASE_PATH/").replace('/', '.') }
+        .map { "$BASE_PACKAGE.$it" }
+        .map { it.substring(0, it.length - CLASS_EXTENSION.length) }
+        .map { Class.forName(it, false, classLoader) }
 
 /**
  * **Warning: don't use this if you don't know what you are doing!**

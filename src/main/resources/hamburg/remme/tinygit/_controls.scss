@@ -683,6 +683,9 @@ $px28: 28em / $font-size;
       -fx-shape: "M 0 -3.5 L 4 0 L 0 3.5 z";
     }
   }
+  &:filled:selected > .tree-disclosure-node > .arrow {
+    -fx-background-color: $text-accent-color;
+  }
   /* TODO: this is very buggy */
   &:expanded > .tree-disclosure-node > .arrow {
     -fx-rotate: 90;

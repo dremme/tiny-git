@@ -4,7 +4,8 @@ import hamburg.remme.tinygit.asFile
 import hamburg.remme.tinygit.domain.ClientVersion
 import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.measureTime
-import java.util.Scanner
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 val IC = RegexOption.IGNORE_CASE
 val G = RegexOption.DOT_MATCHES_ALL
@@ -56,6 +57,6 @@ private fun exec(repository: Repository? = null, input: Array<String>? = null, v
         builder.directory(repository?.path?.asFile())
         val process = builder.start()
         process.outputStream.bufferedWriter().use { it.write(input?.joinToString("\n") ?: "") }
-        Scanner(process.inputStream).use { while (process.isAlive) while (it.hasNext()) block(it.nextLine()) }
+        BufferedReader(InputStreamReader(process.inputStream)).use { it.lines().forEach(block) }
     }
 }

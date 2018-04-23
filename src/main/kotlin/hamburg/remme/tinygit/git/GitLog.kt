@@ -71,23 +71,20 @@ private class CommitParser {
 
     val commits = mutableListOf<Commit>()
     private var builder = CommitBuilder()
-    private var messageBuilder: StringBuilder? = null
 
     fun parseLine(line: String) {
         when {
-            messageBuilder != null && line != eom -> messageBuilder!!.appendln(line)
+            builder.fullMessage != null && line != eom -> builder.fullMessage!!.appendln(line)
+            line == eom -> {
+                commits += builder.build()
+                builder = CommitBuilder()
+            }
             line.startsWith(idSeparator) -> builder.id = line.substringAfter(idSeparator)
             line.startsWith(parentsSeparator) -> builder.parents += line.substringAfter(parentsSeparator).split(' ').filter { it.isNotBlank() }
             line.startsWith(dateSeparator) -> builder.date = line.substringAfter(dateSeparator).parseDate()
             line.startsWith(nameSeparator) -> builder.authorName = line.substringAfterLast(nameSeparator)
             line.startsWith(mailSeparator) -> builder.authorMail = line.substringAfterLast(mailSeparator)
-            line.startsWith(bodySeparator) -> messageBuilder = StringBuilder(line.substringAfterLast(bodySeparator)).appendln()
-            line == eom -> {
-                builder.fullMessage = messageBuilder.toString()
-                commits += builder.build()
-                builder = CommitBuilder()
-                messageBuilder = null
-            }
+            line.startsWith(bodySeparator) -> builder.fullMessage = StringBuilder(line.substringAfterLast(bodySeparator)).appendln()
         }
     }
 
@@ -103,11 +100,11 @@ private class CommitBuilder {
 
     lateinit var id: String
     val parents = mutableListOf<String>()
-    lateinit var fullMessage: String
+    var fullMessage: StringBuilder? = null
     lateinit var date: LocalDateTime
     lateinit var authorName: String
     lateinit var authorMail: String
 
-    fun build() = Commit(id, parents.map { CommitIsh(it) }, fullMessage, date, authorName, authorMail)
+    fun build() = Commit(id, parents.map { CommitIsh(it) }, fullMessage.toString(), date, authorName, authorMail)
 
 }
