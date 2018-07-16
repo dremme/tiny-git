@@ -7,15 +7,16 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 buildscript {
-    ext.kotlin_version = "1.2.31"
+  ext.kotlin_version = "1.2.51"
 
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "io.bit3:jsass:5.5.6"
-    }
+  repositories {
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    classpath "io.bit3:jsass:5.7.3"
+  }
 }
 
 group "hamburg.remme"
@@ -24,69 +25,69 @@ version "1.0-SNAPSHOT"
 apply plugin: "kotlin"
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.5"
-    compile "org.yaml:snakeyaml:1.18"
+  compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+  compile "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.6"
+  compile "org.yaml:snakeyaml:1.18"
 }
 
 sourceSets {
-    main {
-        java { srcDir "src/main/generated" }
-        resources {
-            srcDirs("src/main/resources", "src/main/java", "src/main/generated")
-            include "**/*.css"
-            include "**/*.png"
-            include "**/*.properties"
-            include "**/*.ttf"
-        }
+  main {
+    java { srcDir "src/main/generated" }
+    resources {
+      srcDirs("src/main/resources", "src/main/java", "src/main/generated")
+      include "**/*.css"
+      include "**/*.png"
+      include "**/*.properties"
+      include "**/*.ttf"
     }
+  }
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+  kotlinOptions.jvmTarget = "1.8"
 }
 
 jar {
-    manifest {
-        attributes "Main-Class": "hamburg.remme.tinygit.TinyGitKt"
-    }
-    from sourceSets.main.output.classesDirs
-    from sourceSets.main.output.resourcesDir
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+  manifest {
+    attributes "Main-Class": "hamburg.remme.tinygit.TinyGitKt"
+  }
+  from sourceSets.main.output.classesDirs
+  from sourceSets.main.output.resourcesDir
+  from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
 void parseSCSS(inputPath, outputPath) {
-    def compiler = new Compiler()
-    def options = new Options()
-    options.outputStyle = OutputStyle.COMPRESSED
-    options.sourceComments = false
+  def compiler = new Compiler()
+  def options = new Options()
+  options.outputStyle = OutputStyle.COMPRESSED
+  options.sourceComments = false
 
-    def inputFile = file(inputPath).toURI()
-    def outputFile = file(outputPath).toURI()
+  def inputFile = file(inputPath).toURI()
+  def outputFile = file(outputPath).toURI()
 
-    def output = compiler.compileFile(inputFile, outputFile, options)
-    // Has to be removed for JavaFX
-    def css = output.getCss().replace("@charset \"UTF-8\";", "")
+  def output = compiler.compileFile(inputFile, outputFile, options)
+  // Has to be removed for JavaFX
+  def css = output.getCss().replace("@charset \"UTF-8\";", "")
 
-    def target = Paths.get(outputFile)
-    Files.createDirectories(target.parent)
-    Files.write(target, css.getBytes(StandardCharsets.UTF_8))
+  def target = Paths.get(outputFile)
+  Files.createDirectories(target.parent)
+  Files.write(target, css.getBytes(StandardCharsets.UTF_8))
 }
 
 task compileSCSS {
-    def winInputPath = "src/main/resources/hamburg/remme/tinygit/main-windows.scss"
-    def winOutputPath = "src/main/generated/css/main-windows.css"
-    parseSCSS(winInputPath, winOutputPath)
+  def winInputPath = "src/main/resources/hamburg/remme/tinygit/main-windows.scss"
+  def winOutputPath = "src/main/generated/css/main-windows.css"
+  parseSCSS(winInputPath, winOutputPath)
 
-    def macInputPath = "src/main/resources/hamburg/remme/tinygit/main-mac.scss"
-    def macOutputPath = "src/main/generated/css/main-mac.css"
-    parseSCSS(macInputPath, macOutputPath)
+  def macInputPath = "src/main/resources/hamburg/remme/tinygit/main-mac.scss"
+  def macOutputPath = "src/main/generated/css/main-mac.css"
+  parseSCSS(macInputPath, macOutputPath)
 }
 
 assemble.doLast {
-    compileSCSS
+  compileSCSS
 }
