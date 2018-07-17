@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.util.StopWatch
 
-fun main(args: Array<String>) {
+fun main(vararg args: String) {
     Application.launch(TinyGitApplication::class.java, *args)
 }
 
@@ -19,12 +19,12 @@ private const val MAIN_STYLESHEET = "/generated/main.css"
 private const val MAIN_FXML = "/fxml/main.fxml"
 private const val FONT_SIZE = 13.0
 private const val FONT_SIZE_PROPERTY = "com.sun.javafx.fontSize"
-private const val FONT_ROBOTO_REGULAR = "font/Roboto-Regular.ttf"
-private const val FONT_ROBOTO_BOLD = "font/Roboto-Bold.ttf"
-private const val FONT_ROBOTO_LIGHT = "font/Roboto-Light.ttf"
-private const val FONT_LIBERATION_MONO = "font/LiberationMono-Regular.ttf"
-private const val FONTAWESOME = "font/fa-solid-900.ttf"
-private const val FONTAWESOME_BRANDS = "font/fa-brands-400.ttf"
+private const val FONT_ROBOTO_REGULAR = "/font/Roboto-Regular.ttf"
+private const val FONT_ROBOTO_BOLD = "/font/Roboto-Bold.ttf"
+private const val FONT_ROBOTO_LIGHT = "/font/Roboto-Light.ttf"
+private const val FONT_LIBERATION_MONO = "/font/LiberationMono-Regular.ttf"
+private const val FONTAWESOME = "/font/fa-solid-900.ttf"
+private const val FONTAWESOME_BRANDS = "/font/fa-brands-400.ttf"
 
 /**
  * A JavaFX and Spring Boot application. Complete madness.
