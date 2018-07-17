@@ -1,8 +1,20 @@
-build
-out
-target
-generated
 .gradle
+/build/
+/src/main/resources/generated/
+!gradle/wrapper/gradle-wrapper.jar
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
 .idea
+*.iws
 *.iml
-*.log
+*.ipr
+/out/

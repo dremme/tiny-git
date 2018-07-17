@@ -7,57 +7,57 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 buildscript {
-  ext.kotlin_version = "1.2.51"
-
+  ext {
+    kotlinVersion = '1.2.51'
+    springBootVersion = '2.0.3.RELEASE'
+  }
   repositories {
     mavenCentral()
   }
-
   dependencies {
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
+    classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
     classpath "io.bit3:jsass:5.7.3"
   }
 }
 
-group "hamburg.remme"
-version "1.0-SNAPSHOT"
+apply plugin: 'kotlin'
+apply plugin: 'kotlin-spring'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 
-apply plugin: "kotlin"
+group = 'hamburg.remme'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+compileKotlin {
+  kotlinOptions {
+    freeCompilerArgs = ["-Xjsr305=strict"]
+    jvmTarget = "1.8"
+  }
+}
+
+compileTestKotlin {
+  kotlinOptions {
+    freeCompilerArgs = ["-Xjsr305=strict"]
+    jvmTarget = "1.8"
+  }
+}
 
 repositories {
   mavenCentral()
 }
 
 dependencies {
-  compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-  compile "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.6"
-  compile "org.yaml:snakeyaml:1.18"
-}
-
-sourceSets {
-  main {
-    java { srcDir "src/main/generated" }
-    resources {
-      srcDirs("src/main/resources", "src/main/java", "src/main/generated")
-      include "**/*.css"
-      include "**/*.png"
-      include "**/*.properties"
-      include "**/*.ttf"
-    }
-  }
-}
-
-compileKotlin {
-  kotlinOptions.jvmTarget = "1.8"
-}
-
-jar {
-  manifest {
-    attributes "Main-Class": "hamburg.remme.tinygit.TinyGitKt"
-  }
-  from sourceSets.main.output.classesDirs
-  from sourceSets.main.output.resourcesDir
-  from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+  compile('org.springframework.boot:spring-boot-starter')
+  compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+  compile("org.jetbrains.kotlin:kotlin-reflect")
+  testCompile('org.springframework.boot:spring-boot-starter-test')
+  testCompile('org.junit.platform:junit-platform-engine:1.0.3')
+  testCompile('org.junit.jupiter:junit-jupiter-api:5.0.3')
+  testCompile('org.junit.jupiter:junit-jupiter-params:5.0.3')
 }
 
 void parseSCSS(inputPath, outputPath) {
@@ -79,13 +79,9 @@ void parseSCSS(inputPath, outputPath) {
 }
 
 task compileSCSS {
-  def winInputPath = "src/main/resources/hamburg/remme/tinygit/main-windows.scss"
-  def winOutputPath = "src/main/generated/css/main-windows.css"
-  parseSCSS(winInputPath, winOutputPath)
-
-  def macInputPath = "src/main/resources/hamburg/remme/tinygit/main-mac.scss"
-  def macOutputPath = "src/main/generated/css/main-mac.css"
-  parseSCSS(macInputPath, macOutputPath)
+  def inputPath = "src/main/resources/scss/main.scss"
+  def outputPath = "src/main/resources/generated/main.css"
+  parseSCSS(inputPath, outputPath)
 }
 
 assemble.doLast {

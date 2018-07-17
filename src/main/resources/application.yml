@@ -1,0 +1,5 @@
+spring.banner.image:
+  location: classpath:icon.png
+  width: 36
+  height: 16
+  invert: true
