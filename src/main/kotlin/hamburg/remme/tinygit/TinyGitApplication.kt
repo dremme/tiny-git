@@ -4,7 +4,6 @@ import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.Parent
 import javafx.scene.Scene
-import javafx.scene.text.Font
 import javafx.stage.Stage
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -29,8 +28,7 @@ private const val FONTAWESOME_BRANDS = "/font/fa-brands-400.ttf"
 /**
  * A JavaFX and Spring Boot application. Complete madness.
  */
-@SpringBootApplication
-class TinyGitApplication : Application() {
+@SpringBootApplication class TinyGitApplication : Application() {
 
     private val log = logger<TinyGitApplication>()
     private val stopWatch = StopWatch()
@@ -53,6 +51,8 @@ class TinyGitApplication : Application() {
 
     /**
      * Will open the primary [Stage].
+     *
+     * @param primaryStage the stage given by the JavaFX launcher.
      */
     override fun start(primaryStage: Stage) {
         primaryStage.title = "TinyGit"
@@ -72,18 +72,19 @@ class TinyGitApplication : Application() {
     }
 
     private fun initFX() {
+        // TODO: uncomment after prototyping phase
         // Will load needed fonts and set the font size depending on the OS to reduce lag during runtime
         // We never load fonts via CSS
-        System.setProperty(FONT_SIZE_PROPERTY, FONT_SIZE.toString())
-        Font.loadFont(resourceStream(FONT_ROBOTO_REGULAR), FONT_SIZE)
-        Font.loadFont(resourceStream(FONT_ROBOTO_BOLD), FONT_SIZE)
-        Font.loadFont(resourceStream(FONT_ROBOTO_LIGHT), FONT_SIZE)
-        Font.loadFont(resourceStream(FONT_LIBERATION_MONO), FONT_SIZE)
-        Font.loadFont(resourceStream(FONTAWESOME), FONT_SIZE)
-        Font.loadFont(resourceStream(FONTAWESOME_BRANDS), FONT_SIZE)
+        // System.setProperty(FONT_SIZE_PROPERTY, FONT_SIZE.toString())
+        // Font.loadFont(resourceStream(FONT_ROBOTO_REGULAR), FONT_SIZE)
+        // Font.loadFont(resourceStream(FONT_ROBOTO_BOLD), FONT_SIZE)
+        // Font.loadFont(resourceStream(FONT_ROBOTO_LIGHT), FONT_SIZE)
+        // Font.loadFont(resourceStream(FONT_LIBERATION_MONO), FONT_SIZE)
+        // Font.loadFont(resourceStream(FONTAWESOME), FONT_SIZE)
+        // Font.loadFont(resourceStream(FONTAWESOME_BRANDS), FONT_SIZE)
         // Will load the custom CSS stylesheet. Must be called before any scene is initialized.
         // This will prevent modena.css to be loaded at all
-        Application.setUserAgentStylesheet(resourceString(MAIN_STYLESHEET))
+        // Application.setUserAgentStylesheet(resourceString(MAIN_STYLESHEET))
     }
 
     private fun initFXML() {

@@ -3,6 +3,9 @@ package hamburg.remme.tinygit.system
 import java.io.File
 import java.lang.System.arraycopy
 
+/**
+ * Responsible for native console IO.
+ */
 object Console {
 
     /**
@@ -13,7 +16,7 @@ object Console {
      */
     fun git(vararg args: String): String {
         val builder = OutputBuilder()
-        execute(prependGit(*args), builder::append)
+        execute(null, prependGit(*args), builder::append)
         return builder.toString().trim()
     }
 
@@ -25,7 +28,7 @@ object Console {
      * @param block invoked for each printed line.
      */
     fun git(vararg args: String, block: (String) -> Unit) {
-        execute(prependGit(*args), block)
+        execute(null, prependGit(*args), block)
     }
 
     private fun prependGit(vararg args: String): Array<String> {
@@ -33,17 +36,6 @@ object Console {
         command[0] = "git"
         arraycopy(args, 0, command, 1, args.size)
         return command
-    }
-
-    /**
-     * Will execute the given arguments as shell command in the current working directory. For each printed line the
-     * consumer is being called.
-     *
-     * @param args  the arguments. The first argument is usually the command.
-     * @param block invoked for each printed line.
-     */
-    fun execute(args: Array<String>, block: (String) -> Unit) {
-        execute(null, args, block)
     }
 
     /**

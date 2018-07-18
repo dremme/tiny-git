@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="hamburg.remme.tinygit.ui.MainController">
-  <Label text="Hello TinyGit"/>
+  <VBox alignment="CENTER" spacing="6">
+    <Label text="Welcome to GitAnalytics"/>
+    <HBox alignment="CENTER" spacing="6">
+      <TextField fx:id="repositoryPath"/>
+      <Button text="Count Commits" onAction="#countCommits"/>
+    </HBox>
+    <Label fx:id="commitCount"/>
+  </VBox>
 </StackPane>
