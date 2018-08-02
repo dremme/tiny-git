@@ -1,7 +1,6 @@
 package hamburg.remme.tinygit.system
 
 import java.io.File
-import java.lang.System.arraycopy
 
 /**
  * Responsible for native console IO.
@@ -34,7 +33,7 @@ object Console {
     private fun prependGit(vararg args: String): Array<String> {
         val command = Array(args.size + 1) { "" }
         command[0] = "git"
-        arraycopy(args, 0, command, 1, args.size)
+        System.arraycopy(args, 0, command, 1, args.size)
         return command
     }
 
@@ -67,7 +66,7 @@ object Console {
             builder.appendln(text)
         }
 
-        override fun toString() = builder.toString()
+        override fun toString(): String = builder.toString()
 
     }
 

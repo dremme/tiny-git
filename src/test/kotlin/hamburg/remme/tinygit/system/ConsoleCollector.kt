@@ -8,8 +8,6 @@ internal class ConsoleCollector {
         lines as ArrayList<String> += line
     }
 
-    override fun toString(): String {
-        return lines.joinToString("\n")
-    }
+    override fun toString(): String = lines.joinToString("\n")
 
 }

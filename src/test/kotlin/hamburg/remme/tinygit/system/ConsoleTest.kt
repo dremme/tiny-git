@@ -1,5 +1,7 @@
 package hamburg.remme.tinygit.system
 
+import hamburg.remme.tinygit.system.git.LOG
+import hamburg.remme.tinygit.system.git.VERSION
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertTimeout
 import org.junit.jupiter.api.DisplayName
@@ -30,7 +32,7 @@ internal class ConsoleTest {
     @DisplayName("Testing git returned all as one string")
     fun testGit() {
         // Given
-        val args = arrayOf("version")
+        val args = arrayOf(VERSION)
 
         // When
         val result = Console.git(*args)
@@ -43,22 +45,23 @@ internal class ConsoleTest {
     @DisplayName("Testing git with block")
     fun testGitBlock() {
         // Given
-        val args = arrayOf("log", "--oneline", "-10")
+        val args = arrayOf(LOG, "--oneline", "-10")
         val collector = ConsoleCollector()
 
         // When
         Console.git(*args, block = collector::collect)
 
         // Then
-        assertThat(collector.lines.size).isEqualTo(10)
-        assertThat(collector.lines[0]).matches("[a-f0-9]+ .*")
+        assertThat(collector.lines)
+                .hasSize(10)
+                .allMatch { it.matches("[a-f0-9]+ .*".toRegex()) }
     }
 
     @Test
     @DisplayName("Testing execute performance")
     fun testPerformance() {
         // Given
-        val args = arrayOf("log", "-100")
+        val args = arrayOf(LOG, "-100")
 
         // Then
         assertTimeout(ofMillis(100)) {

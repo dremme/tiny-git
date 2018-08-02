@@ -8,18 +8,18 @@ import java.net.URL
  *
  * @param url must be a classpath URL.
  */
-fun resource(url: String): URL = TinyGitApplication::class.java.getResource(url)
+internal fun resource(url: String): URL = TinyGitApplication::class.java.getResource(url)
 
 /**
  * Resolved the given url [String] as [InputStream].
  *
  * @param url must be a classpath URL.
  */
-fun resourceStream(url: String): InputStream = resource(url).openStream()
+internal fun resourceStream(url: String): InputStream = resource(url).openStream()
 
 /**
  * Resolved the given url [String] as stringified [URL].
  *
  * @param url must be a classpath URL.
  */
-fun resourceString(url: String): String = resource(url).toExternalForm()
+internal fun resourceString(url: String): String = resource(url).toExternalForm()
