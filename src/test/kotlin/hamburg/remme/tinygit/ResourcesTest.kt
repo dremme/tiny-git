@@ -9,12 +9,12 @@ internal class ResourcesTest {
 
     @Test
     @DisplayName("Testing resource as URL")
-    fun testResource() {
+    fun testURL() {
         // Given
         val url = "/application.yml"
 
         // When
-        val resource = resource(url)
+        val resource = url.toURL()
 
         // Then
         assertThat(resource.file).contains(url)
@@ -22,28 +22,15 @@ internal class ResourcesTest {
 
     @Test
     @DisplayName("Testing resource as stream")
-    fun testResourceStream() {
+    fun testStream() {
         // Given
         val url = "/application.yml"
 
         // When
-        val resource = resourceStream(url).bufferedReader().useLines { it.joinToString("\n") }
+        val resource = url.openStream().bufferedReader().useLines { it.joinToString("\n") }
 
         // Then
         assertThat(resource).contains("icon.png")
-    }
-
-    @Test
-    @DisplayName("Testing resource as string")
-    fun testResourceString() {
-        // Given
-        val url = "/application.yml"
-
-        // When
-        val resource = resourceString(url)
-
-        // Then
-        assertThat(resource).contains(url)
     }
 
 }

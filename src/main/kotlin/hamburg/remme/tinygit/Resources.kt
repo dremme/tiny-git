@@ -5,21 +5,10 @@ import java.net.URL
 
 /**
  * Resolved the given url [String] as [URL].
- *
- * @param url must be a classpath URL.
  */
-internal fun resource(url: String): URL = TinyGitApplication::class.java.getResource(url)
+internal fun String.toURL(): URL = TinyGitApplication::class.java.getResource(this)
 
 /**
  * Resolved the given url [String] as [InputStream].
- *
- * @param url must be a classpath URL.
  */
-internal fun resourceStream(url: String): InputStream = resource(url).openStream()
-
-/**
- * Resolved the given url [String] as stringified [URL].
- *
- * @param url must be a classpath URL.
- */
-internal fun resourceString(url: String): String = resource(url).toExternalForm()
+internal fun String.openStream(): InputStream = toURL().openStream()

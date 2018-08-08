@@ -4,6 +4,7 @@ import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.image.Image
 import javafx.stage.Stage
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -16,6 +17,7 @@ fun main(vararg args: String) {
 
 private const val MAIN_STYLESHEET = "/generated/main.css"
 private const val MAIN_FXML = "/fxml/main.fxml"
+private const val MAIN_ICON = "/icon.png"
 private const val FONT_SIZE = 13.0
 private const val FONT_SIZE_PROPERTY = "com.sun.javafx.fontSize"
 private const val FONT_ROBOTO_REGULAR = "/font/Roboto-Regular.ttf"
@@ -55,6 +57,7 @@ private const val FONTAWESOME_BRANDS = "/font/fa-brands-400.ttf"
      * @param primaryStage the stage given by the JavaFX launcher.
      */
     override fun start(primaryStage: Stage) {
+        primaryStage.icons += Image(MAIN_ICON.openStream())
         primaryStage.title = "TinyGit"
         primaryStage.scene = Scene(root, 800.0, 600.0)
         primaryStage.show()
@@ -88,7 +91,7 @@ private const val FONTAWESOME_BRANDS = "/font/fa-brands-400.ttf"
     }
 
     private fun initFXML() {
-        val fxmlLoader = FXMLLoader(resource(MAIN_FXML))
+        val fxmlLoader = FXMLLoader(MAIN_FXML.toURL())
         fxmlLoader.setControllerFactory { springContext.getBean(it) }
         root = fxmlLoader.load()
     }
