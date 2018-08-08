@@ -10,9 +10,8 @@ import java.util.concurrent.TimeUnit
 @DisplayName("Testing application")
 internal class TinyGitApplicationIntegrationTest {
 
-    @Test
     @DisplayName("Smoke test")
-    fun smokeTest() {
+    @Test fun smokeTest() {
         // Given
         val appClass = TinyGitApplication::class.java
 

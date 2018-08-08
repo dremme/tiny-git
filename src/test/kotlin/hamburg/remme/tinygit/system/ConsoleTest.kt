@@ -13,10 +13,9 @@ import java.time.Duration.ofMillis
 @DisplayName("Testing native console")
 internal class ConsoleTest {
 
-    @ParameterizedTest
-    @CsvSource(",build.gradle", "./image,image1.png")
     @DisplayName("Testing execute")
-    fun testExecute(workingDir: String?, file: String) {
+    @CsvSource(",build.gradle", "./image,image1.png")
+    @ParameterizedTest fun testExecute(workingDir: String?, file: String) {
         // Given
         val args = arrayOf("ls")
         val collector = ConsoleCollector()
@@ -28,9 +27,8 @@ internal class ConsoleTest {
         assertThat(collector.lines).contains(file)
     }
 
-    @Test
     @DisplayName("Testing git returned all as one string")
-    fun testGit() {
+    @Test fun testGit() {
         // Given
         val args = arrayOf(VERSION)
 
@@ -41,9 +39,8 @@ internal class ConsoleTest {
         assertThat(result).matches("git version \\d+\\.\\d+\\.\\d+")
     }
 
-    @Test
     @DisplayName("Testing git with block")
-    fun testGitBlock() {
+    @Test fun testGitBlock() {
         // Given
         val args = arrayOf(LOG, "--oneline", "-10")
         val collector = ConsoleCollector()
@@ -57,9 +54,8 @@ internal class ConsoleTest {
                 .allMatch { it.matches("[a-f0-9]+ .*".toRegex()) }
     }
 
-    @Test
     @DisplayName("Testing execute performance")
-    fun testPerformance() {
+    @Test fun testPerformance() {
         // Given
         val args = arrayOf(LOG, "-100")
 

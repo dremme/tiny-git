@@ -13,6 +13,10 @@ internal const val REV_LIST: String = "rev-list"
  */
 internal const val LOG: String = "log"
 /**
+ * Pulls new commits and resets the HEAD to the latest commit: https://git-scm.com/docs/git-pull
+ */
+internal const val PULL: String = "pull"
+/**
  * A log pattern to use with `--pretty` arguments. This will print commit info in the following order:
  * commit ID, short commit ID, parent IDs, short parent IDs, author mail, author name, author date (UNIX),
  * committer mail, committer name, committer date (UNIX)

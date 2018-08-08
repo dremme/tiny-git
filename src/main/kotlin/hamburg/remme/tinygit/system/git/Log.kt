@@ -12,7 +12,7 @@ import java.util.BitSet
 @Component class Log {
 
     /**
-     * Returns all commit IDs in the Git repository in order of commit creation.
+     * @return all commit IDs in the Git repository in order of commit creation.
      */
     fun query(): Result {
         val parser = LogParser()
@@ -21,7 +21,7 @@ import java.util.BitSet
     }
 
     /**
-     * Private parser to parse git log output.
+     * Private parser to parse `git log` output.
      */
     private class LogParser {
 

@@ -7,9 +7,8 @@ import org.junit.jupiter.api.Test
 @DisplayName("Testing resource utils")
 internal class ResourcesTest {
 
-    @Test
     @DisplayName("Testing resource as URL")
-    fun testURL() {
+    @Test fun testURL() {
         // Given
         val url = "/application.yml"
 
@@ -20,9 +19,8 @@ internal class ResourcesTest {
         assertThat(resource.file).contains(url)
     }
 
-    @Test
     @DisplayName("Testing resource as stream")
-    fun testStream() {
+    @Test fun testStream() {
         // Given
         val url = "/application.yml"
 

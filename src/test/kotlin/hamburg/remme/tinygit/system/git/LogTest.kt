@@ -13,17 +13,15 @@ import java.time.temporal.ChronoUnit
 @DisplayName("Testing Git log")
 internal class LogTest {
 
-    lateinit var log: Log
+    private lateinit var log: Log
 
-    @BeforeEach
-    fun setup() {
+    @BeforeEach fun setup() {
         log = Log()
     }
 
-    @Test
     @DisplayName("Testing Git log simple query")
     @Suppress("UNCHECKED_CAST", "NestedLambdaShadowedImplicitParameter")
-    fun testQuery() {
+    @Test fun testQuery() {
         // Given
         val now = Instant.now().minus(1, ChronoUnit.MINUTES)
         val then = now.minus(3650, ChronoUnit.DAYS)

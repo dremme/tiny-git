@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.domain
 import hamburg.remme.tinygit.MockitoExtension
 import hamburg.remme.tinygit.system.git.CommitProperty
 import hamburg.remme.tinygit.system.git.Log
+import hamburg.remme.tinygit.system.git.Remote
 import hamburg.remme.tinygit.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -13,22 +14,22 @@ import org.mockito.Mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
+@DisplayName("Testing Git service")
 @ExtendWith(MockitoExtension::class)
 internal class GitServiceTest {
 
     @Mock lateinit var log: Log
-    lateinit var service: GitService
+    @Mock lateinit var remote: Remote
+    private lateinit var service: GitService
     private val result = listOf(mapOf(CommitProperty.H to "12345678"))
 
-    @BeforeEach
-    fun setup() {
+    @BeforeEach fun setup() {
         whenever(log.query()).thenReturn(result)
-        service = GitService(log)
+        service = GitService(log, remote)
     }
 
-    @Test
     @DisplayName("Testing list")
-    fun testList() {
+    @Test fun testList() {
         // When
         val list = service.list()
 
@@ -37,9 +38,8 @@ internal class GitServiceTest {
         assertThat(list).isEqualTo(result)
     }
 
-    @Test
     @DisplayName("Testing count")
-    fun testCount() {
+    @Test fun testCount() {
         // When
         val count = service.count()
 
@@ -48,9 +48,8 @@ internal class GitServiceTest {
         assertThat(count).isEqualTo(result.size)
     }
 
-    @Test
     @DisplayName("Testing log cache")
-    fun testCache() {
+    @Test fun testCache() {
         // Given
         service.list()
 
@@ -61,9 +60,8 @@ internal class GitServiceTest {
         verify(log).query()
     }
 
-    @Test
     @DisplayName("Testing cache invalidation")
-    fun testInvalidateCache() {
+    @Test fun testInvalidateCache() {
         // Given
         service.list()
 
@@ -73,6 +71,15 @@ internal class GitServiceTest {
 
         // Then
         verify(log, times(2)).query()
+    }
+
+    @DisplayName("Testing update")
+    @Test fun testUpdate() {
+        // When
+        service.update()
+
+        // Then
+        verify(remote).pull()
     }
 
 }
