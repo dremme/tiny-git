@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.safeSplit
 import hamburg.remme.tinygit.system.Console
 import hamburg.remme.tinygit.toInstant
 import org.springframework.stereotype.Component
+import java.io.File
 import java.util.BitSet
 
 /**
@@ -12,11 +13,12 @@ import java.util.BitSet
 @Component class Log {
 
     /**
+     * @param gitDir a local Git repository.
      * @return all commit IDs in the Git repository in order of commit creation.
      */
-    fun query(): Result {
+    fun query(gitDir: File): Result {
         val parser = LogParser()
-        Console.git(LOG, "--all", "--pretty=format:$LOG_PATTERN", block = parser::append)
+        Console.git(gitDir, LOG, "--all", "--pretty=format:$LOG_PATTERN", block = parser::append)
         return parser.commits
     }
 
@@ -25,7 +27,7 @@ import java.util.BitSet
      */
     private class LogParser {
 
-        val commits = arrayListOf<Map<CommitProperty, Any>>()
+        val commits = mutableListOf<Map<CommitProperty, Any>>()
         private val bits = BitSet(LOG_PATTERN_LINES)
         private val properties = mutableMapOf<CommitProperty, Any>()
 

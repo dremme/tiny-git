@@ -10,6 +10,7 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.util.StopWatch
+import java.util.ResourceBundle
 
 fun main(vararg args: String) {
     Application.launch(TinyGitApplication::class.java, *args)
@@ -92,6 +93,7 @@ private const val FONTAWESOME_BRANDS = "/font/fa-brands-400.ttf"
 
     private fun initFXML() {
         val fxmlLoader = FXMLLoader(MAIN_FXML.toURL())
+        fxmlLoader.resources = springContext.getBean(ResourceBundle::class.java)
         fxmlLoader.setControllerFactory { springContext.getBean(it) }
         root = fxmlLoader.load()
     }

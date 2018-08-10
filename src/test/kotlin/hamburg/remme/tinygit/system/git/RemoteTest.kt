@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.system.git
 
+import hamburg.remme.tinygit.CURRENT_DIR
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -17,7 +18,7 @@ internal class RemoteTest {
     @DisplayName("Testing Git pull")
     @Test fun testPull() {
         // When
-        val message = remote.pull()
+        val message = remote.pull(CURRENT_DIR)
 
         // Then
         assertThat(message).containsIgnoringCase("already up to date")

@@ -10,10 +10,10 @@
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="hamburg.remme.tinygit.ui.MainController">
   <VBox alignment="CENTER" spacing="6">
-    <Label text="Welcome to GitAnalytics"/>
+    <Label text="%welcome"/>
     <HBox alignment="CENTER" spacing="6">
-      <TextField fx:id="repositoryPath"/>
-      <Button text="Count Commits" onAction="#countCommits"/>
+      <TextField text="." fx:id="repositoryPath"/>
+      <Button text="%count" onAction="#countCommits"/>
     </HBox>
     <Label fx:id="commitCount"/>
   </VBox>

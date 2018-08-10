@@ -8,20 +8,22 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import java.io.File
 import java.time.Duration.ofMillis
 
 @DisplayName("Testing native console")
 internal class ConsoleTest {
 
     @DisplayName("Testing execute")
-    @CsvSource(",build.gradle", "./image,image1.png")
-    @ParameterizedTest fun testExecute(workingDir: String?, file: String) {
+    @CsvSource(".,build.gradle", "./image,image1.png")
+    @ParameterizedTest fun testExecute(path: String, file: String) {
         // Given
         val args = arrayOf("ls")
         val collector = ConsoleCollector()
+        val dir = File(path)
 
         // When
-        Console.execute(workingDir, args, collector::collect)
+        Console.execute(dir, args, collector::collect)
 
         // Then
         assertThat(collector.lines).contains(file)
@@ -50,8 +52,8 @@ internal class ConsoleTest {
 
         // Then
         assertThat(collector.lines)
-                .hasSize(10)
-                .allMatch { it.matches("[a-f0-9]+ .*".toRegex()) }
+          .hasSize(10)
+          .allMatch { it.matches("[a-f0-9]+ .*".toRegex()) }
     }
 
     @DisplayName("Testing execute performance")

@@ -4,11 +4,12 @@ import hamburg.remme.tinygit.system.git.Log
 import hamburg.remme.tinygit.system.git.Remote
 import hamburg.remme.tinygit.system.git.Result
 import org.springframework.stereotype.Service
+import java.io.File
 
 /**
- * A service responsible for Git actions.
+ * A service responsible for repository actions.
  */
-@Service class GitService(private val log: Log, private val remote: Remote) {
+@Service class RepositoryService(private val log: Log, private val remote: Remote) {
 
     private var logCache: Result? = null
 
@@ -20,25 +21,29 @@ import org.springframework.stereotype.Service
     }
 
     /**
+     * @param gitDir a local Git repository.
      * @return all commits in the current repository.
      */
-    fun list(): Result {
-        if (logCache == null) logCache = log.query()
+    fun list(gitDir: File): Result {
+        if (logCache == null) logCache = log.query(gitDir)
         return logCache!!
     }
 
     /**
+     * @param gitDir a local Git repository.
      * @return the count of all commits in the current repository.
      */
-    fun count(): Int {
-        return list().size
+    fun count(gitDir: File): Int {
+        return list(gitDir).size
     }
 
     /**
      * Will perform a fetch and a pull if possible.
+     *
+     * @param gitDir a local Git repository.
      */
-    fun update() {
-        remote.pull()
+    fun update(gitDir: File) {
+        remote.pull(gitDir)
     }
 
 }

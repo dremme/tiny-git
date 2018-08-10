@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.domain
 
+import hamburg.remme.tinygit.CURRENT_DIR
 import hamburg.remme.tinygit.MockitoExtension
 import hamburg.remme.tinygit.system.git.CommitProperty
 import hamburg.remme.tinygit.system.git.Log
@@ -14,72 +15,73 @@ import org.mockito.Mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
-@DisplayName("Testing Git service")
+@DisplayName("Testing repository service")
 @ExtendWith(MockitoExtension::class)
-internal class GitServiceTest {
+internal class RepositoryServiceTest {
 
     @Mock lateinit var log: Log
     @Mock lateinit var remote: Remote
-    private lateinit var service: GitService
+    private lateinit var service: RepositoryService
+
     private val result = listOf(mapOf(CommitProperty.H to "12345678"))
 
     @BeforeEach fun setup() {
-        whenever(log.query()).thenReturn(result)
-        service = GitService(log, remote)
+        whenever(log.query(CURRENT_DIR)).thenReturn(result)
+        service = RepositoryService(log, remote)
     }
 
     @DisplayName("Testing list")
     @Test fun testList() {
         // When
-        val list = service.list()
+        val list = service.list(CURRENT_DIR)
 
         // Then
-        verify(log).query()
+        verify(log).query(CURRENT_DIR)
         assertThat(list).isEqualTo(result)
     }
 
     @DisplayName("Testing count")
     @Test fun testCount() {
         // When
-        val count = service.count()
+        val count = service.count(CURRENT_DIR)
 
         // Then
-        verify(log).query()
+        verify(log).query(CURRENT_DIR)
         assertThat(count).isEqualTo(result.size)
     }
 
     @DisplayName("Testing log cache")
     @Test fun testCache() {
         // Given
-        service.list()
+        service.list(CURRENT_DIR)
 
         // When
-        service.list()
+        service.list(CURRENT_DIR)
 
         // Then
-        verify(log).query()
+        verify(log).query(CURRENT_DIR)
     }
 
     @DisplayName("Testing cache invalidation")
     @Test fun testInvalidateCache() {
         // Given
-        service.list()
+        service.list(CURRENT_DIR)
 
         // When
         service.invalidateCache()
-        service.list()
+        service.list(CURRENT_DIR)
 
         // Then
-        verify(log, times(2)).query()
+        verify(log, times(2)).query(CURRENT_DIR)
     }
 
     @DisplayName("Testing update")
     @Test fun testUpdate() {
         // When
-        service.update()
+        service.update(CURRENT_DIR)
 
         // Then
-        verify(remote).pull()
+        verify(remote).pull(CURRENT_DIR)
     }
 
 }

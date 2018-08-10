@@ -4,3 +4,5 @@ spring:
     width: 36
     height: 16
   output.ansi.enabled: always
+  messages:
+    basename: messages
