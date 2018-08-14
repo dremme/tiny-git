@@ -8,6 +8,7 @@ import javafx.scene.image.Image
 import javafx.stage.Stage
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.util.StopWatch
 import java.util.ResourceBundle
@@ -31,6 +32,7 @@ private const val FONTAWESOME_BRANDS = "/font/fa-brands-400.ttf"
 /**
  * A JavaFX and Spring Boot application. Complete madness.
  */
+@EnableCaching // TODO: move?
 @SpringBootApplication class TinyGitApplication : Application() {
 
     private val log = logger<TinyGitApplication>()

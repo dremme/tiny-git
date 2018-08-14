@@ -11,22 +11,12 @@ import java.io.File
  */
 @Service class RepositoryService(private val log: Log, private val remote: Remote) {
 
-    private var logCache: Result? = null
-
-    /**
-     * Invalidates the log cache.
-     */
-    fun invalidateCache() {
-        logCache = null
-    }
-
     /**
      * @param gitDir a local Git repository.
      * @return all commits in the current repository.
      */
     fun list(gitDir: File): Result {
-        if (logCache == null) logCache = log.query(gitDir)
-        return logCache!!
+        return log.query(gitDir)
     }
 
     /**
@@ -34,7 +24,7 @@ import java.io.File
      * @return the count of all commits in the current repository.
      */
     fun count(gitDir: File): Int {
-        return list(gitDir).size
+        return log.query(gitDir).size
     }
 
     /**

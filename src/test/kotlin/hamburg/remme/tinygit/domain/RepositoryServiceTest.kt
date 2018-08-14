@@ -12,7 +12,6 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
-import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
 @DisplayName("Testing repository service")
@@ -48,31 +47,6 @@ internal class RepositoryServiceTest {
         // Then
         verify(log).query(CURRENT_DIR)
         assertThat(count).isEqualTo(result.size)
-    }
-
-    @DisplayName("Testing log cache")
-    @Test fun testCache() {
-        // Given
-        service.list(CURRENT_DIR)
-
-        // When
-        service.list(CURRENT_DIR)
-
-        // Then
-        verify(log).query(CURRENT_DIR)
-    }
-
-    @DisplayName("Testing cache invalidation")
-    @Test fun testInvalidateCache() {
-        // Given
-        service.list(CURRENT_DIR)
-
-        // When
-        service.invalidateCache()
-        service.list(CURRENT_DIR)
-
-        // Then
-        verify(log, times(2)).query(CURRENT_DIR)
     }
 
     @DisplayName("Testing update")
