@@ -8,6 +8,8 @@ import java.time.Instant
 import java.util.Locale
 import java.util.PropertyResourceBundle
 import java.util.ResourceBundle
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 /**
  * The relative file representing the current directory, in other words `.`.
@@ -27,6 +29,25 @@ internal fun String.toInstant(): Instant = Instant.ofEpochSecond(toLong())
  * @param delimiter defaults to `" "`.
  */
 internal fun String.safeSplit(delimiter: String = " "): List<String> = takeIf(String::isNotBlank)?.split(delimiter) ?: emptyList()
+
+/**
+ * A delegate preventing a property being set more than once.
+ */
+internal class LateImmutable<T> : ReadWriteProperty<Any, T> {
+
+    private var value: T? = null
+
+    override fun getValue(thisRef: Any, property: KProperty<*>): T {
+        if (value == null) throw IllegalStateException("Value is not initialized.")
+        return value!!
+    }
+
+    override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
+        if (this.value != null) throw IllegalStateException("Value is already initialized")
+        this.value = value
+    }
+
+}
 
 /**
  * Copy of the default implementation to load UTF-8 encoded resource bundles.

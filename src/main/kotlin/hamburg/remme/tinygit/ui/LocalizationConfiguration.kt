@@ -11,7 +11,7 @@ import java.util.ResourceBundle
  */
 @Configuration class LocalizationConfiguration {
 
-    @Value("\${spring.messages.basename}") lateinit var basename: String
+    @Value("\${spring.messages.basename}") private lateinit var basename: String
 
     /**
      * The default resource bundle for the application.

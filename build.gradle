@@ -62,7 +62,7 @@ dependencies {
   testCompile "org.testfx:testfx-junit5:4.0.13-alpha"
 }
 
-void parseSCSS(inputPath, outputPath) {
+void parseSASS(inputPath, outputPath) {
   def compiler = new Compiler()
   def options = new Options()
   options.outputStyle = OutputStyle.COMPRESSED
@@ -80,12 +80,12 @@ void parseSCSS(inputPath, outputPath) {
   Files.write(target, css.getBytes(StandardCharsets.UTF_8))
 }
 
-task compileSCSS {
-  def inputPath = "src/main/resources/scss/main.scss"
+task compileSASS {
+  def inputPath = "src/main/resources/sass/main.sass"
   def outputPath = "src/main/resources/generated/main.css"
-  parseSCSS(inputPath, outputPath)
+  parseSASS(inputPath, outputPath)
 }
 
 assemble.doLast {
-  compileSCSS
+  compileSASS
 }

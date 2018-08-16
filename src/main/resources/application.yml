@@ -1,3 +1,4 @@
+# Spring application properties
 spring:
   banner.image:
     location: classpath:icon.png
@@ -6,3 +7,13 @@ spring:
   output.ansi.enabled: always
   messages:
     basename: messages
+
+
+# Custom JavaFX related properties
+javafx:
+  title: GitAnalytics
+  icon: /icon.png
+  fxml: /fxml/main.fxml
+  css: /generated/main.css
+  fontSize: 13
+  fonts: /font/Roboto-Regular.ttf;/font/Roboto-Bold.ttf;/font/Roboto-Light.ttf;/font/LiberationMono-Regular.ttf;/font/fa-solid-900.ttf;/font/fa-brands-400.ttf

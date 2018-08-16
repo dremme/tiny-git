@@ -32,4 +32,4 @@ internal const val LOG_PATTERN_LINES: Int = 10
 /**
  * The resulting list of commit objects from a `git log` call.
  */
-typealias Result = List<Map<CommitProperty, Any>>
+internal typealias Result = List<Map<CommitProperty, Any>>

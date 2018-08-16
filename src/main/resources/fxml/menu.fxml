@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<MenuBar xmlns="http://javafx.com/javafx"
+         xmlns:fx="http://javafx.com/fxml"
+         fx:controller="hamburg.remme.tinygit.ui.MenuController">
+  <Menu text="%menu.file">
+    <MenuItem text="%menu.file.open" onAction="#onOpen"/>
+  </Menu>
+</MenuBar>
