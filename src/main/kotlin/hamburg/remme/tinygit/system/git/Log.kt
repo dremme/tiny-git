@@ -38,7 +38,7 @@ import java.util.BitSet
 
         val commits = mutableListOf<Map<CommitProperty, Any>>()
         private val bits = BitSet(LOG_PATTERN_LINES)
-        private val properties = mutableMapOf<CommitProperty, Any>()
+        private var properties = mutableMapOf<CommitProperty, Any>()
 
         /**
          * Parses a line depending on which bit index the line is at.
@@ -60,6 +60,7 @@ import java.util.BitSet
 
             if (bits.cardinality() == LOG_PATTERN_LINES) {
                 commits += properties
+                properties = mutableMapOf()
                 clear()
             }
         }

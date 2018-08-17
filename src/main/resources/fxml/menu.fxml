@@ -8,5 +8,6 @@
          fx:controller="hamburg.remme.tinygit.ui.MenuController">
   <Menu text="%menu.file">
     <MenuItem text="%menu.file.open" onAction="#onOpen"/>
+    <MenuItem text="%menu.file.close" onAction="#onClose"/>
   </Menu>
 </MenuBar>

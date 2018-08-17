@@ -11,7 +11,6 @@ import java.io.File
 
     /**
      * Performs a pull which will also perform a fetch.
-     *
      * @param gitDir a local Git repository.
      * @return the console output of the pull command.
      */

@@ -11,7 +11,6 @@ object Console {
     /**
      * Will execute the given arguments as git-command, prepending `git` before all arguments. All lines printed by the
      * command will be returned as one [String].
-     *
      * @param args the git command and arguments. Must not be empty.
      */
     fun git(vararg args: String): String {
@@ -23,7 +22,6 @@ object Console {
     /**
      * Will execute the given arguments as git-command, prepending `git` before all arguments. Each lines printed by the
      * command will invoke the given block.
-     *
      * @param args  the git command and arguments. Must not be empty.
      * @param block invoked for each printed line.
      */
@@ -34,7 +32,6 @@ object Console {
     /**
      * Will execute the given arguments as git-command, prepending `git` before all arguments. All lines printed by the
      * command will be returned as one [String].
-     *
      * @param gitDir a local Git repository. If the path is `.` the current working directory will be expected to be a Git
      *               repository.
      * @param args   the git command and arguments. Must not be empty.
@@ -48,7 +45,6 @@ object Console {
     /**
      * Will execute the given arguments as git-command, prepending `git` before all arguments. Each lines printed by the
      * command will invoke the given block.
-     *
      * @param gitDir a local Git repository. If the path is `.` the current working directory will be expected to be a Git
      *               repository.
      * @param args   the git command and arguments. Must not be empty.
@@ -68,7 +64,6 @@ object Console {
     /**
      * Will execute the given arguments as shell command in the given working directory (if any). For each printed line
      * the consumer is being called.
-     *
      * @param workingDir the working directory to execute the command in. If the path is `.` the current working directory
      *                   will be used instead.
      * @param args       the arguments. The first argument is usually the command.

@@ -11,7 +11,6 @@ import java.io.File
 
     /**
      * Groups the given commit property by number of occurrence.
-     *
      * @param gitDir   a local Git repository.
      * @param property the property to group.
      * @return key-value-pairs of the property value and number of occurrences.
@@ -22,7 +21,6 @@ import java.io.File
 
     /**
      * Lists all unique occurrences of a commit property.
-     *
      * @param gitDir   a local Git repository.
      * @param property the property to list.
      * @return list of unique values.

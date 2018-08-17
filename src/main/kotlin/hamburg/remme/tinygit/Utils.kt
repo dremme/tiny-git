@@ -8,45 +8,34 @@ import java.time.Instant
 import java.util.Locale
 import java.util.PropertyResourceBundle
 import java.util.ResourceBundle
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 
 /**
  * The relative file representing the current directory, in other words `.`.
  */
 internal val CURRENT_DIR: File = File(".")
+/**
+ * The name of a Git repository subfolder.
+ */
+internal const val GIT_DIR: String = ".git"
 
 /**
  * Converts a [String] into an [Instant] as if it is in epoch second form.
- *
  * @see Instant.ofEpochSecond
  */
 internal fun String.toInstant(): Instant = Instant.ofEpochSecond(toLong())
 
 /**
  * Splits a [String] by the given [delimiter]. Will be [emptyList] if the [String] is blank.
- *
  * @param delimiter defaults to `" "`.
  */
 internal fun String.safeSplit(delimiter: String = " "): List<String> = takeIf(String::isNotBlank)?.split(delimiter) ?: emptyList()
 
 /**
- * A delegate preventing a property being set more than once.
+ * A file is a Git repository if it is a directory and contains a `.git` subfolder. This might be a relatively slow
+ * function to call.
  */
-internal class LateImmutable<T> : ReadWriteProperty<Any, T> {
-
-    private var value: T? = null
-
-    override fun getValue(thisRef: Any, property: KProperty<*>): T {
-        if (value == null) throw IllegalStateException("Value is not initialized.")
-        return value!!
-    }
-
-    override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
-        if (this.value != null) throw IllegalStateException("Value is already initialized")
-        this.value = value
-    }
-
+internal fun File.isGitRepository(): Boolean {
+    return isDirectory && list().any { it.endsWith(GIT_DIR, true) }
 }
 
 /**

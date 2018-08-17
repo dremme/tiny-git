@@ -29,7 +29,6 @@ import java.io.File
 
     /**
      * Will perform a fetch and a pull if possible.
-     *
      * @param gitDir a local Git repository.
      */
     fun update(gitDir: File) {
