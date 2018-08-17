@@ -34,17 +34,17 @@ internal class LogTest {
         assertThat(result)
           .isNotEmpty
           .allSatisfy {
-              assertThat(it[CommitProperty.H] as String).matches(COMMIT_ID_PATTERN)
-              assertThat(it[CommitProperty.h] as String).matches(SHORT_COMMIT_ID_PATTERN)
-              assertThat(it[CommitProperty.P] as List<String>).allMatch { it.matches(COMMIT_ID_PATTERN.toRegex()) }
-              assertThat(it[CommitProperty.P] as List<String>).hasSameSizeAs(it[CommitProperty.p] as List<String>)
-              assertThat(it[CommitProperty.p] as List<String>).allMatch { it.matches(SHORT_COMMIT_ID_PATTERN.toRegex()) }
-              assertThat(it[CommitProperty.ae] as String).matches(MAIL_PATTERN)
-              assertThat(it[CommitProperty.an] as String).isNotBlank()
-              assertThat(it[CommitProperty.at] as Instant).isBetween(then, now)
-              assertThat(it[CommitProperty.ce] as String).matches(MAIL_PATTERN)
-              assertThat(it[CommitProperty.cn] as String).isNotBlank()
-              assertThat(it[CommitProperty.ct] as Instant).isBetween(then, now)
+              assertThat(it.id).matches(COMMIT_ID_PATTERN)
+              assertThat(it.shortId).matches(SHORT_COMMIT_ID_PATTERN)
+              assertThat(it.parents).allMatch { it.matches(COMMIT_ID_PATTERN.toRegex()) }
+              assertThat(it.parents).hasSameSizeAs(it.shortParents)
+              assertThat(it.shortParents).allMatch { it.matches(SHORT_COMMIT_ID_PATTERN.toRegex()) }
+              assertThat(it.authorEmail).matches(MAIL_PATTERN)
+              assertThat(it.authorName).isNotBlank()
+              assertThat(it.authorTime).isBetween(then, now)
+              assertThat(it.committerEmail).matches(MAIL_PATTERN)
+              assertThat(it.committerName).isNotBlank()
+              assertThat(it.committerTime).isBetween(then, now)
           }
     }
 

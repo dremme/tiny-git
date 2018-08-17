@@ -1,6 +1,6 @@
 package hamburg.remme.tinygit.domain
 
-import hamburg.remme.tinygit.system.git.CommitProperty
+import hamburg.remme.tinygit.system.git.Commit
 import org.springframework.stereotype.Service
 import java.io.File
 
@@ -11,22 +11,22 @@ import java.io.File
 
     /**
      * Groups the given commit property by number of occurrence.
-     * @param gitDir   a local Git repository.
-     * @param property the property to group.
+     * @param gitDir a local Git repository.
+     * @param block  block to extract the property.
      * @return key-value-pairs of the property value and number of occurrences.
      */
-    fun group(gitDir: File, property: CommitProperty): Map<Any, Int> {
-        return service.list(gitDir).mapNotNull { it[property] }.groupingBy { it }.eachCount()
+    fun <T> group(gitDir: File, block: (Commit) -> T): Map<T, Int> {
+        return service.list(gitDir).map(block).groupingBy { it }.eachCount()
     }
 
     /**
      * Lists all unique occurrences of a commit property.
-     * @param gitDir   a local Git repository.
-     * @param property the property to list.
+     * @param gitDir a local Git repository.
+     * @param block  block to extract the property.
      * @return list of unique values.
      */
-    fun listUnique(gitDir: File, property: CommitProperty): List<Any> {
-        return service.list(gitDir).mapNotNull { it[property] }.distinct()
+    fun <T> listUnique(gitDir: File, block: (Commit) -> T): List<T> {
+        return service.list(gitDir).map(block).distinct()
     }
 
 }

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import hamburg.remme.tinygit.ui.CommitCellFactory?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.ListView?>
-<?import hamburg.remme.tinygit.ui.CommitCellFactory?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="hamburg.remme.tinygit.ui.MainController">

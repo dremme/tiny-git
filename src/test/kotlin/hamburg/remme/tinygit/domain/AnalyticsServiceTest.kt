@@ -2,7 +2,7 @@ package hamburg.remme.tinygit.domain
 
 import hamburg.remme.tinygit.CURRENT_DIR
 import hamburg.remme.tinygit.MockitoExtension
-import hamburg.remme.tinygit.system.git.CommitProperty
+import hamburg.remme.tinygit.system.git.Commit
 import hamburg.remme.tinygit.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -19,13 +19,13 @@ internal class AnalyticsServiceTest {
     @Mock lateinit var repositoryService: RepositoryService
     private lateinit var service: AnalyticsService
 
-    private val frodoMail = "frodo.baggins@shire.me"
-    private val samMail = "samwise.gamgee@shire.me"
+    private val frodoEmail = "frodo.baggins@shire.me"
+    private val samEmail = "samwise.gamgee@shire.me"
     private val samName = "Samwise Gamgee"
     private val result = listOf(
-      mapOf(CommitProperty.ae to frodoMail),
-      mapOf(CommitProperty.ae to frodoMail),
-      mapOf(CommitProperty.ae to samMail, CommitProperty.an to samName)
+      Commit(authorEmail = frodoEmail),
+      Commit(authorEmail = frodoEmail),
+      Commit(authorEmail = samEmail, authorName = samName)
     )
 
     @BeforeEach fun setup() {
@@ -36,7 +36,7 @@ internal class AnalyticsServiceTest {
     @DisplayName("Testing property grouping")
     @Test fun testGroup() {
         // Given
-        val property = CommitProperty.ae
+        val property = Commit::authorEmail
 
         // When
         val grouping = service.group(CURRENT_DIR, property)
@@ -44,15 +44,15 @@ internal class AnalyticsServiceTest {
         // Then
         assertThat(grouping)
           .hasSize(2)
-          .containsEntry(frodoMail, 2)
-          .containsEntry(samMail, 1)
+          .containsEntry(frodoEmail, 2)
+          .containsEntry(samEmail, 1)
           .doesNotContainKey(samName)
     }
 
     @DisplayName("Testing unique counting")
     @Test fun testCountUnique() {
         // Given
-        val property = CommitProperty.ae
+        val property = Commit::authorEmail
 
         // When
         val list = service.listUnique(CURRENT_DIR, property)
@@ -60,8 +60,8 @@ internal class AnalyticsServiceTest {
         // Then
         assertThat(list)
           .hasSize(2)
-          .contains(frodoMail)
-          .contains(samMail)
+          .contains(frodoEmail)
+          .contains(samEmail)
     }
 
 }

@@ -2,7 +2,7 @@ package hamburg.remme.tinygit.domain
 
 import hamburg.remme.tinygit.CURRENT_DIR
 import hamburg.remme.tinygit.MockitoExtension
-import hamburg.remme.tinygit.system.git.CommitProperty
+import hamburg.remme.tinygit.system.git.Commit
 import hamburg.remme.tinygit.system.git.Log
 import hamburg.remme.tinygit.system.git.Remote
 import hamburg.remme.tinygit.whenever
@@ -22,7 +22,7 @@ internal class RepositoryServiceTest {
     @Mock lateinit var remote: Remote
     private lateinit var service: RepositoryService
 
-    private val result = listOf(mapOf(CommitProperty.H to "12345678"))
+    private val result = listOf(Commit("12345678"))
 
     @BeforeEach fun setup() {
         whenever(log.query(CURRENT_DIR)).thenReturn(result)

@@ -3,7 +3,7 @@ package hamburg.remme.tinygit.ui
 import hamburg.remme.tinygit.domain.RepositoryService
 import hamburg.remme.tinygit.event.RepositoryClosedEvent
 import hamburg.remme.tinygit.event.RepositoryOpenedEvent
-import hamburg.remme.tinygit.system.git.CommitProperty
+import hamburg.remme.tinygit.system.git.Commit
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.ReadOnlyBooleanWrapper
 import javafx.fxml.FXML
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Controller
  */
 @Controller class MainController(private val service: RepositoryService) {
 
-    @FXML private lateinit var commitListView: ListView<Map<CommitProperty, Any>>
+    @FXML private lateinit var commitListView: ListView<Commit>
 
     private val noRepositoryProperty = ReadOnlyBooleanWrapper(true)
     fun noRepositoryProperty(): ReadOnlyBooleanProperty = noRepositoryProperty.readOnlyProperty

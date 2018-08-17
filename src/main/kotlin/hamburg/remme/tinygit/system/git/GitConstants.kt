@@ -1,6 +1,10 @@
 package hamburg.remme.tinygit.system.git
 
 /**
+ * The commit id that relates to the `/dev/null` tree.
+ */
+internal const val EMPTY_ID: String = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+/**
  * Shows the installed version of the Git client.
  */
 internal const val VERSION: String = "version"
@@ -28,8 +32,3 @@ internal const val LOG_PATTERN: String = "%H%n%h%n%P%n%p%n%ae%n%an%n%at%n%ce%n%c
  * `LOG_PATTERN.split("%n") - 1`
  */
 internal const val LOG_PATTERN_LINES: Int = 10
-
-/**
- * The resulting list of commit objects from a `git log` call.
- */
-internal typealias Result = List<Map<CommitProperty, Any>>

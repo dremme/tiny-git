@@ -1,8 +1,8 @@
 package hamburg.remme.tinygit.domain
 
+import hamburg.remme.tinygit.system.git.Commit
 import hamburg.remme.tinygit.system.git.Log
 import hamburg.remme.tinygit.system.git.Remote
-import hamburg.remme.tinygit.system.git.Result
 import org.springframework.stereotype.Service
 import java.io.File
 
@@ -15,7 +15,7 @@ import java.io.File
      * @param gitDir a local Git repository.
      * @return all commits in the current repository.
      */
-    fun list(gitDir: File): Result {
+    fun list(gitDir: File): List<Commit> {
         return log.query(gitDir)
     }
 
