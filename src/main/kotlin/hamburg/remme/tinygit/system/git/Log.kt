@@ -19,7 +19,7 @@ import java.util.BitSet
      * Invalidates the log cache.
      */
     @CacheEvict("log", allEntries = true)
-    fun invalidateCache(): Unit = Unit
+    fun invalidateCache(): Unit = Unit // AOP method
 
     /**
      * @param gitDir a local Git repository.

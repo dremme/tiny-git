@@ -77,8 +77,12 @@ fun main(vararg args: String) {
     }
 
     private fun initFXML() {
+        val resources = springContext.getBean(ResourceBundle::class.java)
+        val context = springContext.getBean(Context::class.java)
+        context.resources = resources
+
         val fxmlLoader = FXMLLoader(springContext.environment["javafx.fxml"].toURL())
-        fxmlLoader.resources = springContext.getBean(ResourceBundle::class.java)
+        fxmlLoader.resources = resources
         fxmlLoader.setControllerFactory { springContext.getBean(it) }
         root = fxmlLoader.load()
     }

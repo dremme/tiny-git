@@ -22,14 +22,19 @@ import org.springframework.stereotype.Controller
      */
     fun onOpen() {
         val directory = DirectoryChooser().showDialog(context.window)
-        if (directory.isGitRepository()) publisher.publishEvent(RepositoryOpenedEvent(directory))
-        else log.info("{} is not a Git repository.", directory)
+        if (directory.isGitRepository()) {
+            log.info("Opening repository {}.", directory)
+            publisher.publishEvent(RepositoryOpenedEvent(directory))
+        } else {
+            log.info("{} is not a Git repository.", directory)
+        }
     }
 
     /**
      * On action `Close...`.
      */
     fun onClose() {
+        log.info("Closing repository.")
         publisher.publishEvent(RepositoryClosedEvent())
     }
 

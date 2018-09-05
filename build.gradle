@@ -8,7 +8,7 @@ import java.nio.file.Paths
 
 buildscript {
   ext {
-    kotlinVersion = "1.2.60"
+    kotlinVersion = "1.2.61"
     springBootVersion = "2.0.3.RELEASE"
   }
   repositories {

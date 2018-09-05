@@ -1,22 +1,16 @@
 package hamburg.remme.tinygit.ui
 
-import hamburg.remme.tinygit.domain.RepositoryService
 import hamburg.remme.tinygit.event.RepositoryClosedEvent
 import hamburg.remme.tinygit.event.RepositoryOpenedEvent
-import hamburg.remme.tinygit.system.git.Commit
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.ReadOnlyBooleanWrapper
-import javafx.fxml.FXML
-import javafx.scene.control.ListView
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Controller
 
 /**
  * Controller handling the general application.
  */
-@Controller class MainController(private val service: RepositoryService) {
-
-    @FXML private lateinit var commitListView: ListView<Commit>
+@Controller class MainController {
 
     private val noRepositoryProperty = ReadOnlyBooleanWrapper(true)
     fun noRepositoryProperty(): ReadOnlyBooleanProperty = noRepositoryProperty.readOnlyProperty
@@ -30,7 +24,6 @@ import org.springframework.stereotype.Controller
      * @param event the event containing the repository directory.
      */
     @EventListener fun handleRepositoryOpened(event: RepositoryOpenedEvent) {
-        commitListView.items.setAll(service.list(event.directory))
         noRepositoryProperty.value = false
     }
 
@@ -40,7 +33,6 @@ import org.springframework.stereotype.Controller
      */
     @EventListener fun handleRepositoryClosed(event: RepositoryClosedEvent) {
         noRepositoryProperty.value = true
-        commitListView.items.clear()
     }
 
 }

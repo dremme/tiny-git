@@ -21,7 +21,7 @@ internal class LogTest {
     }
 
     @DisplayName("Testing Git log simple query")
-    @Suppress("UNCHECKED_CAST", "NestedLambdaShadowedImplicitParameter")
+    @Suppress("NestedLambdaShadowedImplicitParameter")
     @Test fun testQuery() {
         // Given
         val now = Instant.now().minus(1, ChronoUnit.MINUTES)

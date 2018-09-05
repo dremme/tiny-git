@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import hamburg.remme.tinygit.ui.CommitCellFactory?>
-<?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <StackPane xmlns="http://javafx.com/javafx"
@@ -10,11 +8,7 @@
   <VBox>
     <fx:include source="menu.fxml" useSystemMenuBar="true"/>
     <StackPane VBox.vgrow="ALWAYS">
-      <ListView fx:id="commitListView">
-        <cellFactory>
-          <CommitCellFactory/>
-        </cellFactory>
-      </ListView>
+      <fx:include source="log.fxml"/>
       <fx:include source="no_repository.fxml" visible="${controller.noRepository}"/>
     </StackPane>
   </VBox>
