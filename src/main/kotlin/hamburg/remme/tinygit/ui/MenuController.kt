@@ -42,7 +42,7 @@ import org.springframework.stereotype.Controller
     /**
      * On action 'Quit'.
      */
-    fun onQuit(){
+    fun onQuit() {
         log.info("Quitting application.")
         publisher.publishEvent(QuitEvent())
     }
