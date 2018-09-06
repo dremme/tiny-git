@@ -7,7 +7,7 @@ import java.io.File
 /**
  * Responsible for all remote actions.
  */
-@Component class Remote {
+@Component class GitRemote {
 
     /**
      * Performs a pull which will also perform a fetch.

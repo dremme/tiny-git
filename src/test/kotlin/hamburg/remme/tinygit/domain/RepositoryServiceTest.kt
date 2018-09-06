@@ -4,7 +4,7 @@ import hamburg.remme.tinygit.CURRENT_DIR
 import hamburg.remme.tinygit.MockitoExtension
 import hamburg.remme.tinygit.system.git.Commit
 import hamburg.remme.tinygit.system.git.GitLog
-import hamburg.remme.tinygit.system.git.Remote
+import hamburg.remme.tinygit.system.git.GitRemote
 import hamburg.remme.tinygit.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -19,14 +19,14 @@ import org.mockito.Mockito.verify
 internal class RepositoryServiceTest {
 
     @Mock lateinit var gitLog: GitLog
-    @Mock lateinit var remote: Remote
+    @Mock lateinit var gitRemote: GitRemote
     private lateinit var service: RepositoryService
 
     private val result = listOf(Commit("12345678"))
 
     @BeforeEach fun setup() {
         whenever(gitLog.query(CURRENT_DIR)).thenReturn(result)
-        service = RepositoryService(gitLog, remote)
+        service = RepositoryService(gitLog, gitRemote)
     }
 
     @DisplayName("Testing list")
@@ -55,7 +55,7 @@ internal class RepositoryServiceTest {
         service.update(CURRENT_DIR)
 
         // Then
-        verify(remote).pull(CURRENT_DIR)
+        verify(gitRemote).pull(CURRENT_DIR)
     }
 
 }

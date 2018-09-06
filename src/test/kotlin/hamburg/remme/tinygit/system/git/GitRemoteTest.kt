@@ -7,18 +7,18 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
 @DisplayName("Testing Git remote actions")
-internal class RemoteTest {
+internal class GitRemoteTest {
 
-    private lateinit var remote: Remote
+    private lateinit var gitRemote: GitRemote
 
     @BeforeEach fun setup() {
-        remote = Remote()
+        gitRemote = GitRemote()
     }
 
     @DisplayName("Testing Git pull")
     @Test fun testPull() {
         // When
-        val message = remote.pull(CURRENT_DIR)
+        val message = gitRemote.pull(CURRENT_DIR)
 
         // Then
         assertThat(message).containsIgnoringCase("already up to date")

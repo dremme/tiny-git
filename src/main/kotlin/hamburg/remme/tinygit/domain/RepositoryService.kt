@@ -2,14 +2,14 @@ package hamburg.remme.tinygit.domain
 
 import hamburg.remme.tinygit.system.git.Commit
 import hamburg.remme.tinygit.system.git.GitLog
-import hamburg.remme.tinygit.system.git.Remote
+import hamburg.remme.tinygit.system.git.GitRemote
 import org.springframework.stereotype.Service
 import java.io.File
 
 /**
  * A service responsible for repository actions.
  */
-@Service class RepositoryService(private val gitLog: GitLog, private val remote: Remote) {
+@Service class RepositoryService(private val gitLog: GitLog, private val gitRemote: GitRemote) {
 
     /**
      * @param gitDir a local Git repository.
@@ -32,7 +32,7 @@ import java.io.File
      * @param gitDir a local Git repository.
      */
     fun update(gitDir: File) {
-        remote.pull(gitDir)
+        gitRemote.pull(gitDir)
     }
 
 }
