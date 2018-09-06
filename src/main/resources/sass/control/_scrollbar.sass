@@ -1,0 +1,28 @@
+$scrollbar-size: 3px
+
+.scroll-bar
+  -fx-padding: $scrollbar-size
+  -fx-background-color: $background
+
+  > .thumb
+    -fx-background-color: $control
+    -fx-background-radius: $scrollbar-size
+
+    &:hover
+      -fx-background-color: $control-hover
+
+  > .increment-button,
+  > .decrement-button
+    -fx-background-color: null
+
+  &:horizontal
+    > .increment-button,
+    > .decrement-button
+      -fx-background-color: null
+      -fx-padding: $scrollbar-size 0 $scrollbar-size 0
+
+  &:vertical
+    > .increment-button,
+    > .decrement-button
+      -fx-background-color: null
+      -fx-padding: 0 $scrollbar-size 0 $scrollbar-size

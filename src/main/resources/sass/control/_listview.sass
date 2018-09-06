@@ -1,0 +1,24 @@
+.list-cell
+  -fx-padding: 0.5em
+
+  &:filled
+    &:odd
+      -fx-background-color: $background-alt
+
+    &:hover
+      -fx-text-fill: $text-hover
+      -fx-background-color: $background-hover
+      .label,
+      .text,
+      .icon
+        -fx-fill: $text-hover
+        -fx-text-fill: $text-hover
+
+    &:selected
+      -fx-text-fill: $text-highlight
+      -fx-background-color: $background-highlight
+      .label,
+      .text,
+      .icon
+        -fx-fill: $text-highlight
+        -fx-text-fill: $text-highlight

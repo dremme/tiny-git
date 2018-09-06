@@ -3,8 +3,8 @@
   -fx-min-height: 1em
 
   .icon
+    @extend %fontIcon
     -fx-fill: $text-color
-    -fx-font-family: "Font Awesome 5 Free"
 
     &--brand
-      -fx-font-family: "Font Awesome 5 Brands"
+      @extend %fontIcon2

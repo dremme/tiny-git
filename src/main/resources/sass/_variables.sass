@@ -1,12 +1,24 @@
 $text-color: #ddd
-$background-color: #333
+$text-hover: white
+$text-highlight: cyan
+
+$background: #333
+$background-alt: lighten($background, 5%)
+$background-hover: lighten($background, 10%)
+$background-highlight: darkcyan
+
+$control: #aaa
+$control-hover: lighten($control, 10%)
+$control-background: darken($control, 15%) // TODO: needed?
 
 $font-size: 14px
 
 %fontRegular,
 %fontBold,
-%fontLight
-  -fx-font-family: sans-serif
+%fontLight,
+%fontIcon,
+%fontIcon2
+  -fx-font-family: serif
   -fx-font-size: $font-size
 
 %fontRegular
@@ -14,6 +26,14 @@ $font-size: 14px
 
 %fontBold
   -fx-font-family: "Roboto Bold"
+  -fx-font-weight: bold
 
 %fontLight
   -fx-font-family: "Roboto Light"
+  -fx-font-weight: 300
+
+%fontIcon
+  -fx-font-family: "Font Awesome 5 Free"
+
+%fontIcon2
+  -fx-font-family: "Font Awesome 5 Brands"
