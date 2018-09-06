@@ -3,7 +3,7 @@ package hamburg.remme.tinygit.domain
 import hamburg.remme.tinygit.CURRENT_DIR
 import hamburg.remme.tinygit.MockitoExtension
 import hamburg.remme.tinygit.system.git.Commit
-import hamburg.remme.tinygit.system.git.Log
+import hamburg.remme.tinygit.system.git.GitLog
 import hamburg.remme.tinygit.system.git.Remote
 import hamburg.remme.tinygit.whenever
 import org.assertj.core.api.Assertions.assertThat
@@ -18,15 +18,15 @@ import org.mockito.Mockito.verify
 @ExtendWith(MockitoExtension::class)
 internal class RepositoryServiceTest {
 
-    @Mock lateinit var log: Log
+    @Mock lateinit var gitLog: GitLog
     @Mock lateinit var remote: Remote
     private lateinit var service: RepositoryService
 
     private val result = listOf(Commit("12345678"))
 
     @BeforeEach fun setup() {
-        whenever(log.query(CURRENT_DIR)).thenReturn(result)
-        service = RepositoryService(log, remote)
+        whenever(gitLog.query(CURRENT_DIR)).thenReturn(result)
+        service = RepositoryService(gitLog, remote)
     }
 
     @DisplayName("Testing list")
@@ -35,7 +35,7 @@ internal class RepositoryServiceTest {
         val list = service.list(CURRENT_DIR)
 
         // Then
-        verify(log).query(CURRENT_DIR)
+        verify(gitLog).query(CURRENT_DIR)
         assertThat(list).isEqualTo(result)
     }
 
@@ -45,7 +45,7 @@ internal class RepositoryServiceTest {
         val count = service.count(CURRENT_DIR)
 
         // Then
-        verify(log).query(CURRENT_DIR)
+        verify(gitLog).query(CURRENT_DIR)
         assertThat(count).isEqualTo(result.size)
     }
 

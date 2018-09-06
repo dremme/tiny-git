@@ -13,7 +13,7 @@ import java.util.BitSet
 /**
  * Reads Git logs and returns commits and general log info.
  */
-@Component class Log {
+@Component class GitLog {
 
     /**
      * Invalidates the log cache.

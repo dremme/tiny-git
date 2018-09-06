@@ -12,12 +12,12 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 @DisplayName("Testing Git log")
-internal class LogTest {
+internal class GitLogTest {
 
-    private lateinit var log: Log
+    private lateinit var gitLog: GitLog
 
     @BeforeEach fun setup() {
-        log = Log()
+        gitLog = GitLog()
     }
 
     @DisplayName("Testing Git log simple query")
@@ -28,7 +28,7 @@ internal class LogTest {
         val then = now.minus(3650, ChronoUnit.DAYS)
 
         // When
-        val result = log.query(CURRENT_DIR)
+        val result = gitLog.query(CURRENT_DIR)
 
         // Then
         assertThat(result)
