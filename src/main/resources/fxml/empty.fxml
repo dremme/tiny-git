@@ -4,5 +4,5 @@
 <?import javafx.scene.layout.StackPane?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml">
-  <Label text="%info.noRepository"/>
+  <Label text="%info.empty"/>
 </StackPane>

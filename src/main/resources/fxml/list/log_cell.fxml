@@ -3,14 +3,24 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import hamburg.remme.tinygit.ui.Icon?>
 <VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml">
-  <HBox>
-    <Label fx:id="shortIdLabel"/>
-    <Label fx:id="timeLabel"/>
+      xmlns:fx="http://javafx.com/fxml"
+      styleClass="log-cell">
+  <HBox styleClass="log-cell__container">
+    <Label fx:id="shortIdLabel" styleClass="log-cell__id"/>
+    <Label fx:id="timeLabel" styleClass="log-cell__time">
+      <graphic>
+        <Icon value="calendar-alt"/>
+      </graphic>
+    </Label>
   </HBox>
-  <HBox>
-    <Label fx:id="messageLabel"/>
-    <Label fx:id="nameLabel"/>
+  <HBox styleClass="log-cell__container">
+    <Label fx:id="messageLabel" styleClass="log-cell__message"/>
+    <Label fx:id="nameLabel" styleClass="log-cell__name">
+      <graphic>
+        <Icon value="user"/>
+      </graphic>
+    </Label>
   </HBox>
 </VBox>

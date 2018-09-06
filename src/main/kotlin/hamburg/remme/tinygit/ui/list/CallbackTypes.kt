@@ -8,4 +8,4 @@ import javafx.util.Callback
 /**
  * Callback for commit list cells, basically log entries.
  */
-typealias LogCellCallback = Callback<ListView<Commit>, ListCell<Commit>>
+internal typealias LogCellCallback = Callback<ListView<Commit>, ListCell<Commit>>

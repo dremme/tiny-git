@@ -15,7 +15,7 @@ internal class AppIntegrationTest {
     @DisplayName("Smoke test")
     @Test fun smokeTest() {
         // Given
-        val appClass = GitAnalytics::class.java
+        val appClass = App::class.java
 
         // Then; comes before 'When' because launch is blocking
         Executors.newSingleThreadScheduledExecutor().schedule({ Platform.exit() }, 5, TimeUnit.SECONDS)

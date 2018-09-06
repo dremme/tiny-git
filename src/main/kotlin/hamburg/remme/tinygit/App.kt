@@ -15,15 +15,15 @@ import org.springframework.util.StopWatch
 import java.util.ResourceBundle
 
 fun main(vararg args: String) {
-    Application.launch(GitAnalytics::class.java, *args)
+    Application.launch(App::class.java, *args)
 }
 
 /**
  * A JavaFX and Spring Boot application. Complete madness.
  */
-@SpringBootApplication class GitAnalytics : Application() {
+@SpringBootApplication class App : Application() {
 
-    private val log = logger<GitAnalytics>()
+    private val log = logger<App>()
     private val stopWatch = StopWatch()
     private lateinit var springContext: ConfigurableApplicationContext
     private lateinit var root: Parent
@@ -33,7 +33,7 @@ fun main(vararg args: String) {
      */
     override fun init() {
         // Run Spring Boot application with auto-config and detection
-        springContext = SpringApplication.run(GitAnalytics::class.java)
+        springContext = SpringApplication.run(App::class.java)
 
         log.info("Starting JavaFX application")
         stopWatch.start()
@@ -42,7 +42,7 @@ fun main(vararg args: String) {
         initFXML()
 
         stopWatch.stop()
-        log.info("Started JavaFX application in {} seconds", stopWatch.lastTaskTimeMillis / 1000.0)
+        log.info("Started JavaFX application in ${stopWatch.lastTaskTimeMillis / 1000.0} seconds")
     }
 
     /**
@@ -68,8 +68,7 @@ fun main(vararg args: String) {
         springContext.environment["javafx.fonts"].split(";").forEach(this::initFont)
         // Will load the custom CSS stylesheet. Must be called before any scene is initialized.
         // This will prevent modena.css to be loaded at all
-        // TODO: uncomment when ready
-        //        Application.setUserAgentStylesheet(springContext.environment["javafx.css"].toExternal())
+        Application.setUserAgentStylesheet(springContext.environment["javafx.css"].toExternal())
     }
 
     private fun initFont(fontPath: String) {

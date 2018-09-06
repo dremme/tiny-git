@@ -1,7 +1,7 @@
 package hamburg.remme.tinygit.ui.list
 
+import hamburg.remme.tinygit.App
 import hamburg.remme.tinygit.toURL
-import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.control.ListCell
 import java.util.ResourceBundle
@@ -26,7 +26,7 @@ open class FXMLListCell<T>(fxmlPath: String, resources: ResourceBundle) : ListCe
     }
 
     private fun setContextLoader() {
-        Thread.currentThread().contextClassLoader = Application::class.java.classLoader
+        Thread.currentThread().contextClassLoader = App::class.java.classLoader
     }
 
 }

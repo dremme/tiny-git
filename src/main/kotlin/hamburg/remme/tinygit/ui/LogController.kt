@@ -21,9 +21,8 @@ import org.springframework.stereotype.Controller
     /**
      * Cell factory for creating log cells. Used by the FXML loader.
      */
-    @Suppress("unused") val logCellFactory: LogCellCallback by lazy {
-        LogCellCallback { LogCell(context.resources) }
-    }
+    val logCellFactory: LogCellCallback by lazy { LogCellCallback { LogCell(context.resources) } }
+
     private val log = logger<LogController>()
     @FXML private lateinit var commitListView: ListView<Commit>
 
@@ -33,7 +32,7 @@ import org.springframework.stereotype.Controller
      */
     @EventListener fun handleRepositoryOpened(event: RepositoryOpenedEvent) {
         val commits = service.list(event.directory)
-        log.info("Showing {} commits in the log.", commits.size)
+        log.info("Showing ${commits.size} commits in the log.")
         commitListView.items.setAll(commits)
     }
 

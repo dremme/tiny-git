@@ -6,7 +6,7 @@ import java.net.URL
 /**
  * Resolves the given url [String] as [URL].
  */
-internal fun String.toURL(): URL = GitAnalytics::class.java.getResource(this)
+internal fun String.toURL(): URL = App::class.java.getResource(this)
 
 /**
  * Resolves the given url [String] in the externalized URL form.
