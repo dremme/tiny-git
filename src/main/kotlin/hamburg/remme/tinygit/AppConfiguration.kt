@@ -17,4 +17,11 @@ import org.springframework.context.annotation.Configuration
         return Context()
     }
 
+    /**
+     * @see Settings
+     */
+    @Bean fun settings(): Settings {
+        return Settings()
+    }
+
 }

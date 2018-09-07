@@ -11,11 +11,11 @@ class Context {
     /**
      * The primary window used by the app.
      */
-    var window: Window by LateImmutable()
+    var window: Window by lateVal()
 
     /**
      * The primary resource bundle for translations.
      */
-    var resources: ResourceBundle by LateImmutable()
+    var resources: ResourceBundle by lateVal()
 
 }

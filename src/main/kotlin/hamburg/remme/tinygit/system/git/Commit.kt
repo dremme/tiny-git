@@ -14,6 +14,7 @@ import java.time.Instant
  * @property committerEmail Committer email.
  * @property committerName  Committer name.
  * @property committerTime  Committer commit time.
+ * @property message        Commit message (might be only the commit subject).
  */
 class Commit(val id: String = EMPTY_ID,
              val shortId: String = EMPTY_ID,
@@ -24,7 +25,8 @@ class Commit(val id: String = EMPTY_ID,
              val authorTime: Instant = Instant.now(),
              val committerEmail: String = "",
              val committerName: String = "",
-             val committerTime: Instant = Instant.now()) {
+             val committerTime: Instant = Instant.now(),
+             val message: String = "") {
 
     override fun toString(): String {
         return id

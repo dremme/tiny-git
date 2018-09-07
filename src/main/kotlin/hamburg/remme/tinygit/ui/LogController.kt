@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.ui
 
 import hamburg.remme.tinygit.Context
+import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.domain.RepositoryService
 import hamburg.remme.tinygit.event.RepositoryClosedEvent
 import hamburg.remme.tinygit.event.RepositoryOpenedEvent
@@ -16,12 +17,14 @@ import org.springframework.stereotype.Controller
 /**
  * Controller handling the log view.
  */
-@Controller class LogController(private val service: RepositoryService, private val context: Context) {
+@Controller class LogController(private val service: RepositoryService,
+                                private val settings: Settings,
+                                private val context: Context) {
 
     /**
      * Cell factory for creating log cells. Used by the FXML loader.
      */
-    val logCellFactory: LogCellCallback by lazy { LogCellCallback { LogCell(context.resources) } }
+    val logCellFactory: LogCellCallback by lazy { LogCellCallback { LogCell(settings, context.resources) } }
 
     private val log = logger<LogController>()
     @FXML private lateinit var commitListView: ListView<Commit>

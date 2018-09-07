@@ -45,6 +45,7 @@ internal class GitLogTest {
               assertThat(it.committerEmail).matches(MAIL_PATTERN)
               assertThat(it.committerName).isNotBlank()
               assertThat(it.committerTime).isBetween(then, now)
+              assertThat(it.message).isNotBlank()
           }
     }
 

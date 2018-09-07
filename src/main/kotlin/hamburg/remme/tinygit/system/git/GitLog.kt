@@ -56,6 +56,7 @@ import java.util.BitSet
                 7 -> builder.committerEmail = line
                 8 -> builder.committerName = line
                 9 -> builder.committerTime = line.toInstant()
+                10 -> builder.message = line
             }
             increment()
 
@@ -83,13 +84,14 @@ import java.util.BitSet
                                 var authorTime: Instant = Instant.now(),
                                 var committerEmail: String = "",
                                 var committerName: String = "",
-                                var committerTime: Instant = Instant.now()) {
+                                var committerTime: Instant = Instant.now(),
+                                var message: String = "") {
 
         /**
          * Creates a new commit from the builder's properties.
          */
         fun build() = Commit(id, shortId, parents, shortParents, authorEmail, authorName, authorTime,
-          committerEmail, committerName, committerTime)
+          committerEmail, committerName, committerTime, message)
 
     }
 
