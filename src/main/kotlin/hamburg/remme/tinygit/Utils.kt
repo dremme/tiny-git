@@ -46,6 +46,18 @@ internal fun File.isGitRepository(): Boolean {
 }
 
 /**
+ * Opens the default system viewer/editor for the given URI. This can also be used to browse to a certain URL.
+ * @param uri the URI to open.
+ */
+internal fun openURI(uri: String) {
+    if (System.getProperty("os.name").startsWith("Windows")) {
+        Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler $uri")
+    } else {
+        Runtime.getRuntime().exec("open $uri")
+    }
+}
+
+/**
  * Copy of the default implementation to load UTF-8 encoded resource bundles.
  */
 internal class UTF8Support : ResourceBundle.Control() {

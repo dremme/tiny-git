@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.ui
 
 import hamburg.remme.tinygit.Context
+import hamburg.remme.tinygit.openURI
 import hamburg.remme.tinygit.event.QuitEvent
 import hamburg.remme.tinygit.event.RepositoryClosedEvent
 import hamburg.remme.tinygit.event.RepositoryOpenedEvent
@@ -22,12 +23,13 @@ import org.springframework.stereotype.Controller
      * On action `Open...`.
      */
     fun onOpen() {
-        val directory = DirectoryChooser().showDialog(context.window)
-        if (directory.isGitRepository()) {
-            log.info("Opening repository $directory.")
-            publisher.publishEvent(RepositoryOpenedEvent(directory))
-        } else {
-            log.info("$directory is not a Git repository.")
+        DirectoryChooser().showDialog(context.window)?.let {
+            if (it.isGitRepository()) {
+                log.info("Opening repository $it.")
+                publisher.publishEvent(RepositoryOpenedEvent(it))
+            } else {
+                log.info("$it is not a Git repository.")
+            }
         }
     }
 
@@ -45,6 +47,13 @@ import org.springframework.stereotype.Controller
     fun onQuit() {
         log.info("Quitting application.")
         publisher.publishEvent(QuitEvent())
+    }
+
+    /**
+     * On action 'Star on GitHub'.
+     */
+    fun onGithub() {
+        openURI("https://github.com/dremme/tiny-git")
     }
 
 }

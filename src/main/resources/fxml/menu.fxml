@@ -15,4 +15,11 @@
     <SeparatorMenuItem/>
     <MenuItem text="%menu.file.quit" accelerator="Shortcut+Q" onAction="#onQuit"/>
   </Menu>
+  <Menu text="%menu.about">
+    <MenuItem text="%menu.about.github" onAction="#onGithub">
+      <graphic>
+        <Icon value="github"/>
+      </graphic>
+    </MenuItem>
+  </Menu>
 </MenuBar>

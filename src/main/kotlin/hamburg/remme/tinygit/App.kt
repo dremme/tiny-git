@@ -25,6 +25,7 @@ fun main(vararg args: String) {
 
     private val log = logger<App>()
     private val stopWatch = StopWatch()
+    private val context: Context by lazy { springContext.getBean(Context::class.java) }
     private lateinit var springContext: ConfigurableApplicationContext
     private lateinit var root: Parent
 
@@ -66,6 +67,7 @@ fun main(vararg args: String) {
         // We never load fonts via CSS
         System.setProperty("com.sun.javafx.fontSize", springContext.environment["javafx.fontSize"])
         springContext.environment["javafx.fonts"].split(";").forEach(this::initFont)
+
         // Will load the custom CSS stylesheet. Must be called before any scene is initialized.
         // This will prevent modena.css to be loaded at all
         Application.setUserAgentStylesheet(springContext.environment["javafx.css"].toExternal())
@@ -77,7 +79,6 @@ fun main(vararg args: String) {
 
     private fun initFXML() {
         val resources = springContext.getBean(ResourceBundle::class.java)
-        val context = springContext.getBean(Context::class.java)
         context.resources = resources
 
         val fxmlLoader = FXMLLoader(springContext.environment["javafx.fxml"].toURL())
@@ -87,7 +88,6 @@ fun main(vararg args: String) {
     }
 
     private fun initStage(primaryStage: Stage) {
-        val context = springContext.getBean(Context::class.java)
         context.window = primaryStage
 
         primaryStage.title = springContext.environment["javafx.title"]

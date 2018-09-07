@@ -12,7 +12,8 @@ class Icon(@NamedArg("value") value: String) : StackPane() {
 
     private companion object {
 
-        val FONT_AWESOME_5: Map<String, String> = "/font/fa-solid.yml".loadYaml()
+        val FONT_AWESOME_5_SOLID: Map<String, String> = "/font/fa-solid.yml".loadYaml()
+        val FONT_AWESOME_5_BRAND: Map<String, String> = "/font/fa-brand.yml".loadYaml()
 
     }
 
@@ -25,7 +26,14 @@ class Icon(@NamedArg("value") value: String) : StackPane() {
     }
 
     private fun getCodePoint(value: String): Int {
-        return FONT_AWESOME_5[value]?.toInt(16) ?: throw IllegalArgumentException("$value is not a valid icon.")
+        // Try for solid icons
+        var s = FONT_AWESOME_5_SOLID[value]
+        if (s == null) {
+            // Try for brand icons
+            s = FONT_AWESOME_5_BRAND[value]
+            if (s != null) styleClass += "icon-wrapper--brand"
+        }
+        return s?.toInt(16) ?: throw IllegalArgumentException("$value is not a valid icon.")
     }
 
 }
