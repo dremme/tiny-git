@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.ui
 
+import hamburg.remme.tinygit.loadYaml
 import javafx.beans.NamedArg
 import javafx.scene.layout.StackPane
 import javafx.scene.text.Text
@@ -9,20 +10,22 @@ import javafx.scene.text.Text
  */
 class Icon(@NamedArg("value") value: String) : StackPane() {
 
+    private companion object {
+
+        val FONT_AWESOME_5: Map<String, String> = "/font/fa-solid.yml".loadYaml()
+
+    }
+
     init {
         styleClass += "icon-wrapper"
 
-        val text = Text(getCodePoint(value))
+        val text = Text(getCodePoint(value).toChar().toString())
         text.styleClass += "icon"
         children += text
     }
 
-    private fun getCodePoint(value: String): String {
-        return when (value) {
-            "calendar-alt" -> "\uf073"
-            "user" -> "\uf007"
-            else -> throw IllegalArgumentException("$value is not a valid Font Awesome 5 icon.")
-        }
+    private fun getCodePoint(value: String): Int {
+        return FONT_AWESOME_5[value]?.toInt(16) ?: throw IllegalArgumentException("$value is not a valid icon.")
     }
 
 }

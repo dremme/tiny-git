@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
+<?import hamburg.remme.tinygit.ui.Icon?>
 <MenuBar xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
          fx:controller="hamburg.remme.tinygit.ui.MenuController">
   <Menu text="%menu.file">
-    <MenuItem text="%menu.file.open" accelerator="Shortcut+O" onAction="#onOpen"/>
+    <MenuItem text="%menu.file.open" accelerator="Shortcut+O" onAction="#onOpen">
+      <graphic>
+        <Icon value="folder-open"/>
+      </graphic>
+    </MenuItem>
     <MenuItem text="%menu.file.close" accelerator="Shortcut+W" onAction="#onClose"/>
     <SeparatorMenuItem/>
     <MenuItem text="%menu.file.quit" accelerator="Shortcut+Q" onAction="#onQuit"/>
