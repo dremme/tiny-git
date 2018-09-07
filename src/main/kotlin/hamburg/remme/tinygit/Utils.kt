@@ -11,6 +11,19 @@ import java.util.Locale
 import java.util.PropertyResourceBundle
 import java.util.ResourceBundle
 
+private val OS = System.getProperty("os.name")
+/**
+ * The running OS is Windows.
+ */
+internal val IS_WINDOWS: Boolean = OS.startsWith("Windows")
+/**
+ * The running OS is Mac OS.
+ */
+internal val IS_MAC: Boolean = OS.startsWith("Mac")
+/**
+ * The running OS is some kind of Linux or UNIX. This could also be embedded or Android.
+ */
+internal val IS_LINUX: Boolean = OS.startsWith("Linux")
 /**
  * The relative file representing the current directory, in other words `.`.
  */
@@ -50,11 +63,13 @@ internal fun File.isGitRepository(): Boolean {
  * @param uri the URI to open.
  */
 internal fun openURI(uri: String) {
-    if (System.getProperty("os.name").startsWith("Windows")) {
-        Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler $uri")
-    } else {
-        Runtime.getRuntime().exec("open $uri")
+    val command = when {
+        IS_WINDOWS -> "rundll32 url.dll,FileProtocolHandler $uri"
+        IS_MAC -> "open $uri"
+        IS_LINUX -> "python -m webbrowser $uri" // FIXME: risky but might always work
+        else -> throw UnsupportedOperationException("$OS is not supported.")
     }
+    Runtime.getRuntime().exec(command)
 }
 
 /**
