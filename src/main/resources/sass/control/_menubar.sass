@@ -2,17 +2,23 @@
   -fx-background-color: $background
 
   > .container > .menu-button
-    -fx-padding: 0.25em
+    -fx-padding: 0.25em 0.5em 0.25em 0.5em
 
     &:hover
       -fx-background-color: $background-hover
 
 .menu-item
-  -fx-padding: 0.25em
-  -fx-background-color: $background
+  -fx-padding: 0.5em 1em 0.5em 1em
+  -fx-background-color: $popup
+
+  &:disabled
+    @extend %disabled
+
+    &:hover
+      -fx-background-color: $popup
 
   &:hover
-    -fx-background-color: $background-hover
+    -fx-background-color: $popup-hover
 
   .graphic-container
     -fx-padding: 0 1em 0 0

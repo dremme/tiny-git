@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit
 
+import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -32,6 +33,10 @@ class Settings {
     var dateTimeFormat: DateTimeFormatter by lazyVar {
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withLocale(locale).withZone(timeZone)
     }
+    /**
+     * The currently selected and active Git repository.
+     */
+    var repository: File? = null
 
     /**
      * @param instant the instant in time to format.

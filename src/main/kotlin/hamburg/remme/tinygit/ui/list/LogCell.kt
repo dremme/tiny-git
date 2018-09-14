@@ -27,9 +27,9 @@ class LogCell(private val settings: Settings, resources: ResourceBundle)
         } else {
             commit!!
             shortIdLabel.text = commit.shortId
-            timeLabel.text = settings.formatDateTime(commit.committerTime)
+            timeLabel.text = settings.formatDateTime(commit.committerTime) // TODO: show if author is different
             messageLabel.text = commit.message
-            nameLabel.text = commit.committerName
+            nameLabel.text = commit.committerName // TODO: show if author is different
         }
     }
 

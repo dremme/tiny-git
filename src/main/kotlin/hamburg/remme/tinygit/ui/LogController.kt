@@ -5,6 +5,7 @@ import hamburg.remme.tinygit.Settings
 import hamburg.remme.tinygit.domain.RepositoryService
 import hamburg.remme.tinygit.event.RepositoryClosedEvent
 import hamburg.remme.tinygit.event.RepositoryOpenedEvent
+import hamburg.remme.tinygit.event.RepositoryUpdatedEvent
 import hamburg.remme.tinygit.logger
 import hamburg.remme.tinygit.system.git.Commit
 import hamburg.remme.tinygit.ui.list.LogCell
@@ -13,6 +14,7 @@ import javafx.fxml.FXML
 import javafx.scene.control.ListView
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Controller
+import java.io.File
 
 /**
  * Controller handling the log view.
@@ -34,7 +36,19 @@ import org.springframework.stereotype.Controller
      * @param event the event containing the repository directory.
      */
     @EventListener fun handleRepositoryOpened(event: RepositoryOpenedEvent) {
-        val commits = service.list(event.directory)
+        updateLog(event.directory)
+    }
+
+    /**
+     * Handles a repository being updated.
+     * @param event the event containing the repository directory.
+     */
+    @EventListener fun handleRepositoryUpdated(event: RepositoryUpdatedEvent) {
+        updateLog(event.directory)
+    }
+
+    private fun updateLog(directory: File) {
+        val commits = service.list(directory)
         log.info("Showing ${commits.size} commits in the log.")
         commitListView.items.setAll(commits)
     }

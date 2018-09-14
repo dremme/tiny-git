@@ -1,28 +1,18 @@
-$text-color: #ddd
+$text-color: #ECEFF1
 $text-hover: white
-$text-highlight: cyan
+$text-highlight: #A7FFEB
 
-$background: #333
+$background: #37474F
 $background-alt: lighten($background, 5%)
 $background-hover: lighten($background, 10%)
-$background-highlight: darkcyan
+$background-highlight: #00897B
 
-$control: #aaa
+$control: #78909C
 $control-hover: lighten($control, 10%)
-// TODO: needed?
-$control-background: darken($control, 15%)
 
-$shadow-popup: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 24, 0.0, 0, 12)
-
-$font-size: 14px
-
-%fontRegular,
-%fontBold,
-%fontLight,
-%fontIcon,
-%fontIcon2
-  -fx-font-family: serif
-  -fx-font-size: $font-size
+$popup: lighten($background, 10%)
+$popup-hover: lighten($popup, 10%)
+$popup-shadow: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 36, 0.0, 0, 12)
 
 %fontRegular
   -fx-font-family: "Roboto"
@@ -40,3 +30,6 @@ $font-size: 14px
 
 %fontIcon2
   -fx-font-family: "Font Awesome 5 Brands"
+
+%disabled
+  -fx-opacity: 0.3

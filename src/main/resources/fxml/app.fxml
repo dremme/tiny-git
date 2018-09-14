@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns="http://javafx.com/javafx"
@@ -9,7 +10,14 @@
   <!--<fx:include source="menu.fxml" useSystemMenuBar="true"/>-->
   <fx:include source="menu.fxml"/>
   <StackPane VBox.vgrow="ALWAYS" styleClass="app-body">
-    <fx:include source="log.fxml"/>
+    <BorderPane>
+      <center>
+        <fx:include source="log.fxml"/>
+      </center>
+      <left>
+        <fx:include source="stats.fxml"/>
+      </left>
+    </BorderPane>
     <fx:include source="empty.fxml" visible="${controller.empty}"/>
   </StackPane>
 </VBox>

@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import hamburg.remme.tinygit.ui.NoSelectionModel?>
 <?import javafx.scene.control.ListView?>
 <ListView xmlns="http://javafx.com/javafx"
           xmlns:fx="http://javafx.com/fxml"
           fx:id="commitListView"
           fx:controller="hamburg.remme.tinygit.ui.LogController"
           cellFactory="$controller.logCellFactory">
+  <selectionModel>
+    <NoSelectionModel/>
+  </selectionModel>
 </ListView>

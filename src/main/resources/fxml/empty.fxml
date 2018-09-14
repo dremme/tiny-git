@@ -3,6 +3,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.StackPane?>
 <StackPane xmlns="http://javafx.com/javafx"
-           xmlns:fx="http://javafx.com/fxml">
+           xmlns:fx="http://javafx.com/fxml"
+           styleClass="app-overlay">
   <Label text="%info.empty"/>
 </StackPane>

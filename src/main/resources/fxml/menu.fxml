@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
 <?import hamburg.remme.tinygit.ui.Icon?>
+<?import javafx.scene.control.*?>
 <MenuBar xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
          fx:controller="hamburg.remme.tinygit.ui.MenuController">
@@ -14,6 +14,13 @@
     <MenuItem text="%menu.file.close" accelerator="Shortcut+W" onAction="#onClose"/>
     <SeparatorMenuItem/>
     <MenuItem text="%menu.file.quit" accelerator="Shortcut+Q" onAction="#onQuit"/>
+  </Menu>
+  <Menu text="%menu.action">
+    <MenuItem text="%menu.action.update" accelerator="Shortcut+P" onAction="#onUpdate" disable="${controller.empty}">
+      <graphic>
+        <Icon value="sync"/>
+      </graphic>
+    </MenuItem>
   </Menu>
   <Menu text="%menu.about">
     <MenuItem text="%menu.about.github" onAction="#onGithub">

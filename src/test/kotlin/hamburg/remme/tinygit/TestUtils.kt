@@ -21,6 +21,11 @@ internal const val SHORT_COMMIT_ID_PATTERN: String = "[a-f0-9]{7}"
 internal const val MAIL_PATTERN: String = ".+@.+\\..+"
 
 /**
+ * Delegates to [Mockito.spy]. Used to spy on non-mock classes.
+ */
+internal fun <T> spyOn(obj: T): T = Mockito.spy(obj)
+
+/**
  * Delegates to [Mockito.when].
  */
 internal fun <T> whenever(method: T): OngoingStubbing<T> = Mockito.`when`(method)
