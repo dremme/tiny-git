@@ -19,17 +19,17 @@ import java.util.BitSet
      * Invalidates the log cache.
      */
     @CacheEvict("log", allEntries = true)
-    fun invalidateCache(): Unit = Unit // AOP method
+    fun invalidateCache(): Unit = Unit // AOP method // TODO: is caching working?
 
     /**
      * @param gitDir a local Git repository.
      * @return all commit IDs in the Git repository in order of commit creation.
      */
     @Cacheable("log")
-    fun query(gitDir: File): List<Commit> {
+    fun query(gitDir: File): Sequence<Commit> {
         val parser = LogParser()
         Console.git(gitDir, LOG, "--all", "--pretty=format:$LOG_PATTERN", block = parser::append)
-        return parser.commits
+        return parser.commits.asSequence() // FIXME: pretty dirty for now
     }
 
     /**

@@ -39,15 +39,6 @@ import java.time.temporal.ChronoUnit
     }
 
     /**
-     * @todo this is calling [RepositoryService.list] as well, which can be improved by listening to a log event
-     */
-    private fun updateStats(directory: File) {
-        commitCountLabel.text = service.count(directory).toString()
-        authorCountLabel.text = service.countUnique(directory, Commit::authorEmail).toString()
-        ageLabel.text = service.age(directory, ChronoUnit.MONTHS).toString()
-    }
-
-    /**
      * Handles a repository being closed.
      * @param event the event.
      */
@@ -55,6 +46,15 @@ import java.time.temporal.ChronoUnit
         commitCountLabel.text = ""
         authorCountLabel.text = ""
         ageLabel.text = ""
+    }
+
+    /**
+     * @todo this is calling [RepositoryService.list] as well, which can be improved by listening to a log event
+     */
+    private fun updateStats(directory: File) {
+        commitCountLabel.text = service.count(directory).toString()
+        authorCountLabel.text = service.countUnique(directory, Commit::authorEmail).toString()
+        ageLabel.text = service.age(directory, ChronoUnit.MONTHS).toString()
     }
 
 }

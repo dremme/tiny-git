@@ -2,8 +2,12 @@ package hamburg.remme.tinygit.domain
 
 import hamburg.remme.tinygit.CURRENT_DIR
 import hamburg.remme.tinygit.MockitoExtension
+import hamburg.remme.tinygit.SynchronousTaskExecutor
+import hamburg.remme.tinygit.event.Event
+import hamburg.remme.tinygit.event.HideProgressEvent
 import hamburg.remme.tinygit.event.RepositoryUpdateRequestedEvent
 import hamburg.remme.tinygit.event.RepositoryUpdatedEvent
+import hamburg.remme.tinygit.event.ShowProgressEvent
 import hamburg.remme.tinygit.spyOn
 import hamburg.remme.tinygit.system.git.Commit
 import hamburg.remme.tinygit.system.git.GitLog
@@ -17,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mock
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.springframework.context.ApplicationEventPublisher
 
@@ -27,14 +32,15 @@ internal class RepositoryServiceTest {
     @Mock lateinit var gitLog: GitLog
     @Mock lateinit var gitRemote: GitRemote
     @Mock lateinit var publisher: ApplicationEventPublisher
-    @Captor lateinit var eventCaptor: ArgumentCaptor<RepositoryUpdatedEvent>
+    @Captor lateinit var eventCaptor: ArgumentCaptor<Event>
+    private val executor = SynchronousTaskExecutor()
     private lateinit var service: RepositoryService
 
-    private val result = listOf(Commit("12345678"))
+    private val result = sequenceOf(Commit("12345678"))
 
     @BeforeEach fun setup() {
         whenever(gitLog.query(CURRENT_DIR)).thenReturn(result)
-        service = spyOn(RepositoryService(gitLog, gitRemote, publisher))
+        service = spyOn(RepositoryService(gitLog, gitRemote, executor, publisher))
     }
 
     @DisplayName("Testing list")
@@ -55,6 +61,10 @@ internal class RepositoryServiceTest {
         // Then
         verify(gitRemote).pull(CURRENT_DIR)
         verify(gitLog).invalidateCache()
+        verify(publisher, times(3)).publishEvent(eventCaptor.capture())
+        assertThat(eventCaptor.allValues).anyMatch { it is ShowProgressEvent }
+        assertThat(eventCaptor.allValues).anyMatch { it is HideProgressEvent }
+        assertThat(eventCaptor.allValues).anyMatch { it is RepositoryUpdatedEvent && it.directory == CURRENT_DIR }
     }
 
     @DisplayName("Testing handle update request")
@@ -67,8 +77,6 @@ internal class RepositoryServiceTest {
 
         // Then
         verify(service).update(CURRENT_DIR)
-        verify(publisher).publishEvent(eventCaptor.capture())
-        assertThat(eventCaptor.value.directory).isEqualTo(CURRENT_DIR)
     }
 
 }

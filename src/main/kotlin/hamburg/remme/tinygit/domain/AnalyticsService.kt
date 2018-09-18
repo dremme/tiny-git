@@ -17,7 +17,7 @@ import java.time.temporal.ChronoUnit
      * @return the count of all commits in the current repository.
      */
     fun count(gitDir: File): Int {
-        return service.list(gitDir).size
+        return service.list(gitDir).count()
     }
 
     /**
@@ -34,10 +34,10 @@ import java.time.temporal.ChronoUnit
      * Lists all unique occurrences of a commit property.
      * @param gitDir a local Git repository.
      * @param block  block to extract the property.
-     * @return list of unique values.
+     * @return set of unique values.
      */
-    fun <T> listUnique(gitDir: File, block: (Commit) -> T): List<T> {
-        return service.list(gitDir).map(block).distinct()
+    fun <T> listUnique(gitDir: File, block: (Commit) -> T): Set<T> {
+        return service.list(gitDir).mapTo(LinkedHashSet(), block)
     }
 
     /**
@@ -47,7 +47,7 @@ import java.time.temporal.ChronoUnit
      * @return number of unique values.
      */
     fun <T> countUnique(gitDir: File, block: (Commit) -> T): Int {
-        return listUnique(gitDir, block).size
+        return service.list(gitDir).map(block).distinct().count()
     }
 
     /**

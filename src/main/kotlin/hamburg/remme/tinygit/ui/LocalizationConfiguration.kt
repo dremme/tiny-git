@@ -16,8 +16,6 @@ import java.util.ResourceBundle
     /**
      * The default resource bundle for the application.
      */
-    @Bean fun resourceBundle(): ResourceBundle {
-        return ResourceBundle.getBundle(basename, UTF8Support())
-    }
+    @Bean fun resourceBundle(): ResourceBundle = ResourceBundle.getBundle(basename, UTF8Support())
 
 }

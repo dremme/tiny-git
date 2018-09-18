@@ -6,7 +6,6 @@ import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
-import java.time.Instant
 import java.util.Locale
 import java.util.PropertyResourceBundle
 import java.util.ResourceBundle
@@ -42,7 +41,7 @@ internal inline fun <reified T> logger(): Logger = LoggerFactory.getLogger(T::cl
  * Splits a [String] by the given [delimiter]. Will be [emptyList] if the [String] is blank.
  * @param delimiter defaults to `" "`.
  */
-internal fun String.safeSplit(delimiter: String = " "): List<String> = takeIf(String::isNotBlank)?.split(delimiter) ?: emptyList()
+internal fun String.safeSplit(delimiter: String = " "): List<String> = takeIf(String::isNotBlank)?.split(delimiter).orEmpty()
 
 /**
  * A file is a Git repository if it is a directory and contains a `.git` subfolder. This might be a relatively slow

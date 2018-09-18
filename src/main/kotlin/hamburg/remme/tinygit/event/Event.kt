@@ -3,7 +3,7 @@ package hamburg.remme.tinygit.event
 import java.time.Instant
 import java.util.UUID
 
-abstract class Event(val uuid: UUID = UUID.randomUUID(), val created: Instant = Instant.now()){
+abstract class Event(val uuid: UUID = UUID.randomUUID(), val created: Instant = Instant.now()) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -16,8 +16,6 @@ abstract class Event(val uuid: UUID = UUID.randomUUID(), val created: Instant = 
         return true
     }
 
-    override fun hashCode(): Int {
-        return uuid.hashCode()
-    }
+    override fun hashCode(): Int = uuid.hashCode()
 
 }

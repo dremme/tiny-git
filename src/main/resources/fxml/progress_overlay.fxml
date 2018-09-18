@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Circle?>
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="hamburg.remme.tinygit.ui.ProgressController"
+           visible="${controller.visible}"
+           styleClass="progress-overlay">
+  <HBox alignment="CENTER" styleClass="progress-overlay__container">
+    <Circle fx:id="circle1" radius="28" styleClass="progress-overlay__circle"/>
+    <Circle fx:id="circle2" radius="28" styleClass="progress-overlay__circle"/>
+    <Circle fx:id="circle3" radius="28" styleClass="progress-overlay__circle"/>
+  </HBox>
+</StackPane>

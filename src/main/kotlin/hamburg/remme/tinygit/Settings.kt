@@ -42,16 +42,12 @@ class Settings {
      * @param instant the instant in time to format.
      * @return formatted instant in time according to the current [dateFormat].
      */
-    fun formatDate(instant: Instant): String {
-        return dateFormat.format(instant)
-    }
+    fun formatDate(instant: Instant): String = dateFormat.format(instant)
 
     /**
      * @param instant the instant in time to format.
      * @return formatted instant in time according to the current [dateTimeFormat].
      */
-    fun formatDateTime(instant: Instant): String {
-        return dateTimeFormat.format(instant)
-    }
+    fun formatDateTime(instant: Instant): String = dateTimeFormat.format(instant)
 
 }

@@ -28,9 +28,7 @@ class Commit(val id: String = EMPTY_ID,
              val committerTime: Instant = Instant.now(),
              val message: String = "") {
 
-    override fun toString(): String {
-        return id
-    }
+    override fun toString(): String = id
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -43,8 +41,6 @@ class Commit(val id: String = EMPTY_ID,
         return true
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
 }

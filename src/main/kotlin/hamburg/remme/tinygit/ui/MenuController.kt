@@ -23,14 +23,14 @@ import org.springframework.stereotype.Controller
                                  private val settings: Settings,
                                  private val context: Context) {
 
-    private val log = logger<MenuController>()
-
     private val emptyProperty = ReadOnlyBooleanWrapper(true)
     fun emptyProperty(): ReadOnlyBooleanProperty = emptyProperty.readOnlyProperty // FIXME: not working on menu item??
     /**
      * `true` when there is no opened Git repository.
      */
     val isEmpty: Boolean get() = emptyProperty.value
+
+    private val log = logger<MenuController>()
 
     /**
      * On action `Open...`.

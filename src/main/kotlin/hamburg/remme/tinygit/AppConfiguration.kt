@@ -13,15 +13,11 @@ import org.springframework.context.annotation.Configuration
     /**
      * @see Context
      */
-    @Bean fun context(): Context {
-        return Context()
-    }
+    @Bean fun context(): Context = Context()
 
     /**
      * @see Settings
      */
-    @Bean fun settings(): Settings {
-        return Settings()
-    }
+    @Bean fun settings(): Settings = Settings()
 
 }

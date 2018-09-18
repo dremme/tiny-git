@@ -28,7 +28,7 @@ internal class AnalyticsServiceTest {
     private val frodoEmail = "frodo.baggins@shire.me"
     private val samEmail = "samwise.gamgee@shire.me"
     private val samName = "Samwise Gamgee"
-    private val result = listOf(
+    private val result = sequenceOf(
       Commit(authorEmail = frodoEmail, committerTime = "1514980800".toInstant()),
       Commit(authorEmail = frodoEmail, committerTime = "1514894400".toInstant()),
       Commit(authorEmail = samEmail, authorName = samName, committerTime = "1514808000".toInstant())
@@ -45,7 +45,7 @@ internal class AnalyticsServiceTest {
         val count = service.count(CURRENT_DIR)
 
         // Then
-        assertThat(count).isEqualTo(result.size)
+        assertThat(count).isEqualTo(result.count())
     }
 
     @DisplayName("Testing property grouping")

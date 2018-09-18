@@ -10,7 +10,7 @@ import java.util.ResourceBundle
  * List cell displaying information about a commit, like a log entry.
  */
 class LogCell(private val settings: Settings, resources: ResourceBundle)
-    : FXMLListCell<Commit>("/fxml/list/logcell.fxml", resources) {
+    : FXMLListCell<Commit>("/fxml/list/log_cell.fxml", resources) {
 
     @FXML private lateinit var shortIdLabel: Label
     @FXML private lateinit var timeLabel: Label

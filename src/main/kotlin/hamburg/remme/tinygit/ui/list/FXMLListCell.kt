@@ -8,6 +8,7 @@ import java.util.ResourceBundle
 
 /**
  * A list cell that loads its content to the [graphic] from a FXML file.
+ * @todo: the FXML loading can be in a more general place
  */
 open class FXMLListCell<T>(fxmlPath: String, resources: ResourceBundle) : ListCell<T>() {
 

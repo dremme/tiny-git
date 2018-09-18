@@ -47,18 +47,18 @@ import java.io.File
         updateLog(event.directory)
     }
 
-    private fun updateLog(directory: File) {
-        val commits = service.list(directory)
-        log.info("Showing ${commits.size} commits in the log.")
-        commitListView.items.setAll(commits)
-    }
-
     /**
      * Handles a repository being closed.
      * @param event the event.
      */
     @EventListener fun handleRepositoryClosed(event: RepositoryClosedEvent) {
         commitListView.items.clear()
+    }
+
+    private fun updateLog(directory: File) {
+        val commits = service.list(directory)
+        log.info("Showing ${commits.count()} commits in the log.")
+        commitListView.items.setAll(commits.toList())
     }
 
 }

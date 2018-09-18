@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit
 
+import hamburg.remme.tinygit.concurrent.TaskExecutor
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.TestInstancePostProcessor
 import org.mockito.Mock
@@ -37,6 +38,21 @@ internal class MockitoExtension : TestInstancePostProcessor {
 
     override fun postProcessTestInstance(testInstance: Any, context: ExtensionContext) {
         MockitoAnnotations.initMocks(testInstance)
+    }
+
+}
+
+/**
+ * Executes the blocks synchronously. Used only for testing.
+ */
+internal class SynchronousTaskExecutor : TaskExecutor {
+
+    override fun <T> submit(call: () -> T, succeeded: (T?) -> Unit, failed: (Throwable) -> Unit) {
+        try {
+            succeeded(call())
+        } catch (t: Throwable) {
+            failed(t)
+        }
     }
 
 }

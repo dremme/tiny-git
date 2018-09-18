@@ -54,13 +54,6 @@ object Console {
         execute(gitDir, prependGit(*args), block)
     }
 
-    private fun prependGit(vararg args: String): Array<String> {
-        val command = Array(args.size + 1) { "" }
-        command[0] = "git"
-        System.arraycopy(args, 0, command, 1, args.size)
-        return command
-    }
-
     /**
      * Will execute the given arguments as shell command in the given working directory (if any). For each printed line
      * the consumer is being called.
@@ -77,6 +70,13 @@ object Console {
           .inputStream
           .bufferedReader()
           .useLines { it.forEach(block) }
+    }
+
+    private fun prependGit(vararg args: String): Array<String> {
+        val command = Array(args.size + 1) { "" }
+        command[0] = "git"
+        System.arraycopy(args, 0, command, 1, args.size)
+        return command
     }
 
     /**

@@ -31,7 +31,7 @@ internal class GitLogTest {
         val result = gitLog.query(CURRENT_DIR)
 
         // Then
-        assertThat(result)
+        assertThat(result.toList()) // FIXME: add a sequence asserter
           .isNotEmpty
           .allSatisfy {
               assertThat(it.id).matches(COMMIT_ID_PATTERN)
