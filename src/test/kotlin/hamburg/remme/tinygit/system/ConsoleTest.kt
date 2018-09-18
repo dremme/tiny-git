@@ -1,7 +1,8 @@
 package hamburg.remme.tinygit.system
 
+import hamburg.remme.tinygit.CURRENT_DIR
+import hamburg.remme.tinygit.system.git.GIT
 import hamburg.remme.tinygit.system.git.LOG
-import hamburg.remme.tinygit.system.git.VERSION
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertTimeout
 import org.junit.jupiter.api.DisplayName
@@ -18,7 +19,7 @@ internal class ConsoleTest {
     @CsvSource(".,build.gradle", "./image,image1.png")
     @ParameterizedTest fun testExecute(path: String, file: String) {
         // Given
-        val args = arrayOf("ls")
+        val args = listOf("ls")
         val collector = ConsoleCollector()
         val dir = File(path)
 
@@ -29,42 +30,15 @@ internal class ConsoleTest {
         assertThat(collector.lines).contains(file)
     }
 
-    @DisplayName("Testing git returned all as one string")
-    @Test fun testGit() {
-        // Given
-        val args = arrayOf(VERSION)
-
-        // When
-        val result = Console.git(*args)
-
-        // Then
-        assertThat(result).matches("git version \\d+\\.\\d+\\.\\d+")
-    }
-
-    @DisplayName("Testing git with block")
-    @Test fun testGitBlock() {
-        // Given
-        val args = arrayOf(LOG, "--oneline", "-10")
-        val collector = ConsoleCollector()
-
-        // When
-        Console.git(*args, block = collector::collect)
-
-        // Then
-        assertThat(collector.lines)
-          .hasSize(10)
-          .allMatch { it.matches("[a-f0-9]+ .*".toRegex()) }
-    }
-
     @DisplayName("Testing execute performance")
     @Test fun testPerformance() {
         // Given
-        val args = arrayOf(LOG, "-100")
+        val args = listOf(GIT, LOG, "-100")
 
         // Then
         assertTimeout(ofMillis(100)) {
             // When
-            Console.git(*args)
+            Console.execute(CURRENT_DIR, args).readLines()
         }
     }
 

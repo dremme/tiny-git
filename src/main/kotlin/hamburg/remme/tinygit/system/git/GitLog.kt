@@ -28,7 +28,7 @@ import java.util.BitSet
     @Cacheable("log")
     fun query(gitDir: File): Sequence<Commit> {
         val parser = LogParser()
-        Console.git(gitDir, LOG, "--all", "--pretty=format:$LOG_PATTERN", block = parser::append)
+        Console.execute(gitDir, listOf(GIT, LOG, ALL, "--pretty=format:$LOG_PATTERN"), block = parser::append)
         return parser.commits.asSequence() // FIXME: pretty dirty for now
     }
 

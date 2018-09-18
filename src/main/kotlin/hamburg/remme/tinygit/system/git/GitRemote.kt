@@ -15,7 +15,7 @@ import java.io.File
      * @return the console output of the pull command.
      */
     fun pull(gitDir: File): String {
-        return Console.git(gitDir, PULL, "--all", "--ff-only")
+        return Console.execute(gitDir, listOf(GIT, PULL, ALL, "--ff-only")).readLines().joinToString("\n")
     }
 
 }
