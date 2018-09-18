@@ -45,7 +45,7 @@ internal class MockitoExtension : TestInstancePostProcessor {
 /**
  * Executes the blocks synchronously. Used only for testing.
  */
-internal class SynchronousTaskExecutor : TaskExecutor {
+internal class SimpleTaskExecutor : TaskExecutor {
 
     override fun <T> submit(call: () -> T, succeeded: (T?) -> Unit, failed: (Throwable) -> Unit) {
         try {

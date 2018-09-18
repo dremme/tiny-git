@@ -2,7 +2,7 @@ package hamburg.remme.tinygit.domain
 
 import hamburg.remme.tinygit.CURRENT_DIR
 import hamburg.remme.tinygit.MockitoExtension
-import hamburg.remme.tinygit.SynchronousTaskExecutor
+import hamburg.remme.tinygit.SimpleTaskExecutor
 import hamburg.remme.tinygit.event.Event
 import hamburg.remme.tinygit.event.HideProgressEvent
 import hamburg.remme.tinygit.event.RepositoryUpdateRequestedEvent
@@ -33,7 +33,7 @@ internal class RepositoryServiceTest {
     @Mock lateinit var gitRemote: GitRemote
     @Mock lateinit var publisher: ApplicationEventPublisher
     @Captor lateinit var eventCaptor: ArgumentCaptor<Event>
-    private val executor = SynchronousTaskExecutor()
+    private val executor = SimpleTaskExecutor()
     private lateinit var service: RepositoryService
 
     private val result = sequenceOf(Commit("12345678"))

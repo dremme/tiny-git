@@ -8,7 +8,7 @@ import java.util.concurrent.Executors
 /**
  * Executes the blocks asynchronously in a [Task].
  */
-@Component class AsynchronousTaskExecutor : TaskExecutor {
+@Component class DefaultTaskExecutor : TaskExecutor {
 
     private val service: ExecutorService = Executors.newSingleThreadExecutor(::DaemonThread) // FIXME: more threads
 
