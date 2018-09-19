@@ -42,6 +42,14 @@ import java.io.File
         executor.submit({ pull(gitDir) }, { pullSucceeded(gitDir) })
     }
 
+    /**
+     * Handles a repository update requested.
+     * @param event the event.
+     */
+    @EventListener fun handleRequestUpdate(event: RepositoryUpdateRequestedEvent) {
+        update(event.directory)
+    }
+
     private fun pull(gitDir: File) {
         gitRemote.pull(gitDir)
     }
@@ -51,14 +59,6 @@ import java.io.File
         publisher.publishEvent(RepositoryUpdatedEvent(gitDir))
         publisher.publishEvent(HideProgressEvent())
         log.info("$gitDir successfully updated.")
-    }
-
-    /**
-     * Handles a repository update requested.
-     * @param event the event.
-     */
-    @EventListener fun handleRequestUpdate(event: RepositoryUpdateRequestedEvent) {
-        update(event.directory)
     }
 
 }

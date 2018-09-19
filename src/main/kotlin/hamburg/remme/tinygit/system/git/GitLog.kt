@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit.system.git
 
+import hamburg.remme.tinygit.logger
 import hamburg.remme.tinygit.safeSplit
 import hamburg.remme.tinygit.system.cmd
 import hamburg.remme.tinygit.toInstant
@@ -13,21 +14,40 @@ import java.util.BitSet
  */
 @Component class GitLog {
 
+    private val log = logger<GitLog>()
+    private var cache: Pair<File, List<Commit>>? = null
+
     /**
      * Invalidates the log cache.
      */
     fun invalidateCache() {
-        // TODO
+        cache = null
     }
 
     /**
+     * All commit IDs in the Git repository in order of commit creation. The result is being cached and has to be
+     * invalidated by calling [invalidateCache] after a repository update.
      * @param gitDir a local Git repository.
-     * @return all commit IDs in the Git repository in order of commit creation.
      */
     fun query(gitDir: File): Sequence<Commit> {
+        if (cache?.first != gitDir) {
+            log.trace("Creating new cache for $gitDir.")
+            cache = gitDir to log(gitDir)
+        } else {
+            log.trace("Getting $gitDir from cache.")
+        }
+        return cache!!.second.asSequence()
+    }
+
+    /**
+     * All commit IDs in the Git repository in order of commit creation without any caching.
+     * Usually [query] should be prefered over this method.
+     * @param gitDir a local Git repository.
+     */
+    fun log(gitDir: File): List<Commit> {
         val parser = LogParser()
         cmd(gitDir, listOf(GIT, LOG, ALL, "--pretty=format:$LOG_PATTERN")).forEachLine(parser::append)
-        return parser.commits.asSequence() // FIXME: pretty dirty for now
+        return parser.commits
     }
 
     /**
