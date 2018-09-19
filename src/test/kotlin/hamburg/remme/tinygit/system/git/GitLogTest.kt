@@ -21,7 +21,6 @@ internal class GitLogTest {
     }
 
     @DisplayName("Testing Git log simple query")
-    @Suppress("NestedLambdaShadowedImplicitParameter")
     @Test fun testQuery() {
         // Given
         val now = Instant.now().minus(1, ChronoUnit.MINUTES)

@@ -17,14 +17,14 @@ internal class ConsoleTest {
 
     @DisplayName("Testing execute")
     @CsvSource(".,build.gradle", "./image,image1.png")
-    @ParameterizedTest fun testExecute(path: String, file: String) {
+    @ParameterizedTest fun testCmd(path: String, file: String) {
         // Given
         val args = listOf("ls")
         val collector = ConsoleCollector()
         val dir = File(path)
 
         // When
-        Console.execute(dir, args, collector::collect)
+        cmd(dir, args).forEachLine(collector::append)
 
         // Then
         assertThat(collector.lines).contains(file)
@@ -38,7 +38,7 @@ internal class ConsoleTest {
         // Then
         assertTimeout(ofMillis(100)) {
             // When
-            Console.execute(CURRENT_DIR, args).readLines()
+            cmd(CURRENT_DIR, args).readLines()
         }
     }
 

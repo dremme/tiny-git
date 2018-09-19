@@ -2,6 +2,7 @@ package hamburg.remme.tinygit
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -50,6 +51,11 @@ internal fun String.safeSplit(delimiter: String = " "): List<String> = takeIf(St
 internal fun File.isGitRepository(): Boolean {
     return isDirectory && list().any { it.endsWith(GIT_DIR, true) }
 }
+
+/**
+ * Joins all lines of the reader to a [String] separated by `\n`.
+ */
+internal fun BufferedReader.join(): String = readLines().joinToString("\n")
 
 /**
  * Opens the default system viewer/editor for the given URI. This can also be used to browse to a certain URL.

@@ -15,6 +15,7 @@ import java.time.temporal.ChronoUnit
     /**
      * @param gitDir a local Git repository.
      * @return the count of all commits in the current repository.
+     * @todo can be improved by using Git API
      */
     fun count(gitDir: File): Int {
         return service.list(gitDir).count()

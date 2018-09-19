@@ -4,7 +4,7 @@ internal class ConsoleCollector {
 
     val lines: List<String> = mutableListOf()
 
-    fun collect(line: String) {
+    fun append(line: String) {
         lines as MutableList += line
     }
 

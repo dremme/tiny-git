@@ -1,6 +1,7 @@
 package hamburg.remme.tinygit.system.git
 
-import hamburg.remme.tinygit.system.Console
+import hamburg.remme.tinygit.join
+import hamburg.remme.tinygit.system.cmd
 import org.springframework.stereotype.Component
 import java.io.File
 
@@ -15,7 +16,7 @@ import java.io.File
      * @return the console output of the pull command.
      */
     fun pull(gitDir: File): String {
-        return Console.execute(gitDir, listOf(GIT, PULL, ALL, "--ff-only")).readLines().joinToString("\n")
+        return cmd(gitDir, listOf(GIT, PULL, ALL, "--ff-only")).join()
     }
 
 }

@@ -1,10 +1,8 @@
 package hamburg.remme.tinygit.system.git
 
 import hamburg.remme.tinygit.safeSplit
-import hamburg.remme.tinygit.system.Console
+import hamburg.remme.tinygit.system.cmd
 import hamburg.remme.tinygit.toInstant
-import org.springframework.cache.annotation.CacheEvict
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import java.io.File
 import java.time.Instant
@@ -18,17 +16,17 @@ import java.util.BitSet
     /**
      * Invalidates the log cache.
      */
-    @CacheEvict("log", allEntries = true)
-    fun invalidateCache(): Unit = Unit // AOP method // TODO: is caching working?
+    fun invalidateCache() {
+        // TODO
+    }
 
     /**
      * @param gitDir a local Git repository.
      * @return all commit IDs in the Git repository in order of commit creation.
      */
-    @Cacheable("log")
     fun query(gitDir: File): Sequence<Commit> {
         val parser = LogParser()
-        Console.execute(gitDir, listOf(GIT, LOG, ALL, "--pretty=format:$LOG_PATTERN"), block = parser::append)
+        cmd(gitDir, listOf(GIT, LOG, ALL, "--pretty=format:$LOG_PATTERN")).forEachLine(parser::append)
         return parser.commits.asSequence() // FIXME: pretty dirty for now
     }
 
