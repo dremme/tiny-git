@@ -1,5 +1,6 @@
 package hamburg.remme.tinygit
 
+import javafx.collections.ObservableList
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
@@ -56,6 +57,11 @@ internal fun File.isGitRepository(): Boolean {
  * Joins all lines of the reader to a [String] separated by `\n`.
  */
 internal fun BufferedReader.join(): String = readLines().joinToString("\n")
+
+/**
+ * Convenience method to use [ObservableList.setAll] with a [Sequence].
+ */
+internal fun <T> ObservableList<T>.setAll(sequence: Sequence<T>): Boolean = setAll(sequence.toList())
 
 /**
  * Opens the default system viewer/editor for the given URI. This can also be used to browse to a certain URL.

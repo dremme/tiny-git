@@ -1,7 +1,6 @@
 package hamburg.remme.tinygit.ui
 
 import hamburg.remme.tinygit.domain.AnalyticsService
-import hamburg.remme.tinygit.domain.RepositoryService
 import hamburg.remme.tinygit.event.RepositoryClosedEvent
 import hamburg.remme.tinygit.event.RepositoryOpenedEvent
 import hamburg.remme.tinygit.event.RepositoryUpdatedEvent
@@ -48,9 +47,6 @@ import java.time.temporal.ChronoUnit
         ageLabel.text = ""
     }
 
-    /**
-     * @todo this is calling [RepositoryService.list] as well, which can be improved by listening to a log event
-     */
     private fun updateStats(directory: File) {
         commitCountLabel.text = service.count(directory).toString()
         authorCountLabel.text = service.countUnique(directory, Commit::authorEmail).toString()

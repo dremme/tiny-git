@@ -7,6 +7,7 @@ import hamburg.remme.tinygit.event.RepositoryClosedEvent
 import hamburg.remme.tinygit.event.RepositoryOpenedEvent
 import hamburg.remme.tinygit.event.RepositoryUpdatedEvent
 import hamburg.remme.tinygit.logger
+import hamburg.remme.tinygit.setAll
 import hamburg.remme.tinygit.system.git.Commit
 import hamburg.remme.tinygit.ui.list.LogCell
 import hamburg.remme.tinygit.ui.list.LogCellCallback
@@ -58,7 +59,7 @@ import java.io.File
     private fun updateLog(directory: File) {
         val commits = service.list(directory)
         log.info("Showing ${commits.count()} commits in the log.")
-        commitListView.items.setAll(commits.toList())
+        commitListView.items.setAll(commits)
     }
 
 }
