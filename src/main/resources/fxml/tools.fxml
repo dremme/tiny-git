@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import hamburg.remme.tinygit.ui.Icon?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ToolBar?>
+<ToolBar xmlns="http://javafx.com/javafx"
+         xmlns:fx="http://javafx.com/fxml"
+         fx:controller="hamburg.remme.tinygit.ui.ToolsController">
+  <Button onAction="#onUpdate" disable="${controller.empty}">
+    <graphic>
+      <Icon value="sync"/>
+    </graphic>
+  </Button>
+</ToolBar>

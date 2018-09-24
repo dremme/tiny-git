@@ -1,32 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import hamburg.remme.tinygit.ui.Icon?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.VBox?>
-<VBox xmlns="http://javafx.com/javafx"
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<HBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="hamburg.remme.tinygit.ui.StatsController"
       styleClass="stats"
-      alignment="TOP_CENTER">
-  <Label>
+      alignment="CENTER_LEFT">
+  <Label fx:id="commitCountLabel" styleClass="stats__count">
     <graphic>
       <Icon value="code"/>
     </graphic>
   </Label>
-  <Label fx:id="commitCountLabel" styleClass="stats__count"/>
   <!--<Label text="%stats.commitCount" styleClass="stats__subheading"/>-->
-  <Label>
+  <Label fx:id="authorCountLabel" styleClass="stats__count">
     <graphic>
       <Icon value="coffee"/>
     </graphic>
   </Label>
-  <Label fx:id="authorCountLabel" styleClass="stats__count"/>
   <!--<Label text="%stats.authorCount" styleClass="stats__subheading"/>-->
-  <Label>
+  <Label fx:id="ageLabel" styleClass="stats__count">
     <graphic>
       <Icon value="clock"/>
     </graphic>
   </Label>
-  <Label fx:id="ageLabel" styleClass="stats__count"/>
   <!--<Label text="%stats.age" styleClass="stats__subheading"/>-->
-</VBox>
+</HBox>

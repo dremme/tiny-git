@@ -9,14 +9,15 @@
   <VBox>
     <!--<fx:include source="menu.fxml" useSystemMenuBar="true"/>-->
     <fx:include source="menu.fxml"/>
+    <fx:include source="tools.fxml"/>
     <StackPane VBox.vgrow="ALWAYS" styleClass="app-body">
       <BorderPane>
         <center>
           <fx:include source="log.fxml"/>
         </center>
-        <left>
+        <bottom>
           <fx:include source="stats.fxml"/>
-        </left>
+        </bottom>
       </BorderPane>
       <StackPane xmlns="http://javafx.com/javafx"
                  xmlns:fx="http://javafx.com/fxml"
