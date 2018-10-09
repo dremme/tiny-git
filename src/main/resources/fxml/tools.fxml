@@ -6,6 +6,11 @@
 <ToolBar xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
          fx:controller="hamburg.remme.tinygit.ui.ToolsController">
+  <Button onAction="#onOpen">
+    <graphic>
+      <Icon value="folder-open"/>
+    </graphic>
+  </Button>
   <Button onAction="#onUpdate" disable="${controller.empty}">
     <graphic>
       <Icon value="sync"/>

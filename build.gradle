@@ -6,9 +6,19 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 
+def currentOS = org.gradle.internal.os.OperatingSystem.current()
+def platform
+if (currentOS.isWindows()) {
+  platform = 'win'
+} else if (currentOS.isLinux()) {
+  platform = 'linux'
+} else if (currentOS.isMacOsX()) {
+  platform = 'mac'
+}
+
 buildscript {
   ext {
-    kotlinVersion = "1.2.70"
+    kotlinVersion = "1.2.71"
     springBootVersion = "2.0.3.RELEASE"
   }
   repositories {
@@ -54,6 +64,10 @@ dependencies {
   compile "org.springframework.boot:spring-boot-starter"
   compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
   compile "org.jetbrains.kotlin:kotlin-reflect"
+  compile "org.openjfx:javafx-base:11:${platform}"
+  compile "org.openjfx:javafx-graphics:11:${platform}"
+  compile "org.openjfx:javafx-controls:11:${platform}"
+  compile "org.openjfx:javafx-fxml:11:${platform}"
   testCompile "org.springframework.boot:spring-boot-starter-test"
   testCompile "org.junit.platform:junit-platform-engine:1.0.3"
   testCompile "org.junit.jupiter:junit-jupiter-api:5.0.3"
