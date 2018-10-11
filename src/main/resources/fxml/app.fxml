@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.*?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
@@ -13,7 +15,13 @@
     <StackPane VBox.vgrow="ALWAYS" styleClass="app-body">
       <BorderPane>
         <center>
-          <fx:include source="log.fxml"/>
+          <TabPane>
+            <Tab text="%tab.log">
+              <fx:include source="log.fxml"/>
+            </Tab>
+            <Tab text="%tab.analytics">
+            </Tab>
+          </TabPane>
         </center>
         <bottom>
           <fx:include source="stats.fxml"/>
