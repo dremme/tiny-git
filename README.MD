@@ -33,7 +33,7 @@ TinyGit runs only with a [Git](https://git-scm.com/downloads) installation on yo
 
 For Mac OS this should be installed via `brew install git`.
 
-Requires Java 10 to be installed.
+Requires Java 11 to be installed.
 
 ```bash
 java -XX:+UseParallelGC -jar tinygit-x.x.x.jar

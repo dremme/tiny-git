@@ -6,24 +6,12 @@ import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.util.Callback
 
-inline fun <T> listCell(crossinline block: ListCell<T>.(T?) -> Unit): ListCell<T> {
-    return object : ListCell<T>() {
-        override fun updateItem(item: T?, empty: Boolean) {
-            super.updateItem(item, empty)
-            block(item)
-        }
-    }
+fun <T> listCell(block: ListCell<T>.(T?) -> Unit): ListCell<T> {
+    return CallbackListCell(block)
 }
 
-inline fun <T> listCellFactory(crossinline block: ListCell<T>.(T?) -> Unit): Callback<ListView<T>, ListCell<T>> {
-    return Callback {
-        object : ListCell<T>() {
-            override fun updateItem(item: T?, empty: Boolean) {
-                super.updateItem(item, empty)
-                block(item)
-            }
-        }
-    }
+fun <T> listCellFactory(block: ListCell<T>.(T?) -> Unit): Callback<ListView<T>, ListCell<T>> {
+    return Callback { CallbackListCell(block) }
 }
 
 inline fun <T> tree(block: TreeViewBuilder<T>.() -> Unit): TreeView<T> {
@@ -45,4 +33,11 @@ class TreeViewBuilder<T> : TreeView<T>() {
         root.children += this
     }
 
+}
+
+private class CallbackListCell<T>(private val block: ListCell<T>.(T?) -> Unit) : ListCell<T>() {
+    override fun updateItem(item: T?, empty: Boolean) {
+        super.updateItem(item, empty)
+        block(item)
+    }
 }
