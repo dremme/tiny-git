@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.gui.component
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.stackPane
 import javafx.scene.Node
+import javafx.scene.text.FontSmoothingType
 import javafx.scene.text.Text
 
 /**
@@ -57,6 +58,8 @@ object Icons {
 
     private fun icon(glyph: Char, brand: Boolean = false): Node {
         val icon = Text(glyph.toString()).addClass("icon")
+        // Gray AA avoids LCD color fringing on FA glyphs (CSS also sets this).
+        icon.fontSmoothingType = FontSmoothingType.GRAY
         if (brand) icon.addClass("brand")
         return stackPane {
             addClass("icon-wrapper")

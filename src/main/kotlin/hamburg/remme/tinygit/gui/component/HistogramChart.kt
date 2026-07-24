@@ -75,7 +75,7 @@ class HistogramChart(title: String) : Chart(title) {
         upperBoundY = data.groupingBy { it.xValue }
                 .fold(0L) { acc, it -> acc + it.yValue }
                 .map { it.value }
-                .max()?.toDouble()
+                .maxOrNull()?.toDouble()
                 ?: 0.0
         // Add new rectangles
         plotContent.children += rectangles
@@ -96,7 +96,7 @@ class HistogramChart(title: String) : Chart(title) {
     override fun layoutChartChildren(width: Double, height: Double) {
         val stepX = width / (upperBoundX - lowerBoundX)
 
-        val labelHeight = tickMarks.map { it.label.prefHeight(width) }.max() ?: 0.0
+        val labelHeight = tickMarks.map { it.label.prefHeight(width) }.maxOrNull() ?: 0.0
         val xAxisHeight = snapSizeY(TICK_MARK_LENGTH + TICK_MARK_GAP + labelHeight)
         val y = snapPositionY(height - xAxisHeight)
         xAxis.elements.setAll(MoveTo(0.0, 0.0), LineTo(width, 0.0))

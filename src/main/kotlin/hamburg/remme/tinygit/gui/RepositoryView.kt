@@ -22,6 +22,7 @@ import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.contextMenu
 import hamburg.remme.tinygit.gui.builder.errorAlert
 import hamburg.remme.tinygit.gui.builder.hbox
+import hamburg.remme.tinygit.gui.builder.hgrow
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.listCell
 import hamburg.remme.tinygit.gui.builder.textInputDialog
@@ -108,11 +109,12 @@ class RepositoryView : VBoxBuilder() {
             buttonCell = listCell<Repository> { text = it?.shortPath }.addClass(REPO_VALUE_STYLE_CLASS)
             cellFactory = Callback { RepositoryListCell() }
             selectionModel.selectedItemProperty().addListener { _, _, it -> repoService.activeRepository.set(it) }
-            prefWidth = Int.MAX_VALUE.toDouble()
+            // Grow with the sidebar; never set prefWidth to MAX_VALUE (that inflates the Scene on first show).
+            maxWidth = Double.MAX_VALUE
             items.addListener(ListChangeListener { while (it.next()) if (it.wasAdded()) selectionModel.selectLast() })
         }
         +hbox {
-            +repository
+            +repository.hgrow(Priority.ALWAYS)
             +button {
                 graphic = Icons.cog()
                 setOnAction { SettingsDialog(TinyGit.window).show() }
@@ -137,12 +139,12 @@ class RepositoryView : VBoxBuilder() {
             val renameKey = KeyCode.R
             val deleteKey = KeyCode.DELETE
 
-            val canCheckout = Bindings.createBooleanBinding(Callable { selectedValue.isBranch() && !selectedValue.isHead() }, selectionModel.selectedItemProperty())
-            val canRenameBranch = Bindings.createBooleanBinding(Callable { selectedValue.isLocal() }, selectionModel.selectedItemProperty())
-            val canDeleteBranch = Bindings.createBooleanBinding(Callable { selectedValue.isBranch() && !selectedValue.isHead() }, selectionModel.selectedItemProperty())
-            val canDeleteTag = Bindings.createBooleanBinding(Callable { selectedValue.isTag() }, selectionModel.selectedItemProperty())
-            val canApplyStash = Bindings.createBooleanBinding(Callable { selectedValue.isStash() }, selectionModel.selectedItemProperty())
-            val canDeleteStash = Bindings.createBooleanBinding(Callable { selectedValue.isStash() }, selectionModel.selectedItemProperty())
+            val canCheckout = Bindings.createBooleanBinding({ selectedValue.isBranch() && !selectedValue.isHead() }, selectionModel.selectedItemProperty())
+            val canRenameBranch = Bindings.createBooleanBinding({ selectedValue.isLocal() }, selectionModel.selectedItemProperty())
+            val canDeleteBranch = Bindings.createBooleanBinding({ selectedValue.isBranch() && !selectedValue.isHead() }, selectionModel.selectedItemProperty())
+            val canDeleteTag = Bindings.createBooleanBinding({ selectedValue.isTag() }, selectionModel.selectedItemProperty())
+            val canApplyStash = Bindings.createBooleanBinding({ selectedValue.isStash() }, selectionModel.selectedItemProperty())
+            val canDeleteStash = Bindings.createBooleanBinding({ selectedValue.isStash() }, selectionModel.selectedItemProperty())
 
             val checkoutBranch = Action(I18N["repository.checkoutBranch"], { Icons.check() }, disabled = canCheckout.not(),
                     handler = { checkout(selectedValue as Branch) })
@@ -210,12 +212,12 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun ObservableList<TreeItem<Any>>.updateEntries(updatedList: List<Any>) {
-        addSorted(updatedList.filter { entry -> none { it.value == entry } }.map { TreeItem(it) },
-                { e1: TreeItem<*>, e2: TreeItem<*> ->
-                    @Suppress("UNCHECKED_CAST") val b1 = e1.value as Comparable<Any>
-                    @Suppress("UNCHECKED_CAST") val b2 = e2.value as Comparable<Any>
-                    b1.compareTo(b2)
-                })
+        addSorted(updatedList.filter { entry -> none { it.value == entry } }.map { TreeItem(it) }
+        ) { e1: TreeItem<*>, e2: TreeItem<*> ->
+            @Suppress("UNCHECKED_CAST") val b1 = e1.value as Comparable<Any>
+            @Suppress("UNCHECKED_CAST") val b2 = e2.value as Comparable<Any>
+            b1.compareTo(b2)
+        }
         removeAll(filter { entry -> updatedList.none { it == entry.value } })
     }
 
@@ -230,10 +232,13 @@ class RepositoryView : VBoxBuilder() {
 
     private fun renameBranch(branch: Branch) {
         textInputDialog(TinyGit.window, I18N["dialog.renameBranch.header"], I18N["dialog.renameBranch.button"], Icons.pencil(), branch.name) { name ->
-            branchService.rename(
-                    branch,
-                    name,
-                    { errorAlert(TinyGit.window, I18N["dialog.cannotRenameBranch.header"], I18N["dialog.cannotRenameBranch.text", name]) })
+            branchService.rename(branch, name) {
+                errorAlert(
+                    TinyGit.window,
+                    I18N["dialog.cannotRenameBranch.header"],
+                    I18N["dialog.cannotRenameBranch.text", name]
+                )
+            }
         }
     }
 
@@ -242,14 +247,15 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun deleteLocalBranch(branch: Branch) {
-        branchService.deleteLocal(
-                branch,
-                false,
-                {
-                    if (confirmWarningAlert(TinyGit.window, I18N["dialog.cannotDeleteBranch.header"], I18N["dialog.cannotDeleteBranch.button"], I18N["dialog.cannotDeleteBranch.text", branch])) {
-                        branchService.deleteLocal(branch, true)
-                    }
-                })
+        branchService.deleteLocal(branch, false) {
+            if (confirmWarningAlert(
+                    TinyGit.window,
+                    I18N["dialog.cannotDeleteBranch.header"],
+                    I18N["dialog.cannotDeleteBranch.button"],
+                    I18N["dialog.cannotDeleteBranch.text", branch]
+                )
+            ) { branchService.deleteLocal(branch, true) }
+        }
     }
 
     private fun deleteRemoteBranch(branch: Branch) {
@@ -262,15 +268,11 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun checkoutLocal(branch: Branch) {
-        branchService.checkoutLocal(
-                branch,
-                { errorAlert(TinyGit.window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) })
+        branchService.checkoutLocal(branch) { errorAlert(TinyGit.window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) }
     }
 
     private fun checkoutRemote(branch: Branch) {
-        branchService.checkoutRemote(
-                branch,
-                { errorAlert(TinyGit.window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) })
+        branchService.checkoutRemote(branch) { errorAlert(TinyGit.window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) }
     }
 
     private fun deleteTag(tag: Tag) {
@@ -279,7 +281,13 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun applyStash(stashEntry: StashEntry) {
-        stashService.apply(stashEntry, { errorAlert(TinyGit.window, I18N["dialog.cannotApply.header"], I18N["dialog.cannotApply.text"]) })
+        stashService.apply(stashEntry) {
+            errorAlert(
+                TinyGit.window,
+                I18N["dialog.cannotApply.header"],
+                I18N["dialog.cannotApply.text"]
+            )
+        }
     }
 
     private fun deleteStash(stashEntry: StashEntry) {

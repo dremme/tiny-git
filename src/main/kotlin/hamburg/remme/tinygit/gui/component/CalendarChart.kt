@@ -70,7 +70,7 @@ class CalendarChart(title: String) : Chart(title) {
         // Remove old rectangles first
         plotContent.children -= rectangles
         // Get highest y-value
-        val maxY = data.map { it.yValue }.max()?.toDouble() ?: 0.0
+        val maxY = data.map { it.yValue }.maxOrNull()?.toDouble() ?: 0.0
         // Set new reference list
         this.data.clear()
         this.data += data
@@ -102,8 +102,8 @@ class CalendarChart(title: String) : Chart(title) {
     }
 
     override fun layoutChartChildren(width: Double, height: Double) {
-        val labelWidth = dowMarks.map { it.label.prefWidth(height) }.max() ?: 0.0
-        val labelHeight = tickMarks.map { it.label.prefHeight(width) }.max() ?: 0.0
+        val labelWidth = dowMarks.map { it.label.prefWidth(height) }.maxOrNull() ?: 0.0
+        val labelHeight = tickMarks.map { it.label.prefHeight(width) }.maxOrNull() ?: 0.0
         val yAxisWidth = snapSizeX(TICK_MARK_LENGTH + labelWidth)
         val xAxisHeight = snapSizeY(TICK_MARK_LENGTH + TICK_MARK_GAP + labelHeight)
 

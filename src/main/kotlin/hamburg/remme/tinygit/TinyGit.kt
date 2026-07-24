@@ -17,15 +17,19 @@ import javafx.application.Application
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.concurrent.Task
+import javafx.geometry.Rectangle2D
 import javafx.scene.Scene
 import javafx.scene.image.Image
-import javafx.scene.text.Font
+import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.Window
 import java.util.Collections
 import java.util.Locale
 import java.util.concurrent.Callable
+import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.reflect.KClass
+import kotlin.system.exitProcess
 
 /**
  * Will launch [TinyGit] with the given [args].
@@ -36,18 +40,7 @@ import kotlin.reflect.KClass
  */
 fun main(args: Array<String>) {
     Locale.setDefault(Locale.ROOT)
-
-    // Will load needed fonts and set the font size depending on the OS
-    // This might be a solution to the DPI issues on Linux, e.g. Ubuntu
-    val prefFontSize = if (isMac) 13 else 12
-    System.setProperty("com.sun.javafx.fontSize", prefFontSize.toString())
-    Font.loadFont("font/Roboto-Regular.ttf".asResource(), fontSize)
-    Font.loadFont("font/Roboto-Bold.ttf".asResource(), fontSize)
-    Font.loadFont("font/Roboto-Light.ttf".asResource(), fontSize)
-    Font.loadFont("font/LiberationMono-Regular.ttf".asResource(), fontSize)
-    Font.loadFont("font/fa-brands-400.ttf".asResource(), fontSize)
-    Font.loadFont("font/fa-solid-900.ttf".asResource(), fontSize)
-
+    AppFonts.install()
     Application.launch(TinyGit::class.java, *args)
 }
 
@@ -160,8 +153,9 @@ class TinyGit : Application() {
 
     init {
         TinyGit.application = this
-        if (isMac) Application.setUserAgentStylesheet("/css/main-mac.css")
-        else Application.setUserAgentStylesheet("/css/main-windows.css")
+        // Prefer classpath CSS (compiled from SCSS) as the full user-agent stylesheet
+        val stylesheet = if (isMac) "/css/main-mac.css" else "/css/main-windows.css"
+        Application.setUserAgentStylesheet(stylesheet.asResource())
     }
 
     override fun start(primaryStage: Stage) {
@@ -172,21 +166,21 @@ class TinyGit : Application() {
         if (!gitIsInstalled()) {
             fatalAlert(I18N["error.gitError"], I18N["error.gitNotInstalled"])
             showDocument("https://git-scm.com/downloads")
-            System.exit(-1)
+            exitProcess(-1)
             return
         }
         if (gitVersion().major < 2) {
             fatalAlert(I18N["error.gitError"], I18N["error.gitOutOfDate"])
             showDocument("https://git-scm.com/downloads")
-            System.exit(-1)
+            exitProcess(-1)
             return
         }
         if (isWindows && gitGetCredentialHelper().isBlank()) gitSetWincred()
         if (isMac && gitGetCredentialHelper().isBlank()) gitSetKeychain()
 
         initHandlers()
-        initSettings()
         initWindow()
+        initSettings() // after scene exists so width/height restore is not overwritten
         showWindow()
     }
 
@@ -208,32 +202,102 @@ class TinyGit : Application() {
             }
         }
         settings.load {
-            it["window"]?.let {
-                stage.x = it.getDouble("x")!!
-                stage.y = it.getDouble("y")!!
-                stage.width = it.getDouble("width")!!.takeIf { it > 1.0 } ?: 1280.0
-                stage.height = it.getDouble("height")!!.takeIf { it > 1.0 } ?: 800.0
-                stage.isMaximized = it.getBoolean("maximized")!!
-                stage.isFullScreen = it.getBoolean("fullscreen")!!
+            it["window"]?.let { window ->
+                applyWindowSettings(
+                        x = window.getDouble("x"),
+                        y = window.getDouble("y"),
+                        width = window.getDouble("width"),
+                        height = window.getDouble("height"),
+                        maximized = window.getBoolean("maximized") == true,
+                        fullscreen = window.getBoolean("fullscreen") == true
+                )
             }
+            // else keep defaults from initWindow()
         }
     }
 
     private fun initWindow() {
         stage.focusedProperty().addListener { _, _, it -> if (it) state.isModal.takeIf { it.get() }?.set(false) ?: fireEvent() }
-        stage.scene = Scene(GitView())
+        val bounds = primaryVisualBounds()
+        val (defaultW, defaultH) = defaultWindowSize(bounds)
+        // Explicit size: Scene must not adopt content preferred size (can be huge from MAX_VALUE prefs).
+        stage.scene = Scene(GitView(), defaultW, defaultH)
+        stage.width = defaultW
+        stage.height = defaultH
+        stage.minWidth = 640.0
+        stage.minHeight = 480.0
         stage.icons += Image("icon.png".asResource())
-        stage.titleProperty().bind(Bindings.createStringBinding(Callable { updateTitle() },
+        stage.titleProperty().bind(Bindings.createStringBinding({ updateTitle() },
                 repositoryService.activeRepository,
                 mergeService.isMerging,
                 rebaseService.isRebasing,
                 rebaseService.rebaseNext,
                 rebaseService.rebaseLast))
+        // Keep chrome on whole pixels while the user resizes/moves the window.
+        stage.xProperty().addListener { _, _, v -> if (v.toDouble() % 1.0 != 0.0) stage.x = v.toDouble().roundToInt().toDouble() }
+        stage.yProperty().addListener { _, _, v -> if (v.toDouble() % 1.0 != 0.0) stage.y = v.toDouble().roundToInt().toDouble() }
     }
 
     private fun showWindow() {
         stage.show()
+        // Re-clamp after show (platform may adjust bounds) and snap to whole pixels.
+        clampStageToScreen()
+        stage.x = stage.x.roundToInt().toDouble()
+        stage.y = stage.y.roundToInt().toDouble()
         schedule(10000) { if (!stage.isFocused && !state.isModal.get()) fireEvent() }
+    }
+
+    private fun primaryVisualBounds(): Rectangle2D = Screen.getPrimary().visualBounds
+
+    private fun defaultWindowSize(bounds: Rectangle2D = primaryVisualBounds()): Pair<Double, Double> {
+        val width = min(1280.0, bounds.width * 0.9).roundToInt().toDouble().coerceAtLeast(640.0)
+        val height = min(800.0, bounds.height * 0.9).roundToInt().toDouble().coerceAtLeast(480.0)
+        return width to height
+    }
+
+    private fun applyWindowSettings(
+            x: Double?,
+            y: Double?,
+            width: Double?,
+            height: Double?,
+            maximized: Boolean,
+            fullscreen: Boolean
+    ) {
+        val bounds = primaryVisualBounds()
+        val (defaultW, defaultH) = defaultWindowSize(bounds)
+        val w = (width?.takeIf { it > 1.0 } ?: defaultW)
+                .roundToInt().toDouble()
+                .coerceIn(640.0, bounds.width)
+        val h = (height?.takeIf { it > 1.0 } ?: defaultH)
+                .roundToInt().toDouble()
+                .coerceIn(480.0, bounds.height)
+        val maxX = bounds.minX + bounds.width - w
+        val maxY = bounds.minY + bounds.height - h
+        val px = (x ?: (bounds.minX + (bounds.width - w) / 2)).roundToInt().toDouble()
+                .coerceIn(bounds.minX, maxX.coerceAtLeast(bounds.minX))
+        val py = (y ?: (bounds.minY + (bounds.height - h) / 2)).roundToInt().toDouble()
+                .coerceIn(bounds.minY, maxY.coerceAtLeast(bounds.minY))
+        stage.width = w
+        stage.height = h
+        stage.x = px
+        stage.y = py
+        stage.isMaximized = maximized
+        stage.isFullScreen = fullscreen
+    }
+
+    private fun clampStageToScreen() {
+        if (stage.isFullScreen || stage.isMaximized) return
+        val bounds = primaryVisualBounds()
+        if (stage.width > bounds.width) stage.width = bounds.width
+        if (stage.height > bounds.height) stage.height = bounds.height
+        val maxX = bounds.minX + bounds.width - stage.width
+        val maxY = bounds.minY + bounds.height - stage.height
+        if (stage.x < bounds.minX || stage.x > maxX) {
+            stage.x = stage.x.coerceIn(bounds.minX, maxX.coerceAtLeast(bounds.minX))
+        }
+        if (stage.y < bounds.minY || stage.y > maxY) {
+            stage.y = stage.y.coerceIn(bounds.minY, maxY.coerceAtLeast(bounds.minY))
+        }
     }
 
     private fun updateTitle(): String {

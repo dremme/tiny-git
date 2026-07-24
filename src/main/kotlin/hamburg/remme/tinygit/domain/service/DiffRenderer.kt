@@ -100,7 +100,7 @@ class DiffRenderer {
 
         private fun parseInfo(line: String) {
             //language=HTML
-            builder.appendln("<div class=\"c h\">$emptyLeft$emptyRight<div>${line.htmlEncodeAll()}</div></div>")
+            builder.appendLine("<div class=\"c h\">$emptyLeft$emptyRight<div>${line.htmlEncodeAll()}</div></div>")
         }
 
         private fun parseHead(line: String) {
@@ -108,30 +108,30 @@ class DiffRenderer {
             rightNum = numRegex.matchEntire(line)!!.groupValues[3].toInt()
             val header = line.substring(0, line.indexOfLast { it == '@' } + 1).htmlEncodeAll()
             //language=HTML
-            builder.appendln("<div class=\"c h\">$emptyLeft$emptyRight<div>$header</div></div>")
+            builder.appendLine("<div class=\"c h\">$emptyLeft$emptyRight<div>$header</div></div>")
         }
 
         private fun parseLine(line: String) {
             //language=HTML
-            builder.appendln("<div class=\"c\">${left()}${right()}<div>${line.sanitize()}</div></div>")
+            builder.appendLine("<div class=\"c\">${left()}${right()}<div>${line.sanitize()}</div></div>")
             leftNum++
             rightNum++
         }
 
         private fun parseEof(line: String) {
             //language=HTML
-            builder.appendln("<div class=\"c\">$emptyLeft$emptyRight<div>${line.sanitize()}</div></div>")
+            builder.appendLine("<div class=\"c\">$emptyLeft$emptyRight<div>${line.sanitize()}</div></div>")
         }
 
         private fun parseLineAdded(line: String) {
             //language=HTML
-            builder.appendln("<div class=\"c a\">$emptyLeft${right()}<div>${line.sanitize()}</div></div>")
+            builder.appendLine("<div class=\"c a\">$emptyLeft${right()}<div>${line.sanitize()}</div></div>")
             rightNum++
         }
 
         private fun parseLineRemoved(line: String) {
             //language=HTML
-            builder.appendln("<div class=\"c r\">${left()}$emptyRight<div>${line.sanitize()}</div></div>")
+            builder.appendLine("<div class=\"c r\">${left()}$emptyRight<div>${line.sanitize()}</div></div>")
             leftNum++
         }
 

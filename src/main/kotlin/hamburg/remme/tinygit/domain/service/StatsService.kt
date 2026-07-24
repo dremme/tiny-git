@@ -82,7 +82,7 @@ class StatsService {
     fun updateContributors() {
         taskPool += object : Task<List<DonutChart.Data>>() {
             override fun call() = log
-                    .groupingBy { it.authorMail.toLowerCase() }
+                    .groupingBy { it.authorMail.lowercase() }
                     .eachCount()
                     .sortedBy { it.second }
                     .map { (author, value) -> DonutChart.Data(author, value.toLong()) }
@@ -99,7 +99,7 @@ class StatsService {
     fun updateCommits() {
         taskPool += object : Task<List<HistogramChart.Series>>() {
             override fun call() = log
-                    .groupBy { it.authorMail.toLowerCase() }
+                    .groupBy { it.authorMail.lowercase() }
                     .mapValuesParallel {
                         if (!isCancelled) it.map { it.date.toLocalDate() }
                                 .groupingBy { it }
@@ -109,7 +109,7 @@ class StatsService {
                         else emptyList()
                     }
                     .toList()
-                    .sortedBy { (_, data) -> data.sumBy { it.second } }
+                    .sortedBy { (_, data) -> data.sumOf { it.second } }
                     .map { (author, data) ->
                         HistogramChart.Series(author, data.map { (date, value) -> HistogramChart.Data(date, value.toLong()) })
                     }
@@ -153,15 +153,15 @@ class StatsService {
                     .distinct()
                     .map { date -> date to log.filter { it.date.toLocalDate().atStartOfWeek() == date } }
                     .map { (date, log) ->
-                        val min = log.minBy { it.date }
-                        val max = log.maxBy { it.date }
+                        val min = log.minByOrNull { it.date }
+                        val max = log.maxByOrNull { it.date }
                         Triple(date, min, max)
                     }
                     .mapParallel { (date, first, last) ->
                         date to if (!isCancelled && first != null && last != null) gitDiffNumstat(repository, first, last)
                         else emptyList()
                     }
-                    .map { (date, stats) -> Triple(date, stats.sumBy { it.added }, stats.sumBy { it.removed }) }
+                    .map { (date, stats) -> Triple(date, stats.sumOf { it.added }, stats.sumOf { it.removed }) }
                     .filter { (_, added, removed) -> added + removed > 0 }
                     .forEach { (date, added, removed) ->
                         this.added += HistogramChart.Data(date, added.toLong(), 7)

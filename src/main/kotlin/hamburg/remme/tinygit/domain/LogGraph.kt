@@ -23,7 +23,7 @@ class LogGraph {
     }
 
     fun getHighestTag() = synchronized(lock) {
-        backingList.map { it.tag }.max() ?: -1
+        backingList.map { it.tag }.maxOrNull() ?: -1
     }
 
     private fun contains(commit: Commit) = backingList.any { it.contains(commit.id) }
@@ -33,7 +33,7 @@ class LogGraph {
     private fun createFlow(commit: Commit, commitIndex: Int) {
         if (!contains(commit)) {
             val tags = backingList.filter { it.start <= commitIndex && it.end >= commitIndex }.map { it.tag }
-            val max = tags.max() ?: 0
+            val max = tags.maxOrNull() ?: 0
             val tag = (0..max).firstOrNull { !tags.contains(it) } ?: max+1
 
             val branch = LogBranch(tag, commitIndex)

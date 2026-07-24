@@ -74,7 +74,7 @@ private class CommitParser {
 
     fun parseLine(line: String) {
         when {
-            builder.fullMessage != null && line != eom -> builder.fullMessage!!.appendln(line)
+            builder.fullMessage != null && line != eom -> builder.fullMessage!!.appendLine(line)
             line == eom -> {
                 commits += builder.build()
                 builder = CommitBuilder()
@@ -84,7 +84,7 @@ private class CommitParser {
             line.startsWith(dateSeparator) -> builder.date = line.substringAfter(dateSeparator).parseDate()
             line.startsWith(nameSeparator) -> builder.authorName = line.substringAfterLast(nameSeparator)
             line.startsWith(mailSeparator) -> builder.authorMail = line.substringAfterLast(mailSeparator)
-            line.startsWith(bodySeparator) -> builder.fullMessage = StringBuilder(line.substringAfterLast(bodySeparator)).appendln()
+            line.startsWith(bodySeparator) -> builder.fullMessage = StringBuilder(line.substringAfterLast(bodySeparator)).appendLine()
         }
     }
 

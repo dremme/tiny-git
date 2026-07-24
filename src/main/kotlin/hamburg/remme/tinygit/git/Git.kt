@@ -26,31 +26,39 @@ fun gitVersion(): ClientVersion {
     return ClientVersion(match[1].toInt(), match[2].toInt(), match[3].toInt())
 }
 
-fun git(vararg args: String, block: (String) -> Unit) = exec(args = *args) { block(it) }
+fun git(vararg args: String, block: (String) -> Unit) =
+        exec(args = args, block = block)
 
-fun git(input: Array<String>, vararg args: String, block: (String) -> Unit) = exec(input = input, args = *args) { block(it) }
+fun git(input: Array<String>, vararg args: String, block: (String) -> Unit) =
+        exec(input = input, args = args, block = block)
 
-fun git(repository: Repository, vararg args: String, block: (String) -> Unit) = exec(repository, args = *args) { block(it) }
+fun git(repository: Repository, vararg args: String, block: (String) -> Unit) =
+        exec(repository = repository, args = args, block = block)
 
 fun git(vararg args: String): String {
     val output = StringBuilder()
-    exec(args = *args) { output.appendln(it) }
+    exec(args = args) { output.appendLine(it) }
     return output.toString()
 }
 
 fun git(input: Array<String>, vararg args: String): String {
     val output = StringBuilder()
-    exec(input = input, args = *args) { output.appendln(it) }
+    exec(input = input, args = args) { output.appendLine(it) }
     return output.toString()
 }
 
 fun git(repository: Repository, vararg args: String): String {
     val output = StringBuilder()
-    exec(repository, args = *args) { output.appendln(it) }
+    exec(repository = repository, args = args) { output.appendLine(it) }
     return output.toString()
 }
 
-private fun exec(repository: Repository? = null, input: Array<String>? = null, vararg args: String, block: (String) -> Unit) {
+private fun exec(
+        repository: Repository? = null,
+        input: Array<String>? = null,
+        args: Array<out String>,
+        block: (String) -> Unit
+) {
     measureTime(repository?.shortPath ?: "", args.joinToString(" ")) {
         val builder = ProcessBuilder("git", *args.filter { it.isNotBlank() }.toTypedArray())
         builder.redirectErrorStream(true)

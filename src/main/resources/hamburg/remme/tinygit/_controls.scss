@@ -95,27 +95,41 @@ $px12: 1em;
 $px16: 16em / $font-size;
 $px28: 28em / $font-size;
 
+// JavaFX uses the keyword `null` to clear paints. Plain Sass `null` omits the property
+// under Dart Sass, so emit the literal via interpolation.
+$fx-null: #{"null"};
+
 /*******************************************************************************
  *                                                                             *
  * Abstract Classes                                                            *
  *                                                                             *
  *******************************************************************************/
 
+// JavaFX reports Roboto-Bold.ttf as family "Roboto" + bold weight, not family "Roboto Bold".
+// Gray AA (not LCD): this UI is dark; LCD subpixel fringing reads as soft / muddy text.
 %fontRegular {
-  -fx-font-family: "Roboto", sans-serif;
+  -fx-font-family: "Roboto";
+  -fx-font-weight: normal;
+  -fx-font-smoothing-type: gray;
 }
 
 %fontBold {
-  -fx-font-family: "Roboto Bold", sans-serif;
+  -fx-font-family: "Roboto";
+  -fx-font-weight: bold;
+  -fx-font-smoothing-type: gray;
 }
 
 %fontLight {
-  -fx-font-family: "Roboto Light", sans-serif;
+  -fx-font-family: "Roboto Light";
+  -fx-font-weight: normal;
+  -fx-font-smoothing-type: gray;
 }
 
 %fontMono {
-  -fx-font-family: "Liberation Mono", monospace;
+  -fx-font-family: "Liberation Mono";
+  -fx-font-smoothing-type: gray;
 }
+
 
 %controlPaddings {
   -fx-padding: $px6 $px12 $px6 $px12;
@@ -157,6 +171,11 @@ $px28: 28em / $font-size;
  ******************************************************************************/
 
 .root {
+  // Pin base em so $px* spacing and type scale match design (12 Windows / 13 Mac)
+  -fx-font-size: #{$font-size}px;
+  -fx-font-family: "Roboto";
+  -fx-font-weight: normal;
+  -fx-font-smoothing-type: gray;
   -fx-background-color: inherit;
   -fx-background-radius: inherit;
   -fx-background-insets: inherit;
@@ -175,6 +194,7 @@ $px28: 28em / $font-size;
   }
 }
 
+
 /*******************************************************************************
  *                                                                             *
  * Common Styles                                                               *
@@ -190,8 +210,24 @@ $px28: 28em / $font-size;
      the text is always vertically centered within the bounds. Based on
      the cap height of the text. */
   -fx-bounds-type: logical_vertical_center;
-  /* Enable LCD text rendering */
-  -fx-font-smoothing-type: lcd;
+  /* Gray AA: crisp on dark backgrounds; avoids LCD color fringing */
+  -fx-font-smoothing-type: gray;
+}
+
+/* Labeled controls host a child Text node with style class "text" — pin both. */
+.label,
+.button,
+.check-box,
+.radio-button,
+.menu-item,
+.tab-label,
+.list-cell,
+.tree-cell,
+.tooltip,
+.combo-box-base,
+.text-field,
+.text-area {
+  -fx-font-smoothing-type: gray;
 }
 
 /* ====   BUTTON LIKE THINGS   ============================================== */
@@ -312,7 +348,7 @@ $px28: 28em / $font-size;
     -fx-padding: $px2;
 
     > .mark {
-      -fx-background-color: null;
+      -fx-background-color: $fx-null;
       -fx-padding: $px6;
       -fx-shape: "M39.363,79L16,55.49l11.347-11.419L39.694,56.49L72.983,23L84,34.085L39.363,79z";
     }
@@ -380,19 +416,19 @@ $px28: 28em / $font-size;
   }
   > .increment-button,
   > .decrement-button {
-    -fx-background-color: null;
+    -fx-background-color: $fx-null;
   }
   &:horizontal {
     > .increment-button,
     > .decrement-button {
-      -fx-background-color: null;
+      -fx-background-color: $fx-null;
       -fx-padding: $px3 0 $px3 0;
     }
   }
   &:vertical {
     > .increment-button,
     > .decrement-button {
-      -fx-background-color: null;
+      -fx-background-color: $fx-null;
       -fx-padding: 0 $px3 0 $px3;
     }
   }
@@ -436,7 +472,7 @@ $px28: 28em / $font-size;
 
 .text-area:readonly,
 .text-field:readonly {
-  -fx-border-color: null;
+  -fx-border-color: $fx-null;
 }
 
 /*******************************************************************************
@@ -504,7 +540,7 @@ $px28: 28em / $font-size;
   &:disabled {
     &:hover,
     &:focused {
-      -fx-background-color: null;
+      -fx-background-color: $fx-null;
     }
   }
   &:hover {
@@ -562,16 +598,48 @@ $px28: 28em / $font-size;
  *                                                                             *
  * ComboBox                                                                    *
  *                                                                             *
+ * Label cell / arrow must stay transparent so the shared control fill         *
+ * (.combo-box-base) matches buttons. List-cell rules later in this file are   *
+ * overridden here with higher-specificity selectors.                          *
+ *                                                                             *
  ******************************************************************************/
 
-.combo-box-base:showing > .arrow-button > .arrow {
-  -fx-rotate: 180;
+.combo-box-base {
+  > .arrow-button {
+    -fx-background-color: $fx-null;
+    -fx-background-insets: 0;
+    -fx-padding: 0 $px4 0 $px4;
+  }
+
+  &:showing > .arrow-button > .arrow {
+    -fx-rotate: 180;
+  }
 }
 
+// Display cell inside the closed combo (not popup rows)
+.combo-box-base > .list-cell,
 .combo-box > .list-cell {
   -fx-padding: 0;
   -fx-text-fill: $text-color;
-  -fx-background-color: null;
+  -fx-background-color: $fx-null;
+  -fx-background-insets: 0;
+
+  &:odd,
+  &:even,
+  &:filled,
+  &:filled:hover,
+  &:filled:focused,
+  &:filled:selected,
+  &:hover,
+  &:focused,
+  &:selected {
+    -fx-text-fill: $text-color;
+    -fx-background-color: $fx-null;
+  }
+
+  &:filled:selected .icon {
+    -fx-fill: $text-color;
+  }
 }
 
 /*******************************************************************************
@@ -585,7 +653,7 @@ $px28: 28em / $font-size;
  ******************************************************************************/
 
 .combo-box-base:editable {
-  -fx-background-color: null;
+  -fx-background-color: $fx-null;
   -fx-border-color: $control-color;
 
   &:hover {
@@ -594,9 +662,11 @@ $px28: 28em / $font-size;
   &:focused {
     -fx-border-color: $control-focus-color;
   }
+  > .text-field,
   .text-field {
     -fx-padding: 0;
-    -fx-border-color: null;
+    -fx-border-color: $fx-null;
+    -fx-background-color: $fx-null;
   }
 }
 
@@ -718,13 +788,19 @@ $px28: 28em / $font-size;
 
   .icon {
     -fx-fill: $text-color;
+    // FA5 solid glyphs live in "Font Awesome 5 Free" at weight 900; without this, icons misrender.
     -fx-font-family: "Font Awesome 5 Free";
+    -fx-font-weight: 900;
+    // LCD subpixel AA fringes icon fonts; gray keeps glyph edges crisp on dark UI.
+    -fx-font-smoothing-type: gray;
 
     &.brand {
-      -fx-font-family: "Font Awesome 5 Brands"
+      -fx-font-family: "Font Awesome 5 Brands";
+      -fx-font-weight: 400;
     }
   }
 }
+
 
 /*******************************************************************************
  *                                                                             *

@@ -1,7 +1,9 @@
 package hamburg.remme.tinygit
 
 import org.yaml.snakeyaml.DumperOptions
+import org.yaml.snakeyaml.LoaderOptions
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.Constructor
 import org.yaml.snakeyaml.representer.Representer
 
 /**
@@ -10,8 +12,14 @@ import org.yaml.snakeyaml.representer.Representer
 @Service
 class Settings {
 
-    private val yaml = Yaml(Representer().apply { propertyUtils.setSkipMissingProperties(true) },
-            DumperOptions().apply { defaultFlowStyle = DumperOptions.FlowStyle.BLOCK })
+    private val dumperOptions = DumperOptions().apply {
+        defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
+    }
+    private val loaderOptions = LoaderOptions()
+    private val representer = Representer(dumperOptions).apply {
+        propertyUtils.isSkipMissingProperties = true
+    }
+    private val yaml = Yaml(Constructor(loaderOptions), representer, dumperOptions, loaderOptions)
     private val settingsFile = "$homeDir/.tinygit".asPath()
     private val suppliers = mutableListOf<(Json) -> Unit>()
     private var settings: Json? = null

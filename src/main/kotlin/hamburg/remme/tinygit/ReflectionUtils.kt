@@ -27,7 +27,9 @@ val KClass<*>.primaryParameters: List<Parameter> get() = primaryConstructor.para
  * Scans the class-path for [Class]es and returns them as [Sequence].
  */
 fun scanClassPath() = (if (isJar()) jarClasses() else fileClasses())
-        .map { it.toString().substringAfter("$BASE_PATH/").replace('/', '.') }
+        .map { it.toString().replace('\\', '/') }
+        .map { it.substringAfter("$BASE_PATH/") }
+        .map { it.replace('/', '.') }
         .map { "$BASE_PACKAGE.$it" }
         .map { it.substring(0, it.length - CLASS_EXTENSION.length) }
         .map { Class.forName(it, false, classLoader) }
@@ -42,9 +44,13 @@ private fun jarClasses() = jarFile().entries().asSequence()
 
 /**
  * **Warning: don't use this if you don't know what you are doing!**
+ *
+ * Uses [java.net.URL.toURI] so Windows file URLs (`file:/C:/...`) resolve correctly.
  */
 private fun fileClasses() = classLoader.getResources(BASE_PATH).asSequence()
-        .flatMap { it.file.asPath().walk() }
+        .map { it.toURI() }
+        .map { java.nio.file.Paths.get(it) }
+        .flatMap { it.walk() }
         .filter { it.extensionEquals(CLASS_EXTENSION) }
 
 /**
