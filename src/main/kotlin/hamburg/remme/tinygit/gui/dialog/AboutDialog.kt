@@ -15,29 +15,37 @@ import javafx.stage.Window
 private const val DEFAULT_STYLE_CLASS = "about-dialog"
 private const val AUTHOR_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__author"
 
-class AboutDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.about.title"]) {
-
+class AboutDialog(
+    window: Window,
+) : Dialog<Unit>(window, I18N["dialog.about.title"]) {
     init {
         +DialogButton(DialogButton.CLOSE)
 
         header = "TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
         image = Image("icon.png".asResource())
-        content = grid(2) {
-            addClass(DEFAULT_STYLE_CLASS)
+        content =
+            grid(2) {
+                addClass(DEFAULT_STYLE_CLASS)
 
-            val author = label {
-                addClass(AUTHOR_STYLE_CLASS)
-                text = "Dennis Remme"
-            }
-            val link = link {
-                text = "www.remme.hamburg"
-                setOnAction { TinyGit.showDocument("https://remme.hamburg") }
-            }
+                val author =
+                    label {
+                        addClass(AUTHOR_STYLE_CLASS)
+                        text = "Dennis Remme"
+                    }
+                val link =
+                    link {
+                        text = "www.remme.hamburg"
+                        setOnAction { TinyGit.showDocument("https://remme.hamburg") }
+                    }
 
-            +listOf(Icons.coffee(), author,
-                    Icons.envelope(), Label("dennis@remme.hamburg"),
-                    Icons.globe(), link)
-        }
+                +listOf(
+                    Icons.coffee(),
+                    author,
+                    Icons.envelope(),
+                    Label("dennis@remme.hamburg"),
+                    Icons.globe(),
+                    link,
+                )
+            }
     }
-
 }

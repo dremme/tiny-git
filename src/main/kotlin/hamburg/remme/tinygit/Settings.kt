@@ -11,14 +11,15 @@ import org.yaml.snakeyaml.representer.Representer
  */
 @Service
 class Settings {
-
-    private val dumperOptions = DumperOptions().apply {
-        defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
-    }
+    private val dumperOptions =
+        DumperOptions().apply {
+            defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
+        }
     private val loaderOptions = LoaderOptions()
-    private val representer = Representer(dumperOptions).apply {
-        propertyUtils.isSkipMissingProperties = true
-    }
+    private val representer =
+        Representer(dumperOptions).apply {
+            propertyUtils.isSkipMissingProperties = true
+        }
     private val yaml = Yaml(Constructor(loaderOptions), representer, dumperOptions, loaderOptions)
     private val settingsFile = "$homeDir/.tinygit".asPath()
     private val suppliers = mutableListOf<(Json) -> Unit>()
@@ -40,7 +41,9 @@ class Settings {
     @Suppress("UNCHECKED_CAST")
     fun load(block: (Json) -> Unit) {
         if (settingsFile.exists() && settings == null) {
-            settings = settingsFile.read()
+            settings =
+                settingsFile
+                    .read()
                     .let {
                         if (it.startsWith("!!")) it.lines().drop(1).joinToString("\n") else it
                     }.let {
@@ -58,5 +61,4 @@ class Settings {
         suppliers.forEach { it(settings!!) }
         settingsFile.write(yaml.dump(settings))
     }
-
 }

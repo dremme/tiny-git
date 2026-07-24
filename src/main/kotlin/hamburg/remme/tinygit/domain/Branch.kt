@@ -1,7 +1,10 @@
 package hamburg.remme.tinygit.domain
 
-open class Branch(val id: String, val name: String, val isRemote: Boolean) : Comparable<Branch> {
-
+open class Branch(
+    val id: String,
+    val name: String,
+    val isRemote: Boolean,
+) : Comparable<Branch> {
     val isLocal = !isRemote
 
     override fun toString() = name
@@ -25,5 +28,4 @@ open class Branch(val id: String, val name: String, val isRemote: Boolean) : Com
         result = 31 * result + name.hashCode()
         return result
     }
-
 }

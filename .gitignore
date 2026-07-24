@@ -4,6 +4,7 @@ target
 generated
 .gradle
 .idea
+.kotlin
 *.iml
 *.log
 TODO.md

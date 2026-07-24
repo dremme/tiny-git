@@ -21,19 +21,19 @@ import javafx.application.Platform
 import javafx.concurrent.Task
 import java.time.LocalDate
 import java.time.Year
-import javafx.scene.chart.XYChart.Data as XYData
 
 @Service
 class StatsService {
-
     val contributorsData = observableList<DonutChart.Data>()
     val filesData = observableList<DonutChart.Data>()
     val commitsData = observableList<HistogramChart.Series>()
     val linesData = observableList<HistogramChart.Series>()
     val activityData = observableList<CalendarChart.Data>()
+
     /** Inclusive end of the stats window (usually today). */
     var lastDay: LocalDate = LocalDate.now()!!
         private set
+
     /** Inclusive start of the stats window (defaults to ~1 year ago). */
     var firstDay: LocalDate = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)!!
         private set
@@ -42,6 +42,7 @@ class StatsService {
     lateinit var commitsListener: TaskListener
     lateinit var activityListener: TaskListener
     lateinit var linesListener: TaskListener
+
     /** Invoked on the FX thread when [firstDay]/[lastDay] change so charts can rebind axes. */
     var rangeListener: (() -> Unit)? = null
     private val log = mutableListOf<Commit>()
@@ -50,8 +51,7 @@ class StatsService {
 
     private fun defaultLastDay() = LocalDate.now()!!
 
-    private fun defaultFirstDay(last: LocalDate = defaultLastDay()) =
-            Year.of(last.year - 1).atMonth(last.month).atDay(1)!!
+    private fun defaultFirstDay(last: LocalDate = defaultLastDay()) = Year.of(last.year - 1).atMonth(last.month).atDay(1)!!
 
     private fun finishAllListeners() {
         Platform.runLater {
@@ -64,117 +64,132 @@ class StatsService {
     }
 
     fun updateActivity() {
-        taskPool += object : Task<List<CalendarChart.Data>>() {
-            override fun call() = log
-                    .groupingBy { it.date.toLocalDate() }
-                    .eachCount()
-                    .map { (date, value) -> CalendarChart.Data(date, value) }
+        taskPool +=
+            object : Task<List<CalendarChart.Data>>() {
+                override fun call() =
+                    log
+                        .groupingBy { it.date.toLocalDate() }
+                        .eachCount()
+                        .map { (date, value) -> CalendarChart.Data(date, value) }
 
-            override fun succeeded() {
-                activityData.setAll(value)
-                activityListener.done()
-            }
+                override fun succeeded() {
+                    activityData.setAll(value)
+                    activityListener.done()
+                }
 
-            override fun failed() = exception.printStackTrace()
-        }.execute()
+                override fun failed() = exception.printStackTrace()
+            }.execute()
     }
 
     fun updateContributors() {
-        taskPool += object : Task<List<DonutChart.Data>>() {
-            override fun call() = log
-                    .groupingBy { it.authorMail.lowercase() }
-                    .eachCount()
-                    .sortedBy { it.second }
-                    .map { (author, value) -> DonutChart.Data(author, value.toLong()) }
+        taskPool +=
+            object : Task<List<DonutChart.Data>>() {
+                override fun call() =
+                    log
+                        .groupingBy { it.authorMail.lowercase() }
+                        .eachCount()
+                        .sortedBy { it.second }
+                        .map { (author, value) -> DonutChart.Data(author, value.toLong()) }
 
-            override fun succeeded() {
-                contributorsData.setAll(value)
-                contributorsListener.done()
-            }
+                override fun succeeded() {
+                    contributorsData.setAll(value)
+                    contributorsListener.done()
+                }
 
-            override fun failed() = exception.printStackTrace()
-        }.execute()
+                override fun failed() = exception.printStackTrace()
+            }.execute()
     }
 
     fun updateCommits() {
-        taskPool += object : Task<List<HistogramChart.Series>>() {
-            override fun call() = log
-                    .groupBy { it.authorMail.lowercase() }
-                    .mapValuesParallel {
-                        if (!isCancelled) it.map { it.date.toLocalDate() }
-                                .groupingBy { it }
-                                .eachCount()
-                                .toList()
-                                .sortedBy { it.first }
-                        else emptyList()
-                    }
-                    .toList()
-                    .sortedBy { (_, data) -> data.sumOf { it.second } }
-                    .map { (author, data) ->
-                        HistogramChart.Series(author, data.map { (date, value) -> HistogramChart.Data(date, value.toLong()) })
-                    }
+        taskPool +=
+            object : Task<List<HistogramChart.Series>>() {
+                override fun call() =
+                    log
+                        .groupBy { it.authorMail.lowercase() }
+                        .mapValuesParallel {
+                            if (!isCancelled) {
+                                it
+                                    .map { it.date.toLocalDate() }
+                                    .groupingBy { it }
+                                    .eachCount()
+                                    .toList()
+                                    .sortedBy { it.first }
+                            } else {
+                                emptyList()
+                            }
+                        }.toList()
+                        .sortedBy { (_, data) -> data.sumOf { it.second } }
+                        .map { (author, data) ->
+                            HistogramChart.Series(author, data.map { (date, value) -> HistogramChart.Data(date, value.toLong()) })
+                        }
 
-            override fun succeeded() {
-                commitsData.setAll(value)
-                commitsListener.done()
-            }
+                override fun succeeded() {
+                    commitsData.setAll(value)
+                    commitsListener.done()
+                }
 
-            override fun failed() = exception.printStackTrace()
-        }.execute()
+                override fun failed() = exception.printStackTrace()
+            }.execute()
     }
 
     fun updateFiles() {
-        taskPool += object : Task<List<DonutChart.Data>>() {
-            override fun call() = numStat
-                    .map { it.path }
-                    .groupingBy { it.substringAfterLast('.', it.substringAfterLast('/')) }
-                    .eachCount()
-                    .sortedBy { it.second }
-                    .filter { (_, value) -> value > 0 }
-                    .map { (ext, value) -> DonutChart.Data(ext, value.toLong()) }
+        taskPool +=
+            object : Task<List<DonutChart.Data>>() {
+                override fun call() =
+                    numStat
+                        .map { it.path }
+                        .groupingBy { it.substringAfterLast('.', it.substringAfterLast('/')) }
+                        .eachCount()
+                        .sortedBy { it.second }
+                        .filter { (_, value) -> value > 0 }
+                        .map { (ext, value) -> DonutChart.Data(ext, value.toLong()) }
 
-            override fun succeeded() {
-                filesData.setAll(value)
-                filesListener.done()
-            }
+                override fun succeeded() {
+                    filesData.setAll(value)
+                    filesListener.done()
+                }
 
-            override fun failed() = exception.printStackTrace()
-        }.execute()
+                override fun failed() = exception.printStackTrace()
+            }.execute()
     }
 
     fun updateLines(repository: Repository) {
-        taskPool += object : Task<Unit>() {
-            private val added = mutableListOf<HistogramChart.Data>()
-            private val removed = mutableListOf<HistogramChart.Data>()
+        taskPool +=
+            object : Task<Unit>() {
+                private val added = mutableListOf<HistogramChart.Data>()
+                private val removed = mutableListOf<HistogramChart.Data>()
 
-            override fun call() = (0..lastDay.daysBetween(firstDay))
-                    .map { firstDay.plusDays(it) }
-                    .map { it.atStartOfWeek() }
-                    .distinct()
-                    .map { date -> date to log.filter { it.date.toLocalDate().atStartOfWeek() == date } }
-                    .map { (date, log) ->
-                        val min = log.minByOrNull { it.date }
-                        val max = log.maxByOrNull { it.date }
-                        Triple(date, min, max)
-                    }
-                    .mapParallel { (date, first, last) ->
-                        date to if (!isCancelled && first != null && last != null) gitDiffNumstat(repository, first, last)
-                        else emptyList()
-                    }
-                    .map { (date, stats) -> Triple(date, stats.sumOf { it.added }, stats.sumOf { it.removed }) }
-                    .filter { (_, added, removed) -> added + removed > 0 }
-                    .forEach { (date, added, removed) ->
-                        this.added += HistogramChart.Data(date, added.toLong(), 7)
-                        this.removed += HistogramChart.Data(date, removed.toLong(), 7)
-                    }
+                override fun call() =
+                    (0..lastDay.daysBetween(firstDay))
+                        .map { firstDay.plusDays(it) }
+                        .map { it.atStartOfWeek() }
+                        .distinct()
+                        .map { date -> date to log.filter { it.date.toLocalDate().atStartOfWeek() == date } }
+                        .map { (date, log) ->
+                            val min = log.minByOrNull { it.date }
+                            val max = log.maxByOrNull { it.date }
+                            Triple(date, min, max)
+                        }.mapParallel { (date, first, last) ->
+                            date to
+                                if (!isCancelled && first != null && last != null) {
+                                    gitDiffNumstat(repository, first, last)
+                                } else {
+                                    emptyList()
+                                }
+                        }.map { (date, stats) -> Triple(date, stats.sumOf { it.added }, stats.sumOf { it.removed }) }
+                        .filter { (_, added, removed) -> added + removed > 0 }
+                        .forEach { (date, added, removed) ->
+                            this.added += HistogramChart.Data(date, added.toLong(), 7)
+                            this.removed += HistogramChart.Data(date, removed.toLong(), 7)
+                        }
 
-            override fun succeeded() {
-                linesData.setAll(HistogramChart.Series("", added), HistogramChart.Series("", removed))
-                linesListener.done()
-            }
+                override fun succeeded() {
+                    linesData.setAll(HistogramChart.Series("", added), HistogramChart.Series("", removed))
+                    linesListener.done()
+                }
 
-            override fun failed() = exception.printStackTrace()
-        }.execute()
+                override fun failed() = exception.printStackTrace()
+            }.execute()
     }
 
     fun update(repository: Repository) {
@@ -185,69 +200,78 @@ class StatsService {
         lastDay = defaultLastDay()
         firstDay = defaultFirstDay(lastDay)
 
-        taskPool += object : Task<Unit>() {
-            private var log: List<Commit> = emptyList()
-            private var numStat: List<NumStat> = emptyList()
-            private var rangeFirst: LocalDate = firstDay
-            private var rangeLast: LocalDate = lastDay
+        taskPool +=
+            object : Task<Unit>() {
+                private var log: List<Commit> = emptyList()
+                private var numStat: List<NumStat> = emptyList()
+                private var rangeFirst: LocalDate = firstDay
+                private var rangeLast: LocalDate = lastDay
 
-            override fun call() {
-                Platform.runLater {
-                    contributorsListener.started()
-                    filesListener.started()
-                    commitsListener.started()
-                    activityListener.started()
-                    linesListener.started()
-                }
-                log = gitLog(repository, rangeFirst, rangeLast)
-                // Repos with no commits in the last year (e.g. archived projects) still need stats.
-                if (log.isEmpty()) {
-                    log = gitLog(repository, all = true, noMerges = false, skip = 0, maxCount = 100_000)
-                    if (log.isNotEmpty()) {
-                        // git log is newest-first: [0] = newest, last() = oldest
-                        rangeFirst = log.last().date.toLocalDate().withDayOfMonth(1)
-                        rangeLast = log[0].date.toLocalDate()
-                        if (!rangeFirst.isBefore(rangeLast)) {
-                            rangeLast = rangeFirst.plusMonths(1)
+                override fun call() {
+                    Platform.runLater {
+                        contributorsListener.started()
+                        filesListener.started()
+                        commitsListener.started()
+                        activityListener.started()
+                        linesListener.started()
+                    }
+                    log = gitLog(repository, rangeFirst, rangeLast)
+                    // Repos with no commits in the last year (e.g. archived projects) still need stats.
+                    if (log.isEmpty()) {
+                        log = gitLog(repository, all = true, noMerges = false, skip = 0, maxCount = 100_000)
+                        if (log.isNotEmpty()) {
+                            // git log is newest-first: [0] = newest, last() = oldest
+                            rangeFirst =
+                                log
+                                    .last()
+                                    .date
+                                    .toLocalDate()
+                                    .withDayOfMonth(1)
+                            rangeLast = log[0].date.toLocalDate()
+                            if (!rangeFirst.isBefore(rangeLast)) {
+                                rangeLast = rangeFirst.plusMonths(1)
+                            }
                         }
                     }
+                    numStat =
+                        if (log.isNotEmpty()) {
+                            gitDiffNumstat(repository, log.last(), log[0])
+                        } else {
+                            emptyList()
+                        }
                 }
-                numStat = if (log.isNotEmpty()) gitDiffNumstat(repository, log.last(), log[0])
-                else emptyList()
-            }
 
-            override fun succeeded() {
-                firstDay = rangeFirst
-                lastDay = rangeLast
-                rangeListener?.invoke()
-                this@StatsService.log += log
-                this@StatsService.numStat += numStat
-                if (log.isEmpty()) {
-                    // Clear charts and stop spinners when there is nothing to show.
-                    contributorsData.clear()
-                    filesData.clear()
-                    commitsData.clear()
-                    activityData.clear()
-                    linesData.clear()
+                override fun succeeded() {
+                    firstDay = rangeFirst
+                    lastDay = rangeLast
+                    rangeListener?.invoke()
+                    this@StatsService.log += log
+                    this@StatsService.numStat += numStat
+                    if (log.isEmpty()) {
+                        // Clear charts and stop spinners when there is nothing to show.
+                        contributorsData.clear()
+                        filesData.clear()
+                        commitsData.clear()
+                        activityData.clear()
+                        linesData.clear()
+                        finishAllListeners()
+                        return
+                    }
+                    updateActivity()
+                    updateCommits()
+                    updateContributors()
+                    updateFiles()
+                    updateLines(repository)
+                }
+
+                override fun failed() {
+                    exception?.printStackTrace()
                     finishAllListeners()
-                    return
                 }
-                updateActivity()
-                updateCommits()
-                updateContributors()
-                updateFiles()
-                updateLines(repository)
-            }
-
-            override fun failed() {
-                exception?.printStackTrace()
-                finishAllListeners()
-            }
-        }.execute()
+            }.execute()
     }
 
     fun cancel() {
         taskPool.forEach { it.cancel() }
     }
-
 }

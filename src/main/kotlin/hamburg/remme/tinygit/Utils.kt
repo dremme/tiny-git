@@ -30,23 +30,28 @@ import java.util.concurrent.TimeUnit
  * Constant for 360°. Degrees of 2*pi.
  */
 const val TWO_PI = 360.0
+
 /**
  * Constant for 180°. Degrees of pi.
  */
 const val PI = 180.0
+
 /**
  * Constant for 90°. Degrees of pi/2.
  */
 const val HALF_PI = 90.0
+
 /**
  * **Warning: do not use this!**
  */
 var logTypeCharacters = 1
 private val daemonFactory = ThreadFactory { Executors.defaultThreadFactory().newThread(it).apply { isDaemon = true } }
+
 /**
  * Single-threaded scheduler with standard daemon thread factory.
  */
 private val scheduledPool = Executors.newScheduledThreadPool(1, daemonFactory)!!
+
 /**
  * Openly cached thread pool with standard daemon thread factory.
  */
@@ -58,10 +63,12 @@ val shortDateFormat = DateTimeFormatter.ofPattern("d. MMM yyyy")!!
 val dateFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy")!!
 val shortDateTimeFormat = DateTimeFormatter.ofPattern("d. MMM yyyy HH:mm")!!
 val dateTimeFormat = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy HH:mm:ss")!!
+
 /**
  * The timezone offset of the local machine.
  */
 val systemOffset get() = ZoneId.systemDefault().rules.getOffset(Instant.now())!!
+
 /**
  * The number of days since 1900-01-01.
  */
@@ -79,7 +86,10 @@ fun <V> Task<V>.execute(): Task<V> {
 /**
  * Repeatedly calls given [block] at the given [period].
  */
-fun schedule(period: Long, block: () -> Unit) {
+fun schedule(
+    period: Long,
+    block: () -> Unit,
+) {
     scheduledPool.scheduleAtFixedRate(block, 0, period, TimeUnit.MILLISECONDS)
 }
 
@@ -206,7 +216,8 @@ fun String.stripHome() = "~${substringAfter(homeDir)}"
 /**
  * HTML encodes `&`, `<` and `>` to their respective HTML codes.
  */
-fun String.htmlEncode() = replace("&", "&amp;")
+fun String.htmlEncode() =
+    replace("&", "&amp;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")
 
@@ -245,33 +256,35 @@ fun <T> ObservableList<T>.asFilteredList() = FilteredList(this)
 /**
  * [List.map] but parallel using a [ForkJoinPool].
  */
-inline fun <T, R> List<T>.mapParallel(crossinline block: (T) -> R): List<R> {
-    return map { ForkJoinPool.commonPool().submit(Callable { block(it) }) }
-            .onEach { it.fork() }
-            .map { it.join() }
-}
+inline fun <T, R> List<T>.mapParallel(crossinline block: (T) -> R): List<R> =
+    map { ForkJoinPool.commonPool().submit(Callable { block(it) }) }
+        .onEach { it.fork() }
+        .map { it.join() }
 
 /**
  * [Map.mapValues] but parallel using a [ForkJoinPool].
  */
-inline fun <K, V, R> Map<K, V>.mapValuesParallel(crossinline block: (V) -> R): Map<K, R> {
-    return mapValues { (_, it) -> ForkJoinPool.commonPool().submit(Callable { block(it) }) }
-            .onEach { (_, it) -> it.fork() }
-            .mapValues { (_, it) -> it.join() }
-}
+inline fun <K, V, R> Map<K, V>.mapValuesParallel(crossinline block: (V) -> R): Map<K, R> =
+    mapValues { (_, it) -> ForkJoinPool.commonPool().submit(Callable { block(it) }) }
+        .onEach { (_, it) -> it.fork() }
+        .mapValues { (_, it) -> it.join() }
 
 /**
  * Adds the given [items] sorted to the list. The [items] have implement [Comparable].
  */
-fun <T : Comparable<T>> MutableList<T>.addSorted(items: Collection<T>) = items.forEach { item ->
-    val index = indexOfFirst { it > item }
-    if (index < 0) add(item) else add(index, item)
-}
+fun <T : Comparable<T>> MutableList<T>.addSorted(items: Collection<T>) =
+    items.forEach { item ->
+        val index = indexOfFirst { it > item }
+        if (index < 0) add(item) else add(index, item)
+    }
 
 /**
  * Adds the given [items] sorted to the list using the given [comparator] function.
  */
-fun <T> MutableList<T>.addSorted(items: Collection<T>, comparator: (T, T) -> Int) = items.forEach { item ->
+fun <T> MutableList<T>.addSorted(
+    items: Collection<T>,
+    comparator: (T, T) -> Int,
+) = items.forEach { item ->
     val index = indexOfFirst { comparator(it, item) > 0 }
     if (index < 0) add(item) else add(index, item)
 }
@@ -279,9 +292,8 @@ fun <T> MutableList<T>.addSorted(items: Collection<T>, comparator: (T, T) -> Int
 /**
  * Creates a sorted [Map] similar to [List.sortedBy]. The original [Map] is unchanged.
  */
-inline fun <K, V : Comparable<V>, R : Comparable<R>> Map<K, V>.sortedBy(crossinline block: (Pair<K, V>) -> R?): Map<K, V> {
-    return toList().sortedBy(block).toMap()
-}
+inline fun <K, V : Comparable<V>, R : Comparable<R>> Map<K, V>.sortedBy(crossinline block: (Pair<K, V>) -> R?): Map<K, V> =
+    toList().sortedBy(block).toMap()
 
 /**
  * Equal to `i.set(i.get() + 1)`.
@@ -328,7 +340,11 @@ fun printError(message: String) {
 /**
  * Measures an logs the needed time to execute the given [block].
  */
-inline fun <T> measureTime(type: String, message: String, block: () -> T): T {
+inline fun <T> measureTime(
+    type: String,
+    message: String,
+    block: () -> T,
+): T {
     val startTime = System.currentTimeMillis()
     val value = block()
     val totalTime = (System.currentTimeMillis() - startTime) / 1000.0

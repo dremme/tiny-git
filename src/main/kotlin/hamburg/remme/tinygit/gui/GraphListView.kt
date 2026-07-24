@@ -45,8 +45,9 @@ private const val MAX_LENGTH = 60
  * @todo: skin should not extend ListViewSkin but wrap a [ListView]?!
  * @todo: this class should be a control?!
  */
-class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits) {
-
+class GraphListView(
+    commits: ObservableList<Commit>,
+) : ListView<Commit>(commits) {
     private val branchService = TinyGit.get<BranchService>()
     private val tagService = TinyGit.get<TagService>()
 
@@ -88,37 +89,42 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
      * @todo branches all have the same color which is not synchronized with the log graph
      */
     private inner class GraphListCell : ListCell<Commit>() {
-
         private val commitId = label { addClass(COMMIT_STYLE_CLASS) }
-        private val date = label {
-            addClass(DATE_STYLE_CLASS)
-            graphic = Icons.calendar()
-        }
+        private val date =
+            label {
+                addClass(DATE_STYLE_CLASS)
+                graphic = Icons.calendar()
+            }
         private val badges = hbox { addClass(BRANCHES_STYLE_CLASS) }
         private val message = label { addClass(MESSAGE_STYLE_CLASS) }
-        private val author = label {
-            addClass(AUTHOR_STYLE_CLASS)
-            graphic = Icons.user()
-        }
+        private val author =
+            label {
+                addClass(AUTHOR_STYLE_CLASS)
+                graphic = Icons.user()
+            }
 
         init {
-            graphic = vbox {
-                paddingProperty().bind(graphWidthProperty)
-                +hbox {
-                    alignment = Pos.CENTER_LEFT
-                    +commitId
-                    +date
-                    +badges
+            graphic =
+                vbox {
+                    paddingProperty().bind(graphWidthProperty)
+                    +hbox {
+                        alignment = Pos.CENTER_LEFT
+                        +commitId
+                        +date
+                        +badges
+                    }
+                    +hbox {
+                        alignment = Pos.CENTER_LEFT
+                        +message
+                        +author
+                    }
                 }
-                +hbox {
-                    alignment = Pos.CENTER_LEFT
-                    +message
-                    +author
-                }
-            }
         }
 
-        override fun updateItem(item: Commit?, empty: Boolean) {
+        override fun updateItem(
+            item: Commit?,
+            empty: Boolean,
+        ) {
             super.updateItem(item, empty)
             graphic.isVisible = !empty
             item?.let { c ->
@@ -131,30 +137,29 @@ class GraphListView(commits: ObservableList<Commit>) : ListView<Commit>(commits)
             }
         }
 
-        private fun List<Branch>.toBranchBadges(): List<Node> {
-            return map {
+        private fun List<Branch>.toBranchBadges(): List<Node> =
+            map {
                 label {
                     addClass(BRANCH_BADGE_STYLE_CLASS)
-                    if (branchService.isDetached(it)) addClass(DETACHED_STYLE_CLASS)
-                    else if (branchService.isHead(it)) addClass(CURRENT_STYLE_CLASS)
+                    if (branchService.isDetached(it)) {
+                        addClass(DETACHED_STYLE_CLASS)
+                    } else if (branchService.isHead(it)) {
+                        addClass(CURRENT_STYLE_CLASS)
+                    }
                     text = it.name.abbrev()
                     graphic = if (branchService.isDetached(it)) Icons.locationArrow() else Icons.codeFork()
                 }
             }
-        }
 
-        private fun List<Tag>.toTagBadges(): List<Node> {
-            return map {
+        private fun List<Tag>.toTagBadges(): List<Node> =
+            map {
                 label {
                     addClass(TAG_BADGE_STYLE_CLASS)
                     text = it.name
                     graphic = Icons.tag()
                 }
             }
-        }
 
         private fun String.abbrev() = if (length > MAX_LENGTH) "${substring(0, MAX_LENGTH)}..." else this
-
     }
-
 }

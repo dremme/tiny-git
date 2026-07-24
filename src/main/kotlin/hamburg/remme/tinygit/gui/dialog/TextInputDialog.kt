@@ -14,8 +14,11 @@ import javafx.stage.Window
 
 private const val DEFAULT_STYLE_CLASS = "text-dialog"
 
-class TextInputDialog(ok: String, isTextArea: Boolean, window: Window) : Dialog<String>(window, I18N["dialog.input.title"], isTextArea) {
-
+class TextInputDialog(
+    ok: String,
+    isTextArea: Boolean,
+    window: Window,
+) : Dialog<String>(window, I18N["dialog.input.title"], isTextArea) {
     var defaultValue: String
         get() = throw RuntimeException("Write-only property.")
         set(value) {
@@ -32,16 +35,16 @@ class TextInputDialog(ok: String, isTextArea: Boolean, window: Window) : Dialog<
     init {
         Platform.runLater { input.requestFocus() }
 
-        content = vbox {
-            addClass(DEFAULT_STYLE_CLASS)
-            +label
-            +input
-        }
+        content =
+            vbox {
+                addClass(DEFAULT_STYLE_CLASS)
+                +label
+                +input
+            }
 
         +DialogButton(DialogButton.ok(ok))
         +DialogButton(DialogButton.CANCEL)
 
         okAction = { input.text }
     }
-
 }

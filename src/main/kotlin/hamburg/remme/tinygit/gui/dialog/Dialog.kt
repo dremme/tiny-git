@@ -17,8 +17,11 @@ import javafx.stage.Window
 import javafx.util.Callback
 import javafx.scene.control.Dialog as FXDialog
 
-abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = false) {
-
+abstract class Dialog<T>(
+    window: Window,
+    title: String,
+    resizable: Boolean = false,
+) {
     var header: String
         get() = throw RuntimeException("Write-only property.")
         set(value) {
@@ -27,12 +30,13 @@ abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = fal
     var image: Image
         get() = throw RuntimeException("Write-only property.")
         set(value) {
-            dialog.graphic = imageView {
-                image = value
-                isSmooth = true
-                fitWidth = fontSize * 3.0
-                fitHeight = fontSize * 3.0
-            }
+            dialog.graphic =
+                imageView {
+                    image = value
+                    isSmooth = true
+                    fitWidth = fontSize * 3.0
+                    fitHeight = fontSize * 3.0
+                }
         }
     var graphic: Node
         get() = throw RuntimeException("Write-only property.")
@@ -56,14 +60,15 @@ abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = fal
         dialog.initOwner(window)
         dialog.title = title
         dialog.isResizable = resizable
-        dialog.resultConverter = Callback {
-            when {
-                it == null -> cancelAction()
-                it.isOk() -> okAction()
-                it.isCancel() -> cancelAction()
-                else -> null
+        dialog.resultConverter =
+            Callback {
+                when {
+                    it == null -> cancelAction()
+                    it.isOk() -> okAction()
+                    it.isCancel() -> cancelAction()
+                    else -> null
+                }
             }
-        }
         dialogWindow.focusedProperty().addListener { _, _, it -> if (it) focusAction() }
     }
 
@@ -82,15 +87,16 @@ abstract class Dialog<T>(window: Window, title: String, resizable: Boolean = fal
         disabled?.let { dialog.dialogPane.lookupButton(type).disabledWhen(it) }
     }
 
-    protected class DialogButton(val type: ButtonType, val disabled: ObservableBooleanValue? = null) {
-
+    protected class DialogButton(
+        val type: ButtonType,
+        val disabled: ObservableBooleanValue? = null,
+    ) {
         companion object {
             val OK = ButtonType.OK!!
             val CANCEL = ButtonType.CANCEL!!
             val CLOSE = ButtonType.CLOSE!!
+
             fun ok(text: String) = ButtonType(text, ButtonBar.ButtonData.OK_DONE)
         }
-
     }
-
 }

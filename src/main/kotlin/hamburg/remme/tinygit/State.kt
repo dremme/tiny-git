@@ -21,20 +21,21 @@ import javafx.beans.property.SimpleStringProperty
  * @todo newly created branches cannot be pushed if there is no divergence
  */
 @Service
-class State(repositoryService: RepositoryService,
-            branchService: BranchService,
-            workingCopyService: WorkingCopyService,
-            divergenceService: DivergenceService,
-            mergeService: MergeService,
-            rebaseService: RebaseService,
-            stashService: StashService,
-            commitLogService: CommitLogService) {
-
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     *                                                                                                               *
-     * PROCESS                                                                                                       *
-     *                                                                                                               *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+class State(
+    repositoryService: RepositoryService,
+    branchService: BranchService,
+    workingCopyService: WorkingCopyService,
+    divergenceService: DivergenceService,
+    mergeService: MergeService,
+    rebaseService: RebaseService,
+    stashService: StashService,
+    commitLogService: CommitLogService,
+) {
+                /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                 *                                                                                                               *
+                 * PROCESS                                                                                                       *
+                 *                                                                                                               *
+                 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     val runningProcesses = SimpleIntegerProperty(0)
     val processText = SimpleStringProperty()
 
@@ -80,8 +81,24 @@ class State(repositoryService: RepositoryService,
     val canStageAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.pending))!!
     val canUpdateAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.modifiedPending))!!
     val canStageSelected = isIdle.and(Bindings.size(workingCopyService.selectedPending).greater0())!!
-    val canDeleteSelected = isIdle.and(Bindings.size(workingCopyService.selectedPending.filtered { it.status != File.Status.REMOVED }).greater0())!!
-    val canDiscardSelected = isIdle.and(Bindings.size(workingCopyService.selectedPending.filtered { it.status != File.Status.ADDED }).greater0())!!
+    val canDeleteSelected =
+        isIdle.and(
+            Bindings
+                .size(
+                    workingCopyService.selectedPending.filtered {
+                        it.status != File.Status.REMOVED
+                    },
+                ).greater0(),
+        )!!
+    val canDiscardSelected =
+        isIdle.and(
+            Bindings
+                .size(
+                    workingCopyService.selectedPending.filtered {
+                        it.status != File.Status.ADDED
+                    },
+                ).greater0(),
+        )!!
     val canUnstageAll = isIdle.and(Bindings.isNotEmpty(workingCopyService.staged))!!
     val canUnstageSelected = isIdle.and(Bindings.size(workingCopyService.selectedStaged).greater0())!!
 
@@ -90,5 +107,4 @@ class State(repositoryService: RepositoryService,
     val canTagCommit = isClean.and(commitLogService.activeCommit.isNotNull)!!
 
     val canCmd = isIdle
-
 }

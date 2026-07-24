@@ -1,7 +1,9 @@
 package hamburg.remme.tinygit.domain
 
-class StashEntry(val id: String, val message: String) : Comparable<StashEntry> {
-
+class StashEntry(
+    val id: String,
+    val message: String,
+) : Comparable<StashEntry> {
     override fun toString() = message
 
     override fun compareTo(other: StashEntry) = id.compareTo(other.id)
@@ -23,5 +25,4 @@ class StashEntry(val id: String, val message: String) : Comparable<StashEntry> {
         result = 31 * result + message.hashCode()
         return result
     }
-
 }

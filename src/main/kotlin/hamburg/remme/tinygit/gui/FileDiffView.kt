@@ -62,34 +62,37 @@ private const val EMPTY_DIFF = """
  *
  * @see DiffService
  */
-class FileDiffView(private val file: ObservableObjectValue<File?>,
-                   private val commit: ObservableObjectValue<Commit?> = SimpleObjectProperty()) : VBoxBuilder() {
-
+class FileDiffView(
+    private val file: ObservableObjectValue<File?>,
+    private val commit: ObservableObjectValue<Commit?> = SimpleObjectProperty(),
+) : VBoxBuilder() {
     private val diffService = TinyGit.get<DiffService>()
     private val contextLines: ComboBox<Int>
     private val engine: WebEngine
     private var diff = EMPTY_DIFF
 
     init {
-        contextLines = comboBox {
-            items.addAll(0, 1, 3, 6, 12, 25, 50, 100)
-            buttonCell = listCell<Int> { text = I18N["fileDiff.lines", it ?: 0] }
-            cellFactory = listCellFactory<Int> { text = I18N["fileDiff.lines", it ?: 0] }
-            value = 3
-            valueProperty().addListener { _ -> update() }
-        }
+        contextLines =
+            comboBox {
+                items.addAll(0, 1, 3, 6, 12, 25, 50, 100)
+                buttonCell = listCell<Int> { text = I18N["fileDiff.lines", it ?: 0] }
+                cellFactory = listCellFactory<Int> { text = I18N["fileDiff.lines", it ?: 0] }
+                value = 3
+                valueProperty().addListener { _ -> update() }
+            }
         +toolBar {
             addSpacer()
             +contextLines
         }
 
-        val webView = webView {
-            vgrow(Priority.ALWAYS)
-            isContextMenuEnabled = false
-            prefWidth = 400.0
-            prefHeight = 300.0
-            engine.loadContent(diff)
-        }
+        val webView =
+            webView {
+                vgrow(Priority.ALWAYS)
+                isContextMenuEnabled = false
+                prefWidth = 400.0
+                prefHeight = 300.0
+                engine.loadContent(diff)
+            }
         engine = webView.engine
         +webView
 
@@ -100,11 +103,12 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
 
     private fun update() {
         if (file.get() != null) {
-            val newDiff = if (commit.get() != null) {
-                diffService.diff(file.get()!!, commit.get()!!, contextLines.value)
-            } else {
-                diffService.diff(file.get()!!, contextLines.value)
-            }
+            val newDiff =
+                if (commit.get() != null) {
+                    diffService.diff(file.get()!!, commit.get()!!, contextLines.value)
+                } else {
+                    diffService.diff(file.get()!!, contextLines.value)
+                }
             if (newDiff != diff) engine.loadContent(newDiff)
             diff = newDiff
         } else {
@@ -112,5 +116,4 @@ class FileDiffView(private val file: ObservableObjectValue<File?>,
             engine.loadContent(diff)
         }
     }
-
 }

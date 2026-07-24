@@ -11,13 +11,14 @@ import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 
-fun button(action: Action) = button {
-    text = action.text
-    graphic = action.icon?.invoke()
-    action.shortcut?.let { tooltip(KeyCombination.valueOf(it).displayText) }
-    action.disabled?.let { disabledWhen(it) }
-    setOnAction { action.handler() }
-}
+fun button(action: Action) =
+    button {
+        text = action.text
+        graphic = action.icon?.invoke()
+        action.shortcut?.let { tooltip(KeyCombination.valueOf(it).displayText) }
+        action.disabled?.let { disabledWhen(it) }
+        setOnAction { action.handler() }
+    }
 
 inline fun button(block: Button.() -> Unit): Button {
     val button = Button()
@@ -38,7 +39,6 @@ inline fun toolBar(block: ToolBarBuilder.() -> Unit): ToolBar {
 }
 
 class ToolBarBuilder : ToolBar() {
-
     fun addSpacer() {
         +Pane().hgrow(Priority.ALWAYS)
     }
@@ -68,5 +68,4 @@ class ToolBarBuilder : ToolBar() {
             }
         }
     }
-
 }

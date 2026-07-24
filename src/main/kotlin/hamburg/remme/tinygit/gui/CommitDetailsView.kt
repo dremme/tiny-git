@@ -51,7 +51,6 @@ private const val OVERLAY_STYLE_CLASS = "overlay"
  * @see StatusCountView
  */
 class CommitDetailsView : SplitPaneBuilder() {
-
     private val logService = TinyGit.get<CommitLogService>()
     private val detailsService = TinyGit.get<CommitDetailsService>()
 
@@ -82,5 +81,4 @@ class CommitDetailsView : SplitPaneBuilder() {
         }
         +FileDiffView(files.selectionModel.selectedItemProperty(), logService.activeCommit)
     }
-
 }

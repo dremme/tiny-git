@@ -16,9 +16,7 @@ private val checkout = arrayOf("checkout")
 private val checkoutCreate = arrayOf("checkout", "-b")
 private val headCounter = AtomicInteger()
 
-fun gitHead(repository: Repository): Head {
-    return Head(headCounter.getAndIncrement().toString(), git(repository, *revParseHead).trim())
-}
+fun gitHead(repository: Repository): Head = Head(headCounter.getAndIncrement().toString(), git(repository, *revParseHead).trim())
 
 fun gitBranchList(repository: Repository): List<Branch> {
     val branches = mutableListOf<Branch>()
@@ -33,48 +31,83 @@ fun gitBranchList(repository: Repository): List<Branch> {
     return branches
 }
 
-fun gitBranch(repository: Repository, name: String) {
+fun gitBranch(
+    repository: Repository,
+    name: String,
+) {
     val response = git(repository, *checkoutCreate, name).trim()
-    if (response.contains("$fatalSeparator.*already exists".toRegex(IC))) throw BranchAlreadyExistsException()
-    else if (response.contains("$fatalSeparator.*not a valid branch name".toRegex(IC))) throw BranchNameInvalidException()
+    if (response.contains("$FATAL_SEPARATOR.*already exists".toRegex(IC))) {
+        throw BranchAlreadyExistsException()
+    } else if (response.contains("$FATAL_SEPARATOR.*not a valid branch name".toRegex(IC))) {
+        throw BranchNameInvalidException()
+    }
 }
 
-fun gitBranchMove(repository: Repository, branch: Branch, newName: String) {
+fun gitBranchMove(
+    repository: Repository,
+    branch: Branch,
+    newName: String,
+) {
     val response = git(repository, *branchMove, branch.name, newName).trim()
-    if (response.contains("$fatalSeparator.*already exists".toRegex(IC))) throw BranchAlreadyExistsException()
+    if (response.contains("$FATAL_SEPARATOR.*already exists".toRegex(IC))) throw BranchAlreadyExistsException()
 }
 
-fun gitBranchDelete(repository: Repository, branch: Branch, force: Boolean) {
+fun gitBranchDelete(
+    repository: Repository,
+    branch: Branch,
+    force: Boolean,
+) {
     if (force) {
         git(repository, *branchDeleteForce, branch.name)
     } else {
         val response = git(repository, *branchDelete, branch.name).trim()
-        if (response.startsWith(errorSeparator)) throw BranchUnpushedException()
+        if (response.startsWith(ERROR_SEPARATOR)) throw BranchUnpushedException()
     }
 }
 
-fun gitCheckout(repository: Repository, files: List<File>) {
+fun gitCheckout(
+    repository: Repository,
+    files: List<File>,
+) {
     git(repository, *checkout, "--", *files.map { it.path }.toTypedArray())
 }
 
-fun gitCheckout(repository: Repository, branch: Branch) {
+fun gitCheckout(
+    repository: Repository,
+    branch: Branch,
+) {
     if (branch.name == "HEAD") return // cannot checkout HEAD directly
     val response = git(repository, *checkout, branch.name).trim()
-    if (response.startsWith(errorSeparator)) throw CheckoutException()
-    else if (response.startsWith(fatalSeparator)) throw CheckoutException()
+    if (response.startsWith(ERROR_SEPARATOR)) {
+        throw CheckoutException()
+    } else if (response.startsWith(FATAL_SEPARATOR)) {
+        throw CheckoutException()
+    }
 }
 
-fun gitCheckout(repository: Repository, commit: Commit) {
+fun gitCheckout(
+    repository: Repository,
+    commit: Commit,
+) {
     val response = git(repository, *checkout, commit.id).trim()
-    if (response.startsWith(errorSeparator)) throw CheckoutException()
-    else if (response.startsWith(fatalSeparator)) throw CheckoutException()
+    if (response.startsWith(ERROR_SEPARATOR)) {
+        throw CheckoutException()
+    } else if (response.startsWith(FATAL_SEPARATOR)) {
+        throw CheckoutException()
+    }
 }
 
-fun gitCheckoutRemote(repository: Repository, branch: Branch) {
+fun gitCheckoutRemote(
+    repository: Repository,
+    branch: Branch,
+) {
     if (branch.name.substringAfter('/') == "HEAD") return // cannot checkout HEAD directly
     val response = git(repository, *checkout, "-b", branch.name.substringAfter('/'), "--track", branch.name).trim()
-    if (response.startsWith(errorSeparator)) throw CheckoutException()
-    else if (response.startsWith(fatalSeparator)) throw CheckoutException()
+    if (response.startsWith(ERROR_SEPARATOR)) {
+        throw CheckoutException()
+    } else if (response.startsWith(FATAL_SEPARATOR)) {
+        throw CheckoutException()
+    }
 }
 
 private fun String.parseRef() = if (matches("\\(HEAD detached at [\\da-f]+\\)".toRegex())) "HEAD" else this

@@ -12,7 +12,6 @@ import javafx.concurrent.Task
 
 @Service
 class DivergenceService : Refreshable {
-
     val aheadDefault = SimpleIntegerProperty()
     val ahead = SimpleIntegerProperty()
     val behind = SimpleIntegerProperty()
@@ -37,21 +36,21 @@ class DivergenceService : Refreshable {
     // TODO: prob incorrect when the HEAD is not connected to master at all
     private fun update(repository: Repository) {
         task?.cancel()
-        task = object : Task<Unit>() {
-            private lateinit var divergence: Divergence
-            private var divExclusive: Int = 0
+        task =
+            object : Task<Unit>() {
+                private lateinit var divergence: Divergence
+                private var divExclusive: Int = 0
 
-            override fun call() {
-                divExclusive = gitDivergenceExclusive(repository)
-                divergence = gitDivergence(repository)
-            }
+                override fun call() {
+                    divExclusive = gitDivergenceExclusive(repository)
+                    divergence = gitDivergence(repository)
+                }
 
-            override fun succeeded() {
-                aheadDefault.set(divExclusive)
-                ahead.set(divergence.ahead)
-                behind.set(divergence.behind)
-            }
-        }.execute()
+                override fun succeeded() {
+                    aheadDefault.set(divExclusive)
+                    ahead.set(divergence.ahead)
+                    behind.set(divergence.behind)
+                }
+            }.execute()
     }
-
 }

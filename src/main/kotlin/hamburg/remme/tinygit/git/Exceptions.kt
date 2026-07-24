@@ -2,11 +2,17 @@ package hamburg.remme.tinygit.git
 
 class TimeoutException : RuntimeException()
 
-class CloneException(message: String) : RuntimeException(message)
+class CloneException(
+    message: String,
+) : RuntimeException(message)
 
-class FetchException(message: String) : RuntimeException(message)
+class FetchException(
+    message: String,
+) : RuntimeException(message)
 
-class PullException(message: String) : RuntimeException(message)
+class PullException(
+    message: String,
+) : RuntimeException(message)
 
 class CheckoutException : RuntimeException()
 
@@ -22,7 +28,9 @@ class MergeException : RuntimeException()
 
 class MergeConflictException : RuntimeException()
 
-class RebaseException(message: String) : RuntimeException(message)
+class RebaseException(
+    message: String,
+) : RuntimeException(message)
 
 class UnmergedException : RuntimeException()
 

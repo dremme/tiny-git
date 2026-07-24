@@ -9,7 +9,6 @@ import hamburg.remme.tinygit.htmlEncodeAll
  * @todo: word diff renderer
  */
 class DiffRenderer {
-
     fun render(rawDiff: String): String {
         val lineBuilder = rawDiff.lines().fold(LineBuilder()) { builder, it -> builder.parse(it) }
         //language=HTML
@@ -63,12 +62,13 @@ class DiffRenderer {
     }
 
     private class LineBuilder {
-
         val numWidth get() = Math.log10(maxNum.toDouble()).toInt()
         private val builder = StringBuilder()
         private val numRegex = "^@@@? [-+](\\d+)(,\\d+)? [-+](\\d+)(,\\d+)?.* @@@?.*".toRegex()
+
         //language=HTML
         private val emptyLeft = "<div class=\"l-num\"></div>"
+
         //language=HTML
         private val emptyRight = "<div class=\"r-num\"></div>"
         private var leftNum = 0
@@ -142,7 +142,5 @@ class DiffRenderer {
         private fun right() = "<div class=\"r-num\">$rightNum</div>"
 
         private fun String.sanitize() = (takeIf { isNotBlank() } ?: " ").htmlEncodeAll()
-
     }
-
 }

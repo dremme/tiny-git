@@ -7,28 +7,43 @@ private val fetch = arrayOf("fetch", "origin")
 private val fetchPrune = arrayOf("fetch", "--prune", "origin")
 private val pull = arrayOf("pull")
 
-fun gitUpToDate(repository: Repository): Boolean {
-    return upToDate.contains(repository)
-}
+fun gitUpToDate(repository: Repository): Boolean = upToDate.contains(repository)
 
 fun gitFetch(repository: Repository) {
     val response = git(repository, *fetch).trim()
-    if (response.lines().any { it.startsWith(errorSeparator) || it.startsWith(fatalSeparator) }) throw FetchException(response.parseError())
+    if (response.lines().any {
+            it.startsWith(
+                ERROR_SEPARATOR,
+            ) ||
+                it.startsWith(FATAL_SEPARATOR)
+        }
+    ) {
+        throw FetchException(response.parseError())
+    }
     upToDate += repository
 }
 
 fun gitFetchPrune(repository: Repository) {
     val response = git(repository, *fetchPrune).trim()
-    if (response.lines().any { it.startsWith(errorSeparator) || it.startsWith(fatalSeparator) }) throw FetchException(response.parseError())
+    if (response.lines().any {
+            it.startsWith(
+                ERROR_SEPARATOR,
+            ) ||
+                it.startsWith(FATAL_SEPARATOR)
+        }
+    ) {
+        throw FetchException(response.parseError())
+    }
     upToDate += repository
 }
 
 fun gitPull(repository: Repository) {
     val response = git(repository, *pull).trim()
-    if (response.lines().any { it.startsWith(errorSeparator) || it.startsWith(fatalSeparator) }) throw PullException(response.parseError())
-    else if (response.lines().any { it.startsWith("CONFLICT") }) throw MergeConflictException()
+    if (response.lines().any { it.startsWith(ERROR_SEPARATOR) || it.startsWith(FATAL_SEPARATOR) }) {
+        throw PullException(response.parseError())
+    } else if (response.lines().any { it.startsWith("CONFLICT") }) {
+        throw MergeConflictException()
+    }
 }
 
-private fun String.parseError(): String {
-    return lines().joinToString("\n") { it.substringAfter(errorSeparator).substringAfter(fatalSeparator) }
-}
+private fun String.parseError(): String = lines().joinToString("\n") { it.substringAfter(ERROR_SEPARATOR).substringAfter(FATAL_SEPARATOR) }

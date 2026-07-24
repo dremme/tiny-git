@@ -11,26 +11,29 @@ import javafx.stage.Window
 
 private const val DEFAULT_STYLE_CLASS = "credentials-dialog"
 
-class CredentialsDialog(host: String, window: Window) : Dialog<Credentials>(window, I18N["dialog.credentials.title"]) {
-
+class CredentialsDialog(
+    host: String,
+    window: Window,
+) : Dialog<Credentials>(window, I18N["dialog.credentials.title"]) {
     init {
-        val username = textField {
-            promptText = I18N["dialog.credentials.user"]
-            Platform.runLater { requestFocus() }
-        }
+        val username =
+            textField {
+                promptText = I18N["dialog.credentials.user"]
+                Platform.runLater { requestFocus() }
+            }
         val password = password { promptText = I18N["dialog.credentials.password"] }
 
         header = I18N["dialog.credentials.header", host]
-        content = vbox {
-            addClass(DEFAULT_STYLE_CLASS)
-            +username
-            +password
-        }
+        content =
+            vbox {
+                addClass(DEFAULT_STYLE_CLASS)
+                +username
+                +password
+            }
 
         +DialogButton(DialogButton.OK, username.textProperty().isEmpty.or(password.textProperty().isEmpty))
         +DialogButton(DialogButton.CANCEL)
 
         okAction = { Credentials(username.text, password.text) }
     }
-
 }

@@ -7,7 +7,6 @@ import hamburg.remme.tinygit.domain.Repository
  * The component scanner will automatically add the necessary listeners for the instance.
  */
 interface Refreshable {
-
     /**
      * Called when [TinyGit.fireEvent] was triggered.
      * However it may not be called when [repository] is `null`.
@@ -27,5 +26,4 @@ interface Refreshable {
      * Called when there is no more active repository.
      */
     fun onRepositoryDeselected()
-
 }

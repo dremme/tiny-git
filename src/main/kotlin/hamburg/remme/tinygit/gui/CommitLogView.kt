@@ -78,7 +78,6 @@ private const val OVERLAY_STYLE_CLASS = "overlay"
  * @see CommitDetailsView
  */
 class CommitLogView : Tab() {
-
     private val state = TinyGit.get<State>()
     private val logService = TinyGit.get<CommitLogService>()
     private val filterableCommits = logService.commits.asFilteredList()
@@ -92,19 +91,35 @@ class CommitLogView : Tab() {
         graphic = Icons.list()
         isClosable = false
 
-        val checkoutCommit = Action(I18N["commitLog.checkout"], { Icons.check() }, disabled = state.canCheckoutCommit.not(),
-                handler = { checkoutCommit(graphSelection) })
-        val resetToCommit = Action(I18N["commitLog.reset"], { Icons.refresh() }, disabled = state.canResetToCommit.not(),
-                handler = { resetToCommit(graphSelection) })
-        val tagCommit = Action(I18N["commitLog.tag"], { Icons.tag() }, disabled = state.canTagCommit.not(),
-                handler = { tagCommit(graphSelection) })
+        val checkoutCommit =
+            Action(
+                I18N["commitLog.checkout"],
+                { Icons.check() },
+                disabled = state.canCheckoutCommit.not(),
+                handler = { checkoutCommit(graphSelection) },
+            )
+        val resetToCommit =
+            Action(
+                I18N["commitLog.reset"],
+                { Icons.refresh() },
+                disabled = state.canResetToCommit.not(),
+                handler = { resetToCommit(graphSelection) },
+            )
+        val tagCommit =
+            Action(
+                I18N["commitLog.tag"],
+                { Icons.tag() },
+                disabled = state.canTagCommit.not(),
+                handler = { tagCommit(graphSelection) },
+            )
 
         graph.items.addListener(ListChangeListener { graph.selectionModel.selectedItem ?: graph.selectionModel.selectFirst() })
         graph.selectionModel.selectedItemProperty().addListener { _, _, it -> logService.activeCommit.set(it) }
-        graph.contextMenu = contextMenu {
-            isAutoHide = true
-            +ActionGroup(checkoutCommit, resetToCommit, tagCommit)
-        }
+        graph.contextMenu =
+            contextMenu {
+                isAutoHide = true
+                +ActionGroup(checkoutCommit, resetToCommit, tagCommit)
+            }
 //        TODO
 //        graph.setOnScroll {
 //            if (it.deltaY < 0) {
@@ -121,85 +136,100 @@ class CommitLogView : Tab() {
 //        }
 
         val indicator = FetchIndicator()
-        content = vbox {
-            addClass(DEFAULT_STYLE_CLASS)
+        content =
+            vbox {
+                addClass(DEFAULT_STYLE_CLASS)
 
-            +toolBar {
-                +stackPane {
-                    addClass(SEARCH_STYLE_CLASS)
-                    +Icons.search().alignment(Pos.CENTER_LEFT)
-                    +textField {
-                        promptText = "${I18N["commitLog.search"]} (beta)"
-                        textProperty().addListener { _, _, it -> filterCommits(it) }
+                +toolBar {
+                    +stackPane {
+                        addClass(SEARCH_STYLE_CLASS)
+                        +Icons.search().alignment(Pos.CENTER_LEFT)
+                        +textField {
+                            promptText = "${I18N["commitLog.search"]} (beta)"
+                            textProperty().addListener { _, _, it -> filterCommits(it) }
+                        }
+                    }
+                    addSpacer()
+                    +indicator
+                    +comboBox<CommitLogService.CommitType> {
+                        items.addAll(CommitLogService.CommitType.values())
+                        valueProperty().bindBidirectional(logService.commitType)
+                        valueProperty().addListener { _, _, it -> graph.isGraphVisible = !it.isNoMerges }
+                    }
+                    +comboBox<CommitLogService.Scope> {
+                        items.addAll(CommitLogService.Scope.values())
+                        valueProperty().bindBidirectional(logService.scope)
                     }
                 }
-                addSpacer()
-                +indicator
-                +comboBox<CommitLogService.CommitType> {
-                    items.addAll(CommitLogService.CommitType.values())
-                    valueProperty().bindBidirectional(logService.commitType)
-                    valueProperty().addListener { _, _, it -> graph.isGraphVisible = !it.isNoMerges }
-                }
-                +comboBox<CommitLogService.Scope> {
-                    items.addAll(CommitLogService.Scope.values())
-                    valueProperty().bindBidirectional(logService.scope)
-                }
-            }
-            +stackPane {
-                vgrow(Priority.ALWAYS)
-                +splitPane {
-                    addClass(CONTENT_STYLE_CLASS)
-                    vgrow(Priority.ALWAYS)
-                    +graph
-                    +CommitDetailsView()
-                }
                 +stackPane {
-                    addClass(OVERLAY_STYLE_CLASS)
-                    visibleWhen(Bindings.isEmpty(graph.items))
-                    managedWhen(visibleProperty())
-                    +label { text = I18N["commitLog.noCommits"] }
+                    vgrow(Priority.ALWAYS)
+                    +splitPane {
+                        addClass(CONTENT_STYLE_CLASS)
+                        vgrow(Priority.ALWAYS)
+                        +graph
+                        +CommitDetailsView()
+                    }
+                    +stackPane {
+                        addClass(OVERLAY_STYLE_CLASS)
+                        visibleWhen(Bindings.isEmpty(graph.items))
+                        managedWhen(visibleProperty())
+                        +label { text = I18N["commitLog.noCommits"] }
+                    }
                 }
             }
-        }
 
         logService.logListener = indicator
         logService.logErrorHandler = { errorAlert(TinyGit.window, I18N["dialog.cannotFetch.header"], it) }
     }
 
     private fun filterCommits(value: String?) {
-        if (value != null && value.isNotBlank()) filterableCommits.setPredicate {
-            it.author.contains(value, true)
-                    || it.shortId.contains(value, true)
-                    || it.fullMessage.contains(value, true)
+        if (value != null && value.isNotBlank()) {
+            filterableCommits.setPredicate {
+                it.author.contains(value, true) ||
+                    it.shortId.contains(value, true) ||
+                    it.fullMessage.contains(value, true)
+            }
+        } else {
+            filterableCommits.setPredicate { true }
         }
-        else filterableCommits.setPredicate { true }
     }
 
     private fun checkoutCommit(commit: Commit) {
         branchService.checkoutCommit(
-                commit,
-                { errorAlert(TinyGit.window, I18N["dialog.cannotCheckout.header"], I18N["dialog.cannotCheckout.text"]) })
+            commit,
+            { errorAlert(TinyGit.window, I18N["dialog.cannotCheckout.header"], I18N["dialog.cannotCheckout.text"]) },
+        )
     }
 
     private fun resetToCommit(commit: Commit) {
-        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.resetBranch.header"], I18N["dialog.resetBranch.button"], I18N["dialog.resetBranch.text", commit.shortId])) return
+        if (!confirmWarningAlert(
+                TinyGit.window,
+                I18N["dialog.resetBranch.header"],
+                I18N["dialog.resetBranch.button"],
+                I18N["dialog.resetBranch.text", commit.shortId],
+            )
+        ) {
+            return
+        }
         branchService.reset(commit)
     }
 
     private fun tagCommit(commit: Commit) {
         textInputDialog(TinyGit.window, I18N["dialog.tag.header"], I18N["dialog.tag.button"], Icons.tag()) {
             tagService.tag(
-                    commit,
-                    it,
-                    { errorAlert(TinyGit.window, I18N["dialog.cannotTag.header"], I18N["dialog.cannotTag.text", it]) })
+                commit,
+                it,
+                { errorAlert(TinyGit.window, I18N["dialog.cannotTag.header"], I18N["dialog.cannotTag.text", it]) },
+            )
         }
     }
 
     /**
      * An indicator to be shown in the toolbar while fetching from remote.
      */
-    private class FetchIndicator : HBoxBuilder(), TaskListener {
-
+    private class FetchIndicator :
+        HBoxBuilder(),
+        TaskListener {
         private val visible = SimpleBooleanProperty()
 
         init {
@@ -212,7 +242,5 @@ class CommitLogView : Tab() {
         override fun started() = visible.set(true)
 
         override fun done() = visible.set(false)
-
     }
-
 }

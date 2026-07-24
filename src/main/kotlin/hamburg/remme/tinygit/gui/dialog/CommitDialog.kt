@@ -22,8 +22,9 @@ private const val DEFAULT_STYLE_CLASS = "commit-dialog"
 
 // TODO: show something on empty commit / merge commit
 // TODO: title depending on merge or new commit
-class CommitDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.commit.title"], true) {
-
+class CommitDialog(
+    window: Window,
+) : Dialog<Unit>(window, I18N["dialog.commit.title"], true) {
     private val mergeService = TinyGit.get<MergeService>()
     private val commitService = TinyGit.get<CommitService>()
     private val workingService = TinyGit.get<WorkingCopyService>()
@@ -34,31 +35,34 @@ class CommitDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.commit.ti
         files.prefHeight = 500.0
         Platform.runLater { files.selectionModel.selectFirst() }
 
-        val message = textArea {
-            promptText = I18N["dialog.commit.message"]
-            prefHeight = 100.0
-            textProperty().bindBidirectional(commitService.message)
-            Platform.runLater { requestFocus() }
-        }
+        val message =
+            textArea {
+                promptText = I18N["dialog.commit.message"]
+                prefHeight = 100.0
+                textProperty().bindBidirectional(commitService.message)
+                Platform.runLater { requestFocus() }
+            }
         if (mergeService.isMerging.get()) commitService.setMergeMessage()
 
         val fileDiff = FileDiffView(files.selectionModel.selectedItemProperty())
-        val amend = checkBox {
-            text = I18N["dialog.commit.amend"]
-            selectedProperty().addListener { _, _, it -> if (it) commitService.setHeadMessage() }
-        }
-
-        content = vbox {
-            addClass(DEFAULT_STYLE_CLASS)
-
-            +splitPane {
-                vgrow(Priority.ALWAYS)
-                +files
-                +fileDiff
+        val amend =
+            checkBox {
+                text = I18N["dialog.commit.amend"]
+                selectedProperty().addListener { _, _, it -> if (it) commitService.setHeadMessage() }
             }
-            +message
-            if (!mergeService.isMerging.get()) +amend
-        }
+
+        content =
+            vbox {
+                addClass(DEFAULT_STYLE_CLASS)
+
+                +splitPane {
+                    vgrow(Priority.ALWAYS)
+                    +files
+                    +fileDiff
+                }
+                +message
+                if (!mergeService.isMerging.get()) +amend
+            }
 
         +DialogButton(DialogButton.ok(I18N["dialog.commit.button"]), message.textProperty().isEmpty)
         +DialogButton(DialogButton.CANCEL)
@@ -69,10 +73,10 @@ class CommitDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.commit.ti
         }
         okAction = {
             commitService.commit(
-                    message.text,
-                    amend.isSelected,
-                    { errorAlert(window, I18N["dialog.cannotCommit.header"], I18N["dialog.cannotCommit.text"]) })
+                message.text,
+                amend.isSelected,
+                { errorAlert(window, I18N["dialog.cannotCommit.header"], I18N["dialog.cannotCommit.text"]) },
+            )
         }
     }
-
 }

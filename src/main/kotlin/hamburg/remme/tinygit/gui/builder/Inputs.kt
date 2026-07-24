@@ -27,8 +27,20 @@ inline fun textArea(block: TextArea.() -> Unit): TextArea {
     textArea.addEventFilter(KeyEvent.KEY_PRESSED, {
         if (it.code == KeyCode.TAB && !it.isShiftDown && !it.isControlDown) {
             it.consume()
-            (it.source as Node).fireEvent(KeyEvent(it.source, it.target, it.eventType, it.character, it.text, it.code,
-                    it.isShiftDown, true, it.isAltDown, it.isMetaDown))
+            (it.source as Node).fireEvent(
+                KeyEvent(
+                    it.source,
+                    it.target,
+                    it.eventType,
+                    it.character,
+                    it.text,
+                    it.code,
+                    it.isShiftDown,
+                    true,
+                    it.isAltDown,
+                    it.isMetaDown,
+                ),
+            )
         }
     })
     block(textArea)
@@ -47,13 +59,19 @@ inline fun <T> comboBox(block: ComboBox<T>.() -> Unit): ComboBox<T> {
     return comboBox
 }
 
-inline fun <T> comboBox(items: ObservableList<T>, block: ComboBox<T>.() -> Unit): ComboBox<T> {
+inline fun <T> comboBox(
+    items: ObservableList<T>,
+    block: ComboBox<T>.() -> Unit,
+): ComboBox<T> {
     val comboBox = ComboBox<T>(items)
     block(comboBox)
     return comboBox
 }
 
-inline fun autocomplete(items: ObservableList<String>, block: ComboBox<String>.() -> Unit): ComboBox<String> {
+inline fun autocomplete(
+    items: ObservableList<String>,
+    block: ComboBox<String>.() -> Unit,
+): ComboBox<String> {
     val comboBox = ComboBox<String>(items)
     comboBox.isEditable = true
     comboBox.focusedProperty().addListener { _, _, it -> if (it && comboBox.items.isNotEmpty()) comboBox.show() }

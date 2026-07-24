@@ -10,18 +10,18 @@ import javafx.scene.text.Font
  * Windows; gray AA is the crisper default for this theme.
  */
 object AppFonts {
-
     /** Design base size in CSS pixels (Windows 12 / macOS 13). */
     val baseSizePx: Double = if (isMac) 13.0 else 12.0
 
-    private val faces = listOf(
+    private val faces =
+        listOf(
             "font/Roboto-Regular.ttf",
             "font/Roboto-Bold.ttf",
             "font/Roboto-Light.ttf",
             "font/LiberationMono-Regular.ttf",
             "font/fa-solid-900.ttf",
-            "font/fa-brands-400.ttf"
-    )
+            "font/fa-brands-400.ttf",
+        )
 
     fun install() {
         // Must be set before the toolkit creates the first Scene / glass window.
@@ -30,7 +30,8 @@ object AppFonts {
 
         faces.forEach { path ->
             val url = path.asResource()
-            val font = Font.loadFont(url, baseSizePx)
+            val font =
+                Font.loadFont(url, baseSizePx)
                     ?: error("Failed to load embedded font: $path ($url)")
             // Touch the family so the CSS engine can resolve it immediately.
             Font.font(font.family, baseSizePx)

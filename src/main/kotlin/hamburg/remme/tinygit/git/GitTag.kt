@@ -11,13 +11,20 @@ private val tagParse = arrayOf("rev-parse")
 private val tagPush = arrayOf("push", "origin")
 private val tagDeletePush = arrayOf("push", "--delete", "origin")
 
-fun gitTag(repository: Repository, commit: Commit, name: String) {
+fun gitTag(
+    repository: Repository,
+    commit: Commit,
+    name: String,
+) {
     val response = git(repository, *tag, name, commit.id)
-    if (response.contains("$fatalSeparator.*already exists".toRegex(setOf(IC, G)))) throw TagAlreadyExistsException()
+    if (response.contains("$FATAL_SEPARATOR.*already exists".toRegex(setOf(IC, G)))) throw TagAlreadyExistsException()
     git(repository, *tagPush, name)
 }
 
-fun gitTagDelete(repository: Repository, tag: Tag) {
+fun gitTagDelete(
+    repository: Repository,
+    tag: Tag,
+) {
     git(repository, *tagDelete, tag.name)
     git(repository, *tagDeletePush, tag.name)
 }

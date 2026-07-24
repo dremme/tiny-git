@@ -29,7 +29,6 @@ import javafx.collections.ListChangeListener
 import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
-import javafx.scene.chart.XYChart.Data as XYData
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -77,7 +76,6 @@ import java.time.temporal.ChronoUnit
  * @see CalendarChart
  */
 class StatsView : Tab() {
-
     private val repoService = TinyGit.get<RepositoryService>()
     private val statsService = TinyGit.get<StatsService>()
     private val contributions: DonutChart
@@ -131,44 +129,53 @@ class StatsView : Tab() {
             activity.updateBoundsAndTicks()
         }
 
-        content = vbox {
-            +toolBar {
-                addSpacer()
-                +button {
-                    tooltip(I18N["stats.refresh"])
-                    graphic = Icons.refresh()
-                    setOnAction { statsService.update(repoService.activeRepository.get()!!) }
-                }
-                // TODO: implement
-                +comboBox<Any> {
-                    isDisable = true
+        content =
+            vbox {
+                +toolBar {
+                    addSpacer()
+                    +button {
+                        tooltip(I18N["stats.refresh"])
+                        graphic = Icons.refresh()
+                        setOnAction { statsService.update(repoService.activeRepository.get()!!) }
+                    }
+                    // TODO: implement
+                    +comboBox<Any> {
+                        isDisable = true
 //                    items.addAll(CalendarChart.Period.values())
 //                    valueProperty().addListener { _, _, it -> activity.updateYear(it) }
 //                    value = CalendarChart.Period.LAST_YEAR
+                    }
                 }
-            }
-            +scrollPane {
-                addClass("stats-view")
-                vgrow(Priority.ALWAYS)
-                isFitToWidth = true
-                +grid(2) {
-                    columns(50.0, 50.0)
-                    +listOf(contributionIndicator,
+                +scrollPane {
+                    addClass("stats-view")
+                    vgrow(Priority.ALWAYS)
+                    isFitToWidth = true
+                    +grid(2) {
+                        columns(50.0, 50.0)
+                        +listOf(
+                            contributionIndicator,
                             filesIndicator,
                             activityIndicator,
                             commitsIndicator,
-                            linesIndicator)
+                            linesIndicator,
+                        )
+                    }
                 }
             }
-        }
 
         repoService.activeRepository.addListener { _, _, it ->
-            if (isSelected) it?.let { statsService.update(it) }
-            else statsService.cancel()
+            if (isSelected) {
+                it?.let { statsService.update(it) }
+            } else {
+                statsService.cancel()
+            }
         }
         selectedProperty().addListener { _, _, it ->
-            if (it) statsService.update(repoService.activeRepository.get()!!)
-            else statsService.cancel()
+            if (it) {
+                statsService.update(repoService.activeRepository.get()!!)
+            } else {
+                statsService.cancel()
+            }
         }
     }
 
@@ -182,15 +189,19 @@ class StatsView : Tab() {
     private fun HistogramChart.updateBoundsAndTicks() {
         lowerBound = statsService.firstDay
         upperBound = statsService.lastDay
-        setTickMarks(monthTickDates()
-                .map { HistogramChart.TickMark(monthOfYearFormat.format(it), it) })
+        setTickMarks(
+            monthTickDates()
+                .map { HistogramChart.TickMark(monthOfYearFormat.format(it), it) },
+        )
     }
 
     private fun CalendarChart.updateBoundsAndTicks() {
         lowerBound = statsService.firstDay
         upperBound = statsService.lastDay
-        setTickMarks(monthTickDates()
-                .map { CalendarChart.TickMark(monthOfYearFormat.format(it), it) })
+        setTickMarks(
+            monthTickDates()
+                .map { CalendarChart.TickMark(monthOfYearFormat.format(it), it) },
+        )
     }
 
     private fun updateContributions(data: List<DonutChart.Data>) {
@@ -222,8 +233,10 @@ class StatsView : Tab() {
     /**
      * Wrapping a [Node] to show a progress indicator if needed.
      */
-    private class ProgressIndicator(content: Node) : StackPaneBuilder(), TaskListener {
-
+    private class ProgressIndicator(
+        content: Node,
+    ) : StackPaneBuilder(),
+        TaskListener {
         private val visible = SimpleBooleanProperty()
 
         init {
@@ -234,7 +247,5 @@ class StatsView : Tab() {
         override fun started() = visible.set(true)
 
         override fun done() = visible.set(false)
-
     }
-
 }

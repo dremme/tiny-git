@@ -1,7 +1,11 @@
 package hamburg.remme.tinygit.domain
 
-class File(val path: String, val oldPath: String, val status: Status, val isCached: Boolean) : Comparable<File> {
-
+class File(
+    val path: String,
+    val oldPath: String,
+    val status: Status,
+    val isCached: Boolean,
+) : Comparable<File> {
     override fun toString() = path
 
     override fun compareTo(other: File) = path.compareTo(other.path)
@@ -27,5 +31,4 @@ class File(val path: String, val oldPath: String, val status: Status, val isCach
     }
 
     enum class Status { CONFLICT, ADDED, COPIED, RENAMED, MODIFIED, REMOVED }
-
 }

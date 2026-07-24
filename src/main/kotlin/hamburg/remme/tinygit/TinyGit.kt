@@ -25,7 +25,6 @@ import javafx.stage.Stage
 import javafx.stage.Window
 import java.util.Collections
 import java.util.Locale
-import java.util.concurrent.Callable
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.reflect.KClass
@@ -57,7 +56,6 @@ fun main(args: Array<String>) {
  * @author Dennis Remme (dennis@remme.hamburg)
  */
 class TinyGit : Application() {
-
     /**
      * A singleton holding all the needed services and application states. It uses component scan to gather classes
      * and instantiate them. Dependency injection is supported via constructor injection.
@@ -70,11 +68,11 @@ class TinyGit : Application() {
      * @see Refreshable
      */
     companion object {
-
         /**
          * @see [TinyGit.get]
          */
         val servicesUnmodifiable: Map<KClass<*>, Any> get() = Collections.unmodifiableMap(services)
+
         /**
          * The primary window of the application
          */
@@ -91,14 +89,15 @@ class TinyGit : Application() {
         private lateinit var stage: Stage
 
         init {
-            services.mapNotNull { (_, it) -> it as? Refreshable }
-                    .forEach { refreshable ->
-                        repositoryService.activeRepository.addListener { _, _, it ->
-                            it?.let { refreshable.onRepositoryChanged(it) }
-                                    ?: refreshable.onRepositoryDeselected()
-                        }
-                        addListener { refreshable.onRefresh(it) }
+            services
+                .mapNotNull { (_, it) -> it as? Refreshable }
+                .forEach { refreshable ->
+                    repositoryService.activeRepository.addListener { _, _, it ->
+                        it?.let { refreshable.onRepositoryChanged(it) }
+                            ?: refreshable.onRepositoryDeselected()
                     }
+                    addListener { refreshable.onRefresh(it) }
+                }
         }
 
         /**
@@ -110,7 +109,8 @@ class TinyGit : Application() {
          *
          * @see Service
          */
-        inline fun <reified T> get() = servicesUnmodifiable[T::class] as? T
+        inline fun <reified T> get() =
+            servicesUnmodifiable[T::class] as? T
                 ?: throw IllegalArgumentException("No instance of type '${T::class.java.name}' available.")
 
         /**
@@ -125,9 +125,10 @@ class TinyGit : Application() {
         /**
          * Fires a refresh event. Will only trigger if the active repository is not `null`.
          */
-        fun fireEvent() = Platform.runLater {
-            repositoryService.activeRepository.get()?.let { repository -> listeners.forEach { it(repository) } }
-        }
+        fun fireEvent() =
+            Platform.runLater {
+                repositoryService.activeRepository.get()?.let { repository -> listeners.forEach { it(repository) } }
+            }
 
         /**
          * Runs a parallel task in the [cachedPool] and will also block the application from UI events.
@@ -135,7 +136,10 @@ class TinyGit : Application() {
          *
          * @see [Task.execute]
          */
-        fun run(message: String, task: Task<*>) {
+        fun run(
+            message: String,
+            task: Task<*>,
+        ) {
             task.setOnSucceeded { state.runningProcesses.dec() }
             task.setOnCancelled { state.runningProcesses.dec() }
             task.setOnFailed { state.runningProcesses.dec() }
@@ -148,7 +152,6 @@ class TinyGit : Application() {
          * Opens the default web browser with the given [url].
          */
         fun showDocument(url: String) = application.hostServices.showDocument(url)
-
     }
 
     init {
@@ -192,24 +195,25 @@ class TinyGit : Application() {
 
     private fun initSettings() {
         settings.addOnSave {
-            it["window"] = json {
-                +("x" to stage.x)
-                +("y" to stage.y)
-                +("width" to stage.width)
-                +("height" to stage.height)
-                +("maximized" to stage.isMaximized)
-                +("fullscreen" to stage.isFullScreen)
-            }
+            it["window"] =
+                json {
+                    +("x" to stage.x)
+                    +("y" to stage.y)
+                    +("width" to stage.width)
+                    +("height" to stage.height)
+                    +("maximized" to stage.isMaximized)
+                    +("fullscreen" to stage.isFullScreen)
+                }
         }
         settings.load {
             it["window"]?.let { window ->
                 applyWindowSettings(
-                        x = window.getDouble("x"),
-                        y = window.getDouble("y"),
-                        width = window.getDouble("width"),
-                        height = window.getDouble("height"),
-                        maximized = window.getBoolean("maximized") == true,
-                        fullscreen = window.getBoolean("fullscreen") == true
+                    x = window.getDouble("x"),
+                    y = window.getDouble("y"),
+                    width = window.getDouble("width"),
+                    height = window.getDouble("height"),
+                    maximized = window.getBoolean("maximized") == true,
+                    fullscreen = window.getBoolean("fullscreen") == true,
                 )
             }
             // else keep defaults from initWindow()
@@ -227,12 +231,16 @@ class TinyGit : Application() {
         stage.minWidth = 640.0
         stage.minHeight = 480.0
         stage.icons += Image("icon.png".asResource())
-        stage.titleProperty().bind(Bindings.createStringBinding({ updateTitle() },
+        stage.titleProperty().bind(
+            Bindings.createStringBinding(
+                { updateTitle() },
                 repositoryService.activeRepository,
                 mergeService.isMerging,
                 rebaseService.isRebasing,
                 rebaseService.rebaseNext,
-                rebaseService.rebaseLast))
+                rebaseService.rebaseLast,
+            ),
+        )
         // Keep chrome on whole pixels while the user resizes/moves the window.
         stage.xProperty().addListener { _, _, v -> if (v.toDouble() % 1.0 != 0.0) stage.x = v.toDouble().roundToInt().toDouble() }
         stage.yProperty().addListener { _, _, v -> if (v.toDouble() % 1.0 != 0.0) stage.y = v.toDouble().roundToInt().toDouble() }
@@ -256,26 +264,36 @@ class TinyGit : Application() {
     }
 
     private fun applyWindowSettings(
-            x: Double?,
-            y: Double?,
-            width: Double?,
-            height: Double?,
-            maximized: Boolean,
-            fullscreen: Boolean
+        x: Double?,
+        y: Double?,
+        width: Double?,
+        height: Double?,
+        maximized: Boolean,
+        fullscreen: Boolean,
     ) {
         val bounds = primaryVisualBounds()
         val (defaultW, defaultH) = defaultWindowSize(bounds)
-        val w = (width?.takeIf { it > 1.0 } ?: defaultW)
-                .roundToInt().toDouble()
+        val w =
+            (width?.takeIf { it > 1.0 } ?: defaultW)
+                .roundToInt()
+                .toDouble()
                 .coerceIn(640.0, bounds.width)
-        val h = (height?.takeIf { it > 1.0 } ?: defaultH)
-                .roundToInt().toDouble()
+        val h =
+            (height?.takeIf { it > 1.0 } ?: defaultH)
+                .roundToInt()
+                .toDouble()
                 .coerceIn(480.0, bounds.height)
         val maxX = bounds.minX + bounds.width - w
         val maxY = bounds.minY + bounds.height - h
-        val px = (x ?: (bounds.minX + (bounds.width - w) / 2)).roundToInt().toDouble()
+        val px =
+            (x ?: (bounds.minX + (bounds.width - w) / 2))
+                .roundToInt()
+                .toDouble()
                 .coerceIn(bounds.minX, maxX.coerceAtLeast(bounds.minX))
-        val py = (y ?: (bounds.minY + (bounds.height - h) / 2)).roundToInt().toDouble()
+        val py =
+            (y ?: (bounds.minY + (bounds.height - h) / 2))
+                .roundToInt()
+                .toDouble()
                 .coerceIn(bounds.minY, maxY.coerceAtLeast(bounds.minY))
         stage.width = w
         stage.height = h
@@ -301,13 +319,16 @@ class TinyGit : Application() {
     }
 
     private fun updateTitle(): String {
-        val repository = repositoryService.activeRepository.get()?.let {
-            val path = if (isMac) it.path.stripHome() else it.path
-            val rebase = if (rebaseService.isRebasing.get()) "REBASING ${rebaseService.rebaseNext.get()}/${rebaseService.rebaseLast.get()} " else ""
-            val merge = if (mergeService.isMerging.get()) "MERGING " else ""
-            "${it.shortPath} [$path] $merge$rebase\u2012 "
-        }
-        return "${repository ?: ""}TinyGit ${javaClass.`package`.implementationVersion ?: ""}"
+        val repository =
+            repositoryService.activeRepository.get()?.let {
+                val path = if (isMac) it.path.stripHome() else it.path
+                val next = rebaseService.rebaseNext.get()
+                val last = rebaseService.rebaseLast.get()
+                val rebase = if (rebaseService.isRebasing.get()) "REBASING $next/$last " else ""
+                val merge = if (mergeService.isMerging.get()) "MERGING " else ""
+                "${it.shortPath} [$path] $merge$rebase\u2012 "
+            }
+        val version = javaClass.`package`.implementationVersion ?: ""
+        return "${repository ?: ""}TinyGit $version"
     }
-
 }

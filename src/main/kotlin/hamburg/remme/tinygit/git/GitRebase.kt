@@ -12,23 +12,23 @@ import java.nio.file.Path
 private val rebase = arrayOf("rebase")
 private val rebaseContinue = arrayOf("rebase", "--continue")
 private val rebaseAbort = arrayOf("rebase", "--abort")
-private const val applyDir = "rebase-apply"
-private const val mergeDir = "rebase-merge"
-private const val nextFile = "next"
-private const val lastFile = "last"
-private const val doneFile = "done"
-private const val todoFile = "git-rebase-todo"
-private const val rebaseMarker = "Cannot rebase: "
+private const val APPLY_DIR = "rebase-apply"
+private const val MERGE_DIR = "rebase-merge"
+private const val NEXT_FILE = "next"
+private const val LAST_FILE = "last"
+private const val DONE_FILE = "done"
+private const val TODO_FILE = "git-rebase-todo"
+private const val REBASE_MARKER = "Cannot rebase: "
 
 fun gitIsRebasing(repository: Repository): Boolean {
     val gitDir = repository.path.asPath().resolve(".git")
-    return gitDir.resolve(applyDir).exists() || gitDir.resolve(mergeDir).exists()
+    return gitDir.resolve(APPLY_DIR).exists() || gitDir.resolve(MERGE_DIR).exists()
 }
 
 fun gitRebaseStatus(repository: Repository): Rebase {
     val gitDir = repository.path.asPath().resolve(".git")
-    val rebaseApplyDir = gitDir.resolve(applyDir)
-    val rebaseMergeDir = gitDir.resolve(mergeDir)
+    val rebaseApplyDir = gitDir.resolve(APPLY_DIR)
+    val rebaseMergeDir = gitDir.resolve(MERGE_DIR)
     return when {
         rebaseApplyDir.exists() -> rebaseApplyDir.parseApply()
         rebaseMergeDir.exists() -> rebaseMergeDir.parseMerge()
@@ -36,9 +36,12 @@ fun gitRebaseStatus(repository: Repository): Rebase {
     }
 }
 
-fun gitRebase(repository: Repository, branch: Branch) {
+fun gitRebase(
+    repository: Repository,
+    branch: Branch,
+) {
     val response = git(repository, *rebase, branch.name).trim()
-    if (response.startsWith(rebaseMarker)) throw RebaseException(response.substringAfter(rebaseMarker))
+    if (response.startsWith(REBASE_MARKER)) throw RebaseException(response.substringAfter(REBASE_MARKER))
 }
 
 fun gitRebaseContinue(repository: Repository) {
@@ -51,14 +54,14 @@ fun gitRebaseAbort(repository: Repository) {
 }
 
 private fun Path.parseApply(): Rebase {
-    val next = resolve(nextFile).readFirst().toInt()
-    val last = resolve(lastFile).readFirst().toInt()
+    val next = resolve(NEXT_FILE).readFirst().toInt()
+    val last = resolve(LAST_FILE).readFirst().toInt()
     return Rebase(next, last)
 }
 
 private fun Path.parseMerge(): Rebase {
-    val done = resolve(doneFile).readLines().parseLines()
-    val todo = resolve(todoFile).readLines().parseLines()
+    val done = resolve(DONE_FILE).readLines().parseLines()
+    val todo = resolve(TODO_FILE).readLines().parseLines()
     return Rebase(done, done + todo)
 }
 

@@ -16,25 +16,34 @@ private val upstream = arrayOf("--set-upstream", "origin")
 
 fun gitGetUrl(repository: Repository): String {
     val response = git(repository, *remoteGetUrl).trim()
-    if (response.startsWith(fatalSeparator)) return ""
+    if (response.startsWith(FATAL_SEPARATOR)) return ""
     return response
 }
 
-fun gitSetUrl(repository: Repository, url: String) {
+fun gitSetUrl(
+    repository: Repository,
+    url: String,
+) {
     git(repository, *remoteSetUrl, url)
 }
 
 fun gitGetPushUrl(repository: Repository): String {
     val response = git(repository, *remoteGetPushUrl).trim()
-    if (response.startsWith(fatalSeparator)) return ""
+    if (response.startsWith(FATAL_SEPARATOR)) return ""
     return response
 }
 
-fun gitSetPushUrl(repository: Repository, url: String) {
+fun gitSetPushUrl(
+    repository: Repository,
+    url: String,
+) {
     git(repository, *remoteSetPushUrl, url)
 }
 
-fun gitAddRemote(repository: Repository, url: String) {
+fun gitAddRemote(
+    repository: Repository,
+    url: String,
+) {
     git(repository, *remoteAdd, url)
 }
 
@@ -42,19 +51,33 @@ fun gitRemoveRemote(repository: Repository) {
     git(repository, *remoteRemove)
 }
 
-fun gitPush(repository: Repository, force: Boolean) {
+fun gitPush(
+    repository: Repository,
+    force: Boolean,
+) {
     var response = git(repository, *if (force) pushForce else push).trim()
-    if (response.contains("$fatalSeparator.*no upstream branch".toRegex(setOf(IC, G)))) {
-        val name = "${fatalSeparator}The current branch (.+) has no upstream branch\\..*".toRegex(setOf(IC, G)).matchEntire(response)!!.groupValues[1]
+    if (response.contains("$FATAL_SEPARATOR.*no upstream branch".toRegex(setOf(IC, G)))) {
+        val name =
+            "${FATAL_SEPARATOR}The current branch (.+) has no upstream branch\\..*"
+                .toRegex(
+                    setOf(IC, G),
+                ).matchEntire(response)!!
+                .groupValues[1]
         response = git(repository, *if (force) pushForce else push, *upstream, name).trim()
-    } else if (response.contains("$fatalSeparator.*does not match.*the name of your current branch".toRegex(setOf(IC, G)))) {
+    } else if (response.contains("$FATAL_SEPARATOR.*does not match.*the name of your current branch".toRegex(setOf(IC, G)))) {
         val head = gitHead(repository)
         response = git(repository, *if (force) pushForce else push, *upstream, head.name).trim()
     }
-    if (response.contains("$errorSeparator.*tip of your current branch is behind".toRegex(setOf(IC, G)))) throw BranchBehindException()
-    else if (response.contains("$fatalSeparator.*timed out".toRegex(setOf(IC, G)))) throw TimeoutException()
+    if (response.contains("$ERROR_SEPARATOR.*tip of your current branch is behind".toRegex(setOf(IC, G)))) {
+        throw BranchBehindException()
+    } else if (response.contains("$FATAL_SEPARATOR.*timed out".toRegex(setOf(IC, G)))) {
+        throw TimeoutException()
+    }
 }
 
-fun gitPushDelete(repository: Repository, branch: Branch) {
+fun gitPushDelete(
+    repository: Repository,
+    branch: Branch,
+) {
     git(repository, *pushDelete, branch.name.substringAfter("origin/"))
 }

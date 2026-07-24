@@ -2,13 +2,14 @@ package hamburg.remme.tinygit.domain
 
 import java.time.LocalDateTime
 
-open class Commit(val id: String,
-                  val parents: List<CommitIsh>,
-                  val fullMessage: String,
-                  val date: LocalDateTime,
-                  val authorName: String,
-                  val authorMail: String) : Comparable<Commit> {
-
+open class Commit(
+    val id: String,
+    val parents: List<CommitIsh>,
+    val fullMessage: String,
+    val date: LocalDateTime,
+    val authorName: String,
+    val authorMail: String,
+) : Comparable<Commit> {
     val shortId: String = id.abbreviate()
     val parentId = if (parents.isEmpty()) Head.EMPTY.id else parents[0].id
     val shortParents: List<String> = parents.map { it.id.abbreviate() }
@@ -33,5 +34,4 @@ open class Commit(val id: String,
     override fun hashCode() = id.hashCode()
 
     private fun String.abbreviate() = substring(0, 8)
-
 }

@@ -12,8 +12,9 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.concurrent.Task
 
 @Service
-class CommitDetailsService(service: CommitLogService) : Refreshable {
-
+class CommitDetailsService(
+    service: CommitLogService,
+) : Refreshable {
     val commitStatus = observableList<File>()
     val commitDetails = SimpleStringProperty()
     private val detailsRenderer = DetailsRenderer()
@@ -41,15 +42,15 @@ class CommitDetailsService(service: CommitLogService) : Refreshable {
     private fun update(commit: Commit?) {
         task?.cancel()
         commit?.let {
-            task = object : Task<List<File>>() {
-                override fun call() = gitDiffTree(repository, it)
+            task =
+                object : Task<List<File>>() {
+                    override fun call() = gitDiffTree(repository, it)
 
-                override fun succeeded() {
-                    commitDetails.set(detailsRenderer.render(it))
-                    commitStatus.setAll(value)
-                }
-            }.execute()
+                    override fun succeeded() {
+                        commitDetails.set(detailsRenderer.render(it))
+                        commitStatus.setAll(value)
+                    }
+                }.execute()
         } ?: commitStatus.clear()
     }
-
 }

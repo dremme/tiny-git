@@ -19,8 +19,9 @@ private const val SHAPE_STYLE_CLASS = "shape"
 private const val ARC_STYLE_CLASS = "arc-color"
 private const val COLOR_COUNT = 16
 
-class DonutChart(title: String) : Chart(title) {
-
+class DonutChart(
+    title: String,
+) : Chart(title) {
     private val data = mutableListOf<Data>()
     private val arcs get() = data.map { it.node }
     private val valueLabel = label { addClass(VALUE_STYLE_CLASS) }
@@ -32,7 +33,10 @@ class DonutChart(title: String) : Chart(title) {
         chartChildren.addAll(valueLabel, descriptionLabel)
     }
 
-    fun setData(data: List<Data>, description: (Long) -> String) {
+    fun setData(
+        data: List<Data>,
+        description: (Long) -> String,
+    ) {
         // Remove old arcs first
         chartChildren -= arcs
         // Set new reference list
@@ -40,7 +44,11 @@ class DonutChart(title: String) : Chart(title) {
         this.data += data.takeLast(COLOR_COUNT)
         this.data.forEachIndexed { i, it -> it.createNode(i) }
         // Set sum of values
-        total = this.data.map { it.value }.sum().toDouble()
+        total =
+            this.data
+                .map { it.value }
+                .sum()
+                .toDouble()
         // Set labels with original data
         val sum = data.map { it.value }.sum() // not this.data!
         valueLabel.text = sum.toString()
@@ -51,7 +59,10 @@ class DonutChart(title: String) : Chart(title) {
         requestChartLayout()
     }
 
-    override fun layoutChartChildren(width: Double, height: Double) {
+    override fun layoutChartChildren(
+        width: Double,
+        height: Double,
+    ) {
         val valueHeight = snapSizeY(valueLabel.prefHeight(width))
         valueLabel.resizeRelocate(0.0, height / 2 - valueHeight / 2, width, valueHeight)
 
@@ -68,9 +79,12 @@ class DonutChart(title: String) : Chart(title) {
                 arc.startAngle = HALF_PI
 
                 val length = TWO_PI * (it.value / total)
-                timeline.keyFrames += KeyFrame(Duration.millis(1000.0),
+                timeline.keyFrames +=
+                    KeyFrame(
+                        Duration.millis(1000.0),
                         KeyValue(arc.startAngleProperty(), -angle + HALF_PI, Interpolator.EASE_OUT),
-                        KeyValue(arc.lengthProperty(), -length, Interpolator.EASE_OUT))
+                        KeyValue(arc.lengthProperty(), -length, Interpolator.EASE_OUT),
+                    )
 
                 angle += length
                 it.wasAnimated = true
@@ -84,18 +98,19 @@ class DonutChart(title: String) : Chart(title) {
         if (timeline.keyFrames.isNotEmpty()) timeline.play()
     }
 
-    class Data(val name: String, val value: Long) {
-
+    class Data(
+        val name: String,
+        val value: Long,
+    ) {
         var node: Arc? = null
         var wasAnimated = false
 
         fun createNode(index: Int) {
-            node = Arc().apply {
-                addClass(SHAPE_STYLE_CLASS, "$ARC_STYLE_CLASS${index % COLOR_COUNT}")
-                type = ArcType.OPEN
-            }
+            node =
+                Arc().apply {
+                    addClass(SHAPE_STYLE_CLASS, "$ARC_STYLE_CLASS${index % COLOR_COUNT}")
+                    type = ArcType.OPEN
+                }
         }
-
     }
-
 }

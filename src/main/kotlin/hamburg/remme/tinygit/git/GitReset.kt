@@ -13,19 +13,32 @@ fun gitReset(repository: Repository) {
     git(repository, *reset)
 }
 
-fun gitReset(repository: Repository, files: List<File>) {
+fun gitReset(
+    repository: Repository,
+    files: List<File>,
+) {
     git(repository, *reset, *files.map { it.path }.toTypedArray())
 }
 
-fun gitResetHard(repository: Repository, branch: Branch) {
+fun gitResetHard(
+    repository: Repository,
+    branch: Branch,
+) {
     git(repository, *resetHard, "origin/${branch.name}")
 }
 
-fun gitResetHard(repository: Repository, commit: Commit) {
+fun gitResetHard(
+    repository: Repository,
+    commit: Commit,
+) {
     git(repository, *resetHard, commit.id)
 }
 
-fun gitSquash(repository: Repository, baseId: String, message: String) {
+fun gitSquash(
+    repository: Repository,
+    baseId: String,
+    message: String,
+) {
     git(repository, *resetSoft, baseId)
     gitCommit(repository, message)
 }

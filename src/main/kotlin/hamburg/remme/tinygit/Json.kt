@@ -3,8 +3,9 @@ package hamburg.remme.tinygit
 /**
  * Convenience class for representing JSON data. Is used by the [Settings] class to serialize to YAML.
  */
-class Json(map: Map<String, *> = emptyMap<String, Any>()) : LinkedHashMap<String, Any>(map) {
-
+class Json(
+    map: Map<String, *> = emptyMap<String, Any>(),
+) : LinkedHashMap<String, Any>(map) {
     @Suppress("UNCHECKED_CAST", "PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override fun get(property: String) = (super.get(property) as? Map<String, *>)?.let { Json(it) }
 
@@ -34,7 +35,6 @@ class Json(map: Map<String, *> = emptyMap<String, Any>()) : LinkedHashMap<String
     operator fun String.unaryMinus() {
         this@Json -= this
     }
-
 }
 
 inline fun json(block: Json.() -> Unit): Json {

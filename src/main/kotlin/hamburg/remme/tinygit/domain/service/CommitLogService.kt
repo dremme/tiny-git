@@ -20,17 +20,20 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.concurrent.Task
 
 @Service
-class CommitLogService(private val repositoryService: RepositoryService,
-                       private val credentialService: CredentialService) : Refreshable {
-
+class CommitLogService(
+    private val repositoryService: RepositoryService,
+    private val credentialService: CredentialService,
+) : Refreshable {
     val commits = observableList<Commit>()
     val activeCommit = SimpleObjectProperty<Commit?>()
-    val scope = object : SimpleObjectProperty<Scope>(Scope.ALL) {
-        override fun invalidated() = log()
-    }
-    val commitType = object : SimpleObjectProperty<CommitType>(CommitType.ALL) {
-        override fun invalidated() = log()
-    }
+    val scope =
+        object : SimpleObjectProperty<Scope>(Scope.ALL) {
+            override fun invalidated() = log()
+        }
+    val commitType =
+        object : SimpleObjectProperty<CommitType>(CommitType.ALL) {
+            override fun invalidated() = log()
+        }
     val logGraph = LogGraph() // TODO: overthink this
     lateinit var logListener: TaskListener
     lateinit var logErrorHandler: (String) -> Unit
@@ -75,64 +78,71 @@ class CommitLogService(private val repositoryService: RepositoryService,
     private fun log() {
         quickTask?.cancel()
         remoteTask?.cancel()
-        quickTask = object : Task<List<Commit>>() {
-            override fun call(): List<Commit> {
-                val log = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, 0, max)
-                logGraph.recreate(log)
-                return log
-            }
+        quickTask =
+            object : Task<List<Commit>>() {
+                override fun call(): List<Commit> {
+                    val log = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, 0, max)
+                    logGraph.recreate(log)
+                    return log
+                }
 
-            override fun succeeded() {
-                commits.addSorted(value.filter { commits.none(it::equals) })
-                commits -= commits.filter { value.none(it::equals) }
-                logRemote()
-            }
-        }.execute()
+                override fun succeeded() {
+                    commits.addSorted(value.filter { commits.none(it::equals) })
+                    commits -= commits.filter { value.none(it::equals) }
+                    logRemote()
+                }
+            }.execute()
     }
 
     private fun logRemote() {
         if (!repositoryService.hasRemote.get() || gitUpToDate(repository)) return
         credentialService.applyCredentials(repositoryService.remote.get())
-        remoteTask = object : Task<List<Commit>>() {
-            override fun call(): List<Commit> {
-                Platform.runLater { logListener.started() }
-                gitFetch(repository)
-                val log = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, 0, max)
-                logGraph.recreate(log)
-                return log
-            }
-
-            override fun succeeded() {
-                commits.addSorted(value.filter { commits.none(it::equals) })
-                commits -= commits.filter { value.none(it::equals) }
-                TinyGit.fireEvent()
-            }
-
-            override fun failed() {
-                when (exception) {
-                    is FetchException -> logErrorHandler(exception.message!!)
-                    else -> exception.printStackTrace()
+        remoteTask =
+            object : Task<List<Commit>>() {
+                override fun call(): List<Commit> {
+                    Platform.runLater { logListener.started() }
+                    gitFetch(repository)
+                    val log = gitLog(repository, scope.get().isAll, commitType.get().isNoMerges, 0, max)
+                    logGraph.recreate(log)
+                    return log
                 }
-            }
 
-            override fun done() = Platform.runLater { logListener.done() }
-        }.execute()
+                override fun succeeded() {
+                    commits.addSorted(value.filter { commits.none(it::equals) })
+                    commits -= commits.filter { value.none(it::equals) }
+                    TinyGit.fireEvent()
+                }
+
+                override fun failed() {
+                    when (exception) {
+                        is FetchException -> logErrorHandler(exception.message!!)
+                        else -> exception.printStackTrace()
+                    }
+                }
+
+                override fun done() = Platform.runLater { logListener.done() }
+            }.execute()
     }
 
-    enum class Scope(val isAll: Boolean, private val description: String) {
-
-        ALL(true, I18N["commitLog.allBranches"]), CURRENT(false, I18N["commitLog.currentOnly"]);
+    enum class Scope(
+        val isAll: Boolean,
+        private val description: String,
+    ) {
+        ALL(true, I18N["commitLog.allBranches"]),
+        CURRENT(false, I18N["commitLog.currentOnly"]),
+        ;
 
         override fun toString() = description
-
     }
 
-    enum class CommitType(val isNoMerges: Boolean, private val description: String) {
-
-        ALL(false, I18N["commitLog.allCommits"]), NO_MERGE_COMMITS(true, I18N["commitLog.noMerges"]);
+    enum class CommitType(
+        val isNoMerges: Boolean,
+        private val description: String,
+    ) {
+        ALL(false, I18N["commitLog.allCommits"]),
+        NO_MERGE_COMMITS(true, I18N["commitLog.noMerges"]),
+        ;
 
         override fun toString() = description
-
     }
-
 }

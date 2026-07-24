@@ -11,8 +11,10 @@ import javafx.stage.Window
 
 private const val DEFAULT_STYLE_CLASS = "choice-dialog"
 
-class ChoiceDialog<T>(ok: String, window: Window) : Dialog<T>(window, I18N["dialog.select.title"]) {
-
+class ChoiceDialog<T>(
+    ok: String,
+    window: Window,
+) : Dialog<T>(window, I18N["dialog.select.title"]) {
     var items: List<T>
         get() = throw RuntimeException("Write-only property.")
         set(value) {
@@ -30,16 +32,16 @@ class ChoiceDialog<T>(ok: String, window: Window) : Dialog<T>(window, I18N["dial
     init {
         Platform.runLater { input.requestFocus() }
 
-        content = vbox {
-            addClass(DEFAULT_STYLE_CLASS)
-            +label
-            +input
-        }
+        content =
+            vbox {
+                addClass(DEFAULT_STYLE_CLASS)
+                +label
+                +input
+            }
 
         +DialogButton(DialogButton.ok(ok))
         +DialogButton(DialogButton.CANCEL)
 
         okAction = { input.value }
     }
-
 }

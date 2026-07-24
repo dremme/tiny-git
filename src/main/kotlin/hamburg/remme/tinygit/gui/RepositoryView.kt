@@ -48,7 +48,6 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
 import javafx.scene.layout.Priority
 import javafx.util.Callback
-import java.util.concurrent.Callable
 
 private const val DEFAULT_STYLE_CLASS = "repository-view"
 private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
@@ -94,7 +93,6 @@ private const val DETACHED_STYLE_CLASS = "detached"
  * @todo: expand arrow are oftentimes buggy or completely broken
  */
 class RepositoryView : VBoxBuilder() {
-
     private val repoService = TinyGit.get<RepositoryService>()
     private val branchService = TinyGit.get<BranchService>()
     private val tagService = TinyGit.get<TagService>()
@@ -105,14 +103,15 @@ class RepositoryView : VBoxBuilder() {
     init {
         addClass(DEFAULT_STYLE_CLASS)
 
-        val repository = comboBox<Repository>(repoService.existingRepositories) {
-            buttonCell = listCell<Repository> { text = it?.shortPath }.addClass(REPO_VALUE_STYLE_CLASS)
-            cellFactory = Callback { RepositoryListCell() }
-            selectionModel.selectedItemProperty().addListener { _, _, it -> repoService.activeRepository.set(it) }
-            // Grow with the sidebar; never set prefWidth to MAX_VALUE (that inflates the Scene on first show).
-            maxWidth = Double.MAX_VALUE
-            items.addListener(ListChangeListener { while (it.next()) if (it.wasAdded()) selectionModel.selectLast() })
-        }
+        val repository =
+            comboBox<Repository>(repoService.existingRepositories) {
+                buttonCell = listCell<Repository> { text = it?.shortPath }.addClass(REPO_VALUE_STYLE_CLASS)
+                cellFactory = Callback { RepositoryListCell() }
+                selectionModel.selectedItemProperty().addListener { _, _, it -> repoService.activeRepository.set(it) }
+                // Grow with the sidebar; never set prefWidth to MAX_VALUE (that inflates the Scene on first show).
+                maxWidth = Double.MAX_VALUE
+                items.addListener(ListChangeListener { while (it.next()) if (it.wasAdded()) selectionModel.selectLast() })
+            }
         +hbox {
             +repository.hgrow(Priority.ALWAYS)
             +button {
@@ -126,96 +125,144 @@ class RepositoryView : VBoxBuilder() {
         val tags = RootTreeItem(Icons.tags(), I18N["repository.tags"])
         val stash = RootTreeItem(Icons.cubes(), I18N["repository.stash"])
 
-        tree = tree {
-            addClass(CONTENT_STYLE_CLASS)
-            vgrow(Priority.ALWAYS)
-            cellFactory = Callback { RepositoryTreeCell() }
+        tree =
+            tree {
+                addClass(CONTENT_STYLE_CLASS)
+                vgrow(Priority.ALWAYS)
+                cellFactory = Callback { RepositoryTreeCell() }
 
-            +localBranches
-            +remoteBranches
-            +tags
-            +stash
+                +localBranches
+                +remoteBranches
+                +tags
+                +stash
 
-            val renameKey = KeyCode.R
-            val deleteKey = KeyCode.DELETE
+                val renameKey = KeyCode.R
+                val deleteKey = KeyCode.DELETE
 
-            val canCheckout = Bindings.createBooleanBinding({ selectedValue.isBranch() && !selectedValue.isHead() }, selectionModel.selectedItemProperty())
-            val canRenameBranch = Bindings.createBooleanBinding({ selectedValue.isLocal() }, selectionModel.selectedItemProperty())
-            val canDeleteBranch = Bindings.createBooleanBinding({ selectedValue.isBranch() && !selectedValue.isHead() }, selectionModel.selectedItemProperty())
-            val canDeleteTag = Bindings.createBooleanBinding({ selectedValue.isTag() }, selectionModel.selectedItemProperty())
-            val canApplyStash = Bindings.createBooleanBinding({ selectedValue.isStash() }, selectionModel.selectedItemProperty())
-            val canDeleteStash = Bindings.createBooleanBinding({ selectedValue.isStash() }, selectionModel.selectedItemProperty())
+                val canCheckout =
+                    Bindings.createBooleanBinding({
+                        selectedValue.isBranch() && !selectedValue.isHead()
+                    }, selectionModel.selectedItemProperty())
+                val canRenameBranch = Bindings.createBooleanBinding({ selectedValue.isLocal() }, selectionModel.selectedItemProperty())
+                val canDeleteBranch =
+                    Bindings.createBooleanBinding({
+                        selectedValue.isBranch() && !selectedValue.isHead()
+                    }, selectionModel.selectedItemProperty())
+                val canDeleteTag = Bindings.createBooleanBinding({ selectedValue.isTag() }, selectionModel.selectedItemProperty())
+                val canApplyStash = Bindings.createBooleanBinding({ selectedValue.isStash() }, selectionModel.selectedItemProperty())
+                val canDeleteStash = Bindings.createBooleanBinding({ selectedValue.isStash() }, selectionModel.selectedItemProperty())
 
-            val checkoutBranch = Action(I18N["repository.checkoutBranch"], { Icons.check() }, disabled = canCheckout.not(),
-                    handler = { checkout(selectedValue as Branch) })
-            val renameBranch = Action("${I18N["repository.renameBranch"]} (${renameKey.shortName})", { Icons.pencil() }, disabled = canRenameBranch.not(),
-                    handler = { renameBranch(selectedValue as Branch) })
-            val deleteBranch = Action("${I18N["repository.deleteBranch"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteBranch.not(),
-                    handler = { deleteBranch(selectedValue as Branch) })
-            val deleteTag = Action("${I18N["repository.deleteTag"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteTag.not(),
-                    handler = { deleteTag(selectedValue as Tag) })
-            val applyStash = Action(I18N["repository.applyStash"], { Icons.cube() }, disabled = canApplyStash.not(),
-                    handler = { applyStash(selectedValue as StashEntry) })
-            val deleteStash = Action("${I18N["repository.deleteStash"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = canDeleteStash.not(),
-                    handler = { deleteStash(selectedValue as StashEntry) })
+                val checkoutBranch =
+                    Action(
+                        I18N["repository.checkoutBranch"],
+                        { Icons.check() },
+                        disabled = canCheckout.not(),
+                        handler = { checkout(selectedValue as Branch) },
+                    )
+                val renameBranch =
+                    Action(
+                        "${I18N["repository.renameBranch"]} (${renameKey.shortName})",
+                        { Icons.pencil() },
+                        disabled = canRenameBranch.not(),
+                        handler = { renameBranch(selectedValue as Branch) },
+                    )
+                val deleteBranch =
+                    Action(
+                        "${I18N["repository.deleteBranch"]} (${deleteKey.shortName})",
+                        { Icons.trash() },
+                        disabled = canDeleteBranch.not(),
+                        handler = { deleteBranch(selectedValue as Branch) },
+                    )
+                val deleteTag =
+                    Action(
+                        "${I18N["repository.deleteTag"]} (${deleteKey.shortName})",
+                        { Icons.trash() },
+                        disabled = canDeleteTag.not(),
+                        handler = { deleteTag(selectedValue as Tag) },
+                    )
+                val applyStash =
+                    Action(
+                        I18N["repository.applyStash"],
+                        { Icons.cube() },
+                        disabled = canApplyStash.not(),
+                        handler = { applyStash(selectedValue as StashEntry) },
+                    )
+                val deleteStash =
+                    Action(
+                        "${I18N["repository.deleteStash"]} (${deleteKey.shortName})",
+                        { Icons.trash() },
+                        disabled = canDeleteStash.not(),
+                        handler = { deleteStash(selectedValue as StashEntry) },
+                    )
 
-            contextMenu = contextMenu {
-                isAutoHide = true
-                +ActionGroup(checkoutBranch, renameBranch, deleteBranch)
-                +ActionGroup(deleteTag)
-                +ActionGroup(applyStash, deleteStash)
-            }
-            setOnKeyPressed {
-                if (!it.isShortcutDown) when (it.code) {
-                    renameKey -> if (canRenameBranch.get()) renameBranch(selectedValue as Branch)
-                    deleteKey -> {
-                        if (canDeleteBranch.get()) deleteBranch(selectedValue as Branch)
-                        if (canDeleteStash.get()) deleteStash(selectedValue as StashEntry)
+                contextMenu =
+                    contextMenu {
+                        isAutoHide = true
+                        +ActionGroup(checkoutBranch, renameBranch, deleteBranch)
+                        +ActionGroup(deleteTag)
+                        +ActionGroup(applyStash, deleteStash)
                     }
-                    else -> Unit
+                setOnKeyPressed {
+                    if (!it.isShortcutDown) {
+                        when (it.code) {
+                            renameKey -> if (canRenameBranch.get()) renameBranch(selectedValue as Branch)
+                            deleteKey -> {
+                                if (canDeleteBranch.get()) deleteBranch(selectedValue as Branch)
+                                if (canDeleteStash.get()) deleteStash(selectedValue as StashEntry)
+                            }
+                            else -> Unit
+                        }
+                    }
+                }
+                setOnMouseClicked {
+                    if (it.button == MouseButton.PRIMARY && it.clickCount == 2) {
+                        if (canCheckout.get()) checkout(selectedValue as Branch)
+                    }
                 }
             }
-            setOnMouseClicked {
-                if (it.button == MouseButton.PRIMARY && it.clickCount == 2) {
-                    if (canCheckout.get()) checkout(selectedValue as Branch)
-                }
-            }
-        }
         +tree
 
         branchService.head.addListener { _ -> tree.refresh() }
-        branchService.branches.addListener(ListChangeListener {
-            localBranches.children.updateEntries(it.list.filter { it.isLocal })
-            remoteBranches.children.updateEntries(it.list.filter { it.isRemote })
-            ensureHeadSelection()
-        })
+        branchService.branches.addListener(
+            ListChangeListener {
+                localBranches.children.updateEntries(it.list.filter { it.isLocal })
+                remoteBranches.children.updateEntries(it.list.filter { it.isRemote })
+                ensureHeadSelection()
+            },
+        )
         tagService.tags.addListener(ListChangeListener { tags.children.updateEntries(it.list) })
         stashService.stashEntries.addListener(ListChangeListener { stash.children.updateEntries(it.list) })
 
         settings.addOnSave {
             it["repositorySelection"] = json { +("path" to repository.value.path) }
-            it["tree"] = tree.root.children.map {
-                json {
-                    +("index" to tree.root.children.indexOf(it))
-                    +("expanded" to it.isExpanded)
+            it["tree"] =
+                tree.root.children.map {
+                    json {
+                        +("index" to tree.root.children.indexOf(it))
+                        +("expanded" to it.isExpanded)
+                    }
                 }
-            }
         }
         settings.load { settings ->
             settings["repositorySelection"]
-                    ?.let { repository.selectionModel.select(Repository(it.getString("path")!!)) }
-                    ?: repository.selectionModel.selectFirst()
-            settings.getList("tree")
-                    ?.filter { it.getBoolean("expanded")!! }
-                    ?.forEach { tree.root.children[it.getInt("index")!!].isExpanded = true }
+                ?.let { repository.selectionModel.select(Repository(it.getString("path")!!)) }
+                ?: repository.selectionModel.selectFirst()
+            settings
+                .getList("tree")
+                ?.filter { it.getBoolean("expanded")!! }
+                ?.forEach { tree.root.children[it.getInt("index")!!].isExpanded = true }
         }
     }
 
     private fun ObservableList<TreeItem<Any>>.updateEntries(updatedList: List<Any>) {
-        addSorted(updatedList.filter { entry -> none { it.value == entry } }.map { TreeItem(it) }
+        addSorted(
+            updatedList.filter { entry -> none { it.value == entry } }.map { TreeItem(it) },
         ) { e1: TreeItem<*>, e2: TreeItem<*> ->
-            @Suppress("UNCHECKED_CAST") val b1 = e1.value as Comparable<Any>
-            @Suppress("UNCHECKED_CAST") val b2 = e2.value as Comparable<Any>
+            @Suppress("UNCHECKED_CAST")
+            val b1 = e1.value as Comparable<Any>
+
+            @Suppress("UNCHECKED_CAST")
+            val b2 = e2.value as Comparable<Any>
             b1.compareTo(b2)
         }
         removeAll(filter { entry -> updatedList.none { it == entry.value } })
@@ -223,7 +270,9 @@ class RepositoryView : VBoxBuilder() {
 
     private fun ensureHeadSelection() {
         if (tree.selectionModel.isEmpty || tree.selectionModel.selectedItem?.value is Root) {
-            val headItem = tree.root.children.flatMap { it.children }
+            val headItem =
+                tree.root.children
+                    .flatMap { it.children }
                     .filter { it.value is Branch }
                     .find { branchService.isHead(it.value as Branch) }
             tree.selectionModel.select(headItem)
@@ -231,12 +280,18 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun renameBranch(branch: Branch) {
-        textInputDialog(TinyGit.window, I18N["dialog.renameBranch.header"], I18N["dialog.renameBranch.button"], Icons.pencil(), branch.name) { name ->
+        textInputDialog(
+            TinyGit.window,
+            I18N["dialog.renameBranch.header"],
+            I18N["dialog.renameBranch.button"],
+            Icons.pencil(),
+            branch.name,
+        ) { name ->
             branchService.rename(branch, name) {
                 errorAlert(
                     TinyGit.window,
                     I18N["dialog.cannotRenameBranch.header"],
-                    I18N["dialog.cannotRenameBranch.text", name]
+                    I18N["dialog.cannotRenameBranch.text", name],
                 )
             }
         }
@@ -252,14 +307,24 @@ class RepositoryView : VBoxBuilder() {
                     TinyGit.window,
                     I18N["dialog.cannotDeleteBranch.header"],
                     I18N["dialog.cannotDeleteBranch.button"],
-                    I18N["dialog.cannotDeleteBranch.text", branch]
+                    I18N["dialog.cannotDeleteBranch.text", branch],
                 )
-            ) { branchService.deleteLocal(branch, true) }
+            ) {
+                branchService.deleteLocal(branch, true)
+            }
         }
     }
 
     private fun deleteRemoteBranch(branch: Branch) {
-        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.deleteBranch.header"], I18N["dialog.deleteBranch.button"], I18N["dialog.deleteBranch.text", branch])) return
+        if (!confirmWarningAlert(
+                TinyGit.window,
+                I18N["dialog.deleteBranch.header"],
+                I18N["dialog.deleteBranch.button"],
+                I18N["dialog.deleteBranch.text", branch],
+            )
+        ) {
+            return
+        }
         branchService.deleteRemote(branch)
     }
 
@@ -268,15 +333,27 @@ class RepositoryView : VBoxBuilder() {
     }
 
     private fun checkoutLocal(branch: Branch) {
-        branchService.checkoutLocal(branch) { errorAlert(TinyGit.window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) }
+        branchService.checkoutLocal(
+            branch,
+        ) { errorAlert(TinyGit.window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) }
     }
 
     private fun checkoutRemote(branch: Branch) {
-        branchService.checkoutRemote(branch) { errorAlert(TinyGit.window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) }
+        branchService.checkoutRemote(
+            branch,
+        ) { errorAlert(TinyGit.window, I18N["dialog.cannotSwitch.header"], I18N["dialog.cannotSwitch.text"]) }
     }
 
     private fun deleteTag(tag: Tag) {
-        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.deleteTag.header"], I18N["dialog.deleteTag.button"], I18N["dialog.deleteTag.text", tag])) return
+        if (!confirmWarningAlert(
+                TinyGit.window,
+                I18N["dialog.deleteTag.header"],
+                I18N["dialog.deleteTag.button"],
+                I18N["dialog.deleteTag.text", tag],
+            )
+        ) {
+            return
+        }
         tagService.delete(tag)
     }
 
@@ -285,13 +362,21 @@ class RepositoryView : VBoxBuilder() {
             errorAlert(
                 TinyGit.window,
                 I18N["dialog.cannotApply.header"],
-                I18N["dialog.cannotApply.text"]
+                I18N["dialog.cannotApply.text"],
             )
         }
     }
 
     private fun deleteStash(stashEntry: StashEntry) {
-        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.deleteStash.header"], I18N["dialog.deleteStash.button"], I18N["dialog.deleteStash.text", stashEntry])) return
+        if (!confirmWarningAlert(
+                TinyGit.window,
+                I18N["dialog.deleteStash.header"],
+                I18N["dialog.deleteStash.button"],
+                I18N["dialog.deleteStash.text", stashEntry],
+            )
+        ) {
+            return
+        }
         stashService.drop(stashEntry)
     }
 
@@ -305,67 +390,82 @@ class RepositoryView : VBoxBuilder() {
 
     private fun Any?.isStash() = this is StashEntry
 
-    private class Root(val icon: Node, val text: String)
+    private class Root(
+        val icon: Node,
+        val text: String,
+    )
 
-    private class RootTreeItem(icon: Node, text: String) : TreeItem<Any>(Root(icon, text))
+    private class RootTreeItem(
+        icon: Node,
+        text: String,
+    ) : TreeItem<Any>(Root(icon, text))
 
     private class RepositoryListCell : ListCell<Repository>() {
-
         private val name = label {}
         private val path = label { addClass(PATH_STYLE_CLASS) }
 
         init {
             addClass(REPO_LIST_STYLE_CLASS)
-            graphic = vbox {
-                +name
-                +path
-            }
+            graphic =
+                vbox {
+                    +name
+                    +path
+                }
         }
 
-        override fun updateItem(item: Repository?, empty: Boolean) {
+        override fun updateItem(
+            item: Repository?,
+            empty: Boolean,
+        ) {
             super.updateItem(item, empty)
             name.text = item?.shortPath
             path.text = if (isMac) item?.path?.stripHome() else item?.path
         }
-
     }
 
     private inner class RepositoryTreeCell : TreeCell<Any>() {
-
         init {
             addClass(REPO_TREE_STYLE_CLASS)
         }
 
-        override fun updateItem(item: Any?, empty: Boolean) {
+        override fun updateItem(
+            item: Any?,
+            empty: Boolean,
+        ) {
             super.updateItem(item, empty)
-            graphic = if (empty) null else {
-                when {
-                    item is Root -> item(item.icon, item.text)
-                    item is Branch && item.isLocal -> branchItem(item)
-                    item is Branch && item.isRemote -> item(Icons.codeFork(), item.name)
-                    item is Tag -> item(Icons.tag(), item.name)
-                    item is StashEntry -> item(Icons.cube(), item.message)
-                    else -> throw RuntimeException()
+            graphic =
+                if (empty) {
+                    null
+                } else {
+                    when {
+                        item is Root -> item(item.icon, item.text)
+                        item is Branch && item.isLocal -> branchItem(item)
+                        item is Branch && item.isRemote -> item(Icons.codeFork(), item.name)
+                        item is Tag -> item(Icons.tag(), item.name)
+                        item is StashEntry -> item(Icons.cube(), item.message)
+                        else -> throw RuntimeException()
+                    }
                 }
-            }
         }
 
-        private fun item(icon: Node, text: String) = hbox {
+        private fun item(
+            icon: Node,
+            text: String,
+        ) = hbox {
             +icon
             +Label(text)
         }
 
-        private fun branchItem(branch: Branch) = hbox {
-            +if (branchService.isDetached(branch)) Icons.locationArrow() else Icons.codeFork()
-            +Label(branch.name)
-            if (branchService.isDetached(branch)) {
-                addClass(DETACHED_STYLE_CLASS)
-            } else if (branchService.isHead(branch)) {
-                addClass(CURRENT_STYLE_CLASS)
+        private fun branchItem(branch: Branch) =
+            hbox {
+                +if (branchService.isDetached(branch)) Icons.locationArrow() else Icons.codeFork()
+                +Label(branch.name)
+                if (branchService.isDetached(branch)) {
+                    addClass(DETACHED_STYLE_CLASS)
+                } else if (branchService.isHead(branch)) {
+                    addClass(CURRENT_STYLE_CLASS)
+                }
+                if (branchService.isHead(branch)) +Icons.check()
             }
-            if (branchService.isHead(branch)) +Icons.check()
-        }
-
     }
-
 }

@@ -21,7 +21,6 @@ import javafx.concurrent.Task
 
 @Service
 class WorkingCopyService : Refreshable {
-
     val staged = observableList<File>()
     val pending = observableList<File>()
     val modifiedPending = pending.filtered { it.status != File.Status.ADDED }!!
@@ -32,24 +31,26 @@ class WorkingCopyService : Refreshable {
 
     fun status(successHandler: (() -> Unit)? = null) {
         task?.cancel()
-        task = object : Task<Status>() {
-            override fun call() = gitStatus(repository)
+        task =
+            object : Task<Status>() {
+                override fun call() = gitStatus(repository)
 
-            override fun succeeded() {
-                staged.addSorted(value.staged.filter { staged.none(it::equals) })
-                staged -= staged.filter { value.staged.none(it::equals) }
-                pending.addSorted(value.pending.filter { pending.none(it::equals) })
-                pending -= pending.filter { value.pending.none(it::equals) }
-                successHandler?.invoke()
-            }
-        }.execute()
+                override fun succeeded() {
+                    staged.addSorted(value.staged.filter { staged.none(it::equals) })
+                    staged -= staged.filter { value.staged.none(it::equals) }
+                    pending.addSorted(value.pending.filter { pending.none(it::equals) })
+                    pending -= pending.filter { value.pending.none(it::equals) }
+                    successHandler?.invoke()
+                }
+            }.execute()
     }
 
     fun stage() {
         gitAdd(repository)
-        pending.filter { it.status == File.Status.REMOVED }
-                .takeIf { it.isNotEmpty() }
-                ?.let { gitRemove(repository, it) }
+        pending
+            .filter { it.status == File.Status.REMOVED }
+            .takeIf { it.isNotEmpty() }
+            ?.let { gitRemove(repository, it) }
         status()
     }
 
@@ -58,9 +59,10 @@ class WorkingCopyService : Refreshable {
             stage()
         } else {
             gitAdd(repository, selectedPending.filter { it.status != File.Status.REMOVED })
-            selectedPending.filter { it.status == File.Status.REMOVED }
-                    .takeIf { it.isNotEmpty() }
-                    ?.let { gitRemove(repository, it) }
+            selectedPending
+                .filter { it.status == File.Status.REMOVED }
+                .takeIf { it.isNotEmpty() }
+                ?.let { gitRemove(repository, it) }
             status(successHandler)
         }
     }
@@ -85,19 +87,30 @@ class WorkingCopyService : Refreshable {
     }
 
     fun delete(successHandler: () -> Unit) {
-        selectedPending.forEach { repository.resolve(it).asPath().takeIf { it.exists() }?.delete() }
+        selectedPending.forEach {
+            repository
+                .resolve(it)
+                .asPath()
+                .takeIf { it.exists() }
+                ?.delete()
+        }
         status(successHandler)
     }
 
-    fun discardChanges(successHandler: () -> Unit, errorHandler: (String) -> Unit) {
+    fun discardChanges(
+        successHandler: () -> Unit,
+        errorHandler: (String) -> Unit,
+    ) {
         try {
-            selectedPending.filter { it.status != File.Status.ADDED }
-                    .takeIf { it.isNotEmpty() }
-                    ?.let {
-                        gitCheckout(repository, it)
-                        status(successHandler)
-                    }
-        } catch (ex: RuntimeException) { // TODO
+            selectedPending
+                .filter { it.status != File.Status.ADDED }
+                .takeIf { it.isNotEmpty() }
+                ?.let {
+                    gitCheckout(repository, it)
+                    status(successHandler)
+                }
+        } catch (ex: RuntimeException) {
+            // TODO
             errorHandler(ex.message ?: "")
         }
     }
@@ -123,5 +136,4 @@ class WorkingCopyService : Refreshable {
         this.repository = repository
         status()
     }
-
 }

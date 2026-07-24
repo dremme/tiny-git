@@ -3,8 +3,9 @@ package hamburg.remme.tinygit.domain
 import hamburg.remme.tinygit.normalize
 import hamburg.remme.tinygit.stripParents
 
-class Repository(var path: String = "") {
-
+class Repository(
+    var path: String = "",
+) {
     val shortPath get() = path.stripParents()
 
     fun resolve(file: File) = "${path.normalize()}/${file.path}"
@@ -23,5 +24,4 @@ class Repository(var path: String = "") {
     }
 
     override fun hashCode() = path.hashCode()
-
 }

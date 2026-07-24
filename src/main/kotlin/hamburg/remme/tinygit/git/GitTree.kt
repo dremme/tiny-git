@@ -8,7 +8,7 @@ import hamburg.remme.tinygit.domain.Status
 private val status = arrayOf("status", "--porcelain", "--untracked-files=all")
 private val lsTree = arrayOf("ls-tree", "--name-only", "--full-tree", "-r", "HEAD")
 private val diffTree = arrayOf("diff-tree", "--no-commit-id", "--name-status", "--find-copies", "-r")
-private const val fileSeparator = " -> "
+private const val FILE_SEPARATOR = " -> "
 
 fun gitStatus(repository: Repository): Status {
     val staged = mutableListOf<File>()
@@ -18,12 +18,13 @@ fun gitStatus(repository: Repository): Status {
         val second = it[1]
         // TODO: be more specific about conflicts
         if ((first == 'D' && second == 'D') ||
-                (first == 'A' && second == 'U') ||
-                (first == 'U' && second == 'D') ||
-                (first == 'U' && second == 'A') ||
-                (first == 'D' && second == 'U') ||
-                (first == 'A' && second == 'A') ||
-                (first == 'U' && second == 'U')) {
+            (first == 'A' && second == 'U') ||
+            (first == 'U' && second == 'D') ||
+            (first == 'U' && second == 'A') ||
+            (first == 'D' && second == 'U') ||
+            (first == 'A' && second == 'A') ||
+            (first == 'U' && second == 'U')
+        ) {
             staged += File(it.toStatusFile(), "", File.Status.CONFLICT, true)
             pending += File(it.toStatusFile(), "", File.Status.CONFLICT, false)
         } else {
@@ -44,7 +45,10 @@ fun gitStatus(repository: Repository): Status {
     return Status(staged.toList(), pending.toList())
 }
 
-fun gitDiffTree(repository: Repository, commit: Commit): List<File> {
+fun gitDiffTree(
+    repository: Repository,
+    commit: Commit,
+): List<File> {
     if (commit.parents.size > 1) return emptyList()
     val entries = mutableListOf<File>()
     git(repository, *diffTree, commit.parentId, commit.id) {
@@ -66,13 +70,13 @@ fun gitLsTree(repository: Repository): List<String> {
 }
 
 private fun String.toStatusFile(): String {
-    val name = substring(3).substringAfter(fileSeparator)
+    val name = substring(3).substringAfter(FILE_SEPARATOR)
     if (name.startsWith('"') && name.endsWith('"')) return name.substring(1, name.length - 1)
     return name
 }
 
 private fun String.toStatusFileOld(): String {
-    val name = substring(3).substringBefore(fileSeparator)
+    val name = substring(3).substringBefore(FILE_SEPARATOR)
     if (name.startsWith('"') && name.endsWith('"')) return name.substring(1, name.length - 1)
     return name
 }

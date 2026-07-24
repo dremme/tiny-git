@@ -9,14 +9,23 @@ private val merge = arrayOf("merge")
 private val mergeContinue = arrayOf("merge", "--continue")
 private val mergeAbort = arrayOf("merge", "--abort")
 
-fun gitIsMerging(repository: Repository): Boolean {
-    return repository.path.asPath().resolve(".git").resolve("MERGE_HEAD").exists()
-}
+fun gitIsMerging(repository: Repository): Boolean =
+    repository.path
+        .asPath()
+        .resolve(".git")
+        .resolve("MERGE_HEAD")
+        .exists()
 
-fun gitMerge(repository: Repository, branch: Branch) {
+fun gitMerge(
+    repository: Repository,
+    branch: Branch,
+) {
     val response = git(repository, *merge, branch.name).trim()
-    if (response.lines().any { it.startsWith(errorSeparator) }) throw MergeException()
-    else if (response.lines().any { it.startsWith("CONFLICT") }) throw MergeConflictException()
+    if (response.lines().any { it.startsWith(ERROR_SEPARATOR) }) {
+        throw MergeException()
+    } else if (response.lines().any { it.startsWith("CONFLICT") }) {
+        throw MergeConflictException()
+    }
 }
 
 fun gitMergeContinue(repository: Repository) {

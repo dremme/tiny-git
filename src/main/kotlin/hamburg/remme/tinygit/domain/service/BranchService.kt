@@ -29,9 +29,10 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.concurrent.Task
 
 @Service
-class BranchService(private val repositoryService: RepositoryService,
-                    private val credentialService: CredentialService) : Refreshable {
-
+class BranchService(
+    private val repositoryService: RepositoryService,
+    private val credentialService: CredentialService,
+) : Refreshable {
     val head = SimpleObjectProperty<Head>(Head.EMPTY)
     val branches = observableList<Branch>()
     val branchesSize = Bindings.size(branches)!!
@@ -42,25 +43,14 @@ class BranchService(private val repositoryService: RepositoryService,
 
     fun isDetached(branch: Branch) = branch.name == "HEAD"
 
-    fun checkoutCommit(commit: Commit, errorHandler: () -> Unit) {
-        TinyGit.run(I18N["branch.checkoutCommit"], object : Task<Unit>() {
-            override fun call() = gitCheckout(repository, commit)
-
-            override fun succeeded() = TinyGit.fireEvent()
-
-            override fun failed() {
-                when (exception) {
-                    is CheckoutException -> errorHandler()
-                    else -> exception.printStackTrace()
-                }
-            }
-        })
-    }
-
-    fun checkoutLocal(branch: Branch, errorHandler: () -> Unit) {
-        if (branch != head.get()) {
-            TinyGit.run(I18N["branch.checkoutLocal"], object : Task<Unit>() {
-                override fun call() = gitCheckout(repository, branch)
+    fun checkoutCommit(
+        commit: Commit,
+        errorHandler: () -> Unit,
+    ) {
+        TinyGit.run(
+            I18N["branch.checkoutCommit"],
+            object : Task<Unit>() {
+                override fun call() = gitCheckout(repository, commit)
 
                 override fun succeeded() = TinyGit.fireEvent()
 
@@ -70,26 +60,59 @@ class BranchService(private val repositoryService: RepositoryService,
                         else -> exception.printStackTrace()
                     }
                 }
-            })
+            },
+        )
+    }
+
+    fun checkoutLocal(
+        branch: Branch,
+        errorHandler: () -> Unit,
+    ) {
+        if (branch != head.get()) {
+            TinyGit.run(
+                I18N["branch.checkoutLocal"],
+                object : Task<Unit>() {
+                    override fun call() = gitCheckout(repository, branch)
+
+                    override fun succeeded() = TinyGit.fireEvent()
+
+                    override fun failed() {
+                        when (exception) {
+                            is CheckoutException -> errorHandler()
+                            else -> exception.printStackTrace()
+                        }
+                    }
+                },
+            )
         }
     }
 
-    fun checkoutRemote(branch: Branch, errorHandler: () -> Unit) {
-        TinyGit.run(I18N["branch.checkoutRemote"], object : Task<Unit>() {
-            override fun call() = gitCheckoutRemote(repository, branch)
+    fun checkoutRemote(
+        branch: Branch,
+        errorHandler: () -> Unit,
+    ) {
+        TinyGit.run(
+            I18N["branch.checkoutRemote"],
+            object : Task<Unit>() {
+                override fun call() = gitCheckoutRemote(repository, branch)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() {
-                when (exception) {
-                    is CheckoutException -> checkoutLocal(Branch("", branch.name.substringAfter('/'), false), errorHandler)
-                    else -> exception.printStackTrace()
+                override fun failed() {
+                    when (exception) {
+                        is CheckoutException -> checkoutLocal(Branch("", branch.name.substringAfter('/'), false), errorHandler)
+                        else -> exception.printStackTrace()
+                    }
                 }
-            }
-        })
+            },
+        )
     }
 
-    fun rename(branch: Branch, newName: String, branchExistsHandler: () -> Unit) {
+    fun rename(
+        branch: Branch,
+        newName: String,
+        branchExistsHandler: () -> Unit,
+    ) {
         try {
             gitBranchMove(repository, branch, newName)
             TinyGit.fireEvent()
@@ -98,7 +121,11 @@ class BranchService(private val repositoryService: RepositoryService,
         }
     }
 
-    fun deleteLocal(branch: Branch, force: Boolean, branchUnpushedHandler: () -> Unit = {}) {
+    fun deleteLocal(
+        branch: Branch,
+        force: Boolean,
+        branchUnpushedHandler: () -> Unit = {},
+    ) {
         try {
             gitBranchDelete(repository, branch, force)
             TinyGit.fireEvent()
@@ -109,59 +136,81 @@ class BranchService(private val repositoryService: RepositoryService,
 
     fun deleteRemote(branch: Branch) {
         credentialService.applyCredentials(repositoryService.remote.get())
-        TinyGit.run(I18N["branch.delete"], object : Task<Unit>() {
-            override fun call() = gitPushDelete(repository, branch)
+        TinyGit.run(
+            I18N["branch.delete"],
+            object : Task<Unit>() {
+                override fun call() = gitPushDelete(repository, branch)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() = exception.printStackTrace()
-        })
+                override fun failed() = exception.printStackTrace()
+            },
+        )
     }
 
-    fun branch(name: String, branchExistsHandler: () -> Unit, nameInvalidHandler: () -> Unit) {
-        TinyGit.run(I18N["branch.create"], object : Task<Unit>() {
-            override fun call() = gitBranch(repository, name)
+    fun branch(
+        name: String,
+        branchExistsHandler: () -> Unit,
+        nameInvalidHandler: () -> Unit,
+    ) {
+        TinyGit.run(
+            I18N["branch.create"],
+            object : Task<Unit>() {
+                override fun call() = gitBranch(repository, name)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() {
-                when (exception) {
-                    is BranchAlreadyExistsException -> branchExistsHandler()
-                    is BranchNameInvalidException -> nameInvalidHandler()
-                    else -> exception.printStackTrace()
+                override fun failed() {
+                    when (exception) {
+                        is BranchAlreadyExistsException -> branchExistsHandler()
+                        is BranchNameInvalidException -> nameInvalidHandler()
+                        else -> exception.printStackTrace()
+                    }
                 }
-            }
-        })
+            },
+        )
     }
 
     fun reset(commit: Commit) {
-        TinyGit.run(I18N["branch.reset"], object : Task<Unit>() {
-            override fun call() = gitResetHard(repository, commit)
+        TinyGit.run(
+            I18N["branch.reset"],
+            object : Task<Unit>() {
+                override fun call() = gitResetHard(repository, commit)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() = exception.printStackTrace()
-        })
+                override fun failed() = exception.printStackTrace()
+            },
+        )
     }
 
     fun autoReset() {
-        TinyGit.run(I18N["branch.autoReset"], object : Task<Unit>() {
-            override fun call() = gitResetHard(repository, head.get())
+        TinyGit.run(
+            I18N["branch.autoReset"],
+            object : Task<Unit>() {
+                override fun call() = gitResetHard(repository, head.get())
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() = exception.printStackTrace()
-        })
+                override fun failed() = exception.printStackTrace()
+            },
+        )
     }
 
-    fun autoSquash(baseId: String, message: String) {
-        TinyGit.run(I18N["branch.autoSquash"], object : Task<Unit>() {
-            override fun call() = gitSquash(repository, baseId, message)
+    fun autoSquash(
+        baseId: String,
+        message: String,
+    ) {
+        TinyGit.run(
+            I18N["branch.autoSquash"],
+            object : Task<Unit>() {
+                override fun call() = gitSquash(repository, baseId, message)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() = exception.printStackTrace()
-        })
+                override fun failed() = exception.printStackTrace()
+            },
+        )
     }
 
     override fun onRefresh(repository: Repository) {
@@ -182,20 +231,20 @@ class BranchService(private val repositoryService: RepositoryService,
     private fun update(repository: Repository) {
         this.repository = repository
         task?.cancel()
-        task = object : Task<Unit>() {
-            private lateinit var head: Head
-            private lateinit var branches: List<Branch>
+        task =
+            object : Task<Unit>() {
+                private lateinit var head: Head
+                private lateinit var branches: List<Branch>
 
-            override fun call() {
-                head = gitHead(repository)
-                branches = gitBranchList(repository)
-            }
+                override fun call() {
+                    head = gitHead(repository)
+                    branches = gitBranchList(repository)
+                }
 
-            override fun succeeded() {
-                this@BranchService.head.set(head)
-                this@BranchService.branches.setAll(branches)
-            }
-        }.execute()
+                override fun succeeded() {
+                    this@BranchService.head.set(head)
+                    this@BranchService.branches.setAll(branches)
+                }
+            }.execute()
     }
-
 }

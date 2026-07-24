@@ -184,6 +184,7 @@ TinyGit/
 ├── build.gradle              # Kotlin 2.1, Java 21, OpenJFX 21, Sass task
 ├── settings.gradle           # Root project name
 ├── gradle/wrapper/           # Gradle 8.12 wrapper
+├── scss-seed/                # Fallback CSS if Sass is unavailable
 ├── src/main/
 │   ├── kotlin/hamburg/remme/tinygit/
 │   │   ├── TinyGit.kt        # Application entry, DI bootstrap
@@ -194,7 +195,6 @@ TinyGit/
 │   │   ├── *.scss            # Theme (compiled to CSS)
 │   │   ├── font/             # Roboto, Liberation Mono, Font Awesome
 │   │   └── message*.properties
-│   └── generated/css/        # Generated main-windows.css / main-mac.css
 ├── AGENTS.md                 # Conventions for coding agents
 └── LICENSE                   # BSD 3-Clause
 ```
@@ -233,7 +233,8 @@ TinyGit/
 
 - Sources: `src/main/resources/hamburg/remme/tinygit/*.scss`
 - Entry points: `main-windows.scss` (12px base), `main-mac.scss` (13px base)
-- Output: `src/main/generated/css/main-*.css` (and into the runtime classpath)
+- Output: `build/generated/resources/css/main-*.css` (classpath `/css/…`)
+- Fallback seeds: `scss-seed/main-*.css` when Sass cannot run
 - The build sanitizes Dart Sass colors (`hsl()`, percent `rgb()`) into forms JavaFX accepts
 - JavaFX `null` paints are emitted via `$fx-null` so combo-box / icon layers stay transparent correctly
 

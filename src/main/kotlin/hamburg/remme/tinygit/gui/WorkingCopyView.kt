@@ -82,7 +82,6 @@ private const val OVERLAY_STYLE_CLASS = "overlay"
  * @see StatusCountView
  */
 class WorkingCopyView : Tab() {
-
     private val service = TinyGit.get<WorkingCopyService>()
     private val state = TinyGit.get<State>()
 
@@ -90,16 +89,43 @@ class WorkingCopyView : Tab() {
      * Actions to be used in the [GitView]'s menu bar.
      */
     val actions get() = arrayOf(ActionGroup(updateAll, stageAll, stageSelected), ActionGroup(unstageAll, unstageSelected))
-    private val unstageAll = Action(I18N["workingCopy.unstageAll"], { Icons.arrowAltCircleDown() }, "Shortcut+Shift+L", state.canUnstageAll.not(),
-            { service.unstage() })
-    private val unstageSelected = Action(I18N["workingCopy.unstageSelected"], { Icons.arrowAltCircleDown() }, disabled = state.canUnstageSelected.not(),
-            handler = { unstageSelected() })
-    private val updateAll = Action(I18N["workingCopy.updateAll"], { Icons.arrowAltCircleUp() }, disabled = state.canUpdateAll.not(),
-            handler = { service.update() })
-    private val stageAll = Action(I18N["workingCopy.stageAll"], { Icons.arrowAltCircleUp() }, "Shortcut+Shift+K", state.canStageAll.not(),
-            { service.stage() })
-    private val stageSelected = Action(I18N["workingCopy.stageSelected"], { Icons.arrowAltCircleUp() }, disabled = state.canStageSelected.not(),
-            handler = { stageSelected() })
+    private val unstageAll =
+        Action(
+            I18N["workingCopy.unstageAll"],
+            { Icons.arrowAltCircleDown() },
+            "Shortcut+Shift+L",
+            state.canUnstageAll.not(),
+            { service.unstage() },
+        )
+    private val unstageSelected =
+        Action(
+            I18N["workingCopy.unstageSelected"],
+            { Icons.arrowAltCircleDown() },
+            disabled = state.canUnstageSelected.not(),
+            handler = { unstageSelected() },
+        )
+    private val updateAll =
+        Action(
+            I18N["workingCopy.updateAll"],
+            { Icons.arrowAltCircleUp() },
+            disabled = state.canUpdateAll.not(),
+            handler = { service.update() },
+        )
+    private val stageAll =
+        Action(
+            I18N["workingCopy.stageAll"],
+            { Icons.arrowAltCircleUp() },
+            "Shortcut+Shift+K",
+            state.canStageAll.not(),
+            { service.stage() },
+        )
+    private val stageSelected =
+        Action(
+            I18N["workingCopy.stageSelected"],
+            { Icons.arrowAltCircleUp() },
+            disabled = state.canStageSelected.not(),
+            handler = { stageSelected() },
+        )
 
     private val staged = FileStatusView(service.staged, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
     private val pending = FileStatusView(service.pending, SelectionMode.MULTIPLE).vgrow(Priority.ALWAYS)
@@ -116,38 +142,64 @@ class WorkingCopyView : Tab() {
         val deleteKey = KeyCode.DELETE
         val discardKey = KeyCode.D
 
-        val unstageFile = Action("${I18N["workingCopy.unstage"]} (${unstageKey.shortName})", { Icons.arrowAltCircleDown() }, disabled = state.canUnstageSelected.not(),
-                handler = { unstageSelected() })
+        val unstageFile =
+            Action(
+                "${I18N["workingCopy.unstage"]} (${unstageKey.shortName})",
+                { Icons.arrowAltCircleDown() },
+                disabled = state.canUnstageSelected.not(),
+                handler = { unstageSelected() },
+            )
 
-        staged.contextMenu = contextMenu {
-            isAutoHide = true
-            +ActionGroup(unstageFile)
-        }
+        staged.contextMenu =
+            contextMenu {
+                isAutoHide = true
+                +ActionGroup(unstageFile)
+            }
         staged.setOnKeyPressed {
-            if (!it.isShortcutDown) when (it.code) {
-                unstageKey -> if (state.canUnstageSelected.get()) unstageSelected()
-                else -> Unit
+            if (!it.isShortcutDown) {
+                when (it.code) {
+                    unstageKey -> if (state.canUnstageSelected.get()) unstageSelected()
+                    else -> Unit
+                }
             }
         }
 
-        val stageFile = Action("${I18N["workingCopy.stage"]} (${stageKey.shortName})", { Icons.arrowAltCircleUp() }, disabled = state.canStageSelected.not(),
-                handler = { stageSelected() })
-        val deleteFile = Action("${I18N["workingCopy.delete"]} (${deleteKey.shortName})", { Icons.trash() }, disabled = state.canDeleteSelected.not(),
-                handler = { deleteFile() })
-        val discardChanges = Action("${I18N["workingCopy.discard"]} (${discardKey.shortName})", { Icons.undo() }, disabled = state.canDiscardSelected.not(),
-                handler = { discardChanges() })
+        val stageFile =
+            Action(
+                "${I18N["workingCopy.stage"]} (${stageKey.shortName})",
+                { Icons.arrowAltCircleUp() },
+                disabled = state.canStageSelected.not(),
+                handler = { stageSelected() },
+            )
+        val deleteFile =
+            Action(
+                "${I18N["workingCopy.delete"]} (${deleteKey.shortName})",
+                { Icons.trash() },
+                disabled = state.canDeleteSelected.not(),
+                handler = { deleteFile() },
+            )
+        val discardChanges =
+            Action(
+                "${I18N["workingCopy.discard"]} (${discardKey.shortName})",
+                { Icons.undo() },
+                disabled = state.canDiscardSelected.not(),
+                handler = { discardChanges() },
+            )
 
-        pending.contextMenu = contextMenu {
-            isAutoHide = true
-            +ActionGroup(stageFile)
-            +ActionGroup(deleteFile, discardChanges)
-        }
+        pending.contextMenu =
+            contextMenu {
+                isAutoHide = true
+                +ActionGroup(stageFile)
+                +ActionGroup(deleteFile, discardChanges)
+            }
         pending.setOnKeyPressed {
-            if (!it.isShortcutDown) when (it.code) {
-                stageKey -> if (state.canStageSelected.get()) stageSelected()
-                deleteKey -> if (state.canDeleteSelected.get()) deleteFile()
-                discardKey -> if (state.canDiscardSelected.get()) discardChanges()
-                else -> Unit
+            if (!it.isShortcutDown) {
+                when (it.code) {
+                    stageKey -> if (state.canStageSelected.get()) stageSelected()
+                    deleteKey -> if (state.canDeleteSelected.get()) deleteFile()
+                    discardKey -> if (state.canDiscardSelected.get()) discardChanges()
+                    else -> Unit
+                }
             }
         }
 
@@ -157,48 +209,54 @@ class WorkingCopyView : Tab() {
         selectedPending.selectedItems.addListener(ListChangeListener { service.selectedPending.setAll(it.list) })
         selectedPending.selectedItemProperty().addListener({ _, _, it -> it?.let { selectedStaged.clearSelection() } })
 
-        val fileDiff = FileDiffView(Bindings.createObjectBinding(
-                Callable { selectedStaged.selectedItem ?: selectedPending.selectedItem },
-                selectedStaged.selectedItemProperty(), selectedPending.selectedItemProperty()))
+        val fileDiff =
+            FileDiffView(
+                Bindings.createObjectBinding(
+                    Callable { selectedStaged.selectedItem ?: selectedPending.selectedItem },
+                    selectedStaged.selectedItemProperty(),
+                    selectedPending.selectedItemProperty(),
+                ),
+            )
 
-        content = stackPane {
-            addClass(DEFAULT_STYLE_CLASS)
-
-            +splitPane {
-                addClass(CONTENT_STYLE_CLASS)
+        content =
+            stackPane {
+                addClass(DEFAULT_STYLE_CLASS)
 
                 +splitPane {
-                    addClass(FILES_STYLE_CLASS)
+                    addClass(CONTENT_STYLE_CLASS)
 
-                    +vbox {
-                        +toolBar {
-                            +StatusCountView(staged.items)
-                            addSpacer()
-                            +unstageAll
-                            +unstageSelected
+                    +splitPane {
+                        addClass(FILES_STYLE_CLASS)
+
+                        +vbox {
+                            +toolBar {
+                                +StatusCountView(staged.items)
+                                addSpacer()
+                                +unstageAll
+                                +unstageSelected
+                            }
+                            +staged
                         }
-                        +staged
-                    }
-                    +vbox {
-                        +toolBar {
-                            +StatusCountView(pending.items)
-                            addSpacer()
-                            +updateAll
-                            +stageAll
-                            +stageSelected
+                        +vbox {
+                            +toolBar {
+                                +StatusCountView(pending.items)
+                                addSpacer()
+                                +updateAll
+                                +stageAll
+                                +stageSelected
+                            }
+                            +pending
                         }
-                        +pending
                     }
+                    +fileDiff
                 }
-                +fileDiff
+                +stackPane {
+                    addClass(OVERLAY_STYLE_CLASS)
+                    visibleWhen(Bindings.isEmpty(staged.items).and(Bindings.isEmpty(pending.items)))
+                    managedWhen(visibleProperty())
+                    +label { text = I18N["workingCopy.nothingToCommit"] }
+                }
             }
-            +stackPane {
-                addClass(OVERLAY_STYLE_CLASS)
-                visibleWhen(Bindings.isEmpty(staged.items).and(Bindings.isEmpty(pending.items)))
-                managedWhen(visibleProperty())
-                +label { text = I18N["workingCopy.nothingToCommit"] }
-            }
-        }
 
         TinyGit.addListener { fileDiff.refresh() }
     }
@@ -214,28 +272,44 @@ class WorkingCopyView : Tab() {
     }
 
     private fun deleteFile() {
-        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.deleteFiles.header"], I18N["dialog.deleteFiles.button"],
-                        I18N["dialog.deleteFiles.text", I18N["workingCopy.selectedFiles", selectedPending.selectedItems.size]])) return
+        if (!confirmWarningAlert(
+                TinyGit.window,
+                I18N["dialog.deleteFiles.header"],
+                I18N["dialog.deleteFiles.button"],
+                I18N["dialog.deleteFiles.text", I18N["workingCopy.selectedFiles", selectedPending.selectedItems.size]],
+            )
+        ) {
+            return
+        }
         val selected = getIndex(selectedPending)
         service.delete { setIndex(selectedPending, selected) }
     }
 
     private fun discardChanges() {
-        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.discardChanges.header"], I18N["dialog.discardChanges.button"],
-                        I18N["dialog.discardChanges.text", I18N["workingCopy.selectedFiles", selectedPending.selectedItems.size]])) return
+        if (!confirmWarningAlert(
+                TinyGit.window,
+                I18N["dialog.discardChanges.header"],
+                I18N["dialog.discardChanges.button"],
+                I18N["dialog.discardChanges.text", I18N["workingCopy.selectedFiles", selectedPending.selectedItems.size]],
+            )
+        ) {
+            return
+        }
         val selected = getIndex(selectedPending)
         service.discardChanges(
-                { setIndex(selectedPending, selected) },
-                { errorAlert(TinyGit.window, I18N["dialog.cannotDiscard.header"], it) })
+            { setIndex(selectedPending, selected) },
+            { errorAlert(TinyGit.window, I18N["dialog.cannotDiscard.header"], it) },
+        )
     }
 
-    private fun getIndex(selectionModel: MultipleSelectionModel<File>): Int {
-        return if (selectionModel.selectedItems.size == 1) selectionModel.selectedIndex else -1
-    }
+    private fun getIndex(selectionModel: MultipleSelectionModel<File>): Int =
+        if (selectionModel.selectedItems.size == 1) selectionModel.selectedIndex else -1
 
-    private fun setIndex(selectionModel: MultipleSelectionModel<File>, index: Int) {
+    private fun setIndex(
+        selectionModel: MultipleSelectionModel<File>,
+        index: Int,
+    ) {
         selectionModel.clearAndSelect(index)
         selectionModel.selectedItem ?: selectionModel.selectLast()
     }
-
 }

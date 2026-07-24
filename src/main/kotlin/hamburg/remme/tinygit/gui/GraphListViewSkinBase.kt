@@ -11,8 +11,9 @@ import javafx.scene.control.skin.VirtualFlow
 /**
  * A class for enhancing the [ListViewSkin] with some private fields.
  */
-abstract class GraphListViewSkinBase(control: GraphListView) : ListViewSkin<Commit>(control) {
-
+abstract class GraphListViewSkinBase(
+    control: GraphListView,
+) : ListViewSkin<Commit>(control) {
     @Suppress("UNCHECKED_CAST")
     protected val flow = control.lookup("#virtual-flow") as VirtualFlow<IndexedCell<Commit>>
     protected val horizontalBar = lookupScrollBar(Orientation.HORIZONTAL)
@@ -26,15 +27,19 @@ abstract class GraphListViewSkinBase(control: GraphListView) : ListViewSkin<Comm
      */
     abstract fun layoutGraphChildren()
 
-    override fun layoutChildren(x: Double, y: Double, w: Double, h: Double) {
+    override fun layoutChildren(
+        x: Double,
+        y: Double,
+        w: Double,
+        h: Double,
+    ) {
         super.layoutChildren(x, y, w, h)
         Platform.runLater { layoutGraphChildren() }
     }
 
-    private fun lookupScrollBar(orientation: Orientation): ScrollBar {
-        return flow.lookupAll(".scroll-bar")
-                .map { it as ScrollBar }
-                .find { it.orientation == orientation }!!
-    }
-
+    private fun lookupScrollBar(orientation: Orientation): ScrollBar =
+        flow
+            .lookupAll(".scroll-bar")
+            .map { it as ScrollBar }
+            .find { it.orientation == orientation }!!
 }

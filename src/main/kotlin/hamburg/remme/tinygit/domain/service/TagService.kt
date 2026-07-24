@@ -16,38 +16,49 @@ import hamburg.remme.tinygit.observableList
 import javafx.concurrent.Task
 
 @Service
-class TagService(private val repositoryService: RepositoryService,
-                 private val credentialService: CredentialService) : Refreshable {
-
+class TagService(
+    private val repositoryService: RepositoryService,
+    private val credentialService: CredentialService,
+) : Refreshable {
     val tags = observableList<Tag>()
     private lateinit var repository: Repository
     private var task: Task<*>? = null
 
-    fun tag(commit: Commit, name: String, errorHandler: () -> Unit) {
+    fun tag(
+        commit: Commit,
+        name: String,
+        errorHandler: () -> Unit,
+    ) {
         credentialService.applyCredentials(repositoryService.remote.get())
-        TinyGit.run(I18N["tag.tagging"], object : Task<Unit>() {
-            override fun call() = gitTag(repository, commit, name)
+        TinyGit.run(
+            I18N["tag.tagging"],
+            object : Task<Unit>() {
+                override fun call() = gitTag(repository, commit, name)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() {
-                when (exception) {
-                    is TagAlreadyExistsException -> errorHandler()
-                    else -> exception.printStackTrace()
+                override fun failed() {
+                    when (exception) {
+                        is TagAlreadyExistsException -> errorHandler()
+                        else -> exception.printStackTrace()
+                    }
                 }
-            }
-        })
+            },
+        )
     }
 
     fun delete(tag: Tag) {
         credentialService.applyCredentials(repositoryService.remote.get())
-        TinyGit.run(I18N["tag.deleting"], object : Task<Unit>() {
-            override fun call() = gitTagDelete(repository, tag)
+        TinyGit.run(
+            I18N["tag.deleting"],
+            object : Task<Unit>() {
+                override fun call() = gitTagDelete(repository, tag)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() = exception.printStackTrace()
-        })
+                override fun failed() = exception.printStackTrace()
+            },
+        )
     }
 
     override fun onRefresh(repository: Repository) {
@@ -67,13 +78,13 @@ class TagService(private val repositoryService: RepositoryService,
     private fun update(repository: Repository) {
         this.repository = repository
         task?.cancel()
-        task = object : Task<List<Tag>>() {
-            override fun call() = gitTagList(repository)
+        task =
+            object : Task<List<Tag>>() {
+                override fun call() = gitTagList(repository)
 
-            override fun succeeded() {
-                tags.setAll(value)
-            }
-        }.execute()
+                override fun succeeded() {
+                    tags.setAll(value)
+                }
+            }.execute()
     }
-
 }

@@ -22,8 +22,9 @@ import javafx.stage.Window
 
 private const val DEFAULT_STYLE_CLASS = "settings-dialog"
 
-class SettingsDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.settings.title"]) {
-
+class SettingsDialog(
+    window: Window,
+) : Dialog<Unit>(window, I18N["dialog.settings.title"]) {
     private val service = TinyGit.get<RepositoryService>()
     private val repository = service.activeRepository.get()!!
     private val originalUrl = service.remote.get()!!
@@ -32,41 +33,54 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.setting
     private val originalProxy = gitGetProxy(repository)
 
     init {
-        val remote = textField {
-            prefWidth = 300.0
-            text = originalUrl
-            promptText = "https://github.com/..."
-        }
-        val location = textField {
-            prefWidth = 300.0
-            isEditable = false
-            text = repository.path
-            promptText = "/home/sherlock/projects/..."
-        }
-        val userName = autocomplete(service.usedNames) {
-            fillWidth()
-            promptText = "Sherlock Holmes"
-            value = originalName
-        }
-        val userEmail = autocomplete(service.usedEmails) {
-            fillWidth()
-            promptText = "sherlock.holmes@baker-street.co.uk"
-            value = originalEmail
-        }
-        val proxy = autocomplete(service.usedProxies) {
-            fillWidth()
-            promptText = "http://proxy.domain:80"
-            value = originalProxy
-        }
+        val remote =
+            textField {
+                prefWidth = 300.0
+                text = originalUrl
+                promptText = "https://github.com/..."
+            }
+        val location =
+            textField {
+                prefWidth = 300.0
+                isEditable = false
+                text = repository.path
+                promptText = "/home/sherlock/projects/..."
+            }
+        val userName =
+            autocomplete(service.usedNames) {
+                fillWidth()
+                promptText = "Sherlock Holmes"
+                value = originalName
+            }
+        val userEmail =
+            autocomplete(service.usedEmails) {
+                fillWidth()
+                promptText = "sherlock.holmes@baker-street.co.uk"
+                value = originalEmail
+            }
+        val proxy =
+            autocomplete(service.usedProxies) {
+                fillWidth()
+                promptText = "http://proxy.domain:80"
+                value = originalProxy
+            }
 
-        content = grid(2) {
-            addClass(DEFAULT_STYLE_CLASS)
-            +listOf(Label("${I18N["dialog.settings.remote"]}:"), remote,
-                    Label("${I18N["dialog.settings.location"]}:"), location,
-                    Label("${I18N["dialog.settings.userName"]}:"), userName,
-                    Label("${I18N["dialog.settings.userEmail"]}:"), userEmail,
-                    Label("${I18N["dialog.settings.proxy"]}:"), proxy)
-        }
+        content =
+            grid(2) {
+                addClass(DEFAULT_STYLE_CLASS)
+                +listOf(
+                    Label("${I18N["dialog.settings.remote"]}:"),
+                    remote,
+                    Label("${I18N["dialog.settings.location"]}:"),
+                    location,
+                    Label("${I18N["dialog.settings.userName"]}:"),
+                    userName,
+                    Label("${I18N["dialog.settings.userEmail"]}:"),
+                    userEmail,
+                    Label("${I18N["dialog.settings.proxy"]}:"),
+                    proxy,
+                )
+            }
 
         +DialogButton(DialogButton.OK)
         +DialogButton(DialogButton.CANCEL)
@@ -74,24 +88,31 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.setting
         okAction = {
             val url = remote.text
             if (url != originalUrl) {
-                if (url.isNotBlank()) service.addOrSetRemote(url)
-                else service.removeRemote()
+                if (url.isNotBlank()) {
+                    service.addOrSetRemote(url)
+                } else {
+                    service.removeRemote()
+                }
             }
 
             val name = userName.value
-            if (name != originalName) if (name.isNotBlank()) {
-                gitSetUserName(repository, name)
-                service.addUsedName(name)
-            } else {
-                gitUnsetUserName(repository)
+            if (name != originalName) {
+                if (name.isNotBlank()) {
+                    gitSetUserName(repository, name)
+                    service.addUsedName(name)
+                } else {
+                    gitUnsetUserName(repository)
+                }
             }
 
             val email = userEmail.value
-            if (email != originalEmail) if (email.isNotBlank()) {
-                gitSetUserEmail(repository, email)
-                service.addUsedEmail(email)
-            } else {
-                gitUnsetUserEmail(repository)
+            if (email != originalEmail) {
+                if (email.isNotBlank()) {
+                    gitSetUserEmail(repository, email)
+                    service.addUsedEmail(email)
+                } else {
+                    gitUnsetUserEmail(repository)
+                }
             }
 
             val hostPort = proxy.value
@@ -107,5 +128,4 @@ class SettingsDialog(window: Window) : Dialog<Unit>(window, I18N["dialog.setting
             TinyGit.fireEvent()
         }
     }
-
 }

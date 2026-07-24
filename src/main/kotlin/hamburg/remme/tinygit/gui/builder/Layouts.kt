@@ -76,79 +76,73 @@ inline fun vbox(block: VBoxBuilder.() -> Unit): VBox {
     return box
 }
 
-inline fun grid(numberOfColumns: Int, block: GridPaneBuilder.() -> Unit): GridPane {
+inline fun grid(
+    numberOfColumns: Int,
+    block: GridPaneBuilder.() -> Unit,
+): GridPane {
     val grid = GridPaneBuilder(numberOfColumns)
     block(grid)
     return grid
 }
 
 open class PaneBuilder : Pane() {
-
     operator fun Node.unaryPlus() {
         children += this
     }
-
 }
 
 open class StackPaneBuilder : StackPane() {
-
     operator fun Node.unaryPlus() {
         children += this
     }
-
 }
 
 open class SplitPaneBuilder : SplitPane() {
-
     operator fun Node.unaryPlus() {
         items += this
     }
-
 }
 
 open class ScrollPaneBuilder : ScrollPane() {
-
     operator fun Node.unaryPlus() {
         content = this
     }
-
 }
 
 open class HBoxBuilder : HBox() {
-
     operator fun Node.unaryPlus() {
         children += this
     }
-
 }
 
 open class VBoxBuilder : VBox() {
-
     operator fun Node.unaryPlus() {
         children += this
     }
-
 }
 
-class GridPaneBuilder(private val numberOfColumns: Int) : GridPane() {
-
+class GridPaneBuilder(
+    private val numberOfColumns: Int,
+) : GridPane() {
     private var rowIndex = 0
 
     fun columns(vararg percent: Double) {
         percent.forEach {
-            columnConstraints += ColumnConstraints().apply {
-                percentWidth = it
-                isFillWidth = true
-            }
+            columnConstraints +=
+                ColumnConstraints().apply {
+                    percentWidth = it
+                    isFillWidth = true
+                }
         }
     }
 
     fun rows(vararg percent: Double) {
         percent.forEach {
-            rowConstraints += RowConstraints().apply {
-                percentHeight = it
-                isFillHeight = true
-            }
+            rowConstraints +=
+                RowConstraints().apply {
+                    percentHeight = it
+                    isFillHeight = true
+                }
         }
     }
 
@@ -164,5 +158,4 @@ class GridPaneBuilder(private val numberOfColumns: Int) : GridPane() {
         }
         if (columnIndex > 0) rowIndex++
     }
-
 }

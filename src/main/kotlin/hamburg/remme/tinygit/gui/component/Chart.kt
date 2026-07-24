@@ -8,17 +8,20 @@ import javafx.scene.layout.Region
 private const val DEFAULT_STYLE_CLASS = "chart"
 private const val TITLE_STYLE_CLASS = "title"
 
-abstract class Chart(title: String) : Region() {
-
-    private val titleLabel = label {
-        addClass(TITLE_STYLE_CLASS)
-        text = title
-    }
-    private val chartContent = object : Pane() {
-        override fun layoutChildren() {
-            layoutChartChildren(snapSizeX(width), snapSizeY(height))
+abstract class Chart(
+    title: String,
+) : Region() {
+    private val titleLabel =
+        label {
+            addClass(TITLE_STYLE_CLASS)
+            text = title
         }
-    }
+    private val chartContent =
+        object : Pane() {
+            override fun layoutChildren() {
+                layoutChartChildren(snapSizeX(width), snapSizeY(height))
+            }
+        }
     protected val chartChildren get() = chartContent.children!!
 
     init {
@@ -42,6 +45,8 @@ abstract class Chart(title: String) : Region() {
 
     protected fun requestChartLayout() = chartContent.requestLayout()
 
-    abstract fun layoutChartChildren(width: Double, height: Double)
-
+    abstract fun layoutChartChildren(
+        width: Double,
+        height: Double,
+    )
 }

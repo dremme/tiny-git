@@ -28,16 +28,18 @@ private const val TICK_MARK_GAP = 2.0
 /**
  * @todo: find abstraction between this and [CalendarChart], especially tick marks and axes
  */
-class HistogramChart(title: String) : Chart(title) {
-
+class HistogramChart(
+    title: String,
+) : Chart(title) {
     private val tickMarks = mutableListOf<TickMark<LocalDate>>()
     private val series = mutableListOf<Series>()
     private val data get() = series.flatMap { it.data }
     private val rectangles get() = data.map { it.node }
-    private val plotContent = object : Pane() {
-        override fun layoutChildren() {
+    private val plotContent =
+        object : Pane() {
+            override fun layoutChildren() {
+            }
         }
-    }
     private val plotContentClip = Rectangle()
     private val xAxis = Path().addClass(AXIS_STYLE_CLASS)
 
@@ -72,11 +74,13 @@ class HistogramChart(title: String) : Chart(title) {
         this.series += series.takeLast(COLOR_COUNT)
         this.series.forEachIndexed { i, it -> it.data.forEach { it.createNode(i) } }
         // Set highest y-value
-        upperBoundY = data.groupingBy { it.xValue }
-                .fold(0L) { acc, it -> acc + it.yValue }
-                .map { it.value }
-                .maxOrNull()?.toDouble()
-                ?: 0.0
+        upperBoundY = data
+            .groupingBy { it.xValue }
+            .fold(0L) { acc, it -> acc + it.yValue }
+            .map { it.value }
+            .maxOrNull()
+            ?.toDouble()
+            ?: 0.0
         // Add new rectangles
         plotContent.children += rectangles
         // Finally request chart layout
@@ -93,7 +97,10 @@ class HistogramChart(title: String) : Chart(title) {
         chartChildren += this.tickMarks.map { it.label }
     }
 
-    override fun layoutChartChildren(width: Double, height: Double) {
+    override fun layoutChartChildren(
+        width: Double,
+        height: Double,
+    ) {
         val stepX = width / (upperBoundX - lowerBoundX)
 
         val labelHeight = tickMarks.map { it.label.prefHeight(width) }.maxOrNull() ?: 0.0
@@ -120,7 +127,10 @@ class HistogramChart(title: String) : Chart(title) {
         layoutPlotChildren(width, height - xAxisHeight)
     }
 
-    private fun layoutPlotChildren(width: Double, height: Double) {
+    private fun layoutPlotChildren(
+        width: Double,
+        height: Double,
+    ) {
         val slots = mutableMapOf<LocalDate, Double>()
         val stepX = width / (upperBoundX - lowerBoundX)
         val timeline = Timeline()
@@ -132,9 +142,12 @@ class HistogramChart(title: String) : Chart(title) {
 
                 val h = snapSizeY(Math.max(MIN_HEIGHT, height * (it.yValue / upperBoundY)))
                 val y = snapPositionY(height - h - (slots[it.xValue] ?: 0.0))
-                timeline.keyFrames += KeyFrame(Duration.millis(1000.0),
+                timeline.keyFrames +=
+                    KeyFrame(
+                        Duration.millis(1000.0),
                         KeyValue(rect.yProperty(), y, Interpolator.EASE_OUT),
-                        KeyValue(rect.heightProperty(), h, Interpolator.EASE_OUT))
+                        KeyValue(rect.heightProperty(), h, Interpolator.EASE_OUT),
+                    )
 
                 slots[it.xValue] = slots[it.xValue] ?: 0.0 + h
                 it.wasAnimated = true
@@ -147,26 +160,32 @@ class HistogramChart(title: String) : Chart(title) {
         if (timeline.keyFrames.isNotEmpty()) timeline.play()
     }
 
-    class TickMark<out T>(val name: String, val value: T) {
-
-        val label = label {
-            addClass(TICK_STYLE_CLASS)
-            text = name
-        }
-
+    class TickMark<out T>(
+        val name: String,
+        val value: T,
+    ) {
+        val label =
+            label {
+                addClass(TICK_STYLE_CLASS)
+                text = name
+            }
     }
 
-    class Series(val name: String, val data: List<Data>)
+    class Series(
+        val name: String,
+        val data: List<Data>,
+    )
 
-    class Data(val xValue: LocalDate, val yValue: Long, val size: Int = 1) {
-
+    class Data(
+        val xValue: LocalDate,
+        val yValue: Long,
+        val size: Int = 1,
+    ) {
         var node: Rectangle? = null
         var wasAnimated = false
 
         fun createNode(index: Int) {
             node = Rectangle().apply { addClass(SHAPE_STYLE_CLASS, "$RECT_STYLE_CLASS${index % COLOR_COUNT}") }
         }
-
     }
-
 }

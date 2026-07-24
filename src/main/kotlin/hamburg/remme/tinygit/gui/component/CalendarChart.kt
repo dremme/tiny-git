@@ -30,16 +30,18 @@ private const val TICK_MARK_GAP = 2.0
 /**
  * @todo: find abstraction between this and [HistogramChart], especially tick marks and axes
  */
-class CalendarChart(title: String) : Chart(title) {
-
+class CalendarChart(
+    title: String,
+) : Chart(title) {
     private val tickMarks = mutableListOf<TickMark<LocalDate>>()
     private val dowMarks = mutableListOf<TickMark<DayOfWeek>>()
     private val data = mutableListOf<Data>()
     private val rectangles get() = data.map { it.node }
-    private val plotContent = object : Pane() {
-        override fun layoutChildren() {
+    private val plotContent =
+        object : Pane() {
+            override fun layoutChildren() {
+            }
         }
-    }
     private val plotContentClip = Rectangle()
     private val xAxis = Path().addClass(AXIS_STYLE_CLASS)
 
@@ -101,7 +103,10 @@ class CalendarChart(title: String) : Chart(title) {
         chartChildren += this.dowMarks.map { it.label }
     }
 
-    override fun layoutChartChildren(width: Double, height: Double) {
+    override fun layoutChartChildren(
+        width: Double,
+        height: Double,
+    ) {
         val labelWidth = dowMarks.map { it.label.prefWidth(height) }.maxOrNull() ?: 0.0
         val labelHeight = tickMarks.map { it.label.prefHeight(width) }.maxOrNull() ?: 0.0
         val yAxisWidth = snapSizeX(TICK_MARK_LENGTH + labelWidth)
@@ -139,7 +144,10 @@ class CalendarChart(title: String) : Chart(title) {
         layoutPlotChildren(contentWidth, contentHeight)
     }
 
-    private fun layoutPlotChildren(width: Double, height: Double) {
+    private fun layoutPlotChildren(
+        width: Double,
+        height: Double,
+    ) {
         val stepX = width / (upperBoundX - lowerBoundX)
         val stepY = height / 7
         val timeline = Timeline()
@@ -147,8 +155,11 @@ class CalendarChart(title: String) : Chart(title) {
             val rect = it.node as Rectangle
             if (!it.wasAnimated) {
                 rect.opacity = 0.0
-                timeline.keyFrames += KeyFrame(Duration.millis(500.0 + 500.0 * it.index),
-                        KeyValue(rect.opacityProperty(), 1.0, Interpolator.EASE_OUT))
+                timeline.keyFrames +=
+                    KeyFrame(
+                        Duration.millis(500.0 + 500.0 * it.index),
+                        KeyValue(rect.opacityProperty(), 1.0, Interpolator.EASE_OUT),
+                    )
                 it.wasAnimated = true
             }
             val adjustedDate = it.xValue.atStartOfWeek()
@@ -164,17 +175,21 @@ class CalendarChart(title: String) : Chart(title) {
         if (timeline.keyFrames.isNotEmpty()) timeline.play()
     }
 
-    class TickMark<out T>(val name: String, val value: T) {
-
-        val label = label {
-            addClass(TICK_STYLE_CLASS)
-            text = name
-        }
-
+    class TickMark<out T>(
+        val name: String,
+        val value: T,
+    ) {
+        val label =
+            label {
+                addClass(TICK_STYLE_CLASS)
+                text = name
+            }
     }
 
-    class Data(val xValue: LocalDate, val yValue: Int) {
-
+    class Data(
+        val xValue: LocalDate,
+        val yValue: Int,
+    ) {
         var node: Rectangle? = null
         var wasAnimated = false
         var index = 0
@@ -183,7 +198,5 @@ class CalendarChart(title: String) : Chart(title) {
             this.index = index
             node = Rectangle().apply { addClass(SHAPE_STYLE_CLASS, "$RECT_STYLE_CLASS$index") }
         }
-
     }
-
 }

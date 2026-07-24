@@ -11,9 +11,7 @@ private val unsetUserEmail = arrayOf("config", "--unset", "user.email")
 private val proxy = arrayOf("config", "http.proxy")
 private val unsetProxy = arrayOf("config", "--unset", "http.proxy")
 
-fun gitGetCredentialHelper(): String {
-    return git(*credentialHelper).trim()
-}
+fun gitGetCredentialHelper(): String = git(*credentialHelper).trim()
 
 fun gitSetWincred() {
     git(*credentialHelper, "wincred")
@@ -23,11 +21,12 @@ fun gitSetKeychain() {
     git(*credentialHelper, "osxkeychain")
 }
 
-fun gitGetUserName(repository: Repository): String {
-    return git(repository, *userName).trim()
-}
+fun gitGetUserName(repository: Repository): String = git(repository, *userName).trim()
 
-fun gitSetUserName(repository: Repository, name: String) {
+fun gitSetUserName(
+    repository: Repository,
+    name: String,
+) {
     git(repository, *userName, name)
 }
 
@@ -35,11 +34,12 @@ fun gitUnsetUserName(repository: Repository) {
     git(repository, *unsetUserName)
 }
 
-fun gitGetUserEmail(repository: Repository): String {
-    return git(repository, *userEmail).trim()
-}
+fun gitGetUserEmail(repository: Repository): String = git(repository, *userEmail).trim()
 
-fun gitSetUserEmail(repository: Repository, email: String) {
+fun gitSetUserEmail(
+    repository: Repository,
+    email: String,
+) {
     git(repository, *userEmail, email)
 }
 
@@ -47,11 +47,12 @@ fun gitUnsetUserEmail(repository: Repository) {
     git(repository, *unsetUserEmail)
 }
 
-fun gitGetProxy(repository: Repository): String {
-    return git(repository, *proxy).trim()
-}
+fun gitGetProxy(repository: Repository): String = git(repository, *proxy).trim()
 
-fun gitSetProxy(repository: Repository, hostPort: String) {
+fun gitSetProxy(
+    repository: Repository,
+    hostPort: String,
+) {
     git(repository, *proxy, hostPort)
 }
 

@@ -1,3 +1,5 @@
 package hamburg.remme.tinygit.domain
 
-class CommitIsh(val id: String)
+class CommitIsh(
+    val id: String,
+)

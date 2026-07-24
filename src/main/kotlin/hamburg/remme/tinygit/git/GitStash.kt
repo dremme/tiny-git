@@ -13,7 +13,10 @@ fun gitStash(repository: Repository) {
     git(repository, *stash) // TODO: is not stashing untracked paths
 }
 
-fun gitStashApply(repository: Repository, stashEntry: StashEntry) {
+fun gitStashApply(
+    repository: Repository,
+    stashEntry: StashEntry,
+) {
     val response = git(repository, *stashApply, stashEntry.id).trim()
     if (response.lines().any { it.startsWith("conflict", true) }) throw StashConflictException()
 }
@@ -23,7 +26,10 @@ fun gitStashPop(repository: Repository) {
     if (response.lines().any { it.startsWith("conflict", true) }) throw StashConflictException()
 }
 
-fun gitStashDrop(repository: Repository, stashEntry: StashEntry) {
+fun gitStashDrop(
+    repository: Repository,
+    stashEntry: StashEntry,
+) {
     git(repository, *stashDrop, stashEntry.id)
 }
 

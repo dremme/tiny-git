@@ -46,19 +46,26 @@ private const val DEFAULT_STYLE_CLASS = "file-status-view"
  *
  * @see ListView
  */
-class FileStatusView(list: ObservableList<File>, selectionMode: SelectionMode = SelectionMode.SINGLE) : ListView<File>(list) {
-
+class FileStatusView(
+    list: ObservableList<File>,
+    selectionMode: SelectionMode = SelectionMode.SINGLE,
+) : ListView<File>(list) {
     companion object {
-
         fun conflictIcon() = Icons.exclamationTriangle()
-        fun addedIcon() = Icons.plus()
-        fun copiedIcon() = Icons.plus()
-        fun renamedIcon() = Icons.share()
-        fun modifiedIcon() = Icons.pencil()
-        fun removedIcon() = Icons.minus()
-        fun missingIcon() = Icons.minus()
-        fun untrackedIcon() = Icons.question()
 
+        fun addedIcon() = Icons.plus()
+
+        fun copiedIcon() = Icons.plus()
+
+        fun renamedIcon() = Icons.share()
+
+        fun modifiedIcon() = Icons.pencil()
+
+        fun removedIcon() = Icons.minus()
+
+        fun missingIcon() = Icons.minus()
+
+        fun untrackedIcon() = Icons.question()
     }
 
     init {
@@ -68,23 +75,24 @@ class FileStatusView(list: ObservableList<File>, selectionMode: SelectionMode = 
     }
 
     private class LocalFileListCell : ListCell<File>() {
-
-        override fun updateItem(item: File?, empty: Boolean) {
+        override fun updateItem(
+            item: File?,
+            empty: Boolean,
+        ) {
             super.updateItem(item, empty)
             text = item?.path
-            graphic = when {
-                item?.status == File.Status.CONFLICT -> conflictIcon().addClass(CONFLICT_STYLE_CLASS)
-                item?.status == File.Status.ADDED && !item.isCached -> untrackedIcon().addClass(UNTRACKED_STYLE_CLASS)
-                item?.status == File.Status.ADDED -> addedIcon().addClass(ADDED_STYLE_CLASS)
-                item?.status == File.Status.COPIED -> copiedIcon().addClass(COPIED_STYLE_CLASS)
-                item?.status == File.Status.RENAMED -> renamedIcon().addClass(RENAMED_STYLE_CLASS)
-                item?.status == File.Status.MODIFIED -> modifiedIcon().addClass(MODIFIED_STYLE_CLASS)
-                item?.status == File.Status.REMOVED && !item.isCached -> missingIcon().addClass(MISSING_STYLE_CLASS)
-                item?.status == File.Status.REMOVED -> removedIcon().addClass(REMOVED_STYLE_CLASS)
-                else -> null
-            }
+            graphic =
+                when {
+                    item?.status == File.Status.CONFLICT -> conflictIcon().addClass(CONFLICT_STYLE_CLASS)
+                    item?.status == File.Status.ADDED && !item.isCached -> untrackedIcon().addClass(UNTRACKED_STYLE_CLASS)
+                    item?.status == File.Status.ADDED -> addedIcon().addClass(ADDED_STYLE_CLASS)
+                    item?.status == File.Status.COPIED -> copiedIcon().addClass(COPIED_STYLE_CLASS)
+                    item?.status == File.Status.RENAMED -> renamedIcon().addClass(RENAMED_STYLE_CLASS)
+                    item?.status == File.Status.MODIFIED -> modifiedIcon().addClass(MODIFIED_STYLE_CLASS)
+                    item?.status == File.Status.REMOVED && !item.isCached -> missingIcon().addClass(MISSING_STYLE_CLASS)
+                    item?.status == File.Status.REMOVED -> removedIcon().addClass(REMOVED_STYLE_CLASS)
+                    else -> null
+                }
         }
-
     }
-
 }

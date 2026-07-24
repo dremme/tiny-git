@@ -16,37 +16,46 @@ import javafx.concurrent.Task
 
 @Service
 class MergeService : Refreshable {
-
     val isMerging = SimpleBooleanProperty(false)
     private lateinit var repository: Repository
 
-    fun merge(branch: Branch, conflictHandler: () -> Unit, errorHandler: () -> Unit) {
-        TinyGit.run(I18N["merge.merging"], object : Task<Unit>() {
-            override fun call() = gitMerge(repository, branch)
+    fun merge(
+        branch: Branch,
+        conflictHandler: () -> Unit,
+        errorHandler: () -> Unit,
+    ) {
+        TinyGit.run(
+            I18N["merge.merging"],
+            object : Task<Unit>() {
+                override fun call() = gitMerge(repository, branch)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() {
-                when (exception) {
-                    is MergeConflictException -> {
-                        TinyGit.fireEvent()
-                        conflictHandler()
+                override fun failed() {
+                    when (exception) {
+                        is MergeConflictException -> {
+                            TinyGit.fireEvent()
+                            conflictHandler()
+                        }
+                        is MergeException -> errorHandler()
+                        else -> exception.printStackTrace()
                     }
-                    is MergeException -> errorHandler()
-                    else -> exception.printStackTrace()
                 }
-            }
-        })
+            },
+        )
     }
 
     fun abort() {
-        TinyGit.run(I18N["merge.abort"], object : Task<Unit>() {
-            override fun call() = gitMergeAbort(repository)
+        TinyGit.run(
+            I18N["merge.abort"],
+            object : Task<Unit>() {
+                override fun call() = gitMergeAbort(repository)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() = exception.printStackTrace()
-        })
+                override fun failed() = exception.printStackTrace()
+            },
+        )
     }
 
     override fun onRefresh(repository: Repository) {
@@ -65,5 +74,4 @@ class MergeService : Refreshable {
         this.repository = repository
         isMerging.set(gitIsMerging(repository))
     }
-
 }

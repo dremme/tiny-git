@@ -29,7 +29,8 @@ repositories {
 spotless {
     encoding 'UTF-8'
     kotlin {
-        target 'src/**/*.kt'
+        // Only real sources — never build/ or generated outputs (avoids task-order conflicts)
+        target 'src/main/kotlin/**/*.kt', 'src/test/kotlin/**/*.kt'
         ktlint('1.5.0')
         trimTrailingWhitespace()
         endWithNewline()
@@ -81,17 +82,22 @@ application {
     ]
 }
 
+// Generated CSS lives under build/ (not src/) so Spotless and other source tasks
+// do not share an output path with compileSCSS (Gradle 8 implicit-dependency check).
+// Layout: build/generated/resources/css/*.css → classpath /css/*.css (same as before).
+def scssOutputDir = layout.buildDirectory.dir('generated/resources')
+// Committed fallback if Dart Sass / npx is unavailable after a clean build
+def scssSeedDir = layout.projectDirectory.dir('scss-seed')
+
 sourceSets {
     main {
         resources {
-            srcDirs += 'src/main/generated'
             // SCSS is compiled to CSS; do not ship raw SCSS sources as resources
             exclude '**/*.scss'
+            srcDir scssOutputDir
         }
     }
 }
-
-def scssOutputDir = layout.projectDirectory.dir('src/main/generated/css')
 
 tasks.register('compileSCSS') {
     description = 'Compile platform SCSS stylesheets to CSS for JavaFX'
@@ -102,16 +108,26 @@ tasks.register('compileSCSS') {
         include '**/*.scss'
     }
     inputs.files(scssTree)
+    inputs.dir(scssSeedDir).optional()
     outputs.dir(scssOutputDir)
 
     doLast {
-        scssOutputDir.asFile.mkdirs()
-        compileScssWithDartSass(winScss, scssOutputDir.file('main-windows.css').asFile)
-        compileScssWithDartSass(macScss, scssOutputDir.file('main-mac.css').asFile)
+        def cssDir = scssOutputDir.get().dir('css').asFile
+        cssDir.mkdirs()
+        compileScssWithDartSass(
+                winScss,
+                new File(cssDir, 'main-windows.css'),
+                scssSeedDir.file('main-windows.css').asFile
+        )
+        compileScssWithDartSass(
+                macScss,
+                new File(cssDir, 'main-mac.css'),
+                scssSeedDir.file('main-mac.css').asFile
+        )
     }
 }
 
-static void compileScssWithDartSass(File input, File output) {
+static void compileScssWithDartSass(File input, File output, File seed = null) {
     // Prefer local/global sass; fall back to npx. On Windows prefer *.cmd to avoid PowerShell policy issues.
     def isWindows = org.gradle.internal.os.OperatingSystem.current().isWindows()
     def sassCmd = isWindows ? 'sass.cmd' : 'sass'
@@ -142,17 +158,26 @@ static void compileScssWithDartSass(File input, File output) {
             lastError = e.message
         }
     }
-    // Keep previously generated CSS so CI/dev machines without Sass still build.
+    // Reuse prior build output, then committed seed CSS, so clean builds work without Sass.
     if (output.exists()) {
         println "WARN: Could not recompile ${input.name}; reusing existing ${output.name}. (${lastError ?: 'sass unavailable'})"
         return
     }
+    if (seed != null && seed.exists()) {
+        seed.withInputStream { inputStream ->
+            output.withOutputStream { outputStream -> outputStream << inputStream }
+        }
+        println "WARN: Could not recompile ${input.name}; copied seed ${seed.name}. (${lastError ?: 'sass unavailable'})"
+        return
+    }
     throw new GradleException(
-            "Failed to compile SCSS ${input.name} and no existing CSS was found. Install Dart Sass (`npm i -g sass`).\n${lastError ?: ''}"
+            "Failed to compile SCSS ${input.name} and no seed CSS was found. Install Dart Sass (`npm i -g sass`).\n${lastError ?: ''}"
     )
 }
 
-processResources.dependsOn(compileSCSS)
+tasks.named('processResources') {
+    dependsOn('compileSCSS')
+}
 
 /**
  * Dart Sass emits modern CSS color functions (hsl / percent rgb) that JavaFX's CssParser rejects.

@@ -11,20 +11,22 @@ import javafx.stage.Window
 
 private const val DEFAULT_STYLE_CLASS = "command-result-dialog"
 
-class CmdResultDialog(result: String, window: Window) : Dialog<Unit>(window, I18N["dialog.cmdResult.title"], true) {
-
+class CmdResultDialog(
+    result: String,
+    window: Window,
+) : Dialog<Unit>(window, I18N["dialog.cmdResult.title"], true) {
     init {
         header = I18N["dialog.cmdResult.header"]
         graphic = Icons.terminal()
-        content = vbox {
-            addClass(DEFAULT_STYLE_CLASS)
-            +textArea {
-                vgrow(Priority.ALWAYS)
-                isEditable = false
-                text = result
+        content =
+            vbox {
+                addClass(DEFAULT_STYLE_CLASS)
+                +textArea {
+                    vgrow(Priority.ALWAYS)
+                    isEditable = false
+                    text = result
+                }
             }
-        }
         +DialogButton(DialogButton.OK)
     }
-
 }

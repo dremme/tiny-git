@@ -16,30 +16,33 @@ import javafx.stage.Window
 private const val DEFAULT_STYLE_CLASS = "command-dialog"
 private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
 
-class CmdDialog(repository: Repository, window: Window) : Dialog<Array<String>>(window, I18N["dialog.cmd.title"]) {
-
+class CmdDialog(
+    repository: Repository,
+    window: Window,
+) : Dialog<Array<String>>(window, I18N["dialog.cmd.title"]) {
     init {
-        val input = textField {
-            hgrow(Priority.ALWAYS)
-            Platform.runLater { requestFocus() }
-        }
+        val input =
+            textField {
+                hgrow(Priority.ALWAYS)
+                Platform.runLater { requestFocus() }
+            }
 
         header = I18N["dialog.cmd.header"]
         graphic = Icons.terminal()
-        content = vbox {
-            addClass(DEFAULT_STYLE_CLASS)
-            +label { text = "${I18N["dialog.cmd.text", repository.path]}:" }
-            +hbox {
-                addClass(CONTENT_STYLE_CLASS)
-                +label { text = "git" }
-                +input
+        content =
+            vbox {
+                addClass(DEFAULT_STYLE_CLASS)
+                +label { text = "${I18N["dialog.cmd.text", repository.path]}:" }
+                +hbox {
+                    addClass(CONTENT_STYLE_CLASS)
+                    +label { text = "git" }
+                    +input
+                }
             }
-        }
 
         +DialogButton(DialogButton.ok(I18N["dialog.cmd.button"]))
         +DialogButton(DialogButton.CANCEL)
 
         okAction = { input.text.split(" +".toRegex()).toTypedArray() }
     }
-
 }

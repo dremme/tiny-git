@@ -16,63 +16,81 @@ import hamburg.remme.tinygit.git.gitPush
 import javafx.concurrent.Task
 
 @Service
-class RemoteService(private val repositoryService: RepositoryService,
-                    private val credentialService: CredentialService) : Refreshable {
-
+class RemoteService(
+    private val repositoryService: RepositoryService,
+    private val credentialService: CredentialService,
+) : Refreshable {
     private lateinit var repository: Repository
 
-    fun push(force: Boolean, behindHandler: () -> Unit, timeoutHandler: () -> Unit) {
+    fun push(
+        force: Boolean,
+        behindHandler: () -> Unit,
+        timeoutHandler: () -> Unit,
+    ) {
         credentialService.applyCredentials(repositoryService.remote.get())
-        TinyGit.run(I18N["remote.push"], object : Task<Unit>() {
-            override fun call() = gitPush(repository, force)
+        TinyGit.run(
+            I18N["remote.push"],
+            object : Task<Unit>() {
+                override fun call() = gitPush(repository, force)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() {
-                when (exception) {
-                    is BranchBehindException -> behindHandler()
-                    is TimeoutException -> timeoutHandler()
-                    else -> exception.printStackTrace()
+                override fun failed() {
+                    when (exception) {
+                        is BranchBehindException -> behindHandler()
+                        is TimeoutException -> timeoutHandler()
+                        else -> exception.printStackTrace()
+                    }
                 }
-            }
-        })
+            },
+        )
     }
 
     fun fetch(errorHandler: (String) -> Unit) {
         credentialService.applyCredentials(repositoryService.remote.get())
-        TinyGit.run(I18N["remote.fetch"], object : Task<Unit>() {
-            override fun call() = gitFetchPrune(repository)
+        TinyGit.run(
+            I18N["remote.fetch"],
+            object : Task<Unit>() {
+                override fun call() = gitFetchPrune(repository)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() {
-                when (exception) {
-                    is FetchException -> errorHandler(exception.message!!)
-                    else -> exception.printStackTrace()
+                override fun failed() {
+                    when (exception) {
+                        is FetchException -> errorHandler(exception.message!!)
+                        else -> exception.printStackTrace()
+                    }
                 }
-            }
-        })
+            },
+        )
     }
 
-    fun pull(errorHandler: (String) -> Unit, conflictHandler: () -> Unit, timeoutHandler: () -> Unit) {
+    fun pull(
+        errorHandler: (String) -> Unit,
+        conflictHandler: () -> Unit,
+        timeoutHandler: () -> Unit,
+    ) {
         credentialService.applyCredentials(repositoryService.remote.get())
-        TinyGit.run(I18N["remote.pull"], object : Task<Unit>() {
-            override fun call() = gitPull(repository)
+        TinyGit.run(
+            I18N["remote.pull"],
+            object : Task<Unit>() {
+                override fun call() = gitPull(repository)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() {
-                when (exception) {
-                    is MergeConflictException -> {
-                        TinyGit.fireEvent()
-                        conflictHandler()
+                override fun failed() {
+                    when (exception) {
+                        is MergeConflictException -> {
+                            TinyGit.fireEvent()
+                            conflictHandler()
+                        }
+                        is PullException -> errorHandler(exception.message!!)
+                        is TimeoutException -> timeoutHandler()
+                        else -> exception.printStackTrace()
                     }
-                    is PullException -> errorHandler(exception.message!!)
-                    is TimeoutException -> timeoutHandler()
-                    else -> exception.printStackTrace()
                 }
-            }
-        })
+            },
+        )
     }
 
     override fun onRefresh(repository: Repository) {
@@ -85,5 +103,4 @@ class RemoteService(private val repositoryService: RepositoryService,
 
     override fun onRepositoryDeselected() {
     }
-
 }

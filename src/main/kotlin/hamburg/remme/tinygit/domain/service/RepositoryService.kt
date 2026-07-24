@@ -22,13 +22,16 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.concurrent.Task
 
 @Service
-class RepositoryService(settings: Settings, private val service: CredentialService) {
-
+class RepositoryService(
+    settings: Settings,
+    private val service: CredentialService,
+) {
     private val allRepositories = observableList<Repository>()
     val existingRepositories = allRepositories.filtered { it.path.asPath().exists() }!!
-    val activeRepository = object : SimpleObjectProperty<Repository?>() {
-        override fun invalidated() = get()?.let { remote.set(gitGetUrl(it)) } ?: remote.set("")
-    }
+    val activeRepository =
+        object : SimpleObjectProperty<Repository?>() {
+            override fun invalidated() = get()?.let { remote.set(gitGetUrl(it)) } ?: remote.set("")
+        }
     val remote = SimpleStringProperty()
     val hasRemote = remote.isNotEmpty!!
     val usedNames = observableList<String>()
@@ -55,23 +58,33 @@ class RepositoryService(settings: Settings, private val service: CredentialServi
         add(Repository(path))
     }
 
-    fun clone(repository: Repository, url: String, proxy: String,
-              successHandler: () -> Unit,
-              errorHandler: (String) -> Unit) {
+    fun clone(
+        repository: Repository,
+        url: String,
+        proxy: String,
+        successHandler: () -> Unit,
+        errorHandler: (String) -> Unit,
+    ) {
         service.applyCredentials(url)
-        TinyGit.run(I18N["repository.clone"], object : Task<Unit>() {
-            override fun call() = gitClone(repository, proxy, url)
+        TinyGit.run(
+            I18N["repository.clone"],
+            object : Task<Unit>() {
+                override fun call() = gitClone(repository, proxy, url)
 
-            override fun succeeded() {
-                add(repository)
-                successHandler()
-            }
+                override fun succeeded() {
+                    add(repository)
+                    successHandler()
+                }
 
-            override fun failed() = errorHandler(exception.message!!)
-        })
+                override fun failed() = errorHandler(exception.message!!)
+            },
+        )
     }
 
-    fun open(path: String, invalidHandler: () -> Unit) {
+    fun open(
+        path: String,
+        invalidHandler: () -> Unit,
+    ) {
         if (path.asPath().resolve(".git").exists()) {
             add(Repository(path))
         } else {
@@ -82,13 +95,16 @@ class RepositoryService(settings: Settings, private val service: CredentialServi
     fun remove(repository: Repository) = allRepositories.remove(repository)
 
     fun gc() {
-        TinyGit.run(I18N["repository.gc"], object : Task<Unit>() {
-            override fun call() = gitGc(activeRepository.get()!!)
+        TinyGit.run(
+            I18N["repository.gc"],
+            object : Task<Unit>() {
+                override fun call() = gitGc(activeRepository.get()!!)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() = exception.printStackTrace()
-        })
+                override fun failed() = exception.printStackTrace()
+            },
+        )
     }
 
     fun addOrSetRemote(url: String) {
@@ -121,5 +137,4 @@ class RepositoryService(settings: Settings, private val service: CredentialServi
     private fun add(repository: Repository) {
         if (!allRepositories.contains(repository)) allRepositories += repository
     }
-
 }

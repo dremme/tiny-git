@@ -26,54 +26,82 @@ fun ButtonType.isOk() = buttonData == ButtonBar.ButtonData.OK_DONE
 
 fun ButtonType.isCancel() = buttonData == ButtonBar.ButtonData.CANCEL_CLOSE
 
-fun confirmAlert(window: Window, header: String, ok: String, text: String): Boolean {
-    val alert = alert(window,
+fun confirmAlert(
+    window: Window,
+    header: String,
+    ok: String,
+    text: String,
+): Boolean {
+    val alert =
+        alert(
+            window,
             Alert.AlertType.CONFIRMATION,
             header,
             text,
             Icons.questionCircle().addClass(INFO_STYLE_CLASS),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
-            ButtonType.CANCEL)
+            ButtonType.CANCEL,
+        )
     TinyGit.get<State>().isModal.set(true)
     return alert.showAndWait().get().isOk()
 }
 
-fun confirmWarningAlert(window: Window, header: String, ok: String, text: String): Boolean {
-    val alert = alert(window,
+fun confirmWarningAlert(
+    window: Window,
+    header: String,
+    ok: String,
+    text: String,
+): Boolean {
+    val alert =
+        alert(
+            window,
             Alert.AlertType.CONFIRMATION,
             header,
             text,
             Icons.exclamationTriangle().addClass(WARNING_STYLE_CLASS),
             ButtonType(ok, ButtonBar.ButtonData.OK_DONE),
-            ButtonType.CANCEL)
+            ButtonType.CANCEL,
+        )
     TinyGit.get<State>().isModal.set(true)
     return alert.showAndWait().get().isOk()
 }
 
-fun errorAlert(window: Window, header: String, text: String) {
-    val alert = alert(window,
+fun errorAlert(
+    window: Window,
+    header: String,
+    text: String,
+) {
+    val alert =
+        alert(
+            window,
             Alert.AlertType.ERROR,
             header,
             text,
             Icons.timesCircle().addClass(ERROR_STYLE_CLASS),
-            ButtonType.OK)
+            ButtonType.OK,
+        )
     TinyGit.get<State>().isModal.set(true)
     alert.showAndWait()
 }
 
-fun fatalAlert(header: String, text: String) {
+fun fatalAlert(
+    header: String,
+    text: String,
+) {
     val alert = Alert(Alert.AlertType.ERROR, text, ButtonType.OK)
     alert.headerText = header
     alert.graphic = Icons.timesCircle().addClass(ERROR_STYLE_CLASS)
     alert.showAndWait()
 }
 
-private fun alert(window: Window,
-                  type: Alert.AlertType,
-                  header: String,
-                  text: String,
-                  icon: Node,
-                  vararg button: ButtonType): Alert {
+private fun alert(
+    window: Window,
+    type: Alert.AlertType,
+    header: String,
+    text: String,
+    icon: Node,
+    vararg button: ButtonType,
+): Alert {
     val alert = Alert(type, text, *button)
     alert.initModality(Modality.WINDOW_MODAL)
     alert.initOwner(window)
@@ -82,12 +110,14 @@ private fun alert(window: Window,
     return alert
 }
 
-inline fun textInputDialog(window: Window,
-                           header: String,
-                           ok: String,
-                           icon: Node,
-                           defaultValue: String = "",
-                           block: (String) -> Unit) {
+inline fun textInputDialog(
+    window: Window,
+    header: String,
+    ok: String,
+    icon: Node,
+    defaultValue: String = "",
+    block: (String) -> Unit,
+) {
     val dialog = TextInputDialog(ok, false, window)
     dialog.header = header
     dialog.graphic = icon
@@ -95,13 +125,15 @@ inline fun textInputDialog(window: Window,
     dialog.showAndWait()?.let(block)
 }
 
-inline fun textAreaDialog(window: Window,
-                          header: String,
-                          ok: String,
-                          icon: Node,
-                          defaultValue: String = "",
-                          description: String = "",
-                          block: (String) -> Unit) {
+inline fun textAreaDialog(
+    window: Window,
+    header: String,
+    ok: String,
+    icon: Node,
+    defaultValue: String = "",
+    description: String = "",
+    block: (String) -> Unit,
+) {
     val dialog = TextInputDialog(ok, true, window)
     dialog.header = header
     dialog.graphic = icon
@@ -110,13 +142,15 @@ inline fun textAreaDialog(window: Window,
     dialog.showAndWait()?.let(block)
 }
 
-inline fun <T> choiceDialog(window: Window,
-                            header: String,
-                            ok: String,
-                            icon: Node,
-                            items: List<T>,
-                            description: String = "",
-                            block: (T) -> Unit) {
+inline fun <T> choiceDialog(
+    window: Window,
+    header: String,
+    ok: String,
+    icon: Node,
+    items: List<T>,
+    description: String = "",
+    block: (T) -> Unit,
+) {
     val dialog = ChoiceDialog<T>(ok, window)
     dialog.header = header
     dialog.graphic = icon
@@ -125,7 +159,11 @@ inline fun <T> choiceDialog(window: Window,
     dialog.showAndWait()?.let(block)
 }
 
-inline fun fileChooser(window: Window, title: String, block: (Path) -> Unit) {
+inline fun fileChooser(
+    window: Window,
+    title: String,
+    block: (Path) -> Unit,
+) {
     val chooser = FileChooser()
     chooser.title = title
     chooser.initialDirectory = chooserDir.toFile()
@@ -136,7 +174,11 @@ inline fun fileChooser(window: Window, title: String, block: (Path) -> Unit) {
     }
 }
 
-inline fun directoryChooser(window: Window, title: String, block: (Path) -> Unit) {
+inline fun directoryChooser(
+    window: Window,
+    title: String,
+    block: (Path) -> Unit,
+) {
     val chooser = DirectoryChooser()
     chooser.title = title
     chooser.initialDirectory = chooserDir.toFile()

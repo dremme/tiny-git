@@ -30,8 +30,9 @@ private const val COLOR_COUNT = 16
  *
  * @see CommitLogService.logGraph
  */
-class GraphListViewSkin(private val control: GraphListView) : GraphListViewSkinBase(control) {
-
+class GraphListViewSkin(
+    private val control: GraphListView,
+) : GraphListViewSkinBase(control) {
     private val logGraph = TinyGit.get<CommitLogService>().logGraph
     private val paths: List<Path>
     private val pathsClip = Rectangle()
@@ -75,11 +76,12 @@ class GraphListViewSkin(private val control: GraphListView) : GraphListViewSkinB
                 val tag = logGraph.getTag(commit)
 
                 val commitX = SPACING + SPACING * tag - scrollX
-                val commitY = if (commitIndex < firstCell.index) {
-                    (commitIndex - firstCell.index) * cellHeight
-                } else {
-                    flow.getCell(commitIndex).let { it.layoutY + it.height / 2 }
-                }
+                val commitY =
+                    if (commitIndex < firstCell.index) {
+                        (commitIndex - firstCell.index) * cellHeight
+                    } else {
+                        flow.getCell(commitIndex).let { it.layoutY + it.height / 2 }
+                    }
 
                 if (commitIndex >= firstCell.index && commitIndex <= lastCell.index) {
                     circleGroup.children += Circle(commitX, commitY, RADIUS).addClass("$NODE_STYLE_CLASS${tag % COLOR_COUNT}")
@@ -89,15 +91,17 @@ class GraphListViewSkin(private val control: GraphListView) : GraphListViewSkinB
                     val parentIndex = skinnable.items.indexOfFirst { it.id == parent.id }.takeIf { it >= 0 } ?: LAST_INDEX
                     val parentTag = logGraph.getTag(parent)
 
-                    if (parentTag >= 0
-                            && !(commitIndex < firstCell.index && parentIndex < firstCell.index)
-                            && !(commitIndex > lastCell.index && parentIndex > lastCell.index)) {
+                    if (parentTag >= 0 &&
+                        !(commitIndex < firstCell.index && parentIndex < firstCell.index) &&
+                        !(commitIndex > lastCell.index && parentIndex > lastCell.index)
+                    ) {
                         val parentX = SPACING + SPACING * parentTag - scrollX
-                        val parentY = if (parentIndex > lastCell.index) {
-                            (parentIndex - firstCell.index) * cellHeight
-                        } else {
-                            flow.getCell(parentIndex).let { it.layoutY + it.height / 2 }
-                        }
+                        val parentY =
+                            if (parentIndex > lastCell.index) {
+                                (parentIndex - firstCell.index) * cellHeight
+                            } else {
+                                flow.getCell(parentIndex).let { it.layoutY + it.height / 2 }
+                            }
 
                         val path = paths[if (commit.parents.size == 1) tag % COLOR_COUNT else parentTag % COLOR_COUNT]
                         path.elements += MoveTo(commitX, commitY)
@@ -110,11 +114,13 @@ class GraphListViewSkin(private val control: GraphListView) : GraphListViewSkinB
                                     path.elements += LineTo(commitX, parentY - cellHeight)
                                     path.elements += CubicCurveTo(commitX, parentY, parentX, parentY - cellHeight, parentX, parentY)
                                 } else {
-                                    path.elements += CubicCurveTo(commitX, commitY + cellHeight, parentX, parentY - cellHeight, parentX, parentY)
+                                    path.elements +=
+                                        CubicCurveTo(commitX, commitY + cellHeight, parentX, parentY - cellHeight, parentX, parentY)
                                 }
                             }
                             else -> {
-                                path.elements += CubicCurveTo(commitX, commitY + cellHeight, parentX, commitY, parentX, commitY + cellHeight)
+                                path.elements +=
+                                    CubicCurveTo(commitX, commitY + cellHeight, parentX, commitY, parentX, commitY + cellHeight)
                                 if (parentIndex - commitIndex > 1) path.elements += LineTo(parentX, parentY)
                             }
                         }
@@ -128,5 +134,4 @@ class GraphListViewSkin(private val control: GraphListView) : GraphListViewSkinB
             control.graphWidth = EMPTY_SPACING
         }
     }
-
 }

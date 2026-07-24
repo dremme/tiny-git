@@ -11,10 +11,10 @@ import hamburg.remme.tinygit.htmlEncodeAll
  * @todo: get style from JavaFX CSS
  */
 class DetailsRenderer {
-
     fun render(commit: Commit?): String {
         //language=HTML
-        if (commit == null) return """
+        if (commit == null) {
+            return """
             <html>
             <head>
                 <style>
@@ -25,6 +25,7 @@ class DetailsRenderer {
             </head>
             </html>
         """
+        }
         //language=HTML
         return """
             <html>
@@ -66,5 +67,4 @@ class DetailsRenderer {
             </html>
         """
     }
-
 }

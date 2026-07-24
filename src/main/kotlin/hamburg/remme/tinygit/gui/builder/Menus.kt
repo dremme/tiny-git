@@ -27,15 +27,14 @@ inline fun menuItem(block: MenuItemBuilder.() -> Unit): MenuItem {
     return item
 }
 
-fun menuItem(action: Action): MenuItem {
-    return menuItem {
+fun menuItem(action: Action): MenuItem =
+    menuItem {
         text = action.text
         icon = action.icon?.invoke()
         action.shortcut?.let { accelerator = KeyCombination.valueOf(it) }
         action.disabled?.let { disableProperty().bind(it) }
         setOnAction { action.handler() }
     }
-}
 
 inline fun contextMenu(block: ContextMenuBuilder.() -> Unit): ContextMenu {
     val menu = ContextMenuBuilder()
@@ -43,20 +42,18 @@ inline fun contextMenu(block: ContextMenuBuilder.() -> Unit): ContextMenu {
     return menu
 }
 
-fun contextMenuItem(action: Action): MenuItem {
-    return menuItem {
+fun contextMenuItem(action: Action): MenuItem =
+    menuItem {
         text = action.text
         graphic = action.icon?.invoke()
         action.disabled?.let { disableProperty().bind(it) }
         setOnAction { action.handler() }
     }
-}
 
 /**
  * @todo: find icon solution for Mac OS
  */
 class MenuItemBuilder : MenuItem() {
-
     var shortcut: String
         get() = throw RuntimeException("Write-only property.")
         set(value) {
@@ -65,16 +62,15 @@ class MenuItemBuilder : MenuItem() {
     var icon: Node?
         get() = graphic
         set(icon) {
-            graphic = when {
-                isMac -> null
-                else -> icon
-            }
+            graphic =
+                when {
+                    isMac -> null
+                    else -> icon
+                }
         }
-
 }
 
 class MenuBuilder : Menu() {
-
     operator fun MenuItem.unaryPlus() {
         items += this
     }
@@ -83,11 +79,9 @@ class MenuBuilder : Menu() {
         if (items.isNotEmpty()) +SeparatorMenuItem()
         action.forEach { +menuItem(it) }
     }
-
 }
 
 class ContextMenuBuilder : ContextMenu() {
-
     operator fun MenuItem.unaryPlus() {
         items += this
     }
@@ -96,11 +90,9 @@ class ContextMenuBuilder : ContextMenu() {
         if (items.isNotEmpty()) +SeparatorMenuItem()
         action.forEach { +contextMenuItem(it) }
     }
-
 }
 
 class MenuBarBuilder : MenuBar() {
-
     operator fun Menu.unaryPlus() {
         menus += this
     }
@@ -111,5 +103,4 @@ class MenuBarBuilder : MenuBar() {
             group.forEach { +it }
         }
     }
-
 }

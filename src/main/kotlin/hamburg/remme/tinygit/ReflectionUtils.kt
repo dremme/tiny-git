@@ -7,14 +7,17 @@ import kotlin.reflect.KClass
 const val BASE_PACKAGE = "hamburg.remme.tinygit"
 const val BASE_PATH = "hamburg/remme/tinygit"
 const val CLASS_EXTENSION = ".class"
+
 /**
  * The default [ClassLoader] retrieved from [Thread.currentThread].
  */
 val classLoader = Thread.currentThread().contextClassLoader!!
+
 /**
  * The primary constructor of the [KClass] based on the Kotlin language.
  */
 val KClass<*>.primaryConstructor get() = java.constructors[0]!!
+
 /**
  * The [Parameter]s of the primary constructor.
  * @see KClass.primaryConstructor
@@ -26,7 +29,8 @@ val KClass<*>.primaryParameters: List<Parameter> get() = primaryConstructor.para
  *
  * Scans the class-path for [Class]es and returns them as [Sequence].
  */
-fun scanClassPath() = (if (isJar()) jarClasses() else fileClasses())
+fun scanClassPath() =
+    (if (isJar()) jarClasses() else fileClasses())
         .map { it.toString().replace('\\', '/') }
         .map { it.substringAfter("$BASE_PATH/") }
         .map { it.replace('/', '.') }
@@ -37,7 +41,10 @@ fun scanClassPath() = (if (isJar()) jarClasses() else fileClasses())
 /**
  * **Warning: don't use this if you don't know what you are doing!**
  */
-private fun jarClasses() = jarFile().entries().asSequence()
+private fun jarClasses() =
+    jarFile()
+        .entries()
+        .asSequence()
         .map { it.name }
         .filter { it.startsWith(BASE_PATH) }
         .filter { it.endsWith(CLASS_EXTENSION) }
@@ -47,10 +54,15 @@ private fun jarClasses() = jarFile().entries().asSequence()
  *
  * Uses [java.net.URL.toURI] so Windows file URLs (`file:/C:/...`) resolve correctly.
  */
-private fun fileClasses() = classLoader.getResources(BASE_PATH).asSequence()
+private fun fileClasses() =
+    classLoader
+        .getResources(BASE_PATH)
+        .asSequence()
         .map { it.toURI() }
-        .map { java.nio.file.Paths.get(it) }
-        .flatMap { it.walk() }
+        .map {
+            java.nio.file.Paths
+                .get(it)
+        }.flatMap { it.walk() }
         .filter { it.extensionEquals(CLASS_EXTENSION) }
 
 /**
@@ -58,7 +70,8 @@ private fun fileClasses() = classLoader.getResources(BASE_PATH).asSequence()
  *
  * Finds all [KClass]es in the class-path annotated with the [Annotation].
  */
-inline fun <reified T : Annotation> scanAnnotation() = scanClassPath()
+inline fun <reified T : Annotation> scanAnnotation() =
+    scanClassPath()
         .filter { it.isAnnotationPresent(T::class.java) }
         .map { it.kotlin }
         .toList()
@@ -126,4 +139,7 @@ private fun topologicalSort(graph: Set<ClassNode>): List<ClassNode> {
 /**
  * A directed graph node used in [topologicalSort].
  */
-private class ClassNode(val value: KClass<*>, val neighbors: MutableList<ClassNode> = mutableListOf())
+private class ClassNode(
+    val value: KClass<*>,
+    val neighbors: MutableList<ClassNode> = mutableListOf(),
+)

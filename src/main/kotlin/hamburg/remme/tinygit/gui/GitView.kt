@@ -98,7 +98,6 @@ private const val SHORTCUT_STYLE_CLASS = "${OVERLAY_STYLE_CLASS}__shortcut"
  * @see StatsView
  */
 class GitView : VBoxBuilder() {
-
     private val repoService = TinyGit.get<RepositoryService>()
     private val branchService = TinyGit.get<BranchService>()
     private val divergenceService = TinyGit.get<DivergenceService>()
@@ -119,95 +118,273 @@ class GitView : VBoxBuilder() {
         val tabs = TabPane(commitLog, workingCopy, stats)
 
         // File
-        val cloneRepo = Action(I18N["menu.clone"], { Icons.clone() }, "Shortcut+Shift+O",
-                handler = { CloneDialog(TinyGit.window).show() })
-        val newRepo = Action(I18N["menu.new"], { Icons.folder() }, "Shortcut+N",
-                handler = { newRepo() })
-        val addRepo = Action(I18N["menu.add"], { Icons.folderOpen() }, "Shortcut+O",
-                handler = { addRepo() })
-        val quit = Action(I18N["menu.quit"], { Icons.signOut() },
-                handler = { Platform.exit() })
+        val cloneRepo =
+            Action(
+                I18N["menu.clone"],
+                { Icons.clone() },
+                "Shortcut+Shift+O",
+                handler = { CloneDialog(TinyGit.window).show() },
+            )
+        val newRepo =
+            Action(
+                I18N["menu.new"],
+                { Icons.folder() },
+                "Shortcut+N",
+                handler = { newRepo() },
+            )
+        val addRepo =
+            Action(
+                I18N["menu.add"],
+                { Icons.folderOpen() },
+                "Shortcut+O",
+                handler = { addRepo() },
+            )
+        val quit =
+            Action(
+                I18N["menu.quit"],
+                { Icons.signOut() },
+                handler = { Platform.exit() },
+            )
         // View
-        val showCommits = Action(I18N["menu.showLog"], { Icons.list() }, "F1", repoService.activeRepository.isNull, // TODO: own prop?
-                handler = { tabs.selectionModel.select(commitLog) })
-        val showWorkingCopy = Action(I18N["menu.showCopy"], { Icons.hdd() }, "F2", repoService.activeRepository.isNull, // TODO: own prop?
-                handler = { tabs.selectionModel.select(workingCopy) })
-        val showStats = Action(I18N["menu.showStats"], { Icons.chartPie() }, "F3", repoService.activeRepository.isNull, // TODO: own prop?
-                handler = { tabs.selectionModel.select(stats) })
-        val refresh = Action(I18N["menu.refresh"], { Icons.refresh() }, "F5", repoService.activeRepository.isNull, // TODO: own prop?
-                handler = { TinyGit.fireEvent() })
+        val showCommits =
+            Action(
+                I18N["menu.showLog"],
+                { Icons.list() },
+                "F1",
+                repoService.activeRepository.isNull, // TODO: own prop?
+                handler = { tabs.selectionModel.select(commitLog) },
+            )
+        val showWorkingCopy =
+            Action(
+                I18N["menu.showCopy"],
+                { Icons.hdd() },
+                "F2",
+                repoService.activeRepository.isNull, // TODO: own prop?
+                handler = { tabs.selectionModel.select(workingCopy) },
+            )
+        val showStats =
+            Action(
+                I18N["menu.showStats"],
+                { Icons.chartPie() },
+                "F3",
+                repoService.activeRepository.isNull, // TODO: own prop?
+                handler = { tabs.selectionModel.select(stats) },
+            )
+        val refresh =
+            Action(
+                I18N["menu.refresh"],
+                { Icons.refresh() },
+                "F5",
+                repoService.activeRepository.isNull, // TODO: own prop?
+                handler = { TinyGit.fireEvent() },
+            )
         // Repository
-        val commit = Action(I18N["menu.commit"], { Icons.plus() }, "Shortcut+K", state.canCommit.not(),
-                { CommitDialog(TinyGit.window).show() })
-        val push = Action(I18N["menu.push"], { Icons.cloudUpload() }, "Shortcut+P", state.canPush.not(),
-                { push(false) }, divergenceService.ahead)
-        val pushForce = Action(I18N["menu.forcePush"], { Icons.cloudUpload() }, "Shortcut+Shift+P", state.canForcePush.not(),
-                { push(true) }, divergenceService.ahead)
-        val pull = Action(I18N["menu.pull"], { Icons.cloudDownload() }, "Shortcut+L", state.canPull.not(),
-                { pull() }, divergenceService.behind)
-        val fetch = Action(I18N["menu.fetch"], { Icons.refresh() }, "Shortcut+F", state.canFetch.not(),
-                { fetch() })
-        val fetchGc = Action(I18N["menu.gc"], { Icons.eraser() }, "Shortcut+Shift+F", state.canGc.not(),
-                { repoService.gc() })
-        val branch = Action(I18N["menu.branch"], { Icons.codeFork() }, "Shortcut+B", state.canBranch.not(),
-                { createBranch() })
-        val merge = Action(I18N["menu.merge"], { Icons.codeFork().flipY() }, if (isMac) "Shortcut+Shift+M" else "Shortcut+M", state.canMerge.not(),
-                handler = { merge() })
-        val mergeContinue = Action(I18N["menu.continueMerge"], { Icons.forward() }, disabled = state.canMergeContinue.not(),
-                handler = { CommitDialog(TinyGit.window).show() })
-        val mergeAbort = Action(I18N["menu.abortMerge"], { Icons.timesCircle() }, disabled = state.canMergeAbort.not(),
-                handler = { mergeService.abort() })
-        val rebase = Action(I18N["menu.rebase"], { Icons.levelUp().flipX() }, "Shortcut+R", state.canRebase.not(),
-                handler = { rebase() })
-        val rebaseContinue = Action(I18N["menu.continueRebase"], { Icons.forward() }, disabled = state.canRebaseContinue.not(),
-                handler = { rebaseContinue() })
-        val rebaseAbort = Action(I18N["menu.abortRebase"], { Icons.timesCircle() }, disabled = state.canRebaseAbort.not(),
-                handler = { rebaseService.abort() })
-        val stash = Action(I18N["menu.stash"], { Icons.cube() }, "Shortcut+S", state.canStash.not(),
-                { stashService.create() })
-        val stashPop = Action(I18N["menu.popStash"], { Icons.cube().flipXY() }, "Shortcut+Shift+S", state.canApplyStash.not(),
-                { stashPop() })
-        val reset = Action(I18N["menu.autoReset"], { Icons.undo() }, disabled = state.canReset.not(),
-                handler = { autoReset() })
-        val squash = Action(I18N["menu.autoSquash"], { Icons.gavel() }, disabled = state.canSquash.not(),
-                handler = { autoSquash() }, count = divergenceService.aheadDefault)
-        val winSettings = Action(I18N["menu.settings"], { Icons.cog() }, disabled = state.canSettings.not(),
-                handler = { SettingsDialog(TinyGit.window).show() })
-        val macSettings = Action(I18N["menu.preferences"], shortcut = "Shortcut+Comma", disabled = state.canSettings.not(),
-                handler = { SettingsDialog(TinyGit.window).show() })
-        val removeRepo = Action(I18N["menu.remove"], { Icons.trash() }, disabled = state.canRemove.not(),
-                handler = { removeRepo() })
+        val commit =
+            Action(
+                I18N["menu.commit"],
+                { Icons.plus() },
+                "Shortcut+K",
+                state.canCommit.not(),
+                { CommitDialog(TinyGit.window).show() },
+            )
+        val push =
+            Action(
+                I18N["menu.push"],
+                { Icons.cloudUpload() },
+                "Shortcut+P",
+                state.canPush.not(),
+                { push(false) },
+                divergenceService.ahead,
+            )
+        val pushForce =
+            Action(
+                I18N["menu.forcePush"],
+                { Icons.cloudUpload() },
+                "Shortcut+Shift+P",
+                state.canForcePush.not(),
+                { push(true) },
+                divergenceService.ahead,
+            )
+        val pull =
+            Action(
+                I18N["menu.pull"],
+                { Icons.cloudDownload() },
+                "Shortcut+L",
+                state.canPull.not(),
+                { pull() },
+                divergenceService.behind,
+            )
+        val fetch =
+            Action(
+                I18N["menu.fetch"],
+                { Icons.refresh() },
+                "Shortcut+F",
+                state.canFetch.not(),
+                { fetch() },
+            )
+        val fetchGc =
+            Action(
+                I18N["menu.gc"],
+                { Icons.eraser() },
+                "Shortcut+Shift+F",
+                state.canGc.not(),
+                { repoService.gc() },
+            )
+        val branch =
+            Action(
+                I18N["menu.branch"],
+                { Icons.codeFork() },
+                "Shortcut+B",
+                state.canBranch.not(),
+                { createBranch() },
+            )
+        val merge =
+            Action(
+                I18N["menu.merge"],
+                { Icons.codeFork().flipY() },
+                if (isMac) "Shortcut+Shift+M" else "Shortcut+M",
+                state.canMerge.not(),
+                handler = { merge() },
+            )
+        val mergeContinue =
+            Action(
+                I18N["menu.continueMerge"],
+                { Icons.forward() },
+                disabled = state.canMergeContinue.not(),
+                handler = { CommitDialog(TinyGit.window).show() },
+            )
+        val mergeAbort =
+            Action(
+                I18N["menu.abortMerge"],
+                { Icons.timesCircle() },
+                disabled = state.canMergeAbort.not(),
+                handler = { mergeService.abort() },
+            )
+        val rebase =
+            Action(
+                I18N["menu.rebase"],
+                { Icons.levelUp().flipX() },
+                "Shortcut+R",
+                state.canRebase.not(),
+                handler = { rebase() },
+            )
+        val rebaseContinue =
+            Action(
+                I18N["menu.continueRebase"],
+                { Icons.forward() },
+                disabled = state.canRebaseContinue.not(),
+                handler = { rebaseContinue() },
+            )
+        val rebaseAbort =
+            Action(
+                I18N["menu.abortRebase"],
+                { Icons.timesCircle() },
+                disabled = state.canRebaseAbort.not(),
+                handler = { rebaseService.abort() },
+            )
+        val stash =
+            Action(
+                I18N["menu.stash"],
+                { Icons.cube() },
+                "Shortcut+S",
+                state.canStash.not(),
+                { stashService.create() },
+            )
+        val stashPop =
+            Action(
+                I18N["menu.popStash"],
+                { Icons.cube().flipXY() },
+                "Shortcut+Shift+S",
+                state.canApplyStash.not(),
+                { stashPop() },
+            )
+        val reset =
+            Action(
+                I18N["menu.autoReset"],
+                { Icons.undo() },
+                disabled = state.canReset.not(),
+                handler = { autoReset() },
+            )
+        val squash =
+            Action(
+                I18N["menu.autoSquash"],
+                { Icons.gavel() },
+                disabled = state.canSquash.not(),
+                handler = { autoSquash() },
+                count = divergenceService.aheadDefault,
+            )
+        val winSettings =
+            Action(
+                I18N["menu.settings"],
+                { Icons.cog() },
+                disabled = state.canSettings.not(),
+                handler = { SettingsDialog(TinyGit.window).show() },
+            )
+        val macSettings =
+            Action(
+                I18N["menu.preferences"],
+                shortcut = "Shortcut+Comma",
+                disabled = state.canSettings.not(),
+                handler = { SettingsDialog(TinyGit.window).show() },
+            )
+        val removeRepo =
+            Action(
+                I18N["menu.remove"],
+                { Icons.trash() },
+                disabled = state.canRemove.not(),
+                handler = { removeRepo() },
+            )
         // ?
-        val github = Action(I18N["menu.star"], { Icons.github() },
-                handler = { TinyGit.showDocument("https://github.com/dremme/tiny-git") })
-        val about = Action(I18N["menu.about"], { Icons.questionCircle() },
-                handler = { AboutDialog(TinyGit.window).show() })
-        val cmd = Action(I18N["menu.command"], { Icons.terminal() }, disabled = state.canCmd.not(),
-                handler = { gitCommand() })
+        val github =
+            Action(
+                I18N["menu.star"],
+                { Icons.github() },
+                handler = { TinyGit.showDocument("https://github.com/dremme/tiny-git") },
+            )
+        val about =
+            Action(
+                I18N["menu.about"],
+                { Icons.questionCircle() },
+                handler = { AboutDialog(TinyGit.window).show() },
+            )
+        val cmd =
+            Action(
+                I18N["menu.command"],
+                { Icons.terminal() },
+                disabled = state.canCmd.not(),
+                handler = { gitCommand() },
+            )
 
         if (isMac) initMacApp(macSettings)
         +menuBar {
             isUseSystemMenuBar = true
             val file = mutableListOf(ActionGroup(cloneRepo, newRepo, addRepo))
-            val repository = mutableListOf(ActionGroup(push, pushForce, pull, fetch, fetchGc),
+            val repository =
+                mutableListOf(
+                    ActionGroup(push, pushForce, pull, fetch, fetchGc),
                     ActionGroup(branch, merge, mergeContinue, mergeAbort),
                     ActionGroup(rebase, rebaseContinue, rebaseAbort),
                     ActionGroup(reset, squash),
-                    ActionGroup(removeRepo))
+                    ActionGroup(removeRepo),
+                )
             if (!isMac) {
                 file += ActionGroup(quit)
                 repository += ActionGroup(winSettings)
             }
             +ActionCollection(I18N["menuBar.file"], *file.toTypedArray())
-            +ActionCollection(I18N["menuBar.view"],
-                    ActionGroup(showCommits, showWorkingCopy, showStats),
-                    ActionGroup(refresh))
+            +ActionCollection(
+                I18N["menuBar.view"],
+                ActionGroup(showCommits, showWorkingCopy, showStats),
+                ActionGroup(refresh),
+            )
             +ActionCollection(I18N["menuBar.repository"], *repository.toTypedArray())
-            +ActionCollection(I18N["menuBar.actions"],
-                    ActionGroup(commit),
-                    *workingCopy.actions,
-                    ActionGroup(stash, stashPop),
-                    ActionGroup(cmd))
+            +ActionCollection(
+                I18N["menuBar.actions"],
+                ActionGroup(commit),
+                *workingCopy.actions,
+                ActionGroup(stash, stashPop),
+                ActionGroup(cmd),
+            )
             if (isMac) +createMacWindow(TinyGit.window as Stage)
             +ActionCollection(I18N["menuBar.help"], ActionGroup(github, about))
         }
@@ -297,23 +474,33 @@ class GitView : VBoxBuilder() {
     private fun addRepo() {
         directoryChooser(TinyGit.window, I18N["dialog.addRepository.title"]) {
             repoService.open(
-                    it.toString(),
-                    // TODO: the path could be stripped with ~ for Macs
-                    { errorAlert(TinyGit.window, I18N["dialog.invalidRepository.header"], I18N["dialog.invalidRepository.text", it]) })
+                it.toString(),
+                // TODO: the path could be stripped with ~ for Macs
+                { errorAlert(TinyGit.window, I18N["dialog.invalidRepository.header"], I18N["dialog.invalidRepository.text", it]) },
+            )
         }
     }
 
     private fun removeRepo() {
         val repository = repoService.activeRepository.get()!!
-        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.remove.header"], I18N["dialog.remove.button"], I18N["dialog.remove.text", repository])) return
+        if (!confirmWarningAlert(
+                TinyGit.window,
+                I18N["dialog.remove.header"],
+                I18N["dialog.remove.button"],
+                I18N["dialog.remove.text", repository],
+            )
+        ) {
+            return
+        }
         repoService.remove(repository)
     }
 
     private fun pull() {
         remoteService.pull(
-                { errorAlert(TinyGit.window, I18N["dialog.cannotPull.header"], it) },
-                { errorAlert(TinyGit.window, I18N["dialog.pullConflict.header"], I18N["dialog.pullConflict.text"]) },
-                { errorAlert(TinyGit.window, I18N["dialog.timeout.header"], I18N["dialog.timeout.text"]) })
+            { errorAlert(TinyGit.window, I18N["dialog.cannotPull.header"], it) },
+            { errorAlert(TinyGit.window, I18N["dialog.pullConflict.header"], I18N["dialog.pullConflict.text"]) },
+            { errorAlert(TinyGit.window, I18N["dialog.timeout.header"], I18N["dialog.timeout.text"]) },
+        )
     }
 
     private fun fetch() {
@@ -325,21 +512,30 @@ class GitView : VBoxBuilder() {
             errorAlert(TinyGit.window, I18N["dialog.push.header"], I18N["dialog.noRemote.text"])
             SettingsDialog(TinyGit.window).show()
             return
-        } else if (force && !confirmWarningAlert(TinyGit.window, I18N["dialog.forcePush.header"], I18N["dialog.forcePush.button"], I18N["dialog.forcePush.text"])) {
+        } else if (force &&
+            !confirmWarningAlert(
+                TinyGit.window,
+                I18N["dialog.forcePush.header"],
+                I18N["dialog.forcePush.button"],
+                I18N["dialog.forcePush.text"],
+            )
+        ) {
             return
         }
         remoteService.push(
-                force,
-                { errorAlert(TinyGit.window, I18N["dialog.cannotPush.header"], I18N["dialog.cannotPush.text"]) },
-                { errorAlert(TinyGit.window, I18N["dialog.timeout.header"], I18N["dialog.timeout.text"]) })
+            force,
+            { errorAlert(TinyGit.window, I18N["dialog.cannotPush.header"], I18N["dialog.cannotPush.text"]) },
+            { errorAlert(TinyGit.window, I18N["dialog.timeout.header"], I18N["dialog.timeout.text"]) },
+        )
     }
 
     private fun createBranch() {
         textInputDialog(TinyGit.window, I18N["dialog.newBranch.header"], I18N["dialog.newBranch.button"], Icons.codeFork()) {
             branchService.branch(
-                    it,
-                    { errorAlert(TinyGit.window, I18N["dialog.cannotBranch.header"], I18N["dialog.cannotBranch.text", it]) },
-                    { errorAlert(TinyGit.window, I18N["dialog.cannotBranch.header"], I18N["dialog.invalidBranchName.text", it]) })
+                it,
+                { errorAlert(TinyGit.window, I18N["dialog.cannotBranch.header"], I18N["dialog.cannotBranch.text", it]) },
+                { errorAlert(TinyGit.window, I18N["dialog.cannotBranch.header"], I18N["dialog.invalidBranchName.text", it]) },
+            )
         }
     }
 
@@ -348,9 +544,10 @@ class GitView : VBoxBuilder() {
         val branches = branchService.branches.filter { it != current }.sortedByDefault()
         choiceDialog(TinyGit.window, I18N["dialog.merge.header"], I18N["dialog.merge.button"], Icons.codeFork().flipY(), branches) {
             mergeService.merge(
-                    it,
-                    { errorAlert(TinyGit.window, I18N["dialog.cannotMerge.header"], I18N["dialog.mergeConflict.text"]) },
-                    { errorAlert(TinyGit.window, I18N["dialog.cannotMerge.header"], I18N["dialog.cannotMerge.text"]) })
+                it,
+                { errorAlert(TinyGit.window, I18N["dialog.cannotMerge.header"], I18N["dialog.mergeConflict.text"]) },
+                { errorAlert(TinyGit.window, I18N["dialog.cannotMerge.header"], I18N["dialog.cannotMerge.text"]) },
+            )
         }
     }
 
@@ -362,16 +559,17 @@ class GitView : VBoxBuilder() {
         }
     }
 
-    private fun List<Branch>.sortedByDefault(): List<Branch> {
-        return sortedWith(Comparator { a, b ->
-            when {
-                defaultBranches.contains(a.name) && defaultBranches.contains(b.name) -> a.compareTo(b)
-                defaultBranches.contains(a.name) -> -1
-                defaultBranches.contains(b.name) -> 1
-                else -> a.compareTo(b)
-            }
-        })
-    }
+    private fun List<Branch>.sortedByDefault(): List<Branch> =
+        sortedWith(
+            Comparator { a, b ->
+                when {
+                    defaultBranches.contains(a.name) && defaultBranches.contains(b.name) -> a.compareTo(b)
+                    defaultBranches.contains(a.name) -> -1
+                    defaultBranches.contains(b.name) -> 1
+                    else -> a.compareTo(b)
+                }
+            },
+        )
 
     private fun rebaseContinue() {
         rebaseService.doContinue({ errorAlert(TinyGit.window, I18N["dialog.rebaseContinue.header"], I18N["dialog.rebaseContinue.text"]) })
@@ -382,7 +580,15 @@ class GitView : VBoxBuilder() {
     }
 
     private fun autoReset() {
-        if (!confirmWarningAlert(TinyGit.window, I18N["dialog.autoReset.header"], I18N["dialog.autoReset.button"], I18N["dialog.autoReset.text"])) return
+        if (!confirmWarningAlert(
+                TinyGit.window,
+                I18N["dialog.autoReset.header"],
+                I18N["dialog.autoReset.button"],
+                I18N["dialog.autoReset.text"],
+            )
+        ) {
+            return
+        }
         branchService.autoReset()
     }
 
@@ -390,8 +596,14 @@ class GitView : VBoxBuilder() {
         val commits = gitLogExclusive(repoService.activeRepository.get()!!)
         val message = commits.joinToString("\n") { "# ${it.shortId}\n${it.fullMessage}" } // TODO: too many newlines
         val baseId = commits.last().parents[0].id
-        textAreaDialog(TinyGit.window, I18N["dialog.autoSquash.header"], I18N["dialog.autoSquash.button"], Icons.gavel(), message,
-                "${I18N["dialog.autoSquash.text", commits.size.toString()]}:") {
+        textAreaDialog(
+            TinyGit.window,
+            I18N["dialog.autoSquash.header"],
+            I18N["dialog.autoSquash.button"],
+            Icons.gavel(),
+            message,
+            "${I18N["dialog.autoSquash.text", commits.size.toString()]}:",
+        ) {
             branchService.autoSquash(baseId, it)
         }
     }
@@ -399,17 +611,19 @@ class GitView : VBoxBuilder() {
     private fun gitCommand() {
         val repository = repoService.activeRepository.get()!!
         CmdDialog(repository, TinyGit.window).showAndWait()?.let {
-            TinyGit.run("git ${it.joinToString(" ")}", object : Task<String>() {
-                override fun call() = git(repository, *it)
+            TinyGit.run(
+                "git ${it.joinToString(" ")}",
+                object : Task<String>() {
+                    override fun call() = git(repository, *it)
 
-                override fun succeeded() {
-                    TinyGit.fireEvent()
-                    if (value.isNotBlank()) CmdResultDialog(value, TinyGit.window).show()
-                }
+                    override fun succeeded() {
+                        TinyGit.fireEvent()
+                        if (value.isNotBlank()) CmdResultDialog(value, TinyGit.window).show()
+                    }
 
-                override fun failed() = exception.printStackTrace()
-            })
+                    override fun failed() = exception.printStackTrace()
+                },
+            )
         }
     }
-
 }

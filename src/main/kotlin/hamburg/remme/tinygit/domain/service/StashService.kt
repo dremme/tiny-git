@@ -19,66 +19,80 @@ import javafx.concurrent.Task
 
 @Service
 class StashService : Refreshable {
-
     val stashEntries = observableList<StashEntry>()
     val stashSize = Bindings.size(stashEntries)!!
     private lateinit var repository: Repository
     private var task: Task<*>? = null
 
     fun create() {
-        TinyGit.run(I18N["stash.create"], object : Task<Unit>() {
-            override fun call() = gitStash(repository)
+        TinyGit.run(
+            I18N["stash.create"],
+            object : Task<Unit>() {
+                override fun call() = gitStash(repository)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() = exception.printStackTrace()
-        })
+                override fun failed() = exception.printStackTrace()
+            },
+        )
     }
 
-    fun apply(stashEntry: StashEntry, conflictHandler: () -> Unit) {
-        TinyGit.run(I18N["stash.apply"], object : Task<Unit>() {
-            override fun call() = gitStashApply(repository, stashEntry)
+    fun apply(
+        stashEntry: StashEntry,
+        conflictHandler: () -> Unit,
+    ) {
+        TinyGit.run(
+            I18N["stash.apply"],
+            object : Task<Unit>() {
+                override fun call() = gitStashApply(repository, stashEntry)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() {
-                when (exception) {
-                    is StashConflictException -> {
-                        TinyGit.fireEvent()
-                        conflictHandler()
+                override fun failed() {
+                    when (exception) {
+                        is StashConflictException -> {
+                            TinyGit.fireEvent()
+                            conflictHandler()
+                        }
+                        else -> exception.printStackTrace()
                     }
-                    else -> exception.printStackTrace()
                 }
-            }
-        })
+            },
+        )
     }
 
     fun pop(conflictHandler: () -> Unit) {
-        TinyGit.run(I18N["stash.pop"], object : Task<Unit>() {
-            override fun call() = gitStashPop(repository)
+        TinyGit.run(
+            I18N["stash.pop"],
+            object : Task<Unit>() {
+                override fun call() = gitStashPop(repository)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() {
-                when (exception) {
-                    is StashConflictException -> {
-                        TinyGit.fireEvent()
-                        conflictHandler()
+                override fun failed() {
+                    when (exception) {
+                        is StashConflictException -> {
+                            TinyGit.fireEvent()
+                            conflictHandler()
+                        }
+                        else -> exception.printStackTrace()
                     }
-                    else -> exception.printStackTrace()
                 }
-            }
-        })
+            },
+        )
     }
 
     fun drop(stashEntry: StashEntry) {
-        TinyGit.run(I18N["stash.drop"], object : Task<Unit>() {
-            override fun call() = gitStashDrop(repository, stashEntry)
+        TinyGit.run(
+            I18N["stash.drop"],
+            object : Task<Unit>() {
+                override fun call() = gitStashDrop(repository, stashEntry)
 
-            override fun succeeded() = TinyGit.fireEvent()
+                override fun succeeded() = TinyGit.fireEvent()
 
-            override fun failed() = exception.printStackTrace()
-        })
+                override fun failed() = exception.printStackTrace()
+            },
+        )
     }
 
     override fun onRefresh(repository: Repository) {
@@ -98,13 +112,13 @@ class StashService : Refreshable {
     private fun update(repository: Repository) {
         this.repository = repository
         task?.cancel()
-        task = object : Task<List<StashEntry>>() {
-            override fun call() = gitStashList(repository)
+        task =
+            object : Task<List<StashEntry>>() {
+                override fun call() = gitStashList(repository)
 
-            override fun succeeded() {
-                stashEntries.setAll(value)
-            }
-        }.execute()
+                override fun succeeded() {
+                    stashEntries.setAll(value)
+                }
+            }.execute()
     }
-
 }

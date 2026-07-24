@@ -1,7 +1,9 @@
 package hamburg.remme.tinygit.domain
 
-class Tag(val name: String, val id: String) : Comparable<Tag> {
-
+class Tag(
+    val name: String,
+    val id: String,
+) : Comparable<Tag> {
     override fun toString() = name
 
     override fun compareTo(other: Tag) = name.compareTo(other.name)
@@ -17,8 +19,5 @@ class Tag(val name: String, val id: String) : Comparable<Tag> {
         return true
     }
 
-    override fun hashCode(): Int {
-        return name.hashCode()
-    }
-
+    override fun hashCode(): Int = name.hashCode()
 }

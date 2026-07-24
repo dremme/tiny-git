@@ -14,7 +14,6 @@ import javafx.concurrent.Task
 
 @Service
 class CommitService : Refreshable {
-
     val message = SimpleStringProperty("")
     private lateinit var repository: Repository
 
@@ -26,20 +25,30 @@ class CommitService : Refreshable {
         if (message.get().isBlank()) message.set(gitHeadMessage(repository))
     }
 
-    fun commit(message: String, amend: Boolean, errorHandler: () -> Unit) {
-        TinyGit.run(I18N["commit.committing"], object : Task<Unit>() {
-            override fun call() {
-                if (amend) gitCommitAmend(repository, message)
-                else gitCommit(repository, message)
-            }
+    fun commit(
+        message: String,
+        amend: Boolean,
+        errorHandler: () -> Unit,
+    ) {
+        TinyGit.run(
+            I18N["commit.committing"],
+            object : Task<Unit>() {
+                override fun call() {
+                    if (amend) {
+                        gitCommitAmend(repository, message)
+                    } else {
+                        gitCommit(repository, message)
+                    }
+                }
 
-            override fun succeeded() {
-                this@CommitService.message.set("")
-                TinyGit.fireEvent()
-            }
+                override fun succeeded() {
+                    this@CommitService.message.set("")
+                    TinyGit.fireEvent()
+                }
 
-            override fun failed() = errorHandler()
-        })
+                override fun failed() = errorHandler()
+            },
+        )
     }
 
     override fun onRefresh(repository: Repository) {
@@ -52,5 +61,4 @@ class CommitService : Refreshable {
 
     override fun onRepositoryDeselected() {
     }
-
 }

@@ -10,14 +10,13 @@ import javafx.util.Duration
 private const val DEFAULT_STYLE_CLASS = "progress"
 private const val CIRCLE_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__circle"
 
-fun progressIndicator(size: Double): Node {
-    return hbox {
+fun progressIndicator(size: Double): Node =
+    hbox {
         addClass(DEFAULT_STYLE_CLASS)
         +Circle(size * fontSize).addClass(CIRCLE_STYLE_CLASS).attachAnimation(0.0)
         +Circle(size * fontSize).addClass(CIRCLE_STYLE_CLASS).attachAnimation(500.0)
         +Circle(size * fontSize).addClass(CIRCLE_STYLE_CLASS).attachAnimation(1000.0)
     }
-}
 
 private fun Node.attachAnimation(delay: Double): Node {
     val transition = ScaleTransition(Duration(1000.0), this)
