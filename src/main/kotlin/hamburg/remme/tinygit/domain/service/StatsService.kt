@@ -31,16 +31,37 @@ class StatsService {
     val commitsData = observableList<HistogramChart.Series>()
     val linesData = observableList<HistogramChart.Series>()
     val activityData = observableList<CalendarChart.Data>()
-    val lastDay = LocalDate.now()!!
-    val firstDay = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)!!
+    /** Inclusive end of the stats window (usually today). */
+    var lastDay: LocalDate = LocalDate.now()!!
+        private set
+    /** Inclusive start of the stats window (defaults to ~1 year ago). */
+    var firstDay: LocalDate = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)!!
+        private set
     lateinit var contributorsListener: TaskListener
     lateinit var filesListener: TaskListener
     lateinit var commitsListener: TaskListener
     lateinit var activityListener: TaskListener
     lateinit var linesListener: TaskListener
+    /** Invoked on the FX thread when [firstDay]/[lastDay] change so charts can rebind axes. */
+    var rangeListener: (() -> Unit)? = null
     private val log = mutableListOf<Commit>()
     private val numStat = mutableListOf<NumStat>()
     private val taskPool = mutableSetOf<Task<*>>()
+
+    private fun defaultLastDay() = LocalDate.now()!!
+
+    private fun defaultFirstDay(last: LocalDate = defaultLastDay()) =
+            Year.of(last.year - 1).atMonth(last.month).atDay(1)!!
+
+    private fun finishAllListeners() {
+        Platform.runLater {
+            contributorsListener.done()
+            filesListener.done()
+            commitsListener.done()
+            activityListener.done()
+            linesListener.done()
+        }
+    }
 
     fun updateActivity() {
         taskPool += object : Task<List<CalendarChart.Data>>() {
@@ -160,10 +181,15 @@ class StatsService {
         cancel()
         log.clear()
         numStat.clear()
+        // Prefer the rolling last-year window; fall back to full history if empty.
+        lastDay = defaultLastDay()
+        firstDay = defaultFirstDay(lastDay)
 
         taskPool += object : Task<Unit>() {
-            private lateinit var log: List<Commit>
-            private lateinit var numStat: List<NumStat>
+            private var log: List<Commit> = emptyList()
+            private var numStat: List<NumStat> = emptyList()
+            private var rangeFirst: LocalDate = firstDay
+            private var rangeLast: LocalDate = lastDay
 
             override fun call() {
                 Platform.runLater {
@@ -173,18 +199,49 @@ class StatsService {
                     activityListener.started()
                     linesListener.started()
                 }
-                log = gitLog(repository, firstDay, lastDay)
-                numStat = gitDiffNumstat(repository, log.last(), log[0])
+                log = gitLog(repository, rangeFirst, rangeLast)
+                // Repos with no commits in the last year (e.g. archived projects) still need stats.
+                if (log.isEmpty()) {
+                    log = gitLog(repository, all = true, noMerges = false, skip = 0, maxCount = 100_000)
+                    if (log.isNotEmpty()) {
+                        // git log is newest-first: [0] = newest, last() = oldest
+                        rangeFirst = log.last().date.toLocalDate().withDayOfMonth(1)
+                        rangeLast = log[0].date.toLocalDate()
+                        if (!rangeFirst.isBefore(rangeLast)) {
+                            rangeLast = rangeFirst.plusMonths(1)
+                        }
+                    }
+                }
+                numStat = if (log.isNotEmpty()) gitDiffNumstat(repository, log.last(), log[0])
+                else emptyList()
             }
 
             override fun succeeded() {
+                firstDay = rangeFirst
+                lastDay = rangeLast
+                rangeListener?.invoke()
                 this@StatsService.log += log
                 this@StatsService.numStat += numStat
+                if (log.isEmpty()) {
+                    // Clear charts and stop spinners when there is nothing to show.
+                    contributorsData.clear()
+                    filesData.clear()
+                    commitsData.clear()
+                    activityData.clear()
+                    linesData.clear()
+                    finishAllListeners()
+                    return
+                }
                 updateActivity()
                 updateCommits()
                 updateContributors()
                 updateFiles()
                 updateLines(repository)
+            }
+
+            override fun failed() {
+                exception?.printStackTrace()
+                finishAllListeners()
             }
         }.execute()
     }

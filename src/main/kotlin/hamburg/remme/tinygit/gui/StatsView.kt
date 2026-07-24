@@ -30,6 +30,8 @@ import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
 import javafx.scene.chart.XYChart.Data as XYData
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 /**
  * Showing various Git statistics using the [StatsService].
@@ -123,6 +125,12 @@ class StatsView : Tab() {
         val activityIndicator = ProgressIndicator(activity).columnSpan(2)
         statsService.activityListener = activityIndicator
 
+        statsService.rangeListener = {
+            commits.updateBoundsAndTicks()
+            lines.updateBoundsAndTicks()
+            activity.updateBoundsAndTicks()
+        }
+
         content = vbox {
             +toolBar {
                 addSpacer()
@@ -164,17 +172,24 @@ class StatsView : Tab() {
         }
     }
 
+    private fun monthTickDates(): List<LocalDate> {
+        val start = statsService.firstDay.withDayOfMonth(1)
+        val end = statsService.lastDay
+        val months = ChronoUnit.MONTHS.between(start, end).coerceAtLeast(1)
+        return (0L..12L).map { i -> start.plusMonths(months * i / 12) }
+    }
+
     private fun HistogramChart.updateBoundsAndTicks() {
         lowerBound = statsService.firstDay
         upperBound = statsService.lastDay
-        setTickMarks((0L..12L).map { statsService.firstDay.plusMonths(it) }
+        setTickMarks(monthTickDates()
                 .map { HistogramChart.TickMark(monthOfYearFormat.format(it), it) })
     }
 
     private fun CalendarChart.updateBoundsAndTicks() {
         lowerBound = statsService.firstDay
         upperBound = statsService.lastDay
-        setTickMarks((0L..12L).map { statsService.firstDay.plusMonths(it) }
+        setTickMarks(monthTickDates()
                 .map { CalendarChart.TickMark(monthOfYearFormat.format(it), it) })
     }
 
