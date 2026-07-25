@@ -34,8 +34,8 @@ class AboutDialog(
                     }
                 val link =
                     link {
-                        text = "www.remme.hamburg"
-                        setOnAction { TinyGit.showDocument("https://remme.hamburg") }
+                        text = "github.com/dremme"
+                        setOnAction { TinyGit.showDocument("https://github.com/dremme") }
                     }
 
                 +listOf(

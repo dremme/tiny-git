@@ -12,7 +12,17 @@ val G = RegexOption.DOT_MATCHES_ALL
 const val EMPTY_ID = "4b825dc642cb6eb9a060e54bf8d69288fbee4904" // TODO: right place here?
 const val ERROR_SEPARATOR = "error: "
 const val FATAL_SEPARATOR = "fatal: "
-val defaultBranches = arrayOf("master", "origin/master", "develop", "origin/develop", "trunk", "origin/trunk")
+val defaultBranches =
+    arrayOf(
+        "main",
+        "origin/main",
+        "master",
+        "origin/master",
+        "develop",
+        "origin/develop",
+        "trunk",
+        "origin/trunk",
+    )
 private val gitVersion = arrayOf("version")
 private val versionPattern = "git version (\\d+)\\.(\\d+)\\.(\\d+).*".toRegex(setOf(IC, G))
 

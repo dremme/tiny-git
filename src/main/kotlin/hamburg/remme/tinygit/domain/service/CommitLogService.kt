@@ -88,7 +88,7 @@ class CommitLogService(
 
                 override fun succeeded() {
                     commits.addSorted(value.filter { commits.none(it::equals) })
-                    commits -= commits.filter { value.none(it::equals) }
+                    commits -= commits.filter { value.none(it::equals) }.toSet()
                     logRemote()
                 }
             }.execute()
@@ -109,7 +109,7 @@ class CommitLogService(
 
                 override fun succeeded() {
                     commits.addSorted(value.filter { commits.none(it::equals) })
-                    commits -= commits.filter { value.none(it::equals) }
+                    commits -= commits.filter { value.none(it::equals) }.toSet()
                     TinyGit.fireEvent()
                 }
 
