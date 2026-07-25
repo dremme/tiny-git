@@ -5,7 +5,9 @@
 Work with multiple repositories, each with its own credentials, SSH key, and proxy.
 No more flipping global `.gitconfig` settings when you switch between networks or accounts.
 
-TinyGit shells out to your local [Git](https://git-scm.com/) installation and focuses on day-to-day history, working-copy, and branch workflows—plus optional repository statistics.
+TinyGit shells out to your local [Git](https://git-scm.com/) installation and focuses on day-to-day history, working-copy, and branch workflows—plus repository statistics with a selectable time range.
+
+**Version:** 0.10.0-SNAPSHOT · **License:** [BSD 3-Clause](LICENSE)
 
 [Features](#features) · [Requirements](#requirements) · [Quick start](#quick-start) · [Project layout](#project-layout) · [Development](#development) · [Architecture](#architecture) · [License](#license)
 
@@ -18,10 +20,10 @@ TinyGit is built around a few deliberate choices:
 
 - **Per-repository settings** for remote URL, credentials, SSH keys, and HTTP proxy
 - **Native Git CLI** under the hood—behavior matches the tools you already trust
-- **Portable desktop UI** (Kotlin + JavaFX) that runs on Windows, macOS, and Linux
-- **Lightweight surface area**—commit log with graph, working copy, branches/tags/stash, and stats
+- **Portable desktop UI** (Kotlin + JavaFX) on Windows, macOS, and Linux
+- **Focused surface area**—commit log with graph, working copy, branches/tags/stash, and stats
 
-Ideal when you juggle several remotes or proxies and want a focused client rather than a full IDE.
+Ideal when you juggle several remotes or proxies and want a client rather than a full IDE.
 
 ---
 
@@ -43,9 +45,9 @@ Ideal when you juggle several remotes or proxies and want a focused client rathe
 - File list for a commit and HTML-rendered diffs
 - Filter: all branches vs current branch only
 - Filter: all commits vs no merges
-- Search the log (beta)
+- Search the log
 - Checkout a commit, reset to a commit, or create a tag
-- Fetch in the background while you browse
+- Background fetch with **prune** (stale remote-tracking branches such as deleted `origin/master` are removed)
 
 ### Working copy
 
@@ -64,6 +66,7 @@ Ideal when you juggle several remotes or proxies and want a focused client rathe
 - Rebase with continue / abort
 - **Auto-Reset** when the branch has diverged from its remote
 - **Auto-Squash** for feature-branch cleanup
+- Default-branch awareness includes **`main`** and **`master`** (and common long-lived names)
 
 ### Stash and tags
 
@@ -73,16 +76,17 @@ Ideal when you juggle several remotes or proxies and want a focused client rathe
 
 ### Remotes and maintenance
 
-- Fetch, pull, push, force push
+- Fetch (with prune), pull, push, force push
 - Garbage collection (`git gc`)
 - Optional raw **Git command** dialog for power users
 
-### Statistics (beta)
+### Statistics
 
-Analytics over repository history (defaults to roughly the last year; falls back to full history when that window is empty):
+Analytics over a selectable time range:
 
-| Chart | Meaning |
+| Control / chart | Meaning |
 | --- | --- |
+| **Time range** | **Last 12 months** (rolling) or a **calendar year** discovered from history |
 | **Top contributors** | Commits grouped by author email |
 | **Common file types** | File extensions from tree stats |
 | **Daily activity** | Calendar-style commit intensity |
@@ -94,10 +98,12 @@ Refresh stats from the toolbar when needed.
 ### Desktop UX
 
 - Dark Material-inspired theme (Roboto + Font Awesome)
-- Platform stylesheets (Windows / macOS font metrics)
+- Platform stylesheets (Windows 12px / macOS 13px base metrics)
+- Gray text anti-aliasing tuned for the dark UI
 - Native menu bar integration on macOS (NSMenuFX)
 - English and German message bundles
-- Window size/position persistence under `~/.tinygit`
+- Window size and position persistence under `~/.tinygit`
+- First-run and restored window size clamped to the primary screen’s visual bounds
 
 ---
 
@@ -106,14 +112,14 @@ Refresh stats from the toolbar when needed.
 | Dependency | Notes |
 | --- | --- |
 | **Git 2.x+** | Must be on the `PATH`. TinyGit refuses to start without a usable client. |
-| **JDK 21** | LTS. Set `JAVA_HOME` (or ensure a JDK 21 is on the system for Gradle toolchains). |
+| **JDK 21** | LTS. Set `JAVA_HOME` (or install a JDK 21 for Gradle toolchains). |
 | **OS** | Windows, macOS, or Linux (desktop) |
 
 Optional for development:
 
 | Tool | When you need it |
 | --- | --- |
-| [Dart Sass](https://sass-lang.com/install) or Node/`npx` | Recompile SCSS → CSS. Existing generated CSS is reused if Sass is missing. |
+| [Dart Sass](https://sass-lang.com/install) or Node/`npx` | Recompile SCSS → CSS. Seed CSS under `scss-seed/` is used if Sass is missing. |
 
 Install Git:
 
@@ -153,7 +159,7 @@ Useful outputs:
 | --- | --- |
 | Application distribution | `./gradlew installDist` → `build/install/tiny-git/` |
 | Fat JAR (app + non-JavaFX deps) | `build/libs/tiny-git-*-all.jar` |
-| Start scripts | `build/scripts/` after `assemble` |
+| Start scripts | under `build/` after `assemble` / `installDist` |
 
 Launch the installed distribution:
 
@@ -181,23 +187,27 @@ Settings are stored in a YAML file at `~/.tinygit` (user home).
 
 ```text
 TinyGit/
-├── build.gradle              # Kotlin 2.1, Java 21, OpenJFX 21, Sass task
+├── build.gradle              # Kotlin 2.1, Java 21, OpenJFX 21, Spotless, Sass task
 ├── settings.gradle           # Root project name
+├── gradle.properties         # JVM / Gradle defaults
 ├── gradle/wrapper/           # Gradle 8.12 wrapper
 ├── scss-seed/                # Fallback CSS if Sass is unavailable
 ├── src/main/
 │   ├── kotlin/hamburg/remme/tinygit/
 │   │   ├── TinyGit.kt        # Application entry, DI bootstrap
+│   │   ├── AppFonts.kt       # Embedded fonts + Prism text settings
 │   │   ├── domain/           # Models + services (log, branch, stats, …)
 │   │   ├── git/              # Thin wrappers around the Git CLI
 │   │   └── gui/              # JavaFX views, dialogs, custom charts/skins
-│   ├── resources/hamburg/remme/tinygit/
-│   │   ├── *.scss            # Theme (compiled to CSS)
-│   │   ├── font/             # Roboto, Liberation Mono, Font Awesome
-│   │   └── message*.properties
+│   └── resources/hamburg/remme/tinygit/
+│       ├── *.scss            # Theme (compiled to CSS at build time)
+│       ├── font/             # Roboto, Liberation Mono, Font Awesome
+│       └── message*.properties
 ├── AGENTS.md                 # Conventions for coding agents
 └── LICENSE                   # BSD 3-Clause
 ```
+
+Generated styles land in `build/generated/resources/css/` (classpath `/css/…`).
 
 ---
 
@@ -211,6 +221,7 @@ TinyGit/
 | Runtime | Java **21** LTS |
 | UI | OpenJFX **21** (controls, web, media) |
 | Build | Gradle **8.12** (wrapper) |
+| Formatting | Spotless + ktlint **1.5** |
 | Styling | SCSS → JavaFX CSS (Dart Sass) |
 | Config | SnakeYAML → `~/.tinygit` |
 | macOS menus | CenterDevice NSMenuFX |
@@ -223,11 +234,10 @@ TinyGit/
 | Compile only | `./gradlew compileKotlin` |
 | Recompile styles | `./gradlew compileSCSS` |
 | Full assemble | `./gradlew clean assemble` |
-| Format check (ktlint via Spotless) | `./gradlew spotlessCheck` |
+| Format check | `./gradlew spotlessCheck` |
 | Apply formatting | `./gradlew spotlessApply` |
+| Full check (includes Spotless) | `./gradlew check` |
 | Print JavaFX run hint | `./gradlew printRunCommand` |
-
-`check` depends on `spotlessCheck`.
 
 ### Stylesheets
 
@@ -236,20 +246,24 @@ TinyGit/
 - Output: `build/generated/resources/css/main-*.css` (classpath `/css/…`)
 - Fallback seeds: `scss-seed/main-*.css` when Sass cannot run
 - The build sanitizes Dart Sass colors (`hsl()`, percent `rgb()`) into forms JavaFX accepts
-- JavaFX `null` paints are emitted via `$fx-null` so combo-box / icon layers stay transparent correctly
+- JavaFX `null` paints are emitted via `$fx-null` so combo-box / icon layers stay transparent
 
 ### Git integration notes
 
 - All Git operations go through process execution (`git …`), not JGit
 - Empty placeholder tree id `4b825dc…` is used where Git expects the empty tree
 - Credential helper is nudged to `wincred` (Windows) or Keychain (macOS) when unset
+- Fetch uses `--prune` so deleted remote branches disappear from the UI after refresh
 - Global Git still must be installed and discoverable on `PATH`
+
+There is **no** hot reload for `./gradlew run` (desktop JVM + JavaFX).
+Use continuous compile (`./gradlew -t classes`) plus restart if you want a faster edit loop.
 
 ---
 
 ## Architecture
 
-TinyGit is a classic desktop MVC-ish layout:
+TinyGit is a classic desktop layout:
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
@@ -296,8 +310,15 @@ When changing UI or styles, verify:
 - Commit log graph scrolling and selection
 - Working copy stage/commit flows
 - Diff WebView readability
-- Statistics on both active and long-idle repositories
+- Statistics for last-12-months and calendar-year ranges
 - Combo boxes and toolbar icons (font faces + anti-aliasing)
+- Window size on a small screen (first launch and restore)
+
+Format with Spotless before opening a PR:
+
+```bash
+./gradlew spotlessApply check
+```
 
 Agent-oriented project conventions live in [`AGENTS.md`](AGENTS.md).
 
@@ -307,7 +328,7 @@ Agent-oriented project conventions live in [`AGENTS.md`](AGENTS.md).
 
 Licensed under the [BSD 3-Clause License](LICENSE).
 
-Copyright (c) 2017, Dennis Remme.
+Copyright (c) 2017–2026, Dennis Remme.
 
 ---
 
