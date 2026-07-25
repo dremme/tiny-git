@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TaskListener
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.service.RepositoryService
+import hamburg.remme.tinygit.domain.service.StatsPeriod
 import hamburg.remme.tinygit.domain.service.StatsService
 import hamburg.remme.tinygit.gui.builder.StackPaneBuilder
 import hamburg.remme.tinygit.gui.builder.addClass
@@ -27,6 +28,7 @@ import hamburg.remme.tinygit.shortDateFormat
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.ListChangeListener
 import javafx.scene.Node
+import javafx.scene.control.ComboBox
 import javafx.scene.control.Tab
 import javafx.scene.layout.Priority
 import java.time.LocalDate
@@ -36,8 +38,7 @@ import java.time.temporal.ChronoUnit
  * Showing various Git statistics using the [StatsService].
  * The query is asynchronous displaying a loading indicator.
  *
- * Will contain functionality to change the range of time queried and resolution for the statistics.
- * Currently the last year from today is shown.
+ * Time range can be the rolling last twelve months or a calendar year from the repo history.
  *
  * The view is showing:
  *  * [DonutChart] with the contributors and their number of commits.
@@ -69,8 +70,6 @@ import java.time.temporal.ChronoUnit
  * ```
  *
  *
- * @todo implement time range selection and filtering
- *
  * @see DonutChart
  * @see HistogramChart
  * @see CalendarChart
@@ -83,9 +82,11 @@ class StatsView : Tab() {
     private val commits: HistogramChart
     private val lines: HistogramChart
     private val activity: CalendarChart
+    private val periodBox: ComboBox<PeriodOption>
+    private var suppressYearChange = false
 
     init {
-        text = "${I18N["stats.tab"]} (beta)"
+        text = I18N["stats.tab"]
         graphic = Icons.chartPie()
         isClosable = false
 
@@ -124,10 +125,24 @@ class StatsView : Tab() {
         statsService.activityListener = activityIndicator
 
         statsService.rangeListener = {
+            refreshPeriodOptions()
             commits.updateBoundsAndTicks()
             lines.updateBoundsAndTicks()
             activity.updateBoundsAndTicks()
         }
+
+        periodBox =
+            comboBox {
+                tooltip(I18N["stats.period"])
+                prefWidth = 160.0
+                items.setAll(PeriodOption(StatsPeriod.LastTwelveMonths, I18N["stats.periodLastYear"]))
+                value = items.first()
+                valueProperty().addListener { _, _, selected ->
+                    if (suppressYearChange)return@addListener
+                    statsService.period = selected.period
+                    repoService.activeRepository.get()?.let { statsService.update(it) }
+                }
+            }
 
         content =
             vbox {
@@ -136,15 +151,11 @@ class StatsView : Tab() {
                     +button {
                         tooltip(I18N["stats.refresh"])
                         graphic = Icons.refresh()
-                        setOnAction { statsService.update(repoService.activeRepository.get()!!) }
+                        setOnAction {
+                            repoService.activeRepository.get()?.let { statsService.update(it) }
+                        }
                     }
-                    // TODO: implement
-                    +comboBox<Any> {
-                        isDisable = true
-//                    items.addAll(CalendarChart.Period.values())
-//                    valueProperty().addListener { _, _, it -> activity.updateYear(it) }
-//                    value = CalendarChart.Period.LAST_YEAR
-                    }
+                    +periodBox
                 }
                 +scrollPane {
                     addClass("stats-view")
@@ -165,7 +176,11 @@ class StatsView : Tab() {
 
         repoService.activeRepository.addListener { _, _, it ->
             if (isSelected) {
-                it?.let { statsService.update(it) }
+                it?.let {
+                    statsService.period = StatsPeriod.LastTwelveMonths
+                    refreshPeriodOptions()
+                    statsService.update(it)
+                }
             } else {
                 statsService.cancel()
             }
@@ -177,6 +192,25 @@ class StatsView : Tab() {
                 statsService.cancel()
             }
         }
+    }
+
+    private fun refreshPeriodOptions() {
+        suppressYearChange = true
+
+        val options =
+            listOf(
+                PeriodOption(StatsPeriod.LastTwelveMonths, I18N["stats.periodLastYear"]),
+                *statsService.availableYears
+                    .map {
+                        PeriodOption(StatsPeriod.StatsYear(it), it.toString())
+                    }.toTypedArray(),
+            )
+        periodBox.items.setAll(options)
+        periodBox.value = options.firstOrNull { it.period == statsService.period } ?: options.first()
+        // Keep service in sync if selection was clamped
+        periodBox.value?.period?.let { statsService.period = it }
+
+        suppressYearChange = false
     }
 
     private fun monthTickDates(): List<LocalDate> {
@@ -205,13 +239,13 @@ class StatsView : Tab() {
     }
 
     private fun updateContributions(data: List<DonutChart.Data>) {
-        contributions.setData(data, { I18N["stats.descContrib", it] })
-        data.forEach { it -> it.node?.tooltip("${it.name} (${I18N["stats.commits", it.value]})") }
+        contributions.setData(data) { I18N["stats.descContrib", it] }
+        data.forEach { it.node?.tooltip("${it.name} (${I18N["stats.commits", it.value]})") }
     }
 
     private fun updateFiles(data: List<DonutChart.Data>) {
-        files.setData(data, { I18N["stats.descFiles", it] })
-        data.forEach { it -> it.node?.tooltip("${it.name} (${I18N["stats.files", it.value]})") }
+        files.setData(data) { I18N["stats.descFiles", it] }
+        data.forEach { it.node?.tooltip("${it.name} (${I18N["stats.files", it.value]})") }
     }
 
     private fun updateCommits(series: List<HistogramChart.Series>) {
@@ -221,8 +255,8 @@ class StatsView : Tab() {
 
     private fun updateLines(series: List<HistogramChart.Series>) {
         lines.setSeries(series)
-        series[0].data.forEach { it -> it.node?.tooltip("${I18N["stats.added"]} (${I18N["stats.lines", it.yValue]})") }
-        series[1].data.forEach { it -> it.node?.tooltip("${I18N["stats.removed"]} (${I18N["stats.lines", it.yValue]})") }
+        series[0].data.forEach { it.node?.tooltip("${I18N["stats.added"]} (${I18N["stats.lines", it.yValue]})") }
+        series[1].data.forEach { it.node?.tooltip("${I18N["stats.removed"]} (${I18N["stats.lines", it.yValue]})") }
     }
 
     private fun updateActivity(data: List<CalendarChart.Data>) {
@@ -230,9 +264,13 @@ class StatsView : Tab() {
         data.forEach { it.node?.tooltip("${it.xValue.format(shortDateFormat)} (${I18N["stats.commits", it.yValue]})") }
     }
 
-    /**
-     * Wrapping a [Node] to show a progress indicator if needed.
-     */
+    private data class PeriodOption(
+        val period: StatsPeriod,
+        val label: String,
+    ) {
+        override fun toString(): String = label
+    }
+
     private class ProgressIndicator(
         content: Node,
     ) : StackPaneBuilder(),

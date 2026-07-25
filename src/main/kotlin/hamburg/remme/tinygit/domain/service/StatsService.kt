@@ -10,6 +10,7 @@ import hamburg.remme.tinygit.domain.Repository
 import hamburg.remme.tinygit.execute
 import hamburg.remme.tinygit.git.gitDiffNumstat
 import hamburg.remme.tinygit.git.gitLog
+import hamburg.remme.tinygit.git.gitLogYears
 import hamburg.remme.tinygit.gui.component.CalendarChart
 import hamburg.remme.tinygit.gui.component.DonutChart
 import hamburg.remme.tinygit.gui.component.HistogramChart
@@ -20,7 +21,32 @@ import hamburg.remme.tinygit.sortedBy
 import javafx.application.Platform
 import javafx.concurrent.Task
 import java.time.LocalDate
-import java.time.Year
+
+sealed class StatsPeriod {
+    data object LastTwelveMonths : StatsPeriod()
+
+    data class StatsYear(
+        val year: Int,
+    ) : StatsPeriod()
+
+    fun resolveRange(today: LocalDate = LocalDate.now()): Pair<LocalDate, LocalDate> =
+        when (this) {
+            is LastTwelveMonths -> {
+                val first =
+                    java.time.Year
+                        .of(today.year - 1)
+                        .atMonth(today.month)
+                        .atDay(1)
+                first to today
+            }
+            is StatsYear -> {
+                val first = LocalDate.of(year, 1, 1)
+                val yearEnd = LocalDate.of(year, 12, 31)
+                val last = if (yearEnd.isAfter(today)) today else yearEnd
+                first to last
+            }
+        }
+}
 
 @Service
 class StatsService {
@@ -29,29 +55,23 @@ class StatsService {
     val commitsData = observableList<HistogramChart.Series>()
     val linesData = observableList<HistogramChart.Series>()
     val activityData = observableList<CalendarChart.Data>()
-
-    /** Inclusive end of the stats window (usually today). */
-    var lastDay: LocalDate = LocalDate.now()!!
+    val availableYears = observableList<Int>()
+    var period: StatsPeriod = StatsPeriod.LastTwelveMonths
+    var lastDay: LocalDate = LocalDate.now()
+        private set
+    var firstDay: LocalDate = period.resolveRange().first
         private set
 
-    /** Inclusive start of the stats window (defaults to ~1 year ago). */
-    var firstDay: LocalDate = Year.of(lastDay.year - 1).atMonth(lastDay.month).atDay(1)!!
-        private set
     lateinit var contributorsListener: TaskListener
     lateinit var filesListener: TaskListener
     lateinit var commitsListener: TaskListener
     lateinit var activityListener: TaskListener
     lateinit var linesListener: TaskListener
 
-    /** Invoked on the FX thread when [firstDay]/[lastDay] change so charts can rebind axes. */
     var rangeListener: (() -> Unit)? = null
     private val log = mutableListOf<Commit>()
     private val numStat = mutableListOf<NumStat>()
     private val taskPool = mutableSetOf<Task<*>>()
-
-    private fun defaultLastDay() = LocalDate.now()!!
-
-    private fun defaultFirstDay(last: LocalDate = defaultLastDay()) = Year.of(last.year - 1).atMonth(last.month).atDay(1)!!
 
     private fun finishAllListeners() {
         Platform.runLater {
@@ -196,18 +216,17 @@ class StatsService {
         cancel()
         log.clear()
         numStat.clear()
-        // Prefer the rolling last-year window; fall back to full history if empty.
-        lastDay = defaultLastDay()
-        firstDay = defaultFirstDay(lastDay)
+
+        val (rangeStart, rangeEnd) = period.resolveRange()
+        firstDay = rangeStart
+        lastDay = rangeEnd
 
         taskPool +=
-            object : Task<Unit>() {
+            object : Task<List<Int>>() {
                 private var log: List<Commit> = emptyList()
                 private var numStat: List<NumStat> = emptyList()
-                private var rangeFirst: LocalDate = firstDay
-                private var rangeLast: LocalDate = lastDay
 
-                override fun call() {
+                override fun call(): List<Int> {
                     Platform.runLater {
                         contributorsListener.started()
                         filesListener.started()
@@ -215,40 +234,22 @@ class StatsService {
                         activityListener.started()
                         linesListener.started()
                     }
-                    log = gitLog(repository, rangeFirst, rangeLast)
-                    // Repos with no commits in the last year (e.g. archived projects) still need stats.
-                    if (log.isEmpty()) {
-                        log = gitLog(repository, all = true, noMerges = false, skip = 0, maxCount = 100_000)
-                        if (log.isNotEmpty()) {
-                            // git log is newest-first: [0] = newest, last() = oldest
-                            rangeFirst =
-                                log
-                                    .last()
-                                    .date
-                                    .toLocalDate()
-                                    .withDayOfMonth(1)
-                            rangeLast = log[0].date.toLocalDate()
-                            if (!rangeFirst.isBefore(rangeLast)) {
-                                rangeLast = rangeFirst.plusMonths(1)
-                            }
-                        }
-                    }
+                    log = gitLog(repository, firstDay, lastDay)
                     numStat =
                         if (log.isNotEmpty()) {
                             gitDiffNumstat(repository, log.last(), log[0])
                         } else {
                             emptyList()
                         }
+                    return gitLogYears(repository)
                 }
 
                 override fun succeeded() {
-                    firstDay = rangeFirst
-                    lastDay = rangeLast
+                    availableYears.setAll(value)
                     rangeListener?.invoke()
                     this@StatsService.log += log
                     this@StatsService.numStat += numStat
                     if (log.isEmpty()) {
-                        // Clear charts and stop spinners when there is nothing to show.
                         contributorsData.clear()
                         filesData.clear()
                         commitsData.clear()

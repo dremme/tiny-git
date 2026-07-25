@@ -23,6 +23,7 @@ private val log1 = arrayOf("log", "-1", "--pretty=%B")
 private val log = arrayOf("log", "--first-parent", "--date=raw", LOG_FORMAT)
 private val logAll = arrayOf("log", "--branches", "--remotes", "--tags", "--date=raw", LOG_FORMAT)
 private val logNot = arrayOf("log", "HEAD", "--date=raw", LOG_FORMAT, "--not")
+private val logYears = arrayOf("log", "--branches", "--remotes", "--tags", "--format=%cd", "--date=format:%Y")
 private val revlistCount = arrayOf("rev-list", "--count")
 private val revlistCountNot = arrayOf("rev-list", "--count", "HEAD", "--not")
 
@@ -56,6 +57,12 @@ fun gitLogExclusive(repository: Repository): List<Commit> {
     val parser = CommitParser()
     git(repository, *logNot, *excludeDefault(repository)) { parser.parseLine(it) }
     return parser.commits
+}
+
+fun gitLogYears(repository: Repository): List<Int> {
+    val years = linkedSetOf<Int>()
+    git(repository, *logYears) { it.trim().toIntOrNull()?.let { year -> years += year } }
+    return years.sortedDescending()
 }
 
 fun gitDivergence(repository: Repository): Divergence {
