@@ -97,7 +97,7 @@ Refresh stats from the toolbar when needed.
 
 ### Desktop UX
 
-- Dark Material-inspired theme (Roboto + Font Awesome)
+- Dark Material-inspired theme (**Inter** typeface + **Font Awesome 7** icons)
 - Platform stylesheets (Windows 12px / macOS 13px base metrics)
 - Gray text anti-aliasing tuned for the dark UI
 - Native menu bar integration on macOS (NSMenuFX)
@@ -201,7 +201,7 @@ TinyGit/
 │   │   └── gui/              # JavaFX views, dialogs, custom charts/skins
 │   └── resources/hamburg/remme/tinygit/
 │       ├── *.scss            # Theme (compiled to CSS at build time)
-│       ├── font/             # Roboto, Liberation Mono, Font Awesome
+│       ├── font/             # Inter + Font Awesome 7; Consolas for mono (system)
 │       └── message*.properties
 ├── AGENTS.md                 # Conventions for coding agents
 └── LICENSE                   # BSD 3-Clause

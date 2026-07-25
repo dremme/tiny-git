@@ -19,7 +19,7 @@ class DiffRenderer {
                     html, body {
                         padding: 0;
                         margin: 0;
-                        font: ${fontSize}px "Liberation Mono", monospace;
+                        font: ${fontSize}px Consolas, Menlo, "Liberation Mono", monospace;
                         color: rgba(255, 255, 255, 0.9);
                         background-color: #37474F;
                     }

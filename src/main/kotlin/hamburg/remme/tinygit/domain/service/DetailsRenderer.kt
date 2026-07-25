@@ -36,7 +36,7 @@ class DetailsRenderer {
                         margin: 0;
                         width: 100%;
                         height: 100%;
-                        font: ${fontSize}px "Roboto", sans-serif;
+                        font: ${fontSize}px Inter, sans-serif;
                         color: rgba(255, 255, 255, 0.9);
                         background-color: #263238;
                     }

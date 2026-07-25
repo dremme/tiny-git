@@ -7,14 +7,17 @@ import javafx.scene.text.FontSmoothingType
 import javafx.scene.text.Text
 
 /**
- * A list of icon factories creating [FontAwesome 5](https://fontawesome.com) icons.
+ * Icon factories using [Font Awesome 7 Free](https://fontawesome.com) glyph fonts.
+ *
+ * Solid icons use family `Font Awesome 7 Free` (weight 900).
+ * Brand icons use family `Font Awesome 7 Brands`.
  */
 object Icons {
     fun arrowAltCircleDown() = icon('\uf358')
 
     fun arrowAltCircleUp() = icon('\uf35b')
 
-    fun calendar() = icon('\uf073')
+    fun calendar() = icon('\uf133')
 
     fun chartPie() = icon('\uf200')
 
@@ -24,15 +27,15 @@ object Icons {
 
     fun cloud() = icon('\uf0c2')
 
-    fun cloudDownload() = icon('\uf381')
+    fun cloudDownload() = icon('\uf0ed')
 
-    fun cloudUpload() = icon('\uf382')
+    fun cloudUpload() = icon('\uf0ee')
 
-    fun codeFork() = icon('\uf126')
+    fun codeFork() = icon('\uf126') // code-branch
 
-    fun coffee() = icon('\uf0f4')
+    fun coffee() = icon('\uf7b6') // mug-hot
 
-    fun cog() = icon('\uf013')
+    fun cog() = icon('\uf013') // gear
 
     fun cube() = icon('\uf1b2')
 
@@ -54,35 +57,35 @@ object Icons {
 
     fun gavel() = icon('\uf0e3')
 
-    fun github() = icon('\uf113', true)
+    fun github() = icon('\uf09b', brand = true)
 
     fun globe() = icon('\uf0ac')
 
     fun hdd() = icon('\uf0a0')
 
-    fun levelUp() = icon('\uf3bf')
+    fun levelUp() = icon('\uf3bf') // turn-up
 
-    fun list() = icon('\uf022')
+    fun list() = icon('\uf03a')
 
     fun locationArrow() = icon('\uf124')
 
     fun minus() = icon('\uf068')
 
-    fun pencil() = icon('\uf303')
+    fun pencil() = icon('\uf304') // pen
 
-    fun plus() = icon('\uf067')
+    fun plus() = icon('\u002b')
 
-    fun question() = icon('\uf128')
+    fun question() = icon('\u003f')
 
     fun questionCircle() = icon('\uf059')
 
-    fun refresh() = icon('\uf021')
+    fun refresh() = icon('\uf021') // arrows-rotate
 
-    fun search() = icon('\uf002')
+    fun search() = icon('\uf002') // magnifying-glass
 
     fun share() = icon('\uf064')
 
-    fun signOut() = icon('\uf2f5')
+    fun signOut() = icon('\uf2f5') // right-from-bracket
 
     fun tag() = icon('\uf02b')
 
@@ -90,11 +93,11 @@ object Icons {
 
     fun terminal() = icon('\uf120')
 
-    fun timesCircle() = icon('\uf057')
+    fun timesCircle() = icon('\uf057') // circle-xmark
 
     fun trash() = icon('\uf1f8')
 
-    fun undo() = icon('\uf0e2')
+    fun undo() = icon('\uf0e2') // arrow-rotate-left
 
     fun user() = icon('\uf007')
 
@@ -103,7 +106,6 @@ object Icons {
         brand: Boolean = false,
     ): Node {
         val icon = Text(glyph.toString()).addClass("icon")
-        // Gray AA avoids LCD color fringing on FA glyphs (CSS also sets this).
         icon.fontSmoothingType = FontSmoothingType.GRAY
         if (brand) icon.addClass("brand")
         return stackPane {

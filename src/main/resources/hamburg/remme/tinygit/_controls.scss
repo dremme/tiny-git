@@ -105,28 +105,28 @@ $fx-null: #{"null"};
  *                                                                             *
  *******************************************************************************/
 
-// JavaFX reports Roboto-Bold.ttf as family "Roboto" + bold weight, not family "Roboto Bold".
+// Inter static faces: Regular/Bold share family "Inter"; Light is "Inter Light".
 // Gray AA (not LCD): this UI is dark; LCD subpixel fringing reads as soft / muddy text.
 %fontRegular {
-  -fx-font-family: "Roboto";
+  -fx-font-family: "Inter";
   -fx-font-weight: normal;
   -fx-font-smoothing-type: gray;
 }
 
 %fontBold {
-  -fx-font-family: "Roboto";
+  -fx-font-family: "Inter";
   -fx-font-weight: bold;
   -fx-font-smoothing-type: gray;
 }
 
 %fontLight {
-  -fx-font-family: "Roboto Light";
+  -fx-font-family: "Inter Light";
   -fx-font-weight: normal;
   -fx-font-smoothing-type: gray;
 }
 
 %fontMono {
-  -fx-font-family: "Liberation Mono";
+  -fx-font-family: "Consolas", "Menlo", "Liberation Mono", monospace;
   -fx-font-smoothing-type: gray;
 }
 
@@ -173,7 +173,7 @@ $fx-null: #{"null"};
 .root {
   // Pin base em so $px* spacing and type scale match design (12 Windows / 13 Mac)
   -fx-font-size: #{$font-size}px;
-  -fx-font-family: "Roboto";
+  -fx-font-family: "Inter";
   -fx-font-weight: normal;
   -fx-font-smoothing-type: gray;
   -fx-background-color: inherit;
@@ -783,20 +783,18 @@ $fx-null: #{"null"};
  ******************************************************************************/
 
 .icon-wrapper {
-  -fx-min-width: 1em;
-  -fx-min-height: 1em;
+  -fx-min-width: 1.15em;
+  -fx-min-height: 1.15em;
+  -fx-alignment: center;
 
+  // Font Awesome 7 Free — JavaFX reports solid as family "Font Awesome 7 Free Solid"
   .icon {
     -fx-fill: $text-color;
-    // FA5 solid glyphs live in "Font Awesome 5 Free" at weight 900; without this, icons misrender.
-    -fx-font-family: "Font Awesome 5 Free";
-    -fx-font-weight: 900;
-    // LCD subpixel AA fringes icon fonts; gray keeps glyph edges crisp on dark UI.
+    -fx-font-family: "Font Awesome 7 Free Solid";
     -fx-font-smoothing-type: gray;
 
     &.brand {
-      -fx-font-family: "Font Awesome 5 Brands";
-      -fx-font-weight: 400;
+      -fx-font-family: "Font Awesome 7 Brands";
     }
   }
 }

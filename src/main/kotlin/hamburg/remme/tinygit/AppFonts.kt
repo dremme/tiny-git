@@ -15,12 +15,11 @@ object AppFonts {
 
     private val faces =
         listOf(
-            "font/Roboto-Regular.ttf",
-            "font/Roboto-Bold.ttf",
-            "font/Roboto-Light.ttf",
-            "font/LiberationMono-Regular.ttf",
-            "font/fa-solid-900.ttf",
-            "font/fa-brands-400.ttf",
+            "font/Inter-Regular.ttf",
+            "font/Inter-Bold.ttf",
+            "font/Inter-Light.ttf",
+            "font/fa-solid-900.otf",
+            "font/fa-brands-400.otf",
         )
 
     fun install() {
