@@ -712,9 +712,8 @@ $fx-null: #{"null"};
     &:hover {
       -fx-background-color: $cell-hover-color;
     }
-    &:focused {
-      -fx-background-color: $cell-focus-color;
-    }
+    // Same color for focused and selected — avoids a flash on click.
+    &:focused,
     &:selected {
       -fx-text-fill: $text-accent-color;
       -fx-background-color: $cell-selected-color;
@@ -734,6 +733,11 @@ $fx-null: #{"null"};
 
 .list-cell:odd {
   -fx-background-color: $cell-odd-color;
+
+  &:filled:focused,
+  &:filled:selected {
+    -fx-background-color: $cell-selected-color;
+  }
 }
 
 /*******************************************************************************

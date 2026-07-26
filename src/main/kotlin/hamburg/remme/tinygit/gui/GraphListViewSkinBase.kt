@@ -1,7 +1,6 @@
 package hamburg.remme.tinygit.gui
 
 import hamburg.remme.tinygit.domain.Commit
-import javafx.application.Platform
 import javafx.geometry.Orientation
 import javafx.scene.control.IndexedCell
 import javafx.scene.control.ScrollBar
@@ -9,7 +8,7 @@ import javafx.scene.control.skin.ListViewSkin
 import javafx.scene.control.skin.VirtualFlow
 
 /**
- * A class for enhancing the [ListViewSkin] with some private fields.
+ * [ListViewSkin] with access to the virtual flow / scroll bars for graph overlay layout.
  */
 abstract class GraphListViewSkinBase(
     control: GraphListView,
@@ -22,9 +21,7 @@ abstract class GraphListViewSkinBase(
     protected val firstCell get() = flow.firstVisibleCell!!
     protected val lastCell get() = flow.lastVisibleCell!!
 
-    /**
-     * The list rendering is handled by the [ListViewSkin] but the graph has to be rendered here.
-     */
+    /** Draw the commit graph over the list cells. */
     abstract fun layoutGraphChildren()
 
     override fun layoutChildren(
@@ -34,7 +31,8 @@ abstract class GraphListViewSkinBase(
         h: Double,
     ) {
         super.layoutChildren(x, y, w, h)
-        Platform.runLater { layoutGraphChildren() }
+        // Same pulse as cells — deferring this one frame caused graph flicker on selection.
+        layoutGraphChildren()
     }
 
     private fun lookupScrollBar(orientation: Orientation): ScrollBar =

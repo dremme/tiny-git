@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.domain.File
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.component.Icons
 import javafx.collections.ObservableList
+import javafx.scene.Node
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
@@ -20,8 +21,7 @@ const val REMOVED_STYLE_CLASS = "status-removed"
 private const val DEFAULT_STYLE_CLASS = "file-status-view"
 
 /**
- * A list of [File]s most likely related to the working copy or a certain commit.
- * The default [SelectionMode] of the list is [SelectionMode.SINGLE].
+ * File list for the working copy or a commit, with status icons.
  *
  *
  * ```
@@ -74,25 +74,40 @@ class FileStatusView(
         selectionModel.selectionMode = selectionMode
     }
 
+    /** Reuses icon nodes so updateItem does not recreate graphics (avoids selection flicker). */
     private class LocalFileListCell : ListCell<File>() {
+        private val icons =
+            mapOf(
+                File.Status.CONFLICT to conflictIcon().addClass(CONFLICT_STYLE_CLASS),
+                File.Status.COPIED to copiedIcon().addClass(COPIED_STYLE_CLASS),
+                File.Status.RENAMED to renamedIcon().addClass(RENAMED_STYLE_CLASS),
+                File.Status.MODIFIED to modifiedIcon().addClass(MODIFIED_STYLE_CLASS),
+            )
+        private val added = addedIcon().addClass(ADDED_STYLE_CLASS)
+        private val untracked = untrackedIcon().addClass(UNTRACKED_STYLE_CLASS)
+        private val removed = removedIcon().addClass(REMOVED_STYLE_CLASS)
+        private val missing = missingIcon().addClass(MISSING_STYLE_CLASS)
+
         override fun updateItem(
             item: File?,
             empty: Boolean,
         ) {
             super.updateItem(item, empty)
-            text = item?.path
-            graphic =
-                when {
-                    item?.status == File.Status.CONFLICT -> conflictIcon().addClass(CONFLICT_STYLE_CLASS)
-                    item?.status == File.Status.ADDED && !item.isCached -> untrackedIcon().addClass(UNTRACKED_STYLE_CLASS)
-                    item?.status == File.Status.ADDED -> addedIcon().addClass(ADDED_STYLE_CLASS)
-                    item?.status == File.Status.COPIED -> copiedIcon().addClass(COPIED_STYLE_CLASS)
-                    item?.status == File.Status.RENAMED -> renamedIcon().addClass(RENAMED_STYLE_CLASS)
-                    item?.status == File.Status.MODIFIED -> modifiedIcon().addClass(MODIFIED_STYLE_CLASS)
-                    item?.status == File.Status.REMOVED && !item.isCached -> missingIcon().addClass(MISSING_STYLE_CLASS)
-                    item?.status == File.Status.REMOVED -> removedIcon().addClass(REMOVED_STYLE_CLASS)
-                    else -> null
-                }
+            if (empty || item == null) {
+                text = null
+                graphic = null
+                return
+            }
+            text = item.path
+            val next = iconFor(item)
+            if (graphic !== next) graphic = next
         }
+
+        private fun iconFor(file: File): Node =
+            when (file.status) {
+                File.Status.ADDED -> if (file.isCached) added else untracked
+                File.Status.REMOVED -> if (file.isCached) removed else missing
+                else -> icons.getValue(file.status)
+            }
     }
 }

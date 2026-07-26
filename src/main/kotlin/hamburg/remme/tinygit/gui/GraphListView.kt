@@ -37,19 +37,30 @@ private const val CURRENT_STYLE_CLASS = "current"
 private const val MAX_LENGTH = 60
 
 /**
- * This view has some heavy interaction with [GraphListViewSkin] but is still loosely coupled, as it would
- * work with the default list skin, just without Git log graph.
+ * Commit list with optional graph overlay via [GraphListViewSkin].
  *
- * The commits argument should be [CommitLogService.commits] or a filtered view of it.
- *
- * @todo: skin should not extend ListViewSkin but wrap a [ListView]?!
- * @todo: this class should be a control?!
+ * [commits] should be [CommitLogService.commits] or a filtered view of it.
  */
 class GraphListView(
     commits: ObservableList<Commit>,
 ) : ListView<Commit>(commits) {
     private val branchService = TinyGit.get<BranchService>()
     private val tagService = TinyGit.get<TagService>()
+
+    private val graphVisibleProperty = SimpleBooleanProperty(true)
+    var isGraphVisible: Boolean
+        get() = graphVisibleProperty.get()
+        set(value) = graphVisibleProperty.set(value)
+
+    /** Left cell padding reserved for the graph; only publishes when the value changes. */
+    private val graphWidthProperty = SimpleObjectProperty(Insets.EMPTY)!!
+    var graphWidth: Double
+        get() = graphWidthProperty.get().left
+        set(value) {
+            if (graphWidthProperty.get().left != value) {
+                graphWidthProperty.set(Insets(0.0, 0.0, 0.0, value))
+            }
+        }
 
     init {
         addClass(DEFAULT_STYLE_CLASS)
@@ -61,33 +72,6 @@ class GraphListView(
 
     override fun createDefaultSkin() = GraphListViewSkin(this)
 
-    /* --------------------------------------------------
-     * GRAPH VISIBLE
-     * -------------------------------------------------- */
-    private val graphVisibleProperty = SimpleBooleanProperty(true)
-    var isGraphVisible: Boolean
-        get() = graphVisibleProperty.get()
-        set(value) = graphVisibleProperty.set(value)
-
-    /* --------------------------------------------------
-     * GRAPH PADDING
-     * -------------------------------------------------- */
-    private val graphWidthProperty = SimpleObjectProperty<Insets>()
-    var graphWidth: Double
-        get() = graphWidthProperty.get().left
-        set(value) = graphWidthProperty.set(Insets(0.0, 0.0, 0.0, value))
-
-    /**
-     * This rather complex list cell is displaying brief information about the commit.
-     * It will show its ID, commit time, message and author.
-     *
-     * It will also display any branch pointing to the commit.
-     *
-     * The [ListCell] will have a left padding bound to [GraphListView.graphVisibleProperty] to leave space for the
-     * graph that is drawn by the [GraphListViewSkin].
-     *
-     * @todo branches all have the same color which is not synchronized with the log graph
-     */
     private inner class GraphListCell : ListCell<Commit>() {
         private val commitId = label { addClass(COMMIT_STYLE_CLASS) }
         private val date =
@@ -102,6 +86,7 @@ class GraphListView(
                 addClass(AUTHOR_STYLE_CLASS)
                 graphic = Icons.user()
             }
+        private var badgesKey: String? = null
 
         init {
             graphic =
@@ -127,39 +112,58 @@ class GraphListView(
         ) {
             super.updateItem(item, empty)
             graphic.isVisible = !empty
-            item?.let { c ->
-                commitId.text = c.shortId
-                date.text = c.date.format(shortDateTimeFormat)
-                badges.children.setAll(tagService.tags.filter { it.id == c.id }.toTagBadges())
-                badges.children.addAll(branchService.branches.filter { it.id == c.id }.toBranchBadges())
-                message.text = c.shortMessage
-                author.text = c.authorName
+            if (empty || item == null) {
+                badgesKey = null
+                badges.children.clear()
+                return
             }
+            commitId.text = item.shortId
+            date.text = item.date.format(shortDateTimeFormat)
+            message.text = item.shortMessage
+            author.text = item.authorName
+            updateBadges(item)
+        }
+
+        private fun updateBadges(commit: Commit) {
+            val tags = tagService.tags.filter { it.id == commit.id }
+            val branches = branchService.branches.filter { it.id == commit.id }
+            val key =
+                buildString {
+                    append(commit.id)
+                    tags.forEach { append('|').append(it.name) }
+                    branches.forEach {
+                        append('|').append(it.name)
+                        append(':').append(branchService.isDetached(it))
+                        append(':').append(branchService.isHead(it))
+                    }
+                }
+            if (key == badgesKey) return
+            badgesKey = key
+            badges.children.setAll(tags.toTagBadges() + branches.toBranchBadges())
         }
 
         private fun List<Branch>.toBranchBadges(): List<Node> =
-            map {
+            map { branch ->
                 label {
                     addClass(BRANCH_BADGE_STYLE_CLASS)
-                    if (branchService.isDetached(it)) {
-                        addClass(DETACHED_STYLE_CLASS)
-                    } else if (branchService.isHead(it)) {
-                        addClass(CURRENT_STYLE_CLASS)
+                    when {
+                        branchService.isDetached(branch) -> addClass(DETACHED_STYLE_CLASS)
+                        branchService.isHead(branch) -> addClass(CURRENT_STYLE_CLASS)
                     }
-                    text = it.name.abbrev()
-                    graphic = if (branchService.isDetached(it)) Icons.locationArrow() else Icons.codeBranch()
+                    text = branch.name.abbrev()
+                    graphic = if (branchService.isDetached(branch)) Icons.locationArrow() else Icons.codeBranch()
                 }
             }
 
         private fun List<Tag>.toTagBadges(): List<Node> =
-            map {
+            map { tag ->
                 label {
                     addClass(TAG_BADGE_STYLE_CLASS)
-                    text = it.name
+                    text = tag.name
                     graphic = Icons.tag()
                 }
             }
 
-        private fun String.abbrev() = if (length > MAX_LENGTH) "${substring(0, MAX_LENGTH)}..." else this
+        private fun String.abbrev() = if (length > MAX_LENGTH) "${take(MAX_LENGTH)}..." else this
     }
 }

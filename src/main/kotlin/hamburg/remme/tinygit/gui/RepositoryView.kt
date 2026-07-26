@@ -46,6 +46,7 @@ import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
+import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import javafx.util.Callback
 
@@ -423,9 +424,19 @@ class RepositoryView : VBoxBuilder() {
         }
     }
 
+    /**
+     * Stable cell graphic: rebuild only when the bound value (or branch head state) changes.
+     * Avoids re-creating icons / re-parenting shared [Root] icons on every selection update.
+     */
     private inner class RepositoryTreeCell : TreeCell<Any>() {
+        private val row = hbox { }
+        private val textLabel = Label()
+        private var boundItem: Any? = null
+        private var branchState: Pair<Boolean, Boolean>? = null // detached to head
+
         init {
             addClass(REPO_TREE_STYLE_CLASS)
+            graphic = row
         }
 
         override fun updateItem(
@@ -433,39 +444,64 @@ class RepositoryView : VBoxBuilder() {
             empty: Boolean,
         ) {
             super.updateItem(item, empty)
-            graphic =
-                if (empty) {
-                    null
-                } else {
+            if (empty || item == null) {
+                clear()
+                return
+            }
+            val state = (item as? Branch)?.let { branchService.isDetached(it) to branchService.isHead(it) }
+            if (item != boundItem || state != branchState) {
+                boundItem = item
+                branchState = state
+                bind(item, state)
+            } else {
+                textLabel.text = labelText(item)
+            }
+        }
+
+        private fun clear() {
+            row.children.clear()
+            row.styleClass.removeAll(DETACHED_STYLE_CLASS, CURRENT_STYLE_CLASS)
+            boundItem = null
+            branchState = null
+        }
+
+        private fun bind(
+            item: Any,
+            state: Pair<Boolean, Boolean>?,
+        ) {
+            row.children.clear()
+            row.styleClass.removeAll(DETACHED_STYLE_CLASS, CURRENT_STYLE_CLASS)
+            textLabel.text = labelText(item)
+            when (item) {
+                is Root -> {
+                    (item.icon.parent as? Pane)?.takeIf { it != row }?.children?.remove(item.icon)
+                    row.children.setAll(item.icon, textLabel)
+                }
+                is Branch -> {
+                    val (detached, head) = state!!
+                    row.children += if (detached) Icons.locationArrow() else Icons.codeBranch()
+                    row.children += textLabel
                     when {
-                        item is Root -> item(item.icon, item.text)
-                        item is Branch && item.isLocal -> branchItem(item)
-                        item is Branch && item.isRemote -> item(Icons.codeBranch(), item.name)
-                        item is Tag -> item(Icons.tag(), item.name)
-                        item is StashEntry -> item(Icons.cube(), item.message)
-                        else -> throw RuntimeException()
+                        detached -> row.addClass(DETACHED_STYLE_CLASS)
+                        head -> {
+                            row.addClass(CURRENT_STYLE_CLASS)
+                            row.children += Icons.check()
+                        }
                     }
                 }
+                is Tag -> row.children.setAll(Icons.tag(), textLabel)
+                is StashEntry -> row.children.setAll(Icons.cube(), textLabel)
+                else -> error("Unexpected tree item: $item")
+            }
         }
 
-        private fun item(
-            icon: Node,
-            text: String,
-        ) = hbox {
-            +icon
-            +Label(text)
-        }
-
-        private fun branchItem(branch: Branch) =
-            hbox {
-                +if (branchService.isDetached(branch)) Icons.locationArrow() else Icons.codeBranch()
-                +Label(branch.name)
-                if (branchService.isDetached(branch)) {
-                    addClass(DETACHED_STYLE_CLASS)
-                } else if (branchService.isHead(branch)) {
-                    addClass(CURRENT_STYLE_CLASS)
-                }
-                if (branchService.isHead(branch)) +Icons.check()
+        private fun labelText(item: Any): String =
+            when (item) {
+                is Root -> item.text
+                is Branch -> item.name
+                is Tag -> item.name
+                is StashEntry -> item.message
+                else -> ""
             }
     }
 }
