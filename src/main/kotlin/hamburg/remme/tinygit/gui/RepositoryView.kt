@@ -440,7 +440,7 @@ class RepositoryView : VBoxBuilder() {
                     when {
                         item is Root -> item(item.icon, item.text)
                         item is Branch && item.isLocal -> branchItem(item)
-                        item is Branch && item.isRemote -> item(Icons.codeFork(), item.name)
+                        item is Branch && item.isRemote -> item(Icons.codeBranch(), item.name)
                         item is Tag -> item(Icons.tag(), item.name)
                         item is StashEntry -> item(Icons.cube(), item.message)
                         else -> throw RuntimeException()
@@ -458,7 +458,7 @@ class RepositoryView : VBoxBuilder() {
 
         private fun branchItem(branch: Branch) =
             hbox {
-                +if (branchService.isDetached(branch)) Icons.locationArrow() else Icons.codeFork()
+                +if (branchService.isDetached(branch)) Icons.locationArrow() else Icons.codeBranch()
                 +Label(branch.name)
                 if (branchService.isDetached(branch)) {
                     addClass(DETACHED_STYLE_CLASS)

@@ -31,7 +31,17 @@ object Icons {
 
     fun cloudUpload() = icon('\uf0ee')
 
-    fun codeFork() = icon('\uf126') // code-branch
+    fun codeBranch() = icon('\uf126')
+
+    fun codeCommit() = icon('\uf386')
+
+    fun codeCompare() = icon('\ue13a')
+
+    fun codeFork() = icon('\ue13b')
+
+    fun codeMerge() = icon('\uf387')
+
+    fun codePullRequest() = icon('\ue13c')
 
     fun coffee() = icon('\uf7b6') // mug-hot
 
@@ -65,7 +75,11 @@ object Icons {
 
     fun levelUp() = icon('\uf3bf') // turn-up
 
+    fun alignLeft() = icon('\uf036')
+
     fun list() = icon('\uf03a')
+
+    fun listUl() = icon('\uf0ca')
 
     fun locationArrow() = icon('\uf124')
 

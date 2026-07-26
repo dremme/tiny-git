@@ -88,7 +88,7 @@ class CommitLogView : Tab() {
 
     init {
         text = I18N["commitLog.tab"]
-        graphic = Icons.list()
+        graphic = Icons.listUl()
         isClosable = false
 
         val checkoutCommit =

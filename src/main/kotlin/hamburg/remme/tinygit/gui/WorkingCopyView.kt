@@ -4,6 +4,7 @@ import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.State
 import hamburg.remme.tinygit.TinyGit
 import hamburg.remme.tinygit.domain.File
+import hamburg.remme.tinygit.domain.service.DiffService
 import hamburg.remme.tinygit.domain.service.WorkingCopyService
 import hamburg.remme.tinygit.gui.builder.Action
 import hamburg.remme.tinygit.gui.builder.ActionGroup
@@ -28,7 +29,6 @@ import javafx.scene.control.SelectionMode
 import javafx.scene.control.Tab
 import javafx.scene.input.KeyCode
 import javafx.scene.layout.Priority
-import java.util.concurrent.Callable
 
 private const val DEFAULT_STYLE_CLASS = "working-copy-view"
 private const val CONTENT_STYLE_CLASS = "${DEFAULT_STYLE_CLASS}__content"
@@ -83,6 +83,7 @@ private const val OVERLAY_STYLE_CLASS = "overlay"
  */
 class WorkingCopyView : Tab() {
     private val service = TinyGit.get<WorkingCopyService>()
+    private val diffService = TinyGit.get<DiffService>()
     private val state = TinyGit.get<State>()
 
     /**
@@ -204,15 +205,15 @@ class WorkingCopyView : Tab() {
         }
 
         selectedStaged.selectedItems.addListener(ListChangeListener { service.selectedStaged.setAll(it.list) })
-        selectedStaged.selectedItemProperty().addListener({ _, _, it -> it?.let { selectedPending.clearSelection() } })
+        selectedStaged.selectedItemProperty().addListener { _, _, it -> it?.let { selectedPending.clearSelection() } }
 
         selectedPending.selectedItems.addListener(ListChangeListener { service.selectedPending.setAll(it.list) })
-        selectedPending.selectedItemProperty().addListener({ _, _, it -> it?.let { selectedStaged.clearSelection() } })
+        selectedPending.selectedItemProperty().addListener { _, _, it -> it?.let { selectedStaged.clearSelection() } }
 
         val fileDiff =
             FileDiffView(
                 Bindings.createObjectBinding(
-                    Callable { selectedStaged.selectedItem ?: selectedPending.selectedItem },
+                    { selectedStaged.selectedItem ?: selectedPending.selectedItem },
                     selectedStaged.selectedItemProperty(),
                     selectedPending.selectedItemProperty(),
                 ),
@@ -230,7 +231,7 @@ class WorkingCopyView : Tab() {
 
                         +vbox {
                             +toolBar {
-                                +StatusCountView(staged.items)
+                                +StatusCountView(staged.items) { diffService.numStats(true) }
                                 addSpacer()
                                 +unstageAll
                                 +unstageSelected
@@ -239,7 +240,7 @@ class WorkingCopyView : Tab() {
                         }
                         +vbox {
                             +toolBar {
-                                +StatusCountView(pending.items)
+                                +StatusCountView(pending.items) { diffService.numStats(false) }
                                 addSpacer()
                                 +updateAll
                                 +stageAll

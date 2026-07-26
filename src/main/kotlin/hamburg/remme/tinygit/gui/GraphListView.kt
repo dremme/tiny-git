@@ -147,7 +147,7 @@ class GraphListView(
                         addClass(CURRENT_STYLE_CLASS)
                     }
                     text = it.name.abbrev()
-                    graphic = if (branchService.isDetached(it)) Icons.locationArrow() else Icons.codeFork()
+                    graphic = if (branchService.isDetached(it)) Icons.locationArrow() else Icons.codeBranch()
                 }
             }
 

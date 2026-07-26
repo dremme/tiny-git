@@ -282,4 +282,16 @@
       -fx-fill: $red-accent;
     }
   }
+  .status-lines {
+    -fx-alignment: center;
+    -fx-spacing: $px6;
+
+    /* icon keeps default (white) text color */
+    .status-lines-added {
+      -fx-text-fill: $light-green-accent;
+    }
+    .status-lines-removed {
+      -fx-text-fill: $red-accent;
+    }
+  }
 }

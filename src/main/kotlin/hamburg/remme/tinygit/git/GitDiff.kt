@@ -42,6 +42,37 @@ fun gitDiffNumstat(
     return numStat
 }
 
+/**
+ * Line stats for the working tree vs index (`cached = false`) or index vs HEAD (`cached = true`).
+ * Untracked files are not included in the unstaged stats.
+ */
+fun gitDiffNumstat(
+    repository: Repository,
+    cached: Boolean,
+): List<NumStat> {
+    val numStat = mutableListOf<NumStat>()
+    if (cached) {
+        git(repository, *diffNumstat, "--cached") { numStat += it.parseStat() }
+    } else {
+        git(repository, *diffNumstat) { numStat += it.parseStat() }
+    }
+    return numStat
+}
+
+/**
+ * Line stats for a single commit against its first parent (empty tree for root commits).
+ * Merge commits return an empty list, matching [gitDiffTree].
+ */
+fun gitDiffNumstat(
+    repository: Repository,
+    commit: Commit,
+): List<NumStat> {
+    if (commit.parents.size > 1) return emptyList()
+    val numStat = mutableListOf<NumStat>()
+    git(repository, *diffNumstat, commit.parentId, commit.id) { numStat += it.parseStat() }
+    return numStat
+}
+
 fun gitBlame(
     repository: Repository,
     path: String,

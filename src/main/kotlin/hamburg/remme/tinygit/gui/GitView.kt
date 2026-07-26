@@ -26,9 +26,7 @@ import hamburg.remme.tinygit.gui.builder.choiceDialog
 import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.directoryChooser
 import hamburg.remme.tinygit.gui.builder.errorAlert
-import hamburg.remme.tinygit.gui.builder.flipX
 import hamburg.remme.tinygit.gui.builder.flipXY
-import hamburg.remme.tinygit.gui.builder.flipY
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
@@ -149,7 +147,7 @@ class GitView : VBoxBuilder() {
         val showCommits =
             Action(
                 I18N["menu.showLog"],
-                { Icons.list() },
+                { Icons.listUl() },
                 "F1",
                 repoService.activeRepository.isNull, // TODO: own prop?
                 handler = { tabs.selectionModel.select(commitLog) },
@@ -182,7 +180,7 @@ class GitView : VBoxBuilder() {
         val commit =
             Action(
                 I18N["menu.commit"],
-                { Icons.plus() },
+                { Icons.codeCommit() },
                 "Shortcut+K",
                 state.canCommit.not(),
                 { CommitDialog(TinyGit.window).show() },
@@ -233,7 +231,7 @@ class GitView : VBoxBuilder() {
         val branch =
             Action(
                 I18N["menu.branch"],
-                { Icons.codeFork() },
+                { Icons.codeBranch() },
                 "Shortcut+B",
                 state.canBranch.not(),
                 { createBranch() },
@@ -241,7 +239,7 @@ class GitView : VBoxBuilder() {
         val merge =
             Action(
                 I18N["menu.merge"],
-                { Icons.codeFork().flipY() },
+                { Icons.codeMerge() },
                 if (isMac) "Shortcut+Shift+M" else "Shortcut+M",
                 state.canMerge.not(),
                 handler = { merge() },
@@ -263,7 +261,7 @@ class GitView : VBoxBuilder() {
         val rebase =
             Action(
                 I18N["menu.rebase"],
-                { Icons.levelUp().flipX() },
+                { Icons.codeCompare() },
                 "Shortcut+R",
                 state.canRebase.not(),
                 handler = { rebase() },
@@ -530,7 +528,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun createBranch() {
-        textInputDialog(TinyGit.window, I18N["dialog.newBranch.header"], I18N["dialog.newBranch.button"], Icons.codeFork()) {
+        textInputDialog(TinyGit.window, I18N["dialog.newBranch.header"], I18N["dialog.newBranch.button"], Icons.codeBranch()) {
             branchService.branch(
                 it,
                 { errorAlert(TinyGit.window, I18N["dialog.cannotBranch.header"], I18N["dialog.cannotBranch.text", it]) },
@@ -542,7 +540,7 @@ class GitView : VBoxBuilder() {
     private fun merge() {
         val current = branchService.head.get()
         val branches = branchService.branches.filter { it != current }.sortedByDefault()
-        choiceDialog(TinyGit.window, I18N["dialog.merge.header"], I18N["dialog.merge.button"], Icons.codeFork().flipY(), branches) {
+        choiceDialog(TinyGit.window, I18N["dialog.merge.header"], I18N["dialog.merge.button"], Icons.codeMerge(), branches) {
             mergeService.merge(
                 it,
                 { errorAlert(TinyGit.window, I18N["dialog.cannotMerge.header"], I18N["dialog.mergeConflict.text"]) },
@@ -554,7 +552,7 @@ class GitView : VBoxBuilder() {
     private fun rebase() {
         val current = branchService.head.get()
         val branches = branchService.branches.filter { it != current }.sortedByDefault()
-        choiceDialog(TinyGit.window, I18N["dialog.rebase.header"], I18N["dialog.rebase.button"], Icons.levelUp().flipX(), branches) {
+        choiceDialog(TinyGit.window, I18N["dialog.rebase.header"], I18N["dialog.rebase.button"], Icons.codeCompare(), branches) {
             rebaseService.rebase(it, { errorAlert(TinyGit.window, I18N["dialog.cannotRebase.header"], it) })
         }
     }
