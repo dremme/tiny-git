@@ -10,6 +10,7 @@ import java.io.InputStreamReader
 val IC = RegexOption.IGNORE_CASE
 val G = RegexOption.DOT_MATCHES_ALL
 const val EMPTY_ID = "4b825dc642cb6eb9a060e54bf8d69288fbee4904" // TODO: right place here?
+const val WARNING_SEPARATOR = "warning: "
 const val ERROR_SEPARATOR = "error: "
 const val FATAL_SEPARATOR = "fatal: "
 val defaultBranches =

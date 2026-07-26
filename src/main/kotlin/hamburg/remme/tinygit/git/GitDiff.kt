@@ -32,16 +32,6 @@ fun gitDiff(
     return git(repository, *diff, "--unified=$lines", commit.parentId, commit.id, "--", file.oldPath, file.path)
 }
 
-fun gitDiffNumstat(
-    repository: Repository,
-    from: Commit,
-    to: Commit,
-): List<NumStat> {
-    val numStat = mutableListOf<NumStat>()
-    git(repository, *diffNumstat, if (from != to) from.id else EMPTY_ID, to.id) { numStat += it.parseStat() }
-    return numStat
-}
-
 /**
  * Line stats for the working tree vs index (`cached = false`) or index vs HEAD (`cached = true`).
  * Untracked files are not included in the unstaged stats.
@@ -52,9 +42,9 @@ fun gitDiffNumstat(
 ): List<NumStat> {
     val numStat = mutableListOf<NumStat>()
     if (cached) {
-        git(repository, *diffNumstat, "--cached") { numStat += it.parseStat() }
+        git(repository, *diffNumstat, "--cached") { it.appendTo(numStat) }
     } else {
-        git(repository, *diffNumstat) { numStat += it.parseStat() }
+        git(repository, *diffNumstat) { it.appendTo(numStat) }
     }
     return numStat
 }
@@ -69,7 +59,18 @@ fun gitDiffNumstat(
 ): List<NumStat> {
     if (commit.parents.size > 1) return emptyList()
     val numStat = mutableListOf<NumStat>()
-    git(repository, *diffNumstat, commit.parentId, commit.id) { numStat += it.parseStat() }
+    git(repository, *diffNumstat, commit.parentId, commit.id) { it.appendTo(numStat) }
+    return numStat
+}
+
+fun gitDiffNumstat(
+    repository: Repository,
+    from: Commit,
+    to: Commit,
+): List<NumStat> {
+    if (from == to) return emptyList()
+    val numStat = mutableListOf<NumStat>()
+    git(repository, *diffNumstat, if (from != to) from.id else EMPTY_ID, to.id) { it.appendTo(numStat) }
     return numStat
 }
 
@@ -85,7 +86,11 @@ fun gitBlame(
     return lines.groupingBy { it }.eachCount()
 }
 
-private fun String.parseStat(): NumStat {
+private fun String.appendTo(list: MutableList<NumStat>) {
+    if (startsWith(WARNING_SEPARATOR)) return
+    if (startsWith(ERROR_SEPARATOR)) return
+    if (startsWith(FATAL_SEPARATOR)) return
+
     val line = split('\t')
-    return NumStat(line[0].toIntOrNull() ?: 0, line[1].toIntOrNull() ?: 0, line[2])
+    list += NumStat(line[0].toIntOrNull() ?: 0, line[1].toIntOrNull() ?: 0, line[2])
 }
