@@ -7,7 +7,7 @@ No more flipping global `.gitconfig` settings when you switch between networks o
 
 TinyGit shells out to your local [Git](https://git-scm.com/) installation and focuses on day-to-day history, working-copy, and branch workflows—plus repository statistics with a selectable time range.
 
-**Version:** 0.10.0-SNAPSHOT · **License:** [BSD 3-Clause](LICENSE)
+**Version:** 0.11.0-SNAPSHOT · **License:** [BSD 3-Clause](LICENSE)
 
 [Features](#features) · [Requirements](#requirements) · [Quick start](#quick-start) · [Project layout](#project-layout) · [Development](#development) · [Architecture](#architecture) · [License](#license)
 
