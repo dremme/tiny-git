@@ -22,6 +22,7 @@ import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.component.Icons
 import hamburg.remme.tinygit.shortName
+import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.collections.ListChangeListener
 import javafx.scene.control.MultipleSelectionModel
@@ -205,22 +206,20 @@ class WorkingCopyView : Tab() {
         }
 
         selectedStaged.selectedItems.addListener(ListChangeListener { service.selectedStaged.setAll(it.list) })
-        selectedStaged.selectedItemProperty().addListener { _, _, it -> it?.let { selectedPending.clearSelection() } }
-
         selectedPending.selectedItems.addListener(ListChangeListener { service.selectedPending.setAll(it.list) })
-        selectedPending.selectedItemProperty().addListener { _, _, it -> it?.let { selectedStaged.clearSelection() } }
 
-        // Prefer a staged file, otherwise a pending one, so the diff pane has something to show.
-        fun ensureFileSelected() {
-            if (selectedStaged.isEmpty && selectedPending.isEmpty) {
-                when {
-                    staged.items.isNotEmpty() -> selectedStaged.selectFirst()
-                    pending.items.isNotEmpty() -> selectedPending.selectFirst()
-                }
-            }
+        // Mutual exclusion: selecting in one list clears the other.
+        selectedStaged.selectedItemProperty().addListener { _, _, item ->
+            if (item != null) clearListSelection(pending)
         }
-        staged.items.addListener(ListChangeListener { ensureFileSelected() })
-        pending.items.addListener(ListChangeListener { ensureFileSelected() })
+        selectedPending.selectedItemProperty().addListener { _, _, item ->
+            if (item != null) clearListSelection(staged)
+        }
+
+        // After list updates (and after layout may auto-focus row 0), keep a single selection.
+        staged.items.addListener(ListChangeListener { Platform.runLater { reconcileFileSelection() } })
+        pending.items.addListener(ListChangeListener { Platform.runLater { reconcileFileSelection() } })
+        reconcileFileSelection()
 
         val fileDiff =
             FileDiffView(
@@ -324,5 +323,29 @@ class WorkingCopyView : Tab() {
     ) {
         selectionModel.clearAndSelect(index)
         selectionModel.selectedItem ?: selectionModel.selectLast()
+    }
+
+    /**
+     * Ensures at most one list has a selection (prefer staged), and picks a default
+     * when neither has one so [FileDiffView] has something to show.
+     */
+    private fun reconcileFileSelection() {
+        val stagedItem = selectedStaged.selectedItem
+        val pendingItem = selectedPending.selectedItem
+        when {
+            stagedItem != null -> clearListSelection(pending)
+            pendingItem != null -> clearListSelection(staged)
+            staged.items.isNotEmpty() -> selectedStaged.selectFirst()
+            pending.items.isNotEmpty() -> selectedPending.selectFirst()
+        }
+    }
+
+    private fun clearListSelection(list: FileStatusView) {
+        if (list.selectionModel.selectedItem != null) {
+            list.selectionModel.clearSelection()
+        }
+        if (list.focusModel.focusedIndex >= 0) {
+            list.focusModel.focus(-1)
+        }
     }
 }

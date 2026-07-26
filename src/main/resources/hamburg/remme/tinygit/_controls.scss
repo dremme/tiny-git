@@ -712,8 +712,8 @@ $fx-null: #{"null"};
     &:hover {
       -fx-background-color: $cell-hover-color;
     }
-    // Same color for focused and selected — avoids a flash on click.
-    &:focused,
+    // Only :selected — not :focused alone. ListViews focus the first row when
+    // items appear; with two lists that looked like a dual selection.
     &:selected {
       -fx-text-fill: $text-accent-color;
       -fx-background-color: $cell-selected-color;
@@ -734,7 +734,6 @@ $fx-null: #{"null"};
 .list-cell:odd {
   -fx-background-color: $cell-odd-color;
 
-  &:filled:focused,
   &:filled:selected {
     -fx-background-color: $cell-selected-color;
   }

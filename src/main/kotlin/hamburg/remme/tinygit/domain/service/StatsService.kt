@@ -223,9 +223,9 @@ class StatsService {
 
         taskPool +=
             object : Task<Unit>() {
-                private var log: List<Commit> = emptyList()
-                private var numStat: List<NumStat> = emptyList()
-                private var years: List<Int> = emptyList()
+                private lateinit var log: List<Commit>
+                private lateinit var numStat: List<NumStat>
+                private lateinit var years: List<Int>
 
                 override fun call() {
                     Platform.runLater {
@@ -235,11 +235,14 @@ class StatsService {
                         activityListener.started()
                         linesListener.started()
                     }
-                    log = gitLog(repository, firstDay, lastDay)
                     years = gitLogYears(repository)
-                    if (log.isNotEmpty()) {
-                        numStat = gitDiffNumstat(repository, log.last(), log[0])
-                    }
+                    log = gitLog(repository, firstDay, lastDay)
+                    numStat =
+                        if (log.isNotEmpty()) {
+                            gitDiffNumstat(repository, log.last(), log[0])
+                        } else {
+                            emptyList()
+                        }
                 }
 
                 override fun succeeded() {
@@ -264,7 +267,6 @@ class StatsService {
                 }
 
                 override fun failed() {
-                    exception?.printStackTrace()
                     finishAllListeners()
                 }
             }.execute()
