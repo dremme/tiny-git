@@ -87,9 +87,5 @@ fun gitBlame(
 
 private fun String.parseStat(): NumStat {
     val line = split('\t')
-    return if (line[0] == "-") {
-        NumStat(0, 0, line[2])
-    } else {
-        NumStat(line[0].toInt(), line[1].toInt(), line[2])
-    }
+    return NumStat(line[0].toInt(), line[1].toInt(), line[2])
 }

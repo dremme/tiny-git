@@ -222,11 +222,12 @@ class StatsService {
         lastDay = rangeEnd
 
         taskPool +=
-            object : Task<List<Int>>() {
+            object : Task<Unit>() {
                 private var log: List<Commit> = emptyList()
                 private var numStat: List<NumStat> = emptyList()
+                private var years: List<Int> = emptyList()
 
-                override fun call(): List<Int> {
+                override fun call() {
                     Platform.runLater {
                         contributorsListener.started()
                         filesListener.started()
@@ -235,17 +236,14 @@ class StatsService {
                         linesListener.started()
                     }
                     log = gitLog(repository, firstDay, lastDay)
-                    numStat =
-                        if (log.isNotEmpty()) {
-                            gitDiffNumstat(repository, log.last(), log[0])
-                        } else {
-                            emptyList()
-                        }
-                    return gitLogYears(repository)
+                    years = gitLogYears(repository)
+                    if (log.isNotEmpty()) {
+                        numStat = gitDiffNumstat(repository, log.last(), log[0])
+                    }
                 }
 
                 override fun succeeded() {
-                    availableYears.setAll(value)
+                    availableYears.setAll(years)
                     rangeListener?.invoke()
                     this@StatsService.log += log
                     this@StatsService.numStat += numStat

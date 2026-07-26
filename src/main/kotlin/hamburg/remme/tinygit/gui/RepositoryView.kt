@@ -436,7 +436,6 @@ class RepositoryView : VBoxBuilder() {
 
         init {
             addClass(REPO_TREE_STYLE_CLASS)
-            graphic = row
         }
 
         override fun updateItem(
@@ -448,6 +447,7 @@ class RepositoryView : VBoxBuilder() {
                 clear()
                 return
             }
+            if (graphic !== row) graphic = row
             val state = (item as? Branch)?.let { branchService.isDetached(it) to branchService.isHead(it) }
             if (item != boundItem || state != branchState) {
                 boundItem = item
@@ -459,6 +459,8 @@ class RepositoryView : VBoxBuilder() {
         }
 
         private fun clear() {
+            text = null
+            graphic = null
             row.children.clear()
             row.styleClass.removeAll(DETACHED_STYLE_CLASS, CURRENT_STYLE_CLASS)
             boundItem = null

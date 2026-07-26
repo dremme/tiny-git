@@ -760,9 +760,26 @@ $fx-null: #{"null"};
   &:filled:selected > .tree-disclosure-node > .arrow {
     -fx-background-color: $text-accent-color;
   }
-  /* TODO: this is very buggy */
-  &:expanded > .tree-disclosure-node > .arrow {
+  // Only rotate when the cell is actually filled — bare :expanded on recycled/empty
+  // cells left “ghost” triangles in the free space under the tree.
+  &:filled:expanded > .tree-disclosure-node > .arrow {
     -fx-rotate: 90;
+  }
+  // Empty rows from VirtualFlow still host a disclosure node; hide it completely.
+  &:empty {
+    -fx-background-color: transparent;
+
+    > .tree-disclosure-node {
+      visibility: hidden;
+      -fx-padding: 0;
+      -fx-min-width: 0;
+      -fx-pref-width: 0;
+      -fx-max-width: 0;
+    }
+  }
+  // Leaves keep indent space but must not paint an arrow.
+  &:leaf > .tree-disclosure-node > .arrow {
+    -fx-background-color: transparent;
   }
 }
 

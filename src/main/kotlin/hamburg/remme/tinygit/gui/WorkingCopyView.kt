@@ -210,6 +210,18 @@ class WorkingCopyView : Tab() {
         selectedPending.selectedItems.addListener(ListChangeListener { service.selectedPending.setAll(it.list) })
         selectedPending.selectedItemProperty().addListener { _, _, it -> it?.let { selectedStaged.clearSelection() } }
 
+        // Prefer a staged file, otherwise a pending one, so the diff pane has something to show.
+        fun ensureFileSelected() {
+            if (selectedStaged.isEmpty && selectedPending.isEmpty) {
+                when {
+                    staged.items.isNotEmpty() -> selectedStaged.selectFirst()
+                    pending.items.isNotEmpty() -> selectedPending.selectFirst()
+                }
+            }
+        }
+        staged.items.addListener(ListChangeListener { ensureFileSelected() })
+        pending.items.addListener(ListChangeListener { ensureFileSelected() })
+
         val fileDiff =
             FileDiffView(
                 Bindings.createObjectBinding(

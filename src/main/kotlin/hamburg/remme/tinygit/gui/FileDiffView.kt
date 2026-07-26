@@ -66,7 +66,7 @@ class FileDiffView(
     private val file: ObservableObjectValue<File?>,
     private val commit: ObservableObjectValue<Commit?> = SimpleObjectProperty(),
 ) : VBoxBuilder() {
-    private val diffService = TinyGit.get<DiffService>()
+    private val service = TinyGit.get<DiffService>()
     private val contextLines: ComboBox<Int>
     private val engine: WebEngine
     private var diff = EMPTY_DIFF
@@ -96,24 +96,36 @@ class FileDiffView(
         engine = webView.engine
         +webView
 
-        file.addListener { _ -> update() }
+        // React to selection and commit; also load the value that is already set.
+        file.addListener { _, _, _ -> update() }
+        commit.addListener { _, _, _ -> update() }
+        // WebView can drop the first loadContent before it is attached to a scene.
+        sceneProperty().addListener { _, _, scene -> if (scene != null) update() }
+        update()
     }
 
     fun refresh() = update()
 
     private fun update() {
-        if (file.get() != null) {
-            val newDiff =
-                if (commit.get() != null) {
-                    diffService.diff(file.get()!!, commit.get()!!, contextLines.value)
-                } else {
-                    diffService.diff(file.get()!!, contextLines.value)
-                }
-            if (newDiff != diff) engine.loadContent(newDiff)
-            diff = newDiff
-        } else {
-            diff = EMPTY_DIFF
-            engine.loadContent(diff)
+        val selectedFile = file.get()
+        if (selectedFile == null) {
+            show(EMPTY_DIFF)
+            return
         }
+        val selectedCommit = commit.get()
+        val lines = contextLines.value ?: 3
+        val newDiff =
+            if (selectedCommit != null) {
+                service.diff(selectedFile, selectedCommit, lines)
+            } else {
+                service.diff(selectedFile, lines)
+            }
+        show(newDiff)
+    }
+
+    private fun show(content: String) {
+        if (content == diff && engine.document != null) return
+        diff = content
+        engine.loadContent(content)
     }
 }

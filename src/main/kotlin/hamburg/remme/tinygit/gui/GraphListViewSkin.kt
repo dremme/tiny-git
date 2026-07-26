@@ -5,7 +5,6 @@ import hamburg.remme.tinygit.domain.service.CommitLogService
 import hamburg.remme.tinygit.gui.builder.addClass
 import javafx.scene.CacheHint
 import javafx.scene.Group
-import javafx.scene.control.skin.ListViewSkin
 import javafx.scene.shape.Circle
 import javafx.scene.shape.CubicCurveTo
 import javafx.scene.shape.LineTo
@@ -103,6 +102,7 @@ class GraphListViewSkin(
         val circles = mutableListOf<Circle>()
 
         fun cellY(index: Int) = flow.getCell(index).let { it.layoutY + it.height / 2 }
+
         fun estimatedY(index: Int) = (index - first) * cellHeight
 
         items.forEachIndexed { index, commit ->

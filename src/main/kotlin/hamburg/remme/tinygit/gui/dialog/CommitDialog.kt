@@ -15,6 +15,7 @@ import hamburg.remme.tinygit.gui.builder.textArea
 import hamburg.remme.tinygit.gui.builder.vbox
 import hamburg.remme.tinygit.gui.builder.vgrow
 import javafx.application.Platform
+import javafx.collections.ListChangeListener
 import javafx.scene.layout.Priority
 import javafx.stage.Window
 
@@ -33,7 +34,14 @@ class CommitDialog(
         val files = FileStatusView(workingService.staged)
         files.prefWidth = 400.0
         files.prefHeight = 500.0
-        Platform.runLater { files.selectionModel.selectFirst() }
+        files.items.addListener(
+            ListChangeListener {
+                if (files.selectionModel.isEmpty && files.items.isNotEmpty()) {
+                    files.selectionModel.selectFirst()
+                }
+            },
+        )
+        if (files.items.isNotEmpty()) files.selectionModel.selectFirst()
 
         val message =
             textArea {
@@ -68,15 +76,18 @@ class CommitDialog(
         +DialogButton(DialogButton.CANCEL)
 
         focusAction = {
-            workingService.status()
-            fileDiff.refresh()
+            workingService.status {
+                if (files.selectionModel.isEmpty && files.items.isNotEmpty()) {
+                    files.selectionModel.selectFirst()
+                }
+                fileDiff.refresh()
+            }
         }
         okAction = {
             commitService.commit(
                 message.text,
                 amend.isSelected,
-                { errorAlert(window, I18N["dialog.cannotCommit.header"], I18N["dialog.cannotCommit.text"]) },
-            )
+            ) { errorAlert(window, I18N["dialog.cannotCommit.header"], I18N["dialog.cannotCommit.text"]) }
         }
     }
 }

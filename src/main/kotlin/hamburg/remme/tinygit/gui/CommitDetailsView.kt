@@ -17,6 +17,7 @@ import hamburg.remme.tinygit.gui.builder.vgrow
 import hamburg.remme.tinygit.gui.builder.visibleWhen
 import hamburg.remme.tinygit.gui.builder.webView
 import javafx.beans.binding.Bindings
+import javafx.collections.ListChangeListener
 import javafx.scene.layout.Priority
 
 private const val DEFAULT_STYLE_CLASS = "commit-details-view"
@@ -60,6 +61,14 @@ class CommitDetailsView : SplitPaneBuilder() {
         addClass(DEFAULT_STYLE_CLASS)
 
         val files = FileStatusView(detailsService.commitStatus).vgrow(Priority.ALWAYS)
+        // After a commit's file list is loaded, keep the first file selected so FileDiffView has input.
+        files.items.addListener(
+            ListChangeListener {
+                if (files.selectionModel.isEmpty && files.items.isNotEmpty()) {
+                    files.selectionModel.selectFirst()
+                }
+            },
+        )
 
         +splitPane {
             addClass(CONTENT_STYLE_CLASS)
