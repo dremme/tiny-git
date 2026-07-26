@@ -17,6 +17,7 @@ private val upstream = arrayOf("--set-upstream", "origin")
 fun gitGetUrl(repository: Repository): String {
     val response = git(repository, *remoteGetUrl).trim()
     if (response.startsWith(FATAL_SEPARATOR)) return ""
+    if (response.startsWith(ERROR_SEPARATOR)) return ""
     return response
 }
 

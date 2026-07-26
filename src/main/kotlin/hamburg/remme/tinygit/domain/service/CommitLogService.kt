@@ -96,6 +96,7 @@ class CommitLogService(
 
     private fun logRemote() {
         if (!repositoryService.hasRemote.get() || gitUpToDate(repository)) return
+
         credentialService.applyCredentials(repositoryService.remote.get())
         remoteTask =
             object : Task<List<Commit>>() {
