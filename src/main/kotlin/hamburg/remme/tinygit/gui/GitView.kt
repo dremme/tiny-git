@@ -26,7 +26,6 @@ import hamburg.remme.tinygit.gui.builder.choiceDialog
 import hamburg.remme.tinygit.gui.builder.confirmWarningAlert
 import hamburg.remme.tinygit.gui.builder.directoryChooser
 import hamburg.remme.tinygit.gui.builder.errorAlert
-import hamburg.remme.tinygit.gui.builder.flipXY
 import hamburg.remme.tinygit.gui.builder.hbox
 import hamburg.remme.tinygit.gui.builder.label
 import hamburg.remme.tinygit.gui.builder.managedWhen
@@ -119,14 +118,14 @@ class GitView : VBoxBuilder() {
         val cloneRepo =
             Action(
                 I18N["menu.clone"],
-                { Icons.clone() },
+                { Icons.download() },
                 "Shortcut+Shift+O",
                 handler = { CloneDialog(TinyGit.window).show() },
             )
         val newRepo =
             Action(
                 I18N["menu.new"],
-                { Icons.folder() },
+                { Icons.folderPlus() },
                 "Shortcut+N",
                 handler = { newRepo() },
             )
@@ -283,7 +282,7 @@ class GitView : VBoxBuilder() {
         val stash =
             Action(
                 I18N["menu.stash"],
-                { Icons.cube() },
+                { Icons.box() },
                 "Shortcut+S",
                 state.canStash.not(),
                 { stashService.create() },
@@ -291,7 +290,7 @@ class GitView : VBoxBuilder() {
         val stashPop =
             Action(
                 I18N["menu.popStash"],
-                { Icons.cube().flipXY() },
+                { Icons.boxOpen() },
                 "Shortcut+Shift+S",
                 state.canApplyStash.not(),
                 { stashPop() },
@@ -339,6 +338,12 @@ class GitView : VBoxBuilder() {
                 { Icons.github() },
                 handler = { TinyGit.showDocument("https://github.com/dremme/tiny-git") },
             )
+        val issue =
+            Action(
+                I18N["menu.issue"],
+                { Icons.bug() },
+                handler = { TinyGit.showDocument("https://github.com/dremme/tiny-git/issues/new") },
+            )
         val about =
             Action(
                 I18N["menu.about"],
@@ -384,7 +389,7 @@ class GitView : VBoxBuilder() {
                 ActionGroup(cmd),
             )
             if (isMac) +createMacWindow(TinyGit.window as Stage)
-            +ActionCollection(I18N["menuBar.help"], ActionGroup(github, about))
+            +ActionCollection(I18N["menuBar.help"], ActionGroup(github, issue, about))
         }
         +toolBar {
             visibleWhen(state.showToolBar)
@@ -471,11 +476,13 @@ class GitView : VBoxBuilder() {
 
     private fun addRepo() {
         directoryChooser(TinyGit.window, I18N["dialog.addRepository.title"]) {
-            repoService.open(
-                it.toString(),
-                // TODO: the path could be stripped with ~ for Macs
-                { errorAlert(TinyGit.window, I18N["dialog.invalidRepository.header"], I18N["dialog.invalidRepository.text", it]) },
-            )
+            repoService.open(it.toString()) {
+                errorAlert(
+                    TinyGit.window,
+                    I18N["dialog.invalidRepository.header"],
+                    I18N["dialog.invalidRepository.text", it],
+                )
+            }
         }
     }
 
@@ -502,7 +509,7 @@ class GitView : VBoxBuilder() {
     }
 
     private fun fetch() {
-        remoteService.fetch({ errorAlert(TinyGit.window, I18N["dialog.cannotFetch.header"], it) })
+        remoteService.fetch { errorAlert(TinyGit.window, I18N["dialog.cannotFetch.header"], it) }
     }
 
     private fun push(force: Boolean) {
@@ -553,7 +560,7 @@ class GitView : VBoxBuilder() {
         val current = branchService.head.get()
         val branches = branchService.branches.filter { it != current }.sortedByDefault()
         choiceDialog(TinyGit.window, I18N["dialog.rebase.header"], I18N["dialog.rebase.button"], Icons.codeCompare(), branches) {
-            rebaseService.rebase(it, { errorAlert(TinyGit.window, I18N["dialog.cannotRebase.header"], it) })
+            rebaseService.rebase(it) { errorAlert(TinyGit.window, I18N["dialog.cannotRebase.header"], it) }
         }
     }
 
@@ -570,11 +577,17 @@ class GitView : VBoxBuilder() {
         )
 
     private fun rebaseContinue() {
-        rebaseService.doContinue({ errorAlert(TinyGit.window, I18N["dialog.rebaseContinue.header"], I18N["dialog.rebaseContinue.text"]) })
+        rebaseService.doContinue {
+            errorAlert(
+                TinyGit.window,
+                I18N["dialog.rebaseContinue.header"],
+                I18N["dialog.rebaseContinue.text"],
+            )
+        }
     }
 
     private fun stashPop() {
-        stashService.pop({ errorAlert(TinyGit.window, I18N["dialog.popStash.header"], I18N["dialog.popStash.text"]) })
+        stashService.pop { errorAlert(TinyGit.window, I18N["dialog.popStash.header"], I18N["dialog.popStash.text"]) }
     }
 
     private fun autoReset() {

@@ -124,7 +124,7 @@ class RepositoryView : VBoxBuilder() {
         val localBranches = RootTreeItem(Icons.hdd(), I18N["repository.localBranches"])
         val remoteBranches = RootTreeItem(Icons.cloud(), I18N["repository.remoteBranches"])
         val tags = RootTreeItem(Icons.tags(), I18N["repository.tags"])
-        val stash = RootTreeItem(Icons.cubes(), I18N["repository.stash"])
+        val stash = RootTreeItem(Icons.boxesStacked(), I18N["repository.stash"])
 
         tree =
             tree {
@@ -184,7 +184,7 @@ class RepositoryView : VBoxBuilder() {
                 val applyStash =
                     Action(
                         I18N["repository.applyStash"],
-                        { Icons.cube() },
+                        { Icons.box() },
                         disabled = canApplyStash.not(),
                         handler = { applyStash(selectedValue as StashEntry) },
                     )
@@ -492,7 +492,7 @@ class RepositoryView : VBoxBuilder() {
                     }
                 }
                 is Tag -> row.children.setAll(Icons.tag(), textLabel)
-                is StashEntry -> row.children.setAll(Icons.cube(), textLabel)
+                is StashEntry -> row.children.setAll(Icons.box(), textLabel)
                 else -> error("Unexpected tree item: $item")
             }
         }

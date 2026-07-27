@@ -17,6 +17,14 @@ object Icons {
 
     fun arrowAltCircleUp() = icon('\uf35b')
 
+    fun box() = icon('\uf466')
+
+    fun boxesStacked() = icon('\uf468')
+
+    fun boxOpen() = icon('\uf49e')
+
+    fun bug() = icon('\uf188')
+
     fun calendar() = icon('\uf133')
 
     fun chartPie() = icon('\uf200')
@@ -43,13 +51,15 @@ object Icons {
 
     fun codePullRequest() = icon('\ue13c')
 
-    fun coffee() = icon('\uf7b6') // mug-hot
+    fun coffee() = icon('\uf7b6')
 
-    fun cog() = icon('\uf013') // gear
+    fun cog() = icon('\uf013')
 
     fun cube() = icon('\uf1b2')
 
     fun cubes() = icon('\uf1b3')
+
+    fun download() = icon('\uf019')
 
     fun envelope() = icon('\uf0e0')
 
@@ -63,6 +73,8 @@ object Icons {
 
     fun folderOpen() = icon('\uf07c')
 
+    fun folderPlus() = icon('\uf65e')
+
     fun forward() = icon('\uf04e')
 
     fun gavel() = icon('\uf0e3')
@@ -73,7 +85,7 @@ object Icons {
 
     fun hdd() = icon('\uf0a0')
 
-    fun levelUp() = icon('\uf3bf') // turn-up
+    fun levelUp() = icon('\uf3bf')
 
     fun alignLeft() = icon('\uf036')
 
@@ -85,7 +97,7 @@ object Icons {
 
     fun minus() = icon('\uf068')
 
-    fun pencil() = icon('\uf304') // pen
+    fun pencil() = icon('\uf304')
 
     fun plus() = icon('\u002b')
 
@@ -93,13 +105,13 @@ object Icons {
 
     fun questionCircle() = icon('\uf059')
 
-    fun refresh() = icon('\uf021') // arrows-rotate
+    fun refresh() = icon('\uf021')
 
-    fun search() = icon('\uf002') // magnifying-glass
+    fun search() = icon('\uf002')
 
     fun share() = icon('\uf064')
 
-    fun signOut() = icon('\uf2f5') // right-from-bracket
+    fun signOut() = icon('\uf2f5')
 
     fun tag() = icon('\uf02b')
 
@@ -107,11 +119,11 @@ object Icons {
 
     fun terminal() = icon('\uf120')
 
-    fun timesCircle() = icon('\uf057') // circle-xmark
+    fun timesCircle() = icon('\uf057')
 
     fun trash() = icon('\uf1f8')
 
-    fun undo() = icon('\uf0e2') // arrow-rotate-left
+    fun undo() = icon('\uf0e2')
 
     fun user() = icon('\uf007')
 
