@@ -42,8 +42,7 @@ sealed class StatsPeriod {
             is StatsYear -> {
                 val first = LocalDate.of(year, 1, 1)
                 val yearEnd = LocalDate.of(year, 12, 31)
-                val last = if (yearEnd.isAfter(today)) today else yearEnd
-                first to last
+                first to minOf(yearEnd, today)
             }
         }
 }
@@ -73,7 +72,7 @@ class StatsService {
     private val numStat = mutableListOf<NumStat>()
     private val taskPool = mutableSetOf<Task<*>>()
 
-    private fun finishAllListeners() {
+    private fun finishAllListeners() =
         Platform.runLater {
             contributorsListener.done()
             filesListener.done()
@@ -81,7 +80,6 @@ class StatsService {
             activityListener.done()
             linesListener.done()
         }
-    }
 
     fun updateActivity() {
         taskPool +=
@@ -97,7 +95,10 @@ class StatsService {
                     activityListener.done()
                 }
 
-                override fun failed() = exception.printStackTrace()
+                override fun failed() {
+                    exception.printStackTrace()
+                    activityListener.done()
+                }
             }.execute()
     }
 
@@ -116,7 +117,10 @@ class StatsService {
                     contributorsListener.done()
                 }
 
-                override fun failed() = exception.printStackTrace()
+                override fun failed() {
+                    exception.printStackTrace()
+                    contributorsListener.done()
+                }
             }.execute()
     }
 
@@ -148,7 +152,10 @@ class StatsService {
                     commitsListener.done()
                 }
 
-                override fun failed() = exception.printStackTrace()
+                override fun failed() {
+                    exception.printStackTrace()
+                    commitsListener.done()
+                }
             }.execute()
     }
 
@@ -169,7 +176,10 @@ class StatsService {
                     filesListener.done()
                 }
 
-                override fun failed() = exception.printStackTrace()
+                override fun failed() {
+                    exception.printStackTrace()
+                    filesListener.done()
+                }
             }.execute()
     }
 
@@ -179,43 +189,42 @@ class StatsService {
                 private val added = mutableListOf<HistogramChart.Data>()
                 private val removed = mutableListOf<HistogramChart.Data>()
 
-                override fun call() =
+                override fun call() {
                     (0..lastDay.daysBetween(firstDay))
-                        .map { firstDay.plusDays(it) }
-                        .map { it.atStartOfWeek() }
+                        .map { firstDay.plusDays(it).atStartOfWeek() }
                         .distinct()
-                        .map { date -> date to log.filter { it.date.toLocalDate().atStartOfWeek() == date } }
-                        .map { (date, log) ->
-                            val min = log.minByOrNull { it.date }
-                            val max = log.maxByOrNull { it.date }
-                            Triple(date, min, max)
-                        }.mapParallel { (date, first, last) ->
-                            date to
+                        .map { week -> week to log.filter { it.date.toLocalDate().atStartOfWeek() == week } }
+                        .mapParallel { (week, weekLog) ->
+                            val first = weekLog.minByOrNull { it.date }
+                            val last = weekLog.maxByOrNull { it.date }
+                            week to
                                 if (!isCancelled && first != null && last != null) {
                                     gitDiffNumstat(repository, first, last)
                                 } else {
                                     emptyList()
                                 }
-                        }.map { (date, stats) -> Triple(date, stats.sumOf { it.added }, stats.sumOf { it.removed }) }
-                        .filter { (_, added, removed) -> added + removed > 0 }
-                        .forEach { (date, added, removed) ->
-                            this.added += HistogramChart.Data(date, added.toLong(), 7)
-                            this.removed += HistogramChart.Data(date, removed.toLong(), 7)
+                        }.map { (week, stats) -> Triple(week, stats.sumOf { it.added }, stats.sumOf { it.removed }) }
+                        .filter { (_, a, r) -> a + r > 0 }
+                        .forEach { (week, a, r) ->
+                            added += HistogramChart.Data(week, a.toLong(), 7)
+                            removed += HistogramChart.Data(week, r.toLong(), 7)
                         }
+                }
 
                 override fun succeeded() {
                     linesData.setAll(HistogramChart.Series("", added), HistogramChart.Series("", removed))
                     linesListener.done()
                 }
 
-                override fun failed() = exception.printStackTrace()
+                override fun failed() {
+                    exception.printStackTrace()
+                    linesListener.done()
+                }
             }.execute()
     }
 
     fun update(repository: Repository) {
         cancel()
-        log.clear()
-        numStat.clear()
 
         val (rangeStart, rangeEnd) = period.resolveRange()
         firstDay = rangeStart
@@ -223,8 +232,8 @@ class StatsService {
 
         taskPool +=
             object : Task<Unit>() {
-                private lateinit var log: List<Commit>
-                private lateinit var numStat: List<NumStat>
+                private lateinit var loadedLog: List<Commit>
+                private lateinit var loadedNumStat: List<NumStat>
                 private lateinit var years: List<Int>
 
                 override fun call() {
@@ -236,10 +245,10 @@ class StatsService {
                         linesListener.started()
                     }
                     years = gitLogYears(repository)
-                    log = gitLog(repository, firstDay, lastDay)
-                    numStat =
-                        if (log.isNotEmpty()) {
-                            gitDiffNumstat(repository, log.last(), log[0])
+                    loadedLog = gitLog(repository, firstDay, lastDay)
+                    loadedNumStat =
+                        if (loadedLog.isNotEmpty()) {
+                            gitDiffNumstat(repository, loadedLog.last(), loadedLog[0])
                         } else {
                             emptyList()
                         }
@@ -248,9 +257,12 @@ class StatsService {
                 override fun succeeded() {
                     availableYears.setAll(years)
                     rangeListener?.invoke()
-                    this@StatsService.log += log
-                    this@StatsService.numStat += numStat
-                    if (log.isEmpty()) {
+                    // Replace data only after load so cancelled background work still sees the old list.
+                    log.clear()
+                    log += loadedLog
+                    numStat.clear()
+                    numStat += loadedNumStat
+                    if (loadedLog.isEmpty()) {
                         contributorsData.clear()
                         filesData.clear()
                         commitsData.clear()
@@ -266,13 +278,12 @@ class StatsService {
                     updateLines(repository)
                 }
 
-                override fun failed() {
-                    finishAllListeners()
-                }
+                override fun failed() = finishAllListeners()
             }.execute()
     }
 
     fun cancel() {
         taskPool.forEach { it.cancel() }
+        taskPool.clear()
     }
 }

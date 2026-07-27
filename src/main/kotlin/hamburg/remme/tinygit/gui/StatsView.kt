@@ -3,6 +3,7 @@ package hamburg.remme.tinygit.gui
 import hamburg.remme.tinygit.I18N
 import hamburg.remme.tinygit.TaskListener
 import hamburg.remme.tinygit.TinyGit
+import hamburg.remme.tinygit.atStartOfWeek
 import hamburg.remme.tinygit.domain.service.RepositoryService
 import hamburg.remme.tinygit.domain.service.StatsPeriod
 import hamburg.remme.tinygit.domain.service.StatsService
@@ -215,27 +216,26 @@ class StatsView : Tab() {
 
     private fun monthTickDates(): List<LocalDate> {
         val start = statsService.firstDay.withDayOfMonth(1)
-        val end = statsService.lastDay
-        val months = ChronoUnit.MONTHS.between(start, end).coerceAtLeast(1)
-        return (0L..12L).map { i -> start.plusMonths(months * i / 12) }
+        val endMonth = statsService.lastDay.withDayOfMonth(1)
+        val months = ChronoUnit.MONTHS.between(start, endMonth).coerceAtLeast(0)
+        if (months == 0L) return listOf(start)
+        val steps = minOf(12L, months)
+        return (0L..steps).map { i -> start.plusMonths(months * i / steps) }.distinct()
     }
+
+    /** Align chart end to the Sunday of lastDay's week so weekly cells/bars fit. */
+    private fun chartEnd() = statsService.lastDay.atStartOfWeek().plusDays(6)
 
     private fun HistogramChart.updateBoundsAndTicks() {
         lowerBound = statsService.firstDay
-        upperBound = statsService.lastDay
-        setTickMarks(
-            monthTickDates()
-                .map { HistogramChart.TickMark(monthOfYearFormat.format(it), it) },
-        )
+        upperBound = chartEnd()
+        setTickMarks(monthTickDates().map { HistogramChart.TickMark(monthOfYearFormat.format(it), it) })
     }
 
     private fun CalendarChart.updateBoundsAndTicks() {
-        lowerBound = statsService.firstDay
-        upperBound = statsService.lastDay
-        setTickMarks(
-            monthTickDates()
-                .map { CalendarChart.TickMark(monthOfYearFormat.format(it), it) },
-        )
+        lowerBound = statsService.firstDay.atStartOfWeek()
+        upperBound = chartEnd()
+        setTickMarks(monthTickDates().map { CalendarChart.TickMark(monthOfYearFormat.format(it), it) })
     }
 
     private fun updateContributions(data: List<DonutChart.Data>) {

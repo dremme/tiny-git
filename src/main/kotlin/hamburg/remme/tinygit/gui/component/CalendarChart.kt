@@ -5,16 +5,11 @@ import hamburg.remme.tinygit.dayOfWeekFormat
 import hamburg.remme.tinygit.daysFromOrigin
 import hamburg.remme.tinygit.gui.builder.addClass
 import hamburg.remme.tinygit.gui.builder.label
-import javafx.animation.Interpolator
-import javafx.animation.KeyFrame
-import javafx.animation.KeyValue
-import javafx.animation.Timeline
 import javafx.scene.layout.Pane
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
 import javafx.scene.shape.Rectangle
-import javafx.util.Duration
 import java.time.DayOfWeek
 import java.time.LocalDate
 import kotlin.math.roundToInt
@@ -26,8 +21,12 @@ private const val SHAPE_STYLE_CLASS = "shape"
 private const val RECT_STYLE_CLASS = "rectangle-color"
 private const val TICK_MARK_LENGTH = 5.0
 private const val TICK_MARK_GAP = 2.0
+private const val PAD_WEEKS = 1
+private const val CELL_GAP = 2.0
 
 /**
+ * Contribution calendar: one column per week, rows Mon–Sun.
+ *
  * @todo: find abstraction between this and [HistogramChart], especially tick marks and axes
  */
 class CalendarChart(
@@ -45,18 +44,22 @@ class CalendarChart(
     private val plotContentClip = Rectangle()
     private val xAxis = Path().addClass(AXIS_STYLE_CLASS)
 
+    private var firstWeek = 0L
+    private var weekCount = 1
+
     var lowerBound: LocalDate
         get() = throw RuntimeException("Write-only property.")
         set(value) {
-            lowerBoundX = value.daysFromOrigin
+            firstWeek = value.atStartOfWeek().daysFromOrigin
+            refreshWeekCount()
         }
     var upperBound: LocalDate
         get() = throw RuntimeException("Write-only property.")
         set(value) {
-            upperBoundX = value.daysFromOrigin
+            lastDay = value.daysFromOrigin
+            refreshWeekCount()
         }
-    private var lowerBoundX = 0L
-    private var upperBoundX = 100L
+    private var lastDay = 100L
 
     init {
         addClass(DEFAULT_STYLE_CLASS)
@@ -65,63 +68,61 @@ class CalendarChart(
         plotContent.clip = plotContentClip
         plotContent.isManaged = false
         chartChildren.addAll(plotContent, xAxis)
-        setDowMarks(DayOfWeek.values().map { TickMark(dayOfWeekFormat.format(it), it) })
+        setDowMarks(DayOfWeek.entries.map { TickMark(dayOfWeekFormat.format(it), it) })
+    }
+
+    private fun refreshWeekCount() {
+        val lastWeek = lastDay - ((lastDay - firstWeek) % 7)
+        weekCount = (((lastWeek - firstWeek) / 7) + 1).toInt().coerceAtLeast(1)
     }
 
     fun setData(data: List<Data>) {
-        // Remove old rectangles first
-        plotContent.children -= rectangles
-        // Get highest y-value
-        val maxY = data.map { it.yValue }.maxOrNull()?.toDouble() ?: 0.0
-        // Set new reference list
+        plotContent.children -= rectangles.toSet()
+        val maxY = data.maxOfOrNull { it.yValue }?.toDouble()?.coerceAtLeast(1.0) ?: 1.0
         this.data.clear()
         this.data += data
-        this.data.forEach { it.createNode((it.yValue / maxY * 4).roundToInt()) }
-        // Add new rectangles
+        this.data.forEach { it.createNode((it.yValue / maxY * 4).roundToInt().coerceIn(0, 4)) }
         plotContent.children += rectangles
-        // Finally request chart layout
         requestChartLayout()
     }
 
     fun setTickMarks(tickMarks: List<TickMark<LocalDate>>) {
-        // Remove old labels
-        chartChildren -= this.tickMarks.map { it.label }
-        // Set new reference list
+        chartChildren -= this.tickMarks.map { it.label }.toSet()
         this.tickMarks.clear()
         this.tickMarks += tickMarks
-        // Add new labels
         chartChildren += this.tickMarks.map { it.label }
+        requestChartLayout()
     }
 
     private fun setDowMarks(tickMarks: List<TickMark<DayOfWeek>>) {
-        // Remove old labels
-        chartChildren -= this.dowMarks.map { it.label }
-        // Set new reference list
+        chartChildren -= this.dowMarks.map { it.label }.toSet()
         this.dowMarks.clear()
         this.dowMarks += tickMarks
-        // Add new labels
         chartChildren += this.dowMarks.map { it.label }
     }
+
+    private fun layoutWeeks() = weekCount + 2 * PAD_WEEKS
+
+    private fun weekCol(day: Long): Int = (((day.atWeekStart() - firstWeek) / 7).toInt() + PAD_WEEKS).coerceIn(0, layoutWeeks() - 1)
+
+    private fun Long.atWeekStart() = this - ((this - firstWeek) % 7 + 7) % 7
 
     override fun layoutChartChildren(
         width: Double,
         height: Double,
     ) {
-        val labelWidth = dowMarks.map { it.label.prefWidth(height) }.maxOrNull() ?: 0.0
-        val labelHeight = tickMarks.map { it.label.prefHeight(width) }.maxOrNull() ?: 0.0
+        val labelWidth = dowMarks.maxOfOrNull { it.label.prefWidth(height) } ?: 0.0
+        val labelHeight = tickMarks.maxOfOrNull { it.label.prefHeight(width) } ?: 0.0
         val yAxisWidth = snapSizeX(TICK_MARK_LENGTH + labelWidth)
         val xAxisHeight = snapSizeY(TICK_MARK_LENGTH + TICK_MARK_GAP + labelHeight)
-
         val contentWidth = width - yAxisWidth
         val contentHeight = height - xAxisHeight
-        val stepX = contentWidth / (upperBoundX - lowerBoundX)
+        val stepX = contentWidth / layoutWeeks()
         val stepY = contentHeight / 7
 
         xAxis.elements.clear()
-
         tickMarks.forEach {
-            val value = Math.max(0, it.value.atStartOfWeek().daysFromOrigin - lowerBoundX)
-            var x = snapPositionX(value * stepX + yAxisWidth)
+            var x = snapPositionX(weekCol(it.value.daysFromOrigin) * stepX + yAxisWidth)
             val w = snapSizeX(it.label.prefWidth(contentHeight))
             val h = snapSizeY(it.label.prefHeight(contentWidth))
             xAxis.elements.addAll(MoveTo(x, height - xAxisHeight), LineTo(x, height - xAxisHeight + TICK_MARK_LENGTH))
@@ -129,18 +130,15 @@ class CalendarChart(
             it.label.resizeRelocate(x, height - xAxisHeight + TICK_MARK_LENGTH + TICK_MARK_GAP, w, h)
         }
         dowMarks.forEach {
-            val y = snapPositionY(it.value.value * stepY - stepY / 2)
+            val y = snapPositionY(it.value.ordinal * stepY + stepY / 2)
             val w = snapSizeX(it.label.prefWidth(contentHeight))
             val h = snapSizeY(it.label.prefHeight(contentWidth))
             it.label.resizeRelocate(yAxisWidth - w - TICK_MARK_LENGTH, y - h / 2, w, h)
         }
 
-        plotContentClip.x = 0.0
-        plotContentClip.y = 0.0
         plotContentClip.width = contentWidth
         plotContentClip.height = contentHeight
         plotContent.resizeRelocate(yAxisWidth, 0.0, contentWidth, contentHeight)
-
         layoutPlotChildren(contentWidth, contentHeight)
     }
 
@@ -148,31 +146,18 @@ class CalendarChart(
         width: Double,
         height: Double,
     ) {
-        val stepX = width / (upperBoundX - lowerBoundX)
+        val stepX = width / layoutWeeks()
         val stepY = height / 7
-        val timeline = Timeline()
         data.forEach {
             val rect = it.node as Rectangle
-            if (!it.wasAnimated) {
-                rect.opacity = 0.0
-                timeline.keyFrames +=
-                    KeyFrame(
-                        Duration.millis(500.0 + 500.0 * it.index),
-                        KeyValue(rect.opacityProperty(), 1.0, Interpolator.EASE_OUT),
-                    )
-                it.wasAnimated = true
-            }
-            val adjustedDate = it.xValue.atStartOfWeek()
-            val x = (adjustedDate.daysFromOrigin - lowerBoundX) * stepX
+            val x = weekCol(it.xValue.daysFromOrigin) * stepX
             val y = it.xValue.dayOfWeek.ordinal * stepY
-            val w = stepX * 7
-            val h = stepY
-            rect.x = snapPositionX(x) + 1
-            rect.y = snapPositionY(y) + 1
-            rect.width = snapSizeX(w) - 2
-            rect.height = snapSizeY(h) - 2
+            rect.opacity = 1.0
+            rect.x = snapPositionX(x) + CELL_GAP / 2
+            rect.y = snapPositionY(y) + CELL_GAP / 2
+            rect.width = (snapSizeX(stepX) - CELL_GAP).coerceAtLeast(1.0)
+            rect.height = (snapSizeY(stepY) - CELL_GAP).coerceAtLeast(1.0)
         }
-        if (timeline.keyFrames.isNotEmpty()) timeline.play()
     }
 
     class TickMark<out T>(
@@ -191,7 +176,6 @@ class CalendarChart(
         val yValue: Int,
     ) {
         var node: Rectangle? = null
-        var wasAnimated = false
         var index = 0
 
         fun createNode(index: Int) {

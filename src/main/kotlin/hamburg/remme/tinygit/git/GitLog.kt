@@ -1,6 +1,5 @@
 package hamburg.remme.tinygit.git
 
-import hamburg.remme.tinygit.atEndOfDay
 import hamburg.remme.tinygit.domain.Commit
 import hamburg.remme.tinygit.domain.CommitIsh
 import hamburg.remme.tinygit.domain.Divergence
@@ -49,7 +48,8 @@ fun gitLog(
     before: LocalDate,
 ): List<Commit> {
     val parser = CommitParser()
-    git(repository, *logAll, "--after=\"${after.atStartOfDay()}\"", "--before=\"${before.atEndOfDay()}\"") { parser.parseLine(it) }
+    // --until is exclusive at midnight; +1 day includes the full `before` date.
+    git(repository, *logAll, "--since=$after", "--until=${before.plusDays(1)}") { parser.parseLine(it) }
     return parser.commits
 }
 

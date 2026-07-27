@@ -14,6 +14,7 @@ import javafx.scene.shape.Path
 import javafx.scene.shape.Rectangle
 import javafx.util.Duration
 import java.time.LocalDate
+import kotlin.math.max
 
 private const val DEFAULT_STYLE_CLASS = "histogram"
 private const val AXIS_STYLE_CLASS = "axis"
@@ -24,6 +25,9 @@ private const val COLOR_COUNT = 16
 private const val MIN_HEIGHT = 2.0 // TODO: could cause issues
 private const val TICK_MARK_LENGTH = 5.0
 private const val TICK_MARK_GAP = 2.0
+
+/** Empty days before/after the data range so the last day is not clipped at the edge. */
+private const val PAD_DAYS = 7L
 
 /**
  * @todo: find abstraction between this and [CalendarChart], especially tick marks and axes
@@ -67,50 +71,49 @@ class HistogramChart(
     }
 
     fun setSeries(series: List<Series>) {
-        // Remove old rectangles first
-        plotContent.children -= rectangles
-        // Set new reference list
+        plotContent.children -= rectangles.toSet()
         this.series.clear()
         this.series += series.takeLast(COLOR_COUNT)
         this.series.forEachIndexed { i, it -> it.data.forEach { it.createNode(i) } }
-        // Set highest y-value
         upperBoundY = data
             .groupingBy { it.xValue }
             .fold(0L) { acc, it -> acc + it.yValue }
-            .map { it.value }
+            .values
             .maxOrNull()
             ?.toDouble()
             ?: 0.0
-        // Add new rectangles
         plotContent.children += rectangles
-        // Finally request chart layout
         requestChartLayout()
     }
 
     fun setTickMarks(tickMarks: List<TickMark<LocalDate>>) {
-        // Remove old labels
-        chartChildren -= this.tickMarks.map { it.label }
-        // Set new reference list
+        chartChildren -= this.tickMarks.map { it.label }.toSet()
         this.tickMarks.clear()
         this.tickMarks += tickMarks
-        // Add new labels
         chartChildren += this.tickMarks.map { it.label }
     }
+
+    /** Inclusive day span plus padding so the first/last days are fully visible. */
+    private fun layoutDays() = (upperBoundX - lowerBoundX + 1 + 2 * PAD_DAYS).coerceAtLeast(1)
+
+    private fun xOf(
+        day: Long,
+        stepX: Double,
+    ) = (day - lowerBoundX + PAD_DAYS) * stepX
 
     override fun layoutChartChildren(
         width: Double,
         height: Double,
     ) {
-        val stepX = width / (upperBoundX - lowerBoundX)
-
-        val labelHeight = tickMarks.map { it.label.prefHeight(width) }.maxOrNull() ?: 0.0
+        val stepX = width / layoutDays()
+        val labelHeight = tickMarks.maxOfOrNull { it.label.prefHeight(width) } ?: 0.0
         val xAxisHeight = snapSizeY(TICK_MARK_LENGTH + TICK_MARK_GAP + labelHeight)
         val y = snapPositionY(height - xAxisHeight)
         xAxis.elements.setAll(MoveTo(0.0, 0.0), LineTo(width, 0.0))
         xAxis.relocate(0.0, y)
 
         tickMarks.forEach {
-            var x = snapPositionX((it.value.daysFromOrigin - lowerBoundX) * stepX)
+            var x = snapPositionX(xOf(it.value.daysFromOrigin, stepX))
             val w = snapSizeX(it.label.prefWidth(height))
             val h = snapSizeY(it.label.prefHeight(width))
             xAxis.elements.addAll(MoveTo(x, 0.0), LineTo(x, TICK_MARK_LENGTH))
@@ -118,12 +121,9 @@ class HistogramChart(
             it.label.resizeRelocate(x, y + TICK_MARK_LENGTH + TICK_MARK_GAP, w, h)
         }
 
-        plotContentClip.x = 0.0
-        plotContentClip.y = 0.0
         plotContentClip.width = width
         plotContentClip.height = height - xAxisHeight
         plotContent.resizeRelocate(0.0, 0.0, width, height - xAxisHeight)
-
         layoutPlotChildren(width, height - xAxisHeight)
     }
 
@@ -132,15 +132,14 @@ class HistogramChart(
         height: Double,
     ) {
         val slots = mutableMapOf<LocalDate, Double>()
-        val stepX = width / (upperBoundX - lowerBoundX)
+        val stepX = width / layoutDays()
         val timeline = Timeline()
         data.forEach {
             val rect = it.node as Rectangle
             if (!it.wasAnimated) {
                 rect.y = height
                 rect.height = 0.0
-
-                val h = snapSizeY(Math.max(MIN_HEIGHT, height * (it.yValue / upperBoundY)))
+                val h = snapSizeY(max(MIN_HEIGHT, height * (it.yValue / upperBoundY.coerceAtLeast(1.0))))
                 val y = snapPositionY(height - h - (slots[it.xValue] ?: 0.0))
                 timeline.keyFrames +=
                     KeyFrame(
@@ -148,14 +147,11 @@ class HistogramChart(
                         KeyValue(rect.yProperty(), y, Interpolator.EASE_OUT),
                         KeyValue(rect.heightProperty(), h, Interpolator.EASE_OUT),
                     )
-
-                slots[it.xValue] = slots[it.xValue] ?: 0.0 + h
+                slots[it.xValue] = (slots[it.xValue] ?: 0.0) + h
                 it.wasAnimated = true
             }
-            val x = (it.xValue.daysFromOrigin - lowerBoundX) * stepX
-            val w = stepX * it.size
-            rect.x = snapPositionX(x)
-            rect.width = snapSizeX(w)
+            rect.x = snapPositionX(xOf(it.xValue.daysFromOrigin, stepX))
+            rect.width = snapSizeX(stepX * it.size)
         }
         if (timeline.keyFrames.isNotEmpty()) timeline.play()
     }

@@ -32,10 +32,7 @@ fun gitDiff(
     return git(repository, *diff, "--unified=$lines", commit.parentId, commit.id, "--", file.oldPath, file.path)
 }
 
-/**
- * Line stats for the working tree vs index (`cached = false`) or index vs HEAD (`cached = true`).
- * Untracked files are not included in the unstaged stats.
- */
+/** Working tree vs index (`cached = false`) or index vs HEAD (`cached = true`). */
 fun gitDiffNumstat(
     repository: Repository,
     cached: Boolean,
@@ -49,10 +46,7 @@ fun gitDiffNumstat(
     return numStat
 }
 
-/**
- * Line stats for a single commit against its first parent (empty tree for root commits).
- * Merge commits return an empty list, matching [gitDiffTree].
- */
+/** Single commit vs its first parent (empty tree for root commits). Merges → empty. */
 fun gitDiffNumstat(
     repository: Repository,
     commit: Commit,
@@ -63,14 +57,15 @@ fun gitDiffNumstat(
     return numStat
 }
 
+/** Range from..to. Same commit → parent..commit so one-commit weeks still yield stats. */
 fun gitDiffNumstat(
     repository: Repository,
     from: Commit,
     to: Commit,
 ): List<NumStat> {
-    if (from == to) return emptyList()
+    if (from == to) return gitDiffNumstat(repository, to)
     val numStat = mutableListOf<NumStat>()
-    git(repository, *diffNumstat, if (from != to) from.id else EMPTY_ID, to.id) { it.appendTo(numStat) }
+    git(repository, *diffNumstat, from.id, to.id) { it.appendTo(numStat) }
     return numStat
 }
 
@@ -87,10 +82,8 @@ fun gitBlame(
 }
 
 private fun String.appendTo(list: MutableList<NumStat>) {
-    if (startsWith(WARNING_SEPARATOR)) return
-    if (startsWith(ERROR_SEPARATOR)) return
-    if (startsWith(FATAL_SEPARATOR)) return
-
-    val line = split('\t')
-    list += NumStat(line[0].toIntOrNull() ?: 0, line[1].toIntOrNull() ?: 0, line[2])
+    if (startsWith(WARNING_SEPARATOR) || startsWith(ERROR_SEPARATOR) || startsWith(FATAL_SEPARATOR)) return
+    val parts = split('\t')
+    if (parts.size < 3) return
+    list += NumStat(parts[0].toIntOrNull() ?: 0, parts[1].toIntOrNull() ?: 0, parts[2])
 }
