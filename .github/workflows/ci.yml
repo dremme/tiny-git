@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # Preferred for compileSCSS; scss-seed/ is used if Sass is unavailable
+      - name: Install Dart Sass
+        run: npm install -g sass
+
+      - name: Build and check
+        run: |
+          chmod +x gradlew
+          ./gradlew build --no-daemon --stacktrace
+
+      # - name: Upload JAR artifacts
+      #   if: success()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: tiny-git-jars
+      #     path: |
+      #       build/libs/*.jar
+      #     if-no-files-found: warn
+      #     retention-days: 14

@@ -4,6 +4,7 @@ These are common instructions for agents across all scenarios.
 
 ## General Guidelines
 
+- Never stage changes yourself to Git.
 - Never use '…', even in user-facing code; always use '...'.
 - Never use lewd, explicit, or NSFW terms in test fixtures, examples, placeholders, or production default values in the frontend or backend.
     Use neutral, professional sample content instead (e.g. landscapes, vehicles, everyday objects).
