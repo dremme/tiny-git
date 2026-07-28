@@ -51,7 +51,9 @@ import hamburg.remme.tinygit.isMac
 import javafx.application.Platform
 import javafx.concurrent.Task
 import javafx.scene.control.TabPane
+import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Priority
 import javafx.stage.Stage
 
@@ -175,6 +177,34 @@ class GitView : VBoxBuilder() {
                 repoService.activeRepository.isNull, // TODO: own prop?
                 handler = { TinyGit.fireEvent() },
             )
+
+        // Menu accelerators run after the focused node. TreeView/ListView bind F2 for
+        // cell editing and consume it even when not editable, so the menu never sees F2
+        // when the repository tree (or a list) has focus. Handle function keys in the
+        // capturing phase so F1–F3/F5 always switch tabs / refresh.
+        addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+            if (e.isShortcutDown || e.isAltDown || e.isMetaDown || e.isShiftDown) return@addEventFilter
+            if (repoService.activeRepository.get() == null) return@addEventFilter
+            when (e.code) {
+                KeyCode.F1 -> {
+                    showCommits.handler()
+                    e.consume()
+                }
+                KeyCode.F2 -> {
+                    showWorkingCopy.handler()
+                    e.consume()
+                }
+                KeyCode.F3 -> {
+                    showStats.handler()
+                    e.consume()
+                }
+                KeyCode.F5 -> {
+                    refresh.handler()
+                    e.consume()
+                }
+                else -> Unit
+            }
+        }
         // Repository
         val commit =
             Action(
